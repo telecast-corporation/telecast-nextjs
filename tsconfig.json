@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    "target": "ES2017",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@/*": ["../telecast-next3/src/*"]
+    }
+  },
+  "include": ["../telecast-next3/next-env.d.ts", "../telecast-next3/**/*.ts", "../telecast-next3/**/*.tsx", "../telecast-next3/.next/types/**/*.ts"],
+  "exclude": ["../telecast-next3/node_modules"]
+}
