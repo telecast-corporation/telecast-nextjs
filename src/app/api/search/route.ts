@@ -33,21 +33,24 @@ async function getSpotifyAccessToken() {
   const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
 
   if (!clientId || !clientSecret) {
-    throw new Error('Spotify credentials not configured');
+    console.warn('Spotify credentials not configured');
+    return null;
   }
 
-  const response = await fetch('https://accounts.spotify.com/api/token', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-      Authorization: `Basic ${Buffer.from(`${clientId}:${clientSecret}`).toString('base64')}`,
-    },
-    body: 'grant_type=client_credentials',
-  });
+  try {
+    const response = await fetch('https://accounts.spotify.com/api/token', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        Authorization: `Basic ${Buffer.from(`${clientId}:${clientSecret}`).toString('base64')}`,
+      },
+      body: 'grant_type=client_credentials',
+    });
 
-  if (!response.ok) {
-    throw new Error('Failed to get Spotify access token');
-  }
+    if (!response.ok) {
+      console.warn('Failed to get Spotify access token:', await response.text());
+      return null;
+    }
 
   const data = await response.json();
   return data.access_token;
