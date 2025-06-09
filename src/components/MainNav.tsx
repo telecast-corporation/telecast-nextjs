@@ -26,6 +26,10 @@ import {
   ListItemIcon,
   Drawer,
   useMediaQuery,
+  TextField,
+  InputAdornment,
+  Tabs,
+  Tab,
 } from '@mui/material';
 import {
   Search as SearchIcon,
@@ -146,6 +150,8 @@ const MainNav = memo(() => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [cachedSearchQuery, setCachedSearchQuery] = useState('');
   const [cachedSearchResults, setCachedSearchResults] = useState<SearchResult[]>([]);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('all');
 
   // Add debounced search query
   const debouncedSearchQuery = useDebounce(searchQuery, 100); // 100ms delay
@@ -382,6 +388,65 @@ const MainNav = memo(() => {
       </Paper>
     );
   }, [searchQuery, isLoading, searchResults, handleResultClick, getIconForType, theme.shadows]);
+
+  const handleTabChange = (event: React.SyntheticEvent, newValue: string) => {
+    setActiveTab(newValue);
+    if (searchQuery) {
+      router.push(`/search?q=${encodeURIComponent(searchQuery)}&type=${newValue}`);
+    }
+  };
+
+  const handleDrawerToggle = () => {
+    setDrawerOpen(!drawerOpen);
+  };
+
+  const handleNavigation = (path: string) => {
+    router.push(path);
+    setDrawerOpen(false);
+  };
+
+  const navItems = [
+    { label: 'Home', icon: <HomeIcon />, path: '/' },
+    { label: 'Videos', icon: <VideoIcon />, path: '/videos' },
+    { label: 'Podcasts', icon: <PodcastIcon />, path: '/podcasts' },
+    { label: 'Books', icon: <BookIcon />, path: '/books' },
+  ];
+
+  const drawer = (
+    <Box sx={{ width: 250 }} role="presentation">
+      <List>
+        {navItems.map((item) => (
+          <ListItem 
+            button 
+            key={item.label} 
+            onClick={() => handleNavigation(item.path)}
+          >
+            <ListItemIcon>{item.icon}</ListItemIcon>
+            <ListItemText primary={item.label} />
+          </ListItem>
+        ))}
+      </List>
+      <Divider />
+      <Box sx={{ p: 2 }}>
+        <form onSubmit={handleSearch}>
+          <TextField
+            fullWidth
+            size="small"
+            placeholder="Search..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon />
+                </InputAdornment>
+              ),
+            }}
+          />
+        </form>
+      </Box>
+    </Box>
+  );
 
   // Don't render the navbar until auth state is determined
   if (authLoading) {

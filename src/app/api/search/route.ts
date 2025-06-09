@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
+import axios from 'axios';
 
 interface SearchResult {
   id: number | string;
@@ -15,6 +16,16 @@ interface SearchResult {
   category?: string;
   tags?: string[];
   type: 'podcast' | 'video' | 'music' | 'book';
+}
+
+const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;
+const YOUTUBE_API_URL = 'https://www.googleapis.com/youtube/v3';
+const GOOGLE_BOOKS_API_URL = 'https://www.googleapis.com/books/v1/volumes';
+
+interface SearchRequest {
+  query: string;
+  types: string[];
+  maxResults?: number;
 }
 
 async function getSpotifyAccessToken() {
@@ -42,452 +53,128 @@ async function getSpotifyAccessToken() {
   return data.access_token;
 }
 
-export async function GET(req: Request) {
+async function searchYouTube(query: string, maxResults: number = 10) {
   try {
-    const { searchParams } = new URL(req.url);
-    const query = searchParams.get('q');
-    const type = searchParams.get('type')?.toLowerCase() || 'all';
-    const popular = searchParams.get('popular') === 'true';
+    const response = await axios.get('https://www.googleapis.com/youtube/v3/search', {
+      params: {
+        part: 'snippet',
+        maxResults,
+        q: query,
+        type: 'video',
+        key: process.env.YOUTUBE_API_KEY,
+      },
+    });
 
-    // If no query but popular is requested, return trending/popular content for the category
-    if (!query && popular) {
-      return getPopularContent(type);
-    }
-
-    if (!query) {
-      return NextResponse.json({ error: 'Query is required' }, { status: 400 });
-    }
-
-    let allResults: SearchResult[] = [];
-
-    // Search in our database for podcasts
-    if (type === 'all' || type === 'podcast') {
-      const dbResults = await prisma.podcast.findMany({
-        where: {
-          OR: [
-            { title: { contains: query, mode: 'insensitive' } },
-            { description: { contains: query, mode: 'insensitive' } },
-            { tags: { hasSome: [query] } },
-          ],
-        },
-        include: {
-          user: {
-            select: {
-              name: true,
-              image: true,
-            },
-          },
-        },
-        take: 10,
-      });
-
-      // Format database results
-      const formattedDbResults = dbResults.map(podcast => ({
-        id: parseInt(podcast.id),
-        title: podcast.title,
-        description: podcast.description,
-        imageUrl: podcast.imageUrl,
-        author: podcast.user.name || 'Anonymous',
-        source: 'telecast' as const,
-        category: podcast.category,
-        tags: podcast.tags,
-        type: 'podcast' as const,
-      }));
-
-      allResults = [...allResults, ...formattedDbResults];
-
-      // Search in Spotify for podcasts
-      try {
-        const accessToken = await getSpotifyAccessToken();
-        const spotifyResponse = await fetch(
-          `https://api.spotify.com/v1/search?q=${encodeURIComponent(
-            query
-          )}&type=show&market=US&limit=10`,
-          {
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-            },
-          }
-        );
-
-        if (spotifyResponse.ok) {
-          const spotifyData = await spotifyResponse.json();
-          const spotifyResults = spotifyData.shows.items.map((show: any) => ({
-            id: show.id,
-            title: show.name,
-            description: show.description,
-            imageUrl: show.images[0]?.url,
-            author: show.publisher,
-            source: 'spotify',
-            category: show.primary_category,
-            tags: show.categories,
-            type: 'podcast' as const,
-          }));
-          allResults = [...allResults, ...spotifyResults];
-        }
-      } catch (error) {
-        console.warn('Error fetching from Spotify:', error);
-      }
-    }
-
-    // Search for videos
-    if (type === 'all' || type === 'video') {
-      // Mock video search (replace with actual video API)
-      const videoResults = [
-        {
-          id: 1,
-          title: 'Top Tech Trends 2024',
-          description: 'Exploring the latest technology trends that will shape the future',
-          imageUrl: 'https://images.unsplash.com/photo-1518709268805-4e9042af2176',
-          author: 'Tech Insider',
-          source: 'telecast' as const,
-          category: 'Technology',
-          tags: ['tech', 'trends', '2024'],
-          type: 'video' as const,
-        },
-        {
-          id: 2,
-          title: 'Coding Tutorial: React Basics',
-          description: 'Learn the fundamentals of React development',
-          imageUrl: 'https://images.unsplash.com/photo-1633356122544-f134324a6cee',
-          author: 'Code Academy',
-          source: 'telecast' as const,
-          category: 'Education',
-          tags: ['coding', 'react', 'tutorial'],
-          type: 'video' as const,
-        },
-      ].filter(video => 
-        video.title.toLowerCase().includes(query.toLowerCase()) ||
-        video.description.toLowerCase().includes(query.toLowerCase()) ||
-        video.tags.some(tag => tag.toLowerCase().includes(query.toLowerCase()))
-      );
-      allResults = [...allResults, ...videoResults];
-    }
-
-    // Search for music
-    if (type === 'all' || type === 'music') {
-      let results: SearchResult[] = [];
-      try {
-        const accessToken = await getSpotifyAccessToken();
-        // Get top tracks from Spotify
-        const spotifyResponse = await fetch(
-          'https://api.spotify.com/v1/playlists/37i9dQZEVXbMDoHDwVN2tF/tracks?limit=20', // Global Top 50 playlist
-          {
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-            },
-          }
-        );
-
-        if (spotifyResponse.ok) {
-          const spotifyData = await spotifyResponse.json();
-          results = spotifyData.items.map((item: any) => {
-            const track = item.track;
-            return {
-              id: track.id,
-              title: track.name,
-              description: `${track.artists.map((artist: any) => artist.name).join(', ')} - ${track.album.name}`,
-              imageUrl: track.album.images[0]?.url,
-              author: track.artists.map((artist: any) => artist.name).join(', '),
-              source: 'spotify' as const,
-              category: track.album.album_type,
-              tags: track.artists.map((artist: any) => artist.name),
-              type: 'music' as const,
-            };
-          });
-        } else {
-          console.warn('Spotify API request failed:', await spotifyResponse.text());
-          // Fallback to mock data if API fails
-          results = [
-            {
-              id: 1,
-              title: 'Chill Vibes Playlist',
-              description: 'Relaxing music for work and study',
-              imageUrl: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f',
-              author: 'Various Artists',
-              source: 'telecast' as const,
-              category: 'Playlist',
-              tags: ['chill', 'ambient', 'study'],
-              type: 'music' as const,
-            },
-            {
-              id: 2,
-              title: 'Top Hits 2024',
-              description: 'The biggest songs of the year',
-              imageUrl: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745',
-              author: 'Hit Radio',
-              source: 'telecast' as const,
-              category: 'Pop',
-              tags: ['hits', 'popular', '2024'],
-              type: 'music' as const,
-            },
-          ];
-        }
-      } catch (error) {
-        console.warn('Error fetching from Spotify:', error);
-        // Fallback to mock data if API fails
-        results = [
-          {
-            id: 1,
-            title: 'Chill Vibes Playlist',
-            description: 'Relaxing music for work and study',
-            imageUrl: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f',
-            author: 'Various Artists',
-            source: 'telecast' as const,
-            category: 'Playlist',
-            tags: ['chill', 'ambient', 'study'],
-            type: 'music' as const,
-          },
-          {
-            id: 2,
-            title: 'Top Hits 2024',
-            description: 'The biggest songs of the year',
-            imageUrl: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745',
-            author: 'Hit Radio',
-            source: 'telecast' as const,
-            category: 'Pop',
-            tags: ['hits', 'popular', '2024'],
-            type: 'music' as const,
-          },
-        ];
-      }
-      allResults = [...allResults, ...results];
-    }
-
-    // Search for books
-    if (type === 'all' || type === 'book') {
-      // Mock book search (replace with actual book API)
-      const bookResults = [
-        {
-          id: 1,
-          title: 'The Future of Work',
-          description: 'Understanding how technology is changing the workplace',
-          imageUrl: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570',
-          author: 'Business Expert',
-          source: 'telecast' as const,
-          category: 'Business',
-          tags: ['future', 'work', 'technology'],
-          type: 'book' as const,
-        },
-        {
-          id: 2,
-          title: 'Mindfulness for Beginners',
-          description: 'A practical guide to meditation and mindfulness',
-          imageUrl: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f',
-          author: 'Wellness Coach',
-          source: 'telecast' as const,
-          category: 'Self-Help',
-          tags: ['mindfulness', 'meditation', 'wellness'],
-          type: 'book' as const,
-        },
-      ].filter(book => 
-        book.title.toLowerCase().includes(query.toLowerCase()) ||
-        book.description.toLowerCase().includes(query.toLowerCase()) ||
-        book.tags.some(tag => tag.toLowerCase().includes(query.toLowerCase()))
-      );
-      allResults = [...allResults, ...bookResults];
-    }
-
-    return NextResponse.json(allResults);
+    return response.data.items.map((item: any) => ({
+      type: 'video',
+      id: item.id.videoId,
+      title: item.snippet.title,
+      description: item.snippet.description,
+      thumbnail: item.snippet.thumbnails.high.url,
+      url: `https://www.youtube.com/watch?v=${item.id.videoId}`,
+      channelTitle: item.snippet.channelTitle,
+      publishedAt: item.snippet.publishedAt,
+    }));
   } catch (error) {
-    console.error('Error searching content:', error);
-    return NextResponse.json(
-      { error: 'Error searching content' },
-      { status: 500 }
-    );
+    console.error('YouTube search error:', error);
+    return [];
   }
 }
 
-async function getPopularContent(type: string): Promise<NextResponse> {
+async function searchBooks(query: string, maxResults: number = 10) {
   try {
-    let results: SearchResult[] = [];
+    const response = await axios.get('https://www.googleapis.com/books/v1/volumes', {
+      params: {
+        q: query,
+        maxResults,
+        key: process.env.GOOGLE_BOOKS_API_KEY,
+      },
+    });
 
-    switch (type) {
-      case 'podcasts':
-        // Get popular podcasts from database
-        const popularPodcasts = await prisma.podcast.findMany({
-          include: {
-            user: {
-              select: {
-                name: true,
-                image: true,
-              },
-            },
-          },
-          orderBy: {
-            createdAt: 'desc', // You could change this to order by plays, likes, etc.
-          },
-          take: 20,
-        });
+    return response.data.items.map((item: any) => ({
+      type: 'book',
+      id: item.id,
+      title: item.volumeInfo.title,
+      description: item.volumeInfo.description,
+      thumbnail: item.volumeInfo.imageLinks?.thumbnail,
+      url: item.volumeInfo.infoLink,
+      authors: item.volumeInfo.authors,
+      publishedDate: item.volumeInfo.publishedDate,
+      categories: item.volumeInfo.categories,
+      rating: item.volumeInfo.averageRating,
+      ratingsCount: item.volumeInfo.ratingsCount,
+    }));
+  } catch (error) {
+    console.error('Books search error:', error);
+    return [];
+  }
+}
 
-        results = popularPodcasts.map(podcast => ({
-          id: parseInt(podcast.id),
-          title: podcast.title,
-          description: podcast.description,
-          imageUrl: podcast.imageUrl,
-          author: podcast.user.name || 'Anonymous',
-          source: 'telecast' as const,
-          category: podcast.category,
-          tags: podcast.tags,
-          type: 'podcast' as const,
-        }));
-        break;
+async function searchPodcasts(query: string, maxResults: number = 10) {
+  // TODO: Implement podcast search
+  return [];
+}
 
-      case 'videos':
-        // Mock video content (you can replace with actual video API)
-        results = [
-          {
-            id: 1,
-            title: 'Top Tech Trends 2024',
-            description: 'Exploring the latest technology trends that will shape the future',
-            imageUrl: 'https://images.unsplash.com/photo-1518709268805-4e9042af2176',
-            author: 'Tech Insider',
-            source: 'telecast' as const,
-            category: 'Technology',
-            tags: ['tech', 'trends', '2024'],
-            type: 'video' as const,
-          },
-          {
-            id: 2,
-            title: 'Coding Tutorial: React Basics',
-            description: 'Learn the fundamentals of React development',
-            imageUrl: 'https://images.unsplash.com/photo-1633356122544-f134324a6cee',
-            author: 'Code Academy',
-            source: 'telecast' as const,
-            category: 'Education',
-            tags: ['coding', 'react', 'tutorial'],
-            type: 'video' as const,
-          },
-        ];
-        break;
+export async function POST(request: Request) {
+  try {
+    const body: SearchRequest = await request.json();
+    const { query, types, maxResults = 20 } = body;
 
-      case 'music':
-        try {
-          const accessToken = await getSpotifyAccessToken();
-          // Get top tracks from Spotify
-          const spotifyResponse = await fetch(
-            'https://api.spotify.com/v1/playlists/37i9dQZEVXbMDoHDwVN2tF/tracks?limit=20', // Global Top 50 playlist
-            {
-              headers: {
-                Authorization: `Bearer ${accessToken}`,
-              },
-            }
-          );
-
-          if (spotifyResponse.ok) {
-            const spotifyData = await spotifyResponse.json();
-            results = spotifyData.items.map((item: any) => {
-              const track = item.track;
-              return {
-                id: track.id,
-                title: track.name,
-                description: `${track.artists.map((artist: any) => artist.name).join(', ')} - ${track.album.name}`,
-                imageUrl: track.album.images[0]?.url,
-                author: track.artists.map((artist: any) => artist.name).join(', '),
-                source: 'spotify' as const,
-                category: track.album.album_type,
-                tags: track.artists.map((artist: any) => artist.name),
-                type: 'music' as const,
-              };
-            });
-          } else {
-            console.warn('Spotify API request failed:', await spotifyResponse.text());
-            // Fallback to mock data if API fails
-            results = [
-              {
-                id: 1,
-                title: 'Chill Vibes Playlist',
-                description: 'Relaxing music for work and study',
-                imageUrl: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f',
-                author: 'Various Artists',
-                source: 'telecast' as const,
-                category: 'Playlist',
-                tags: ['chill', 'ambient', 'study'],
-                type: 'music' as const,
-              },
-              {
-                id: 2,
-                title: 'Top Hits 2024',
-                description: 'The biggest songs of the year',
-                imageUrl: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745',
-                author: 'Hit Radio',
-                source: 'telecast' as const,
-                category: 'Pop',
-                tags: ['hits', 'popular', '2024'],
-                type: 'music' as const,
-              },
-            ];
-          }
-        } catch (error) {
-          console.warn('Error fetching from Spotify:', error);
-          // Fallback to mock data if API fails
-          results = [
-            {
-              id: 1,
-              title: 'Chill Vibes Playlist',
-              description: 'Relaxing music for work and study',
-              imageUrl: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f',
-              author: 'Various Artists',
-              source: 'telecast' as const,
-              category: 'Playlist',
-              tags: ['chill', 'ambient', 'study'],
-              type: 'music' as const,
-            },
-            {
-              id: 2,
-              title: 'Top Hits 2024',
-              description: 'The biggest songs of the year',
-              imageUrl: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745',
-              author: 'Hit Radio',
-              source: 'telecast' as const,
-              category: 'Pop',
-              tags: ['hits', 'popular', '2024'],
-              type: 'music' as const,
-            },
-          ];
-        }
-        break;
-
-      case 'books':
-        // Mock book content (you can integrate with book APIs)
-        results = [
-          {
-            id: 1,
-            title: 'The Future of Work',
-            description: 'Understanding how technology is changing the workplace',
-            imageUrl: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570',
-            author: 'Business Expert',
-            source: 'telecast' as const,
-            category: 'Business',
-            tags: ['future', 'work', 'technology'],
-            type: 'book' as const,
-          },
-          {
-            id: 2,
-            title: 'Mindfulness for Beginners',
-            description: 'A practical guide to meditation and mindfulness',
-            imageUrl: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f',
-            author: 'Wellness Coach',
-            source: 'telecast' as const,
-            category: 'Self-Help',
-            tags: ['mindfulness', 'meditation', 'wellness'],
-            type: 'book' as const,
-          },
-        ];
-        break;
-
-      default:
-        // Return all types
-        const allPodcastsResponse = await getPopularContent('podcasts');
-        const allPodcasts = await allPodcastsResponse.json() as SearchResult[];
-        return NextResponse.json(allPodcasts);
+    if (!query) {
+      return NextResponse.json(
+        { error: 'Query parameter is required' },
+        { status: 400 }
+      );
     }
 
-    return NextResponse.json(results);
+    const searchPromises = [];
+
+    if (types.includes('all') || types.includes('video')) {
+      searchPromises.push(searchYouTube(query, maxResults));
+    }
+
+    if (types.includes('all') || types.includes('book')) {
+      searchPromises.push(searchBooks(query, maxResults));
+    }
+
+    if (types.includes('all') || types.includes('podcast')) {
+      searchPromises.push(searchPodcasts(query, maxResults));
+    }
+
+    const results = await Promise.allSettled(searchPromises);
+    const searchResults = results
+      .filter((result): result is PromiseFulfilledResult<any[]> => result.status === 'fulfilled')
+      .flatMap(result => result.value);
+
+    // Sort results by relevance (you might want to implement a more sophisticated sorting algorithm)
+    searchResults.sort((a, b) => {
+      const aTitle = a.title.toLowerCase();
+      const bTitle = b.title.toLowerCase();
+      const queryLower = query.toLowerCase();
+      
+      const aExactMatch = aTitle === queryLower;
+      const bExactMatch = bTitle === queryLower;
+      
+      if (aExactMatch && !bExactMatch) return -1;
+      if (!aExactMatch && bExactMatch) return 1;
+      
+      const aStartsWith = aTitle.startsWith(queryLower);
+      const bStartsWith = bTitle.startsWith(queryLower);
+      
+      if (aStartsWith && !bStartsWith) return -1;
+      if (!aStartsWith && bStartsWith) return 1;
+      
+      return 0;
+    });
+
+    return NextResponse.json({
+      results: searchResults,
+      total: searchResults.length,
+    });
   } catch (error) {
-    console.error('Error fetching popular content:', error);
+    console.error('Search error:', error);
     return NextResponse.json(
-      { error: 'Error fetching popular content' },
+      { error: 'An error occurred while searching' },
       { status: 500 }
     );
   }
