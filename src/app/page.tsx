@@ -1,290 +1,655 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { 
   Container, 
   Typography, 
   Grid, 
   Card, 
   CardContent, 
-  CardMedia, 
+  CardMedia,
   Box,
   Button,
+  CircularProgress,
+  Alert,
+  Dialog,
+  DialogContent,
   IconButton,
-  useTheme,
-  Divider
+  Chip
 } from '@mui/material';
-import PlayArrowIcon from '@mui/icons-material/PlayArrow';
-import { useRouter } from 'next/navigation';
+import { PlayArrow, Share, Close } from '@mui/icons-material';
 
-interface TrendingItem {
-  id: string;
-  title: string;
-  description: string;
-  imageUrl: string;
-  category: 'podcast' | 'video' | 'music' | 'book';
-  author: string;
+interface TrendingContent {
+  podcasts: Array<{
+    id: string;
+    title: string;
+    description: string;
+    image?: string;
+    enclosureUrl: string;
+    url?: string;
+    author?: string;
+    episodeCount?: number;
+    categories?: Record<string, string>;
+  }>;
+  videos: Array<{
+    id: { videoId: string };
+    snippet: {
+      title: string;
+      description: string;
+      thumbnails: {
+        medium: { url: string };
+      };
+    };
+    url?: string;
+  }>;
+  songs: Array<{
+    id: string;
+    name: string;
+    artists: Array<{ name: string }>;
+    album: {
+      images: Array<{ url: string }>;
+    };
+    preview_url: string;
+    url?: string;
+  }>;
+  books: Array<{
+    id: string;
+    volumeInfo: {
+      title: string;
+      authors?: string[];
+      imageLinks?: {
+        thumbnail: string;
+      };
+    };
+    url?: string;
+  }>;
 }
 
 export default function HomePage() {
-  const router = useRouter();
-  const theme = useTheme();
-  const [trendingContent, setTrendingContent] = useState<Record<string, TrendingItem[]>>({
-    podcast: [],
-    video: [],
-    music: [],
-    book: []
+  const [trendingContent, setTrendingContent] = useState<TrendingContent>({
+    podcasts: [],
+    videos: [],
+    songs: [],
+    books: []
   });
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [mediaDialog, setMediaDialog] = useState<{
+    open: boolean;
+    type: 'audio' | 'video' | 'youtube' | 'spotify' | null;
+    url: string | null;
+    title: string;
+    loading: boolean;
+    error: string | null;
+    currentPodcastIndex?: number;
+  }>({
+    open: false,
+    type: null,
+    url: null,
+    title: '',
+    loading: false,
+    error: null,
+    currentPodcastIndex: undefined
+  });
+
+  const audioRef = useRef<HTMLAudioElement>(null);
 
   useEffect(() => {
-    // TODO: Replace with actual API call
-    const mockData: Record<string, TrendingItem[]> = {
-      podcast: [
-        {
-          id: '1',
-          title: 'The Future of AI',
-          description: 'Exploring the latest developments in artificial intelligence',
-          imageUrl: 'https://images.unsplash.com/photo-1677442136019-21780ecad995',
-          category: 'podcast',
-          author: 'Tech Insights'
-        },
-        {
-          id: '2',
-          title: 'Morning Meditation',
-          description: 'Start your day with peace and mindfulness',
-          imageUrl: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773',
-          category: 'podcast',
-          author: 'Mindful Living'
-        },
-        {
-          id: '6',
-          title: 'Business Success',
-          description: 'Strategies for growing your business',
-          imageUrl: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f',
-          category: 'podcast',
-          author: 'Business Pro'
+    const fetchTrendingContent = async () => {
+      try {
+        const response = await fetch('/api/trending');
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
         }
-      ],
-      video: [
-        {
-          id: '3',
-          title: 'Cooking Masterclass',
-          description: 'Learn to cook like a professional chef',
-          imageUrl: 'https://images.unsplash.com/photo-1556910103-1c02745aae4d',
-          category: 'video',
-          author: 'Chef Sarah'
-        },
-        {
-          id: '7',
-          title: 'Travel Vlog: Japan',
-          description: 'Exploring the hidden gems of Tokyo',
-          imageUrl: 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e',
-          category: 'video',
-          author: 'Travel Explorer'
-        },
-        {
-          id: '8',
-          title: 'Fitness Journey',
-          description: 'Transform your body in 30 days',
-          imageUrl: 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438',
-          category: 'video',
-          author: 'Fit Life'
-        }
-      ],
-      music: [
-        {
-          id: '4',
-          title: 'Summer Vibes',
-          description: 'The hottest tracks for your summer playlist',
-          imageUrl: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4',
-          category: 'music',
-          author: 'DJ Cool'
-        },
-        {
-          id: '9',
-          title: 'Chill Beats',
-          description: 'Relaxing melodies for your study session',
-          imageUrl: 'https://images.unsplash.com/photo-1511379938547-c1f69419868d',
-          category: 'music',
-          author: 'LoFi Master'
-        },
-        {
-          id: '10',
-          title: 'Rock Classics',
-          description: 'The greatest rock hits of all time',
-          imageUrl: 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7',
-          category: 'music',
-          author: 'Rock Radio'
-        }
-      ],
-      book: [
-        {
-          id: '5',
-          title: 'The Art of Programming',
-          description: 'Master the fundamentals of coding',
-          imageUrl: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c',
-          category: 'book',
-          author: 'Code Master'
-        },
-        {
-          id: '11',
-          title: 'Mindful Living',
-          description: 'A guide to finding inner peace',
-          imageUrl: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f',
-          category: 'book',
-          author: 'Zen Master'
-        },
-        {
-          id: '12',
-          title: 'Financial Freedom',
-          description: 'Steps to achieve financial independence',
-          imageUrl: 'https://images.unsplash.com/photo-1579621970563-ebec7560ff3e',
-          category: 'book',
-          author: 'Money Expert'
-        }
-      ]
+        const data = await response.json();
+        console.log('Trending content data:', data);
+        
+        // Validate and process the data
+        const processedData = {
+          podcasts: data.podcasts?.map((podcast: any) => ({
+            ...podcast,
+            enclosureUrl: podcast.enclosureUrl || podcast.url || null
+          })) || [],
+          videos: data.videos || [],
+          songs: data.songs?.map((song: any) => ({
+            ...song,
+            preview_url: song.preview_url || song.url || null
+          })) || [],
+          books: data.books || []
+        };
+        
+        setTrendingContent(processedData);
+      } catch (err) {
+        console.error('Error fetching trending content:', err);
+        setError('Failed to load content. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
     };
-    setTrendingContent(mockData);
-    setLoading(false);
+
+    fetchTrendingContent();
   }, []);
 
-  const handleItemClick = (item: TrendingItem) => {
-    router.push(`/${item.category}/${item.id}`);
-  };
+  const handleMediaPlay = (type: 'audio' | 'video', url: string, title: string) => {
+    setMediaDialog({
+      open: true,
+      type,
+      url,
+      title,
+      loading: true,
+      error: null
+    });
 
-  const getCategoryColor = (category: string) => {
-    switch (category) {
-      case 'podcast':
-        return theme.palette.primary.main; // Vibrant Orange
-      case 'video':
-        return theme.palette.secondary.main; // Vibrant Orange (Secondary)
-      case 'music':
-        return theme.palette.tertiary.main; // Hunyadi Yellow
-      case 'book':
-        return theme.palette.info.main; // Robin Egg Blue
-      default:
-        return theme.palette.primary.main;
+    // If it's audio, proxy the URL through our API
+    if (type === 'audio') {
+      const proxyUrl = `/api/proxy?url=${encodeURIComponent(url)}`;
+      setMediaDialog(prev => ({
+        ...prev,
+        url: proxyUrl
+      }));
+    }
+
+    // If it's audio, try to load it immediately
+    if (type === 'audio' && audioRef.current) {
+      audioRef.current.load();
     }
   };
 
-  const renderCategorySection = (category: string, items: TrendingItem[]) => {
-    const categoryTitle = category.charAt(0).toUpperCase() + category.slice(1);
-    return (
-      <Box sx={{ mb: 8 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-          <Typography variant="h4" component="h2" sx={{ 
-            color: getCategoryColor(category),
-            fontWeight: 600
-          }}>
-            Trending {categoryTitle}
-          </Typography>
-          <Button 
-            variant="text" 
-            onClick={() => router.push(`/search?type=${category}`)}
-            sx={{ 
-              color: getCategoryColor(category),
-              '&:hover': {
-                backgroundColor: `${getCategoryColor(category)}10`
-              }
-            }}
-          >
-            View All
-          </Button>
-        </Box>
-        <Grid container spacing={3}>
-          {items.map((item) => (
-            <Grid item xs={12} sm={6} md={4} key={item.id}>
-              <Card 
-                sx={{ 
-                  height: '100%',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  transition: 'transform 0.2s',
-                  '&:hover': {
-                    transform: 'scale(1.02)',
-                    cursor: 'pointer'
-                  }
-                }}
-                onClick={() => handleItemClick(item)}
-              >
-                <Box sx={{ position: 'relative' }}>
-                  <CardMedia
-                    component="img"
-                    height="200"
-                    image={item.imageUrl}
-                    alt={item.title}
-                  />
-                  <Box
-                    sx={{
-                      position: 'absolute',
-                      top: 8,
-                      right: 8,
-                      bgcolor: getCategoryColor(item.category),
-                      color: 'white',
-                      px: 1,
-                      py: 0.5,
-                      borderRadius: 1,
-                      textTransform: 'uppercase',
-                      fontSize: '0.75rem',
-                      fontWeight: 'bold'
-                    }}
-                  >
-                    {item.category}
-                  </Box>
-                </Box>
-                <CardContent sx={{ flexGrow: 1 }}>
-                  <Typography gutterBottom variant="h6" component="h2">
-                    {item.title}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                    {item.description}
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    By {item.author}
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-          ))}
-        </Grid>
-      </Box>
-    );
+  const handleCloseMedia = () => {
+    setMediaDialog({
+      open: false,
+      type: null,
+      url: null,
+      title: '',
+      loading: false,
+      error: null
+    });
+  };
+
+  const handleMediaError = () => {
+    setMediaDialog(prev => ({
+      ...prev,
+      loading: false,
+      error: 'Failed to load media. Please try again later.'
+    }));
+  };
+
+  const handleMediaLoaded = () => {
+    setMediaDialog(prev => ({
+      ...prev,
+      loading: false,
+      error: null
+    }));
+  };
+
+  // Helper to play a podcast by index
+  const playPodcastByIndex = (index: number) => {
+    if (!trendingContent || !trendingContent.podcasts) return;
+    const podcast = trendingContent.podcasts[index];
+    if (!podcast) return;
+    const url = podcast.enclosureUrl || podcast.url;
+    if (url) {
+      if (url.match(/\.(mp3|m4a|wav|ogg|aac)$/i)) {
+        setMediaDialog({
+          open: true,
+          type: 'audio',
+          url: `/api/proxy?url=${encodeURIComponent(url)}`,
+          title: podcast.title,
+          loading: true,
+          error: null,
+          currentPodcastIndex: index
+        });
+      } else {
+        fetch(url)
+          .then(response => {
+            if (!response.ok) throw new Error('Failed to fetch podcast feed');
+            return response.text();
+          })
+          .then(feedContent => {
+            const audioUrlMatch = feedContent.match(/<enclosure[^>]+url="([^"]+)"/i);
+            if (audioUrlMatch && audioUrlMatch[1]) {
+              setMediaDialog({
+                open: true,
+                type: 'audio',
+                url: `/api/proxy?url=${encodeURIComponent(audioUrlMatch[1])}`,
+                title: podcast.title,
+                loading: true,
+                error: null,
+                currentPodcastIndex: index
+              });
+            } else {
+              throw new Error('No audio URL found in podcast feed');
+            }
+          })
+          .catch(error => {
+            setMediaDialog({
+              open: true,
+              type: 'audio',
+              url: null,
+              title: podcast.title,
+              loading: false,
+              error: 'Failed to load podcast. Please try again later.',
+              currentPodcastIndex: index
+            });
+          });
+      }
+    }
   };
 
   if (loading) {
     return (
-      <Container maxWidth="lg" sx={{ py: 8 }}>
-        <Typography>Loading...</Typography>
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Container maxWidth="lg" sx={{ py: 4 }}>
+        <Alert severity="error">{error}</Alert>
       </Container>
     );
   }
 
   return (
-    <Container maxWidth="lg" sx={{ py: 8 }}>
-      <Box sx={{ textAlign: 'center', mb: 6 }}>
-        <Typography
-          variant="h2"
-          component="h1"
-          sx={{
-          fontWeight: 700,
-            mb: 2,
-            color: 'primary.main',
-          }}
-        >
-          Your Gateway to Amazing Content
-        </Typography>
-        <Typography variant="h5" color="text.secondary" sx={{ mb: 4 }}>
-          Discover podcasts, videos, music, and books that inspire and entertain
-        </Typography>
-      </Box>
+    <Container maxWidth="lg" sx={{ py: 4 }}>
+      <Typography variant="h4" component="h1" gutterBottom>
+        Trending Content
+      </Typography>
 
-      {Object.entries(trendingContent).map(([category, items]) => (
-        <Box key={category}>
-          {renderCategorySection(category, items)}
-          {category !== 'book' && <Divider sx={{ my: 4 }} />}
+      {/* Podcasts Section */}
+      {trendingContent.podcasts.length > 0 && (
+        <Box sx={{ mb: 6 }}>
+          <Typography variant="h5" gutterBottom>Recent Podcasts</Typography>
+          <Grid container spacing={3}>
+            {trendingContent.podcasts.map((podcast) => (
+              <Grid item xs={12} sm={6} md={4} key={podcast.id}>
+                <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                  <CardMedia
+                    component="img"
+                    height="200"
+                    image={podcast.image || 'https://via.placeholder.com/200'}
+                    alt={podcast.title}
+                  />
+                  <CardContent sx={{ flexGrow: 1 }}>
+                    <Typography gutterBottom variant="h6" component="h2">
+                      {podcast.title}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                      By {podcast.author || 'Unknown Author'}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" paragraph>
+                      {podcast.description}
+                    </Typography>
+                    {podcast.episodeCount && (
+                      <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                        {podcast.episodeCount} episodes
+                      </Typography>
+                    )}
+                    {podcast.categories && Object.values(podcast.categories).length > 0 && (
+                      <Box sx={{ mb: 2, display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                        {Object.values(podcast.categories).slice(0, 3).map((category: string, index) => (
+                          <Chip
+                            key={index}
+                            label={category}
+                            size="small"
+                            sx={{ backgroundColor: 'rgba(0, 0, 0, 0.08)' }}
+                          />
+                        ))}
+                      </Box>
+                    )}
+                    <Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-between' }}>
+                      <Button
+                        startIcon={<PlayArrow />}
+                        size="small"
+                        onClick={() => {
+                          if (!trendingContent || !trendingContent.podcasts) return;
+                          const index = trendingContent.podcasts.findIndex((p: any) => p.id === podcast.id);
+                          playPodcastByIndex(index);
+                        }}
+                      >
+                        Play
+                      </Button>
+                      <Button 
+                        startIcon={<Share />} 
+                        size="small"
+                        onClick={() => {
+                          const url = podcast.enclosureUrl || podcast.url;
+                          if (url) {
+                            navigator.clipboard.writeText(url);
+                            alert('Link copied to clipboard!');
+                          } else {
+                            alert('No shareable content available');
+                          }
+                        }}
+                      >
+                        Share
+                      </Button>
+                    </Box>
+                  </CardContent>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
         </Box>
-      ))}
+      )}
+
+      {/* Videos Section */}
+      {trendingContent.videos.length > 0 && (
+        <Box sx={{ mb: 6 }}>
+          <Typography variant="h5" gutterBottom>Videos</Typography>
+          <Grid container spacing={3}>
+            {trendingContent.videos.map((video) => (
+              <Grid item xs={12} sm={6} md={4} key={typeof video.id === 'string' ? video.id : video.id?.videoId}>
+                <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                  <CardMedia
+                    component="img"
+                    height="200"
+                    image={video.snippet.thumbnails.medium.url}
+                    alt={video.snippet.title}
+                  />
+                  <CardContent sx={{ flexGrow: 1 }}>
+                    <Typography gutterBottom variant="h6" component="h2">
+                      {video.snippet.title}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" paragraph>
+                      {video.snippet.description}
+                    </Typography>
+                    <Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-between' }}>
+                      <Button 
+                        startIcon={<PlayArrow />} 
+                        size="small"
+                        onClick={() => {
+                          const videoId = typeof video.id === 'string' ? video.id : video.id?.videoId;
+                          if (videoId) {
+                            setMediaDialog({
+                              open: true,
+                              type: 'youtube',
+                              url: `https://www.youtube.com/embed/${videoId}`,
+                              title: video.snippet.title,
+                              loading: false,
+                              error: null
+                            });
+                          } else {
+                            alert('No playable content available for this video');
+                          }
+                        }}
+                      >
+                        Watch
+                      </Button>
+                      <Button 
+                        startIcon={<Share />} 
+                        size="small"
+                        onClick={() => {
+                          const videoId = typeof video.id === 'string' ? video.id : video.id?.videoId;
+                          const url = videoId ? `https://www.youtube.com/watch?v=${videoId}` : null;
+                          if (url) {
+                            navigator.clipboard.writeText(url);
+                            alert('Link copied to clipboard!');
+                          } else {
+                            alert('No shareable content available');
+                          }
+                        }}
+                      >
+                        Share
+                      </Button>
+                    </Box>
+                  </CardContent>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
+        </Box>
+      )}
+
+      {/* Songs Section */}
+      {trendingContent.songs.length > 0 && (
+        <Box sx={{ mb: 6 }}>
+          <Typography variant="h5" gutterBottom>Songs</Typography>
+          <Grid container spacing={3}>
+            {trendingContent.songs.map((song) => (
+              <Grid item xs={12} sm={6} md={4} key={song.id}>
+                <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                  <CardMedia
+                    component="img"
+                    height="200"
+                    image={song.album.images[0]?.url || 'https://via.placeholder.com/200'}
+                    alt={song.name}
+                  />
+                  <CardContent sx={{ flexGrow: 1 }}>
+                    <Typography gutterBottom variant="h6" component="h2">
+                      {song.name}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" paragraph>
+                      {song.artists.map(artist => artist.name).join(', ')}
+                    </Typography>
+                    <Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-between' }}>
+                      <Button
+                        startIcon={<PlayArrow />}
+                        size="small"
+                        onClick={() => {
+                          const trackId = song.id;
+                          if (trackId) {
+                            setMediaDialog({
+                              open: true,
+                              type: 'spotify',
+                              url: `https://open.spotify.com/embed/track/${trackId}`,
+                              title: song.name,
+                              loading: false,
+                              error: null
+                            });
+                          } else {
+                            alert('No preview available for this song');
+                          }
+                        }}
+                      >
+                        Play
+                      </Button>
+                      <Button 
+                        startIcon={<Share />} 
+                        size="small"
+                        onClick={() => {
+                          const url = song.preview_url || song.url;
+                          if (url) {
+                            navigator.clipboard.writeText(url);
+                            alert('Link copied to clipboard!');
+                          } else {
+                            alert('No shareable content available');
+                          }
+                        }}
+                      >
+                        Share
+                      </Button>
+                    </Box>
+                  </CardContent>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
+        </Box>
+      )}
+
+      {/* Books Section */}
+      {trendingContent.books.length > 0 && (
+        <Box sx={{ mb: 6 }}>
+          <Typography variant="h5" gutterBottom>Books</Typography>
+          <Grid container spacing={3}>
+            {trendingContent.books.map((book) => (
+              <Grid item xs={12} sm={6} md={4} key={book.id}>
+                <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                  <CardMedia
+                    component="img"
+                    height="200"
+                    image={book.volumeInfo.imageLinks?.thumbnail || 'https://via.placeholder.com/200'}
+                    alt={book.volumeInfo.title}
+                  />
+                  <CardContent sx={{ flexGrow: 1 }}>
+                    <Typography gutterBottom variant="h6" component="h2">
+                      {book.volumeInfo.title}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" paragraph>
+                      {book.volumeInfo.authors?.join(', ') || 'Unknown Author'}
+                    </Typography>
+                    <Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-between' }}>
+                      <Button 
+                        startIcon={<PlayArrow />} 
+                        size="small"
+                        onClick={() => {
+                          const url = `https://books.google.com/books?id=${book.id}&printsec=frontcover&dq=&hl=&cd=1&source=gbs_api#v=onepage&q&f=false`;
+                          if (book.id) {
+                            window.open(url, '_blank');
+                          } else {
+                            alert('No preview available for this book');
+                          }
+                        }}
+                      >
+                        Preview
+                      </Button>
+                      <Button 
+                        startIcon={<Share />} 
+                        size="small"
+                        onClick={() => {
+                          navigator.clipboard.writeText(`https://books.google.com/books?id=${book.id}`);
+                          alert('Link copied to clipboard!');
+                        }}
+                      >
+                        Share
+                      </Button>
+                    </Box>
+                  </CardContent>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
+        </Box>
+      )}
+
+      {/* Media Player Dialog */}
+      <Dialog
+        open={mediaDialog.open}
+        onClose={handleCloseMedia}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogContent sx={{ p: 0, position: 'relative' }}>
+          <IconButton
+            onClick={handleCloseMedia}
+            sx={{
+              position: 'absolute',
+              right: 8,
+              top: 8,
+              color: 'white',
+              bgcolor: 'rgba(0, 0, 0, 0.5)',
+              '&:hover': {
+                bgcolor: 'rgba(0, 0, 0, 0.7)',
+              },
+              zIndex: 1
+            }}
+          >
+            <Close />
+          </IconButton>
+          <Box sx={{ p: 2 }}>
+            <Typography variant="h6" gutterBottom>
+              {mediaDialog.title}
+            </Typography>
+            {mediaDialog.loading && (
+              <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+                <CircularProgress />
+              </Box>
+            )}
+            {mediaDialog.error && (
+              <Alert severity="error" sx={{ mt: 2 }}>
+                {mediaDialog.error}
+              </Alert>
+            )}
+            {mediaDialog.type === 'audio' && mediaDialog.url && typeof mediaDialog.currentPodcastIndex === 'number' && trendingContent?.podcasts && (
+              <Box sx={{ mt: 2 }}>
+                <audio
+                  ref={audioRef}
+                  controls
+                  style={{ width: '100%' }}
+                  src={mediaDialog.url}
+                  onError={handleMediaError}
+                  onLoadedData={handleMediaLoaded}
+                  preload="auto"
+                >
+                  Your browser does not support the audio element.
+                </audio>
+                <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center', gap: 2 }}>
+                  <Button
+                    variant="outlined"
+                    disabled={mediaDialog.currentPodcastIndex === 0}
+                    onClick={() => playPodcastByIndex(mediaDialog.currentPodcastIndex! - 1)}
+                  >
+                    Previous
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    onClick={() => {
+                      if (audioRef.current) {
+                        audioRef.current.load();
+                        audioRef.current.play().catch(error => {
+                          handleMediaError();
+                        });
+                      }
+                    }}
+                  >
+                    Retry Playback
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    disabled={mediaDialog.currentPodcastIndex === trendingContent.podcasts.length - 1}
+                    onClick={() => playPodcastByIndex(mediaDialog.currentPodcastIndex! + 1)}
+                  >
+                    Next
+                  </Button>
+                </Box>
+              </Box>
+            )}
+            {mediaDialog.type === 'video' && mediaDialog.url && (
+              <video
+                controls
+                style={{ width: '100%', maxHeight: '70vh' }}
+                src={mediaDialog.url}
+                onError={handleMediaError}
+                onLoadedData={handleMediaLoaded}
+                preload="auto"
+              >
+                Your browser does not support the video element.
+              </video>
+            )}
+            {mediaDialog.type === 'youtube' && mediaDialog.url && (
+              <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}>
+                <iframe
+                  width="100%"
+                  height="400"
+                  src={mediaDialog.url}
+                  title={mediaDialog.title}
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  style={{ borderRadius: 12 }}
+                />
+              </Box>
+            )}
+            {mediaDialog.type === 'spotify' && mediaDialog.url && (
+              <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}>
+                <iframe
+                  src={mediaDialog.url}
+                  width="100%"
+                  height="80"
+                  frameBorder="0"
+                  allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                  allowFullScreen
+                  title="Spotify Player"
+                  style={{ borderRadius: 12 }}
+                />
+              </Box>
+            )}
+          </Box>
+        </DialogContent>
+      </Dialog>
     </Container>
   );
 }
