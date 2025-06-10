@@ -49,6 +49,7 @@ import {
   Menu as MenuIcon,
   Close as CloseIcon,
   Headphones as HeadphonesIcon,
+  ArrowBack as ArrowBackIcon,
 } from '@mui/icons-material';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -405,6 +406,10 @@ const MainNav = memo(() => {
     setDrawerOpen(false);
   };
 
+  const handleBack = () => {
+    router.back();
+  };
+
   const navItems = [
     { label: 'Home', icon: <HomeIcon />, path: '/' },
     { label: 'Videos', icon: <VideoIcon />, path: '/videos' },
@@ -499,386 +504,408 @@ const MainNav = memo(() => {
         position: 'relative',
         flexWrap: isMobile ? 'wrap' : 'nowrap',
       }}>
-        {/* Mobile Layout */}
-        {isMobile ? (
-          <>
-            {/* Top Row - Logo, Menu Button, Profile */}
-            <Box sx={{ 
-              display: 'flex', 
-              justifyContent: 'space-between', 
-              alignItems: 'center',
-              width: '100%',
-              mb: 1,
-            }}>
-              {/* Logo */}
+        <IconButton
+          edge="start"
+          color="inherit"
+          aria-label="back"
+          onClick={handleBack}
+          sx={{ mr: 2 }}
+        >
+          <ArrowBackIcon />
+        </IconButton>
+        {isMobile && (
+          <IconButton
+            edge="start"
+            color="inherit"
+            aria-label="menu"
+            onClick={handleDrawerToggle}
+            sx={{ mr: 2 }}
+          >
+            <MenuIcon />
+          </IconButton>
+        )}
+        <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1 }}>
+          {/* Mobile Layout */}
+          {isMobile ? (
+            <>
+              {/* Top Row - Logo, Menu Button, Profile */}
+              <Box sx={{ 
+                display: 'flex', 
+                justifyContent: 'space-between', 
+                alignItems: 'center',
+                width: '100%',
+                mb: 1,
+              }}>
+                {/* Logo */}
+                <Link href="/" passHref style={{ textDecoration: 'none' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+                    <Image
+                      src="/telecast-logo.gif"
+                      alt="Telecast Logo"
+                      width={300}
+                      height={300}
+                      style={{ 
+                        width: 'auto',
+                        height: 'auto',
+                        maxHeight: '240px',
+                        maxWidth: '240px'
+                      }}
+                    />
+                  </Box>
+                </Link>
+
+                {/* Mobile Menu & Profile */}
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  {isAuthenticated && (
+                    <IconButton onClick={handleProfileMenuClick} size="small">
+                      <Avatar alt={user?.name} src={user?.image} sx={{ width: 32, height: 32 }} />
+                    </IconButton>
+                  )}
+                  <IconButton 
+                    onClick={() => setMobileMenuOpen(true)}
+                    sx={{ color: 'text.primary' }}
+                  >
+                    <MenuIcon />
+                  </IconButton>
+                </Box>
+              </Box>
+
+              {/* Bottom Row - Search */}
+              <Box sx={{ width: '100%' }}>
+                <Box 
+                  ref={searchBoxRef}
+                  component="form" 
+                  onSubmit={handleSearch}
+                  sx={{ position: 'relative' }}
+                >
+                  <Box sx={{ 
+                    display: 'flex',
+                    alignItems: 'center',
+                    bgcolor: 'background.default',
+                    borderRadius: 1,
+                    border: `1px solid ${theme.palette.divider}`,
+                    '&:hover': {
+                      borderColor: theme.palette.primary.main,
+                    },
+                  }}>
+                    <IconButton type="submit" size="small" sx={{ p: 1 }}>
+                      <SearchIcon />
+                    </IconButton>
+                    <InputBase
+                      name="search"
+                      placeholder="Search..."
+                      value={searchQuery}
+                      onChange={handleSearchInputChange}
+                      onKeyPress={handleKeyPress}
+                      sx={{ flexGrow: 1, px: 1, '& input': { py: 0.5 } }}
+                    />
+                  </Box>
+
+                  {/* Mobile Search Results */}
+                  {isSearching && (
+                    <Box sx={{
+                      position: 'absolute',
+                      top: '100%',
+                      left: 0,
+                      right: 0,
+                      zIndex: theme.zIndex.appBar + 1,
+                      mt: 1,
+                    }}>
+                      {renderSearchResults()}
+                    </Box>
+                  )}
+                </Box>
+
+                {/* Mobile Filter Buttons */}
+                <Box sx={{ 
+                  display: 'flex', 
+                  gap: 0.5,
+                  mt: 1,
+                  overflowX: 'auto',
+                  pb: 0.5,
+                  '&::-webkit-scrollbar': { display: 'none' },
+                  scrollbarWidth: 'none',
+                }}>
+                  {filterOptions.map((option) => (
+                    <Button
+                      key={option.value}
+                      variant={selectedFilter === option.value ? "contained" : "outlined"}
+                      size="small"
+                      startIcon={option.icon}
+                      onClick={() => handleFilterSelect(option.value)}
+                      sx={{
+                        borderRadius: 1,
+                        textTransform: 'none',
+                        minWidth: 'auto',
+                        px: 1.5,
+                        py: 0.5,
+                        fontSize: '0.75rem',
+                        flexShrink: 0,
+                      }}
+                    >
+                      {option.value}
+                    </Button>
+                  ))}
+                </Box>
+              </Box>
+            </>
+          ) : (
+            /* Desktop Layout */
+            <>
+              {/* Left section - Logo */}
               <Link href="/" passHref style={{ textDecoration: 'none' }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+                <Box
+                  sx={{ 
+                    display: 'flex',
+                    alignItems: 'center',
+                    cursor: 'pointer',
+                    mr: { md: 2, lg: 4 },
+                    flexShrink: 0,
+                    minWidth: { md: '200px', lg: '240px' },
+                  }}
+                >
                   <Image
                     src="/telecast-logo.gif"
                     alt="Telecast Logo"
-                    width={300}
-                    height={300}
+                    width={isTablet ? 280 : 320}
+                    height={isTablet ? 280 : 320}
                     style={{ 
                       width: 'auto',
-                      height: 'auto',
-                      maxHeight: '240px',
-                      maxWidth: '240px'
+                      height: '100%',
+                      maxHeight: isTablet ? '120px' : '140px'
                     }}
                   />
                 </Box>
               </Link>
 
-              {/* Mobile Menu & Profile */}
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                {isAuthenticated && (
-                  <IconButton onClick={handleProfileMenuClick} size="small">
-                    <Avatar alt={user?.name} src={user?.image} sx={{ width: 32, height: 32 }} />
-                  </IconButton>
-                )}
-                <IconButton 
-                  onClick={() => setMobileMenuOpen(true)}
-                  sx={{ color: 'text.primary' }}
-                >
-                  <MenuIcon />
-                </IconButton>
-              </Box>
-            </Box>
-
-            {/* Bottom Row - Search */}
-            <Box sx={{ width: '100%' }}>
+              {/* Center section - Search */}
               <Box 
                 ref={searchBoxRef}
                 component="form" 
                 onSubmit={handleSearch}
-                sx={{ position: 'relative' }}
-              >
-                <Box sx={{ 
-                  display: 'flex',
-                  alignItems: 'center',
-                  bgcolor: 'background.default',
-                  borderRadius: 1,
-                  border: `1px solid ${theme.palette.divider}`,
-                  '&:hover': {
-                    borderColor: theme.palette.primary.main,
-                  },
-                }}>
-                  <IconButton type="submit" size="small" sx={{ p: 1 }}>
-                    <SearchIcon />
-                  </IconButton>
-                  <InputBase
-                    name="search"
-                    placeholder="Search..."
-                    value={searchQuery}
-                    onChange={handleSearchInputChange}
-                    onKeyPress={handleKeyPress}
-                    sx={{ flexGrow: 1, px: 1, '& input': { py: 0.5 } }}
-                  />
-                </Box>
-
-                {/* Mobile Search Results */}
-                {isSearching && (
-                  <Box sx={{
-                    position: 'absolute',
-                    top: '100%',
-                    left: 0,
-                    right: 0,
-                    zIndex: theme.zIndex.appBar + 1,
-                    mt: 1,
-                  }}>
-                    {renderSearchResults()}
-                  </Box>
-                )}
-              </Box>
-
-              {/* Mobile Filter Buttons */}
-              <Box sx={{ 
-                display: 'flex', 
-                gap: 0.5,
-                mt: 1,
-                overflowX: 'auto',
-                pb: 0.5,
-                '&::-webkit-scrollbar': { display: 'none' },
-                scrollbarWidth: 'none',
-              }}>
-                {filterOptions.map((option) => (
-                  <Button
-                    key={option.value}
-                    variant={selectedFilter === option.value ? "contained" : "outlined"}
-                    size="small"
-                    startIcon={option.icon}
-                    onClick={() => handleFilterSelect(option.value)}
-                    sx={{
-                      borderRadius: 1,
-                      textTransform: 'none',
-                      minWidth: 'auto',
-                      px: 1.5,
-                      py: 0.5,
-                      fontSize: '0.75rem',
-                      flexShrink: 0,
-                    }}
-                  >
-                    {option.value}
-                  </Button>
-                ))}
-              </Box>
-            </Box>
-          </>
-        ) : (
-          /* Desktop Layout */
-          <>
-        {/* Left section - Logo */}
-        <Link href="/" passHref style={{ textDecoration: 'none' }}>
-          <Box
-            sx={{ 
-              display: 'flex',
-              alignItems: 'center',
-              cursor: 'pointer',
-                  mr: { md: 2, lg: 4 },
-              flexShrink: 0,
-                  minWidth: { md: '200px', lg: '240px' },
-            }}
-          >
-            <Image
-              src="/telecast-logo.gif"
-              alt="Telecast Logo"
-                  width={isTablet ? 280 : 320}
-                  height={isTablet ? 280 : 320}
-              style={{ 
-                width: 'auto',
-                height: '100%',
-                    maxHeight: isTablet ? '120px' : '140px'
-                  }}
-                />
-          </Box>
-        </Link>
-
-        {/* Center section - Search */}
-        <Box 
-          ref={searchBoxRef}
-          component="form" 
-          onSubmit={handleSearch}
-          sx={{ 
-            flexGrow: 1,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            mx: 'auto',
-            maxWidth: '800px',
-                px: { md: 1, lg: 2 },
-            position: 'relative',
-          }}
-        >
-          <Box sx={{ 
-            width: '100%',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: 1.5,
-          }}>
-            <Box sx={{ 
-              display: 'flex',
-              alignItems: 'center',
-              bgcolor: 'background.paper',
-              borderRadius: 2,
-              border: `1px solid ${theme.palette.divider}`,
-              '&:hover': {
-                borderColor: theme.palette.primary.main,
-              },
-              transition: 'border-color 0.2s',
-              position: 'relative',
-              width: '100%',
-              maxWidth: '600px',
-            }}>
-              <IconButton 
-                type="submit" 
-                sx={{ 
-                  p: 1,
-                  color: 'text.secondary',
-                  '&:hover': {
-                    color: 'primary.main',
-                  }
-                }}
-              >
-                <SearchIcon />
-              </IconButton>
-              <InputBase
-                name="search"
-                placeholder="Search podcasts, videos, music..."
-                value={searchQuery}
-                onChange={handleSearchInputChange}
-                onKeyPress={handleKeyPress}
                 sx={{ 
                   flexGrow: 1,
-                  px: 1,
-                  '& input': {
-                    py: 1,
-                  }
-                }}
-              />
-            </Box>
-
-                {/* Desktop Search Results */}
-            {isSearching && (
-              <Box
-                sx={{
-                  position: 'absolute',
-                  top: '100%',
-                  left: '50%',
-                  transform: 'translateX(-50%)',
-                  zIndex: theme.zIndex.appBar + 1,
-                  mt: 1,
-                  width: '100%',
-                  maxWidth: '600px',
                   display: 'flex',
+                  alignItems: 'center',
                   justifyContent: 'center',
+                  mx: 'auto',
+                  maxWidth: '800px',
+                  px: { md: 1, lg: 2 },
+                  position: 'relative',
                 }}
               >
-                {renderSearchResults()}
-              </Box>
-            )}
-
-                {/* Desktop Filter Buttons */}
-            <Box sx={{ 
-              display: 'flex', 
-              gap: 1,
-              justifyContent: 'center',
-              flexWrap: 'wrap',
-              width: '100%',
-              pb: 1,
-              maxWidth: '600px',
-            }}>
-              {filterOptions.map((option) => (
-                <Button
-                  key={option.value}
-                  variant={selectedFilter === option.value ? "contained" : "outlined"}
-                  size="small"
-                  startIcon={option.icon}
-                  onClick={() => handleFilterSelect(option.value)}
-                  sx={{
+                <Box sx={{ 
+                  width: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: 1.5,
+                }}>
+                  <Box sx={{ 
+                    display: 'flex',
+                    alignItems: 'center',
+                    bgcolor: 'background.paper',
                     borderRadius: 2,
-                    textTransform: 'none',
-                        minWidth: isTablet ? '80px' : '100px',
-                    ...(selectedFilter === option.value && {
-                      bgcolor: 'primary.main',
-                      color: 'white',
-                      '&:hover': {
-                        bgcolor: 'primary.dark',
-                      }
-                    })
-                  }}
-                >
-                  {option.value}
-                </Button>
-              ))}
-            </Box>
-          </Box>
+                    border: `1px solid ${theme.palette.divider}`,
+                    '&:hover': {
+                      borderColor: theme.palette.primary.main,
+                    },
+                    transition: 'border-color 0.2s',
+                    position: 'relative',
+                    width: '100%',
+                    maxWidth: '600px',
+                  }}>
+                    <IconButton 
+                      type="submit" 
+                      sx={{ 
+                        p: 1,
+                        color: 'text.secondary',
+                        '&:hover': {
+                          color: 'primary.main',
+                        }
+                      }}
+                    >
+                      <SearchIcon />
+                    </IconButton>
+                    <InputBase
+                      name="search"
+                      placeholder="Search podcasts, videos, music..."
+                      value={searchQuery}
+                      onChange={handleSearchInputChange}
+                      onKeyPress={handleKeyPress}
+                      sx={{ 
+                        flexGrow: 1,
+                        px: 1,
+                        '& input': {
+                          py: 1,
+                        }
+                      }}
+                    />
+                  </Box>
+
+                  {/* Desktop Search Results */}
+                  {isSearching && (
+                    <Box
+                      sx={{
+                        position: 'absolute',
+                        top: '100%',
+                        left: '50%',
+                        transform: 'translateX(-50%)',
+                        zIndex: theme.zIndex.appBar + 1,
+                        mt: 1,
+                        width: '100%',
+                        maxWidth: '600px',
+                        display: 'flex',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      {renderSearchResults()}
+                    </Box>
+                  )}
+
+                  {/* Desktop Filter Buttons */}
+                  <Box sx={{ 
+                    display: 'flex', 
+                    gap: 1,
+                    justifyContent: 'center',
+                    flexWrap: 'wrap',
+                    width: '100%',
+                    pb: 1,
+                    maxWidth: '600px',
+                  }}>
+                    {filterOptions.map((option) => (
+                      <Button
+                        key={option.value}
+                        variant={selectedFilter === option.value ? "contained" : "outlined"}
+                        size="small"
+                        startIcon={option.icon}
+                        onClick={() => handleFilterSelect(option.value)}
+                        sx={{
+                          borderRadius: 2,
+                          textTransform: 'none',
+                          minWidth: isTablet ? '80px' : '100px',
+                          ...(selectedFilter === option.value && {
+                            bgcolor: 'primary.main',
+                            color: 'white',
+                            '&:hover': {
+                              bgcolor: 'primary.dark',
+                            }
+                          })
+                        }}
+                      >
+                        {option.value}
+                      </Button>
+                    ))}
+                  </Box>
+                </Box>
+              </Box>
+
+              {/* Right section - Navigation and Auth */}
+              <Box sx={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: { md: 1, lg: 2 },
+                ml: { md: 1, lg: 2 },
+                flexShrink: 0,
+                minWidth: { md: '150px', lg: '200px' },
+                justifyContent: 'flex-end',
+              }}>
+                {/* Desktop Navigation Links */}
+                <Box sx={{ display: { xs: 'none', lg: 'flex' }, gap: 1 }}>
+                  {isAuthenticated && (
+                    <Link href="/dashboard" passHref style={{ textDecoration: 'none' }}>
+                      <NavButton sx={{ fontSize: '1rem', height: '40px', minWidth: '80px' }}>
+                        Dashboard
+                      </NavButton>
+                    </Link>
+                  )}
+                  <Link href="/about" passHref style={{ textDecoration: 'none' }}>
+                    <NavButton sx={{ fontSize: '1rem', height: '40px', minWidth: '60px' }}>
+                      About
+                    </NavButton>
+                  </Link>
+                  <Link href="/services" passHref style={{ textDecoration: 'none' }}>
+                    <NavButton sx={{ fontSize: '1rem', height: '40px', minWidth: '70px' }}>
+                      Services
+                    </NavButton>
+                  </Link>
+                  <Link href="/contact" passHref style={{ textDecoration: 'none' }}>
+                    <NavButton sx={{ fontSize: '1rem', height: '40px', minWidth: '60px' }}>
+                      Contact
+                    </NavButton>
+                  </Link>
+                </Box>
+
+                <Box sx={{ flexGrow: 0 }}>
+                  {isAuthenticated ? (
+                    <>
+                      <IconButton
+                        onClick={handleProfileMenuClick}
+                        sx={{ p: 0 }}
+                        aria-label="profile menu"
+                      >
+                        <Avatar alt={user?.name} src={user?.image} />
+                      </IconButton>
+                    </>
+                  ) : (
+                    <Button
+                      onClick={login}
+                      disabled={authLoading}
+                      startIcon={<LoginIcon />}
+                      variant="contained"
+                      sx={{
+                        bgcolor: 'primary.main',
+                        color: 'white',
+                        '&:hover': {
+                          bgcolor: 'primary.dark',
+                        },
+                        borderRadius: 2,
+                        textTransform: 'none',
+                        fontSize: isTablet ? '0.875rem' : '1rem',
+                        px: isTablet ? 2 : 3,
+                      }}
+                    >
+                      {authLoading ? 'Loading...' : 'Sign In'}
+                    </Button>
+                  )}
+                </Box>
+              </Box>
+            </>
+          )}
         </Box>
 
-        {/* Right section - Navigation and Auth */}
-        <Box sx={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-              gap: { md: 1, lg: 2 },
-              ml: { md: 1, lg: 2 },
-          flexShrink: 0,
-              minWidth: { md: '150px', lg: '200px' },
-          justifyContent: 'flex-end',
-        }}>
-              {/* Desktop Navigation Links */}
-              <Box sx={{ display: { xs: 'none', lg: 'flex' }, gap: 1 }}>
-            {isAuthenticated && (
-              <Link href="/dashboard" passHref style={{ textDecoration: 'none' }}>
-                    <NavButton sx={{ fontSize: '1rem', height: '40px', minWidth: '80px' }}>
-                  Dashboard
-                </NavButton>
-              </Link>
-            )}
-            <Link href="/about" passHref style={{ textDecoration: 'none' }}>
-                  <NavButton sx={{ fontSize: '1rem', height: '40px', minWidth: '60px' }}>
-                About
-              </NavButton>
-            </Link>
-            <Link href="/services" passHref style={{ textDecoration: 'none' }}>
-                  <NavButton sx={{ fontSize: '1rem', height: '40px', minWidth: '70px' }}>
-                Services
-              </NavButton>
-            </Link>
-            <Link href="/contact" passHref style={{ textDecoration: 'none' }}>
-                  <NavButton sx={{ fontSize: '1rem', height: '40px', minWidth: '60px' }}>
-                Contact
-              </NavButton>
-            </Link>
-          </Box>
-
-          <Box sx={{ flexGrow: 0 }}>
-            {isAuthenticated ? (
-              <>
-                <IconButton
-                  onClick={handleProfileMenuClick}
-                  sx={{ p: 0 }}
-                  aria-label="profile menu"
-                >
-                  <Avatar alt={user?.name} src={user?.image} />
-                </IconButton>
-                  </>
-                ) : (
-                  <Button
-                    onClick={login}
-                    disabled={authLoading}
-                    startIcon={<LoginIcon />}
-                    variant="contained"
-                    sx={{
-                      bgcolor: 'primary.main',
-                      color: 'white',
-                      '&:hover': {
-                        bgcolor: 'primary.dark',
-                      },
-                      borderRadius: 2,
-                      textTransform: 'none',
-                      fontSize: isTablet ? '0.875rem' : '1rem',
-                      px: isTablet ? 2 : 3,
-                    }}
-                  >
-                    {authLoading ? 'Loading...' : 'Sign In'}
-                  </Button>
-                )}
-              </Box>
-            </Box>
-          </>
-        )}
-
         {/* Profile Menu (shared between mobile and desktop) */}
-                <Menu
-                  anchorEl={profileAnchorEl}
-                  open={Boolean(profileAnchorEl)}
-                  onClose={handleProfileClose}
-                  PaperProps={{
-                    sx: {
-                      mt: 1.5,
-                      minWidth: 200,
-                    }
-                  }}
-                >
-                  <MenuItem onClick={handleProfileClick}>
-                    <ListItemIcon>
-                      <AccountIcon fontSize="small" />
-                    </ListItemIcon>
-                    <ListItemText primary="Profile" />
-                  </MenuItem>
-                  <MenuItem onClick={handleSettingsClick}>
-                    <ListItemIcon>
-                      <SettingsIcon fontSize="small" />
-                    </ListItemIcon>
-                    <ListItemText primary="Settings" />
-                  </MenuItem>
-                  <Divider />
-                  <MenuItem onClick={handleLogoutClick}>
-                    <ListItemIcon>
-                      <LogoutIcon fontSize="small" />
-                    </ListItemIcon>
-                    <ListItemText primary="Logout" />
-                  </MenuItem>
-                </Menu>
+        <Menu
+          anchorEl={profileAnchorEl}
+          open={Boolean(profileAnchorEl)}
+          onClose={handleProfileClose}
+          PaperProps={{
+            sx: {
+              mt: 1.5,
+              minWidth: 200,
+            }
+          }}
+        >
+          <MenuItem onClick={handleProfileClick}>
+            <ListItemIcon>
+              <AccountIcon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText primary="Profile" />
+          </MenuItem>
+          <MenuItem onClick={handleSettingsClick}>
+            <ListItemIcon>
+              <SettingsIcon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText primary="Settings" />
+          </MenuItem>
+          <Divider />
+          <MenuItem onClick={handleLogoutClick}>
+            <ListItemIcon>
+              <LogoutIcon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText primary="Logout" />
+          </MenuItem>
+        </Menu>
 
         {/* Mobile Drawer Menu */}
         <Drawer

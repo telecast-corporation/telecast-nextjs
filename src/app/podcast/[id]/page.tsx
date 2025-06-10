@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import {
   Container,
   Typography,
@@ -9,64 +9,60 @@ import {
   Card,
   CardContent,
   CardMedia,
-  Button,
   Box,
   IconButton,
-  Slider,
   Chip,
   Link,
-  Divider,
-  Pagination,
   List,
   ListItem,
   ListItemText,
   ListItemButton,
-  Paper,
-  Avatar,
   CircularProgress,
+  Pagination,
 } from '@mui/material';
 import {
   PlayArrow,
-  Pause,
-  VolumeUp,
-  VolumeOff,
-  Speed,
   Language,
   Category,
-  Person,
-  Email,
   Warning,
   Link as LinkIcon,
 } from '@mui/icons-material';
 import { useAudio } from '@/contexts/AudioContext';
-import { PodcastIndex } from '@/lib/podcast-index';
 import { Podcast, Episode } from '@/lib/podcast-index';
 import { formatDuration, formatDate } from '@/lib/utils';
+import axios from 'axios';
 
 export default function PodcastPage() {
   const params = useParams();
+  const router = useRouter();
   const { play } = useAudio();
   const [podcast, setPodcast] = useState<Podcast | null>(null);
   const [episodes, setEpisodes] = useState<Episode[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [page, setPage] = useState(1);
-  const episodesPerPage = 7;
+  const [currentPage, setCurrentPage] = useState(1);
+  const episodesPerPage = 10;
 
   useEffect(() => {
     const fetchPodcast = async () => {
       try {
         setLoading(true);
-        const podcastIndex = new PodcastIndex();
         const podcastId = params.id as string;
-        const podcastData = await podcastIndex.getPodcastById(Number(podcastId));
-        if (podcastData) {
-          setPodcast(podcastData);
-          setEpisodes(podcastData.episodes || []);
+        
+        const response = await axios.get(`/api/podcast/${podcastId}`);
+        
+        if (response.data) {
+          setPodcast(response.data);
+          setEpisodes(response.data.episodes || []);
+        } else {
+          setError('Podcast not found');
         }
       } catch (err) {
-        setError('Failed to load podcast');
-        console.error('Error fetching podcast:', err);
+        if (axios.isAxiosError(err)) {
+          setError(err.response?.data?.error || 'Failed to load podcast');
+        } else {
+          setError('Failed to load podcast');
+        }
       } finally {
         setLoading(false);
       }
@@ -80,7 +76,15 @@ export default function PodcastPage() {
   const handlePlayEpisode = (episode: Episode) => {
     if (podcast) {
       play(podcast, episode);
+      // Update URL without page reload
+      router.push(`/podcast/${params.id}?episode=${episode.id}`, { scroll: false });
     }
+  };
+
+  const handlePodcastLink = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+    const url = e.currentTarget.href;
+    window.open(url, '_blank', 'noopener,noreferrer');
   };
 
   // Function to strip HTML tags and decode HTML entities
@@ -90,20 +94,20 @@ export default function PodcastPage() {
     return tempDiv.textContent || tempDiv.innerText || '';
   };
 
+  // Calculate pagination
+  const indexOfLastEpisode = currentPage * episodesPerPage;
+  const indexOfFirstEpisode = indexOfLastEpisode - episodesPerPage;
+  const currentEpisodes = episodes.slice(indexOfFirstEpisode, indexOfLastEpisode);
+  const totalPages = Math.ceil(episodes.length / episodesPerPage);
+
   const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
-    setPage(value);
-    // Scroll to top of episodes section
+    setCurrentPage(value);
+    // Scroll to episodes section
     const episodesSection = document.getElementById('episodes-section');
     if (episodesSection) {
       episodesSection.scrollIntoView({ behavior: 'smooth' });
     }
   };
-
-  // Calculate pagination
-  const totalPages = podcast ? Math.ceil(episodes.length / episodesPerPage) : 0;
-  const startIndex = (page - 1) * episodesPerPage;
-  const endIndex = startIndex + episodesPerPage;
-  const currentEpisodes = episodes.slice(startIndex, endIndex);
 
   if (loading) {
     return (
@@ -150,7 +154,14 @@ export default function PodcastPage() {
               <Grid item xs={12} sm={6}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <LinkIcon color="action" />
-                  <Link href={podcast.url} target="_blank" rel="noopener">
+                  <Link 
+                    href={podcast.url} 
+                    onClick={handlePodcastLink}
+                    sx={{ 
+                      textDecoration: 'none',
+                      '&:hover': { textDecoration: 'underline' }
+                    }}
+                  >
                     {podcast.url}
                   </Link>
                 </Box>
@@ -253,14 +264,20 @@ export default function PodcastPage() {
                       secondary={
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
                           <Typography variant="body2" color="text.secondary">
-                            {formatDate(episode.publishDate)}
+                            {new Date(Number(episode.publishDate) * 1000).toLocaleDateString('en-US', {
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric'
+                            })}
                           </Typography>
-                          <Typography variant="body2" color="text.secondary">
-                            •
-                          </Typography>
-                          <Typography variant="body2" color="text.secondary">
-                            {formatDuration(episode.duration)}
-                          </Typography>
+                          {episode.duration && (
+                            <>
+                              <Typography variant="body2" color="text.secondary">•</Typography>
+                              <Typography variant="body2" color="text.secondary">
+                                {formatDuration(episode.duration)}
+                              </Typography>
+                            </>
+                          )}
                         </Box>
                       }
                     />
@@ -273,15 +290,13 @@ export default function PodcastPage() {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4, mb: 2 }}>
-            <Pagination 
-              count={totalPages} 
-              page={page} 
+          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+            <Pagination
+              count={totalPages}
+              page={currentPage}
               onChange={handlePageChange}
               color="primary"
               size="large"
-              showFirstButton
-              showLastButton
             />
           </Box>
         )}

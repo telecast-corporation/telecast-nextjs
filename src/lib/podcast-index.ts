@@ -1,11 +1,21 @@
 import axios from 'axios';
 import crypto from 'crypto';
 
-const PODCASTINDEX_API_KEY = process.env.PODCASTINDEX_API_KEY!;
-const PODCASTINDEX_API_SECRET = process.env.PODCASTINDEX_API_SECRET!;
+// Use the original environment variable names without NEXT_PUBLIC_ prefix
+const PODCASTINDEX_API_KEY = process.env.PODCASTINDEX_API_KEY;
+const PODCASTINDEX_API_SECRET = process.env.PODCASTINDEX_API_SECRET;
 const PODCASTINDEX_API_URL = 'https://api.podcastindex.org/api/1.0';
 
+// Log environment variables (without exposing secrets)
+console.log('PodcastIndex API Key available:', !!PODCASTINDEX_API_KEY);
+console.log('PodcastIndex API Secret available:', !!PODCASTINDEX_API_SECRET);
+
 if (!PODCASTINDEX_API_KEY || !PODCASTINDEX_API_SECRET) {
+  console.error('Missing PodcastIndex API credentials:', {
+    hasKey: !!PODCASTINDEX_API_KEY,
+    hasSecret: !!PODCASTINDEX_API_SECRET,
+    envKeys: Object.keys(process.env).filter(key => key.includes('PODCASTINDEX'))
+  });
   throw new Error('PodcastIndex API credentials are required. Please set PODCASTINDEX_API_KEY and PODCASTINDEX_API_SECRET environment variables.');
 }
 
@@ -92,6 +102,7 @@ export class PodcastIndex {
 
   async getPodcastById(id: number): Promise<Podcast | null> {
     try {
+      console.log('Fetching podcast feed details for ID:', id);
       // First, get the podcast feed details
       const feedResponse = await axios.get(
         `${PODCASTINDEX_API_URL}/podcasts/byfeedid`,
@@ -101,12 +112,16 @@ export class PodcastIndex {
         }
       );
 
+      console.log('Feed response:', feedResponse.data);
+
       if (!feedResponse.data.feed) {
+        console.error('No feed data in response:', feedResponse.data);
         return null;
       }
 
       const feed = feedResponse.data.feed;
 
+      console.log('Fetching episodes for feed ID:', id);
       // Then, get the episodes for this podcast
       const episodesResponse = await axios.get(
         `${PODCASTINDEX_API_URL}/episodes/byfeedid`,
@@ -115,6 +130,8 @@ export class PodcastIndex {
           headers: this.generateAuthHeaders(),
         }
       );
+
+      console.log('Episodes response:', episodesResponse.data);
 
       const episodes = episodesResponse.data.items?.map((item: any) => ({
         id: item.id,
@@ -126,7 +143,7 @@ export class PodcastIndex {
         imageUrl: item.image || feed.image,
       })) || [];
 
-      return {
+      const podcast = {
         id: feed.id,
         title: feed.title,
         author: feed.author || 'Unknown Author',
@@ -140,13 +157,21 @@ export class PodcastIndex {
         lastUpdateTime: feed.lastUpdateTime,
         episodes,
       };
+
+      console.log('Processed podcast data:', podcast);
+      return podcast;
     } catch (error) {
-      console.error('Error fetching podcast:', error);
+      console.error('Error in getPodcastById:', error);
       if (axios.isAxiosError(error)) {
-        console.error('PodcastIndex API error:', {
+        console.error('PodcastIndex API error details:', {
           status: error.response?.status,
           data: error.response?.data,
-          message: error.message
+          message: error.message,
+          config: {
+            url: error.config?.url,
+            method: error.config?.method,
+            headers: error.config?.headers,
+          }
         });
       }
       throw error;

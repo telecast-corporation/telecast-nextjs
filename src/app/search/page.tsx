@@ -6,21 +6,27 @@ import { Container, Typography, Box, CircularProgress } from '@mui/material';
 import UnifiedSearchResults from '@/components/UnifiedSearchResults';
 
 interface SearchResult {
-  type: 'video' | 'book' | 'podcast';
+  type: 'video' | 'book' | 'podcast' | 'music';
   id: string;
   title: string;
   description?: string;
   thumbnail?: string;
   url?: string;
+  author?: string;
+  // Video specific
   channelTitle?: string;
   publishedAt?: string;
+  // Book specific
   authors?: string[];
   publishedDate?: string;
   categories?: string[];
   rating?: number;
   ratingsCount?: number;
-  author?: string;
+  // Podcast specific
   duration?: string;
+  // Music specific
+  album?: string;
+  releaseDate?: string;
 }
 
 export default function SearchPage() {
@@ -121,7 +127,7 @@ export default function SearchPage() {
       <Typography variant="h4" component="h1" gutterBottom>
         Search Results for "{query}"
       </Typography>
-      <UnifiedSearchResults results={results} />
+      <UnifiedSearchResults results={results} searchType={type} />
     </Container>
   );
 } 

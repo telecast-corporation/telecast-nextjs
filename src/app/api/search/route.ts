@@ -3,8 +3,9 @@ export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import prisma from '@/lib/prisma';
+import { prisma } from '@/lib/prisma';
 import axios from 'axios';
+import { PodcastIndex, Podcast } from '@/lib/podcast-index';
 
 interface SearchResult {
   id: number | string;
@@ -38,22 +39,31 @@ async function getSpotifyAccessToken() {
   }
 
   try {
-    const response = await fetch('https://accounts.spotify.com/api/token', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        Authorization: `Basic ${Buffer.from(`${clientId}:${clientSecret}`).toString('base64')}`,
-      },
-      body: 'grant_type=client_credentials',
-    });
+  const response = await fetch('https://accounts.spotify.com/api/token', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+        'Authorization': `Basic ${Buffer.from(`${clientId}:${clientSecret}`).toString('base64')}`,
+    },
+    body: 'grant_type=client_credentials',
+  });
 
-    if (!response.ok) {
+  if (!response.ok) {
       console.warn('Failed to get Spotify access token:', await response.text());
       return null;
-    }
+  }
 
   const data = await response.json();
   return data.access_token;
+  } catch (error) {
+    console.error('Error getting Spotify access token:', error);
+    return null;
+  }
+}
+
+function truncateText(text: string, maxLength: number): string {
+  if (!text) return '';
+  return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
 }
 
 async function searchYouTube(query: string, maxResults: number = 10) {
@@ -71,12 +81,14 @@ async function searchYouTube(query: string, maxResults: number = 10) {
     return response.data.items.map((item: any) => ({
       type: 'video',
       id: item.id.videoId,
-      title: item.snippet.title,
-      description: item.snippet.description,
+      title: truncateText(item.snippet.title, 50),
+      description: truncateText(item.snippet.description, 100),
       thumbnail: item.snippet.thumbnails.high.url,
-      url: `https://www.youtube.com/watch?v=${item.id.videoId}`,
-      channelTitle: item.snippet.channelTitle,
+      url: `/video/${item.id.videoId}`, // Link to our internal video page
+      author: truncateText(item.snippet.channelTitle, 30),
       publishedAt: item.snippet.publishedAt,
+      source: 'youtube',
+      sourceUrl: `https://www.youtube.com/watch?v=${item.id.videoId}`,
     }));
   } catch (error) {
     console.error('YouTube search error:', error);
@@ -97,15 +109,17 @@ async function searchBooks(query: string, maxResults: number = 10) {
     return response.data.items.map((item: any) => ({
       type: 'book',
       id: item.id,
-      title: item.volumeInfo.title,
-      description: item.volumeInfo.description,
+      title: truncateText(item.volumeInfo.title, 50),
+      description: truncateText(item.volumeInfo.description, 100),
       thumbnail: item.volumeInfo.imageLinks?.thumbnail,
-      url: item.volumeInfo.infoLink,
-      authors: item.volumeInfo.authors,
+      url: `/book/${item.id}`, // Link to our internal book page
+      author: truncateText(item.volumeInfo.authors?.join(', ') || 'Unknown Author', 30),
       publishedDate: item.volumeInfo.publishedDate,
       categories: item.volumeInfo.categories,
       rating: item.volumeInfo.averageRating,
       ratingsCount: item.volumeInfo.ratingsCount,
+      source: 'google_books',
+      sourceUrl: item.volumeInfo.infoLink,
     }));
   } catch (error) {
     console.error('Books search error:', error);
@@ -114,8 +128,65 @@ async function searchBooks(query: string, maxResults: number = 10) {
 }
 
 async function searchPodcasts(query: string, maxResults: number = 10) {
-  // TODO: Implement podcast search
-  return [];
+  try {
+    const podcastIndex = new PodcastIndex();
+    const results = await podcastIndex.search(query);
+    
+    return results.slice(0, maxResults).map((podcast: Podcast) => ({
+      type: 'podcast',
+      id: podcast.id,
+      title: truncateText(podcast.title, 50),
+      description: truncateText(podcast.description, 100),
+      thumbnail: podcast.image,
+      url: `/podcast/${podcast.id}`, // Link to our internal podcast page
+      author: truncateText(podcast.author, 30),
+      duration: `${podcast.episodeCount || 0} episodes`,
+      categories: podcast.categories,
+      language: podcast.language,
+      explicit: podcast.explicit,
+      source: 'podcastindex',
+      sourceUrl: podcast.url,
+    }));
+  } catch (error) {
+    console.error('Podcast search error:', error);
+    return [];
+  }
+}
+
+async function searchMusic(query: string, maxResults: number = 10) {
+      try {
+        const accessToken = await getSpotifyAccessToken();
+    if (!accessToken) {
+      return [];
+    }
+
+    const response = await axios.get('https://api.spotify.com/v1/search', {
+            headers: {
+        'Authorization': `Bearer ${accessToken}`,
+            },
+      params: {
+        q: query,
+        type: 'track',
+        limit: maxResults,
+      },
+    });
+
+    return response.data.tracks.items.map((item: any) => ({
+      type: 'music',
+      id: item.id,
+      title: truncateText(item.name, 50),
+      description: truncateText(item.artists.map((artist: any) => artist.name).join(', '), 100),
+      thumbnail: item.album.images[0]?.url,
+      url: item.external_urls.spotify,
+      author: truncateText(item.artists[0].name, 30),
+      duration: `${Math.floor(item.duration_ms / 60000)}:${((item.duration_ms % 60000) / 1000).toFixed(0).padStart(2, '0')}`,
+      album: truncateText(item.album.name, 50),
+      releaseDate: item.album.release_date,
+    }));
+  } catch (error) {
+    console.error('Music search error:', error);
+    return [];
+  }
 }
 
 export async function POST(request: Request) {
@@ -132,16 +203,26 @@ export async function POST(request: Request) {
 
     const searchPromises = [];
 
-    if (types.includes('all') || types.includes('video')) {
+    // If types includes 'all', search all types
+    if (types.includes('all')) {
       searchPromises.push(searchYouTube(query, maxResults));
-    }
-
-    if (types.includes('all') || types.includes('book')) {
       searchPromises.push(searchBooks(query, maxResults));
-    }
-
-    if (types.includes('all') || types.includes('podcast')) {
       searchPromises.push(searchPodcasts(query, maxResults));
+      searchPromises.push(searchMusic(query, maxResults));
+          } else {
+      // Otherwise, only search the specified types
+      if (types.includes('video')) {
+        searchPromises.push(searchYouTube(query, maxResults));
+      }
+      if (types.includes('book')) {
+        searchPromises.push(searchBooks(query, maxResults));
+      }
+      if (types.includes('podcast')) {
+        searchPromises.push(searchPodcasts(query, maxResults));
+      }
+      if (types.includes('music')) {
+        searchPromises.push(searchMusic(query, maxResults));
+      }
     }
 
     const results = await Promise.allSettled(searchPromises);
@@ -149,7 +230,7 @@ export async function POST(request: Request) {
       .filter((result): result is PromiseFulfilledResult<any[]> => result.status === 'fulfilled')
       .flatMap(result => result.value);
 
-    // Sort results by relevance (you might want to implement a more sophisticated sorting algorithm)
+    // Sort results by relevance
     searchResults.sort((a, b) => {
       const aTitle = a.title.toLowerCase();
       const bTitle = b.title.toLowerCase();
