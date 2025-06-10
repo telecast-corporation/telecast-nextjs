@@ -16,8 +16,12 @@ if (!PODCASTINDEX_API_KEY || !PODCASTINDEX_API_SECRET) {
     hasSecret: !!PODCASTINDEX_API_SECRET,
     envKeys: Object.keys(process.env).filter(key => key.includes('PODCASTINDEX'))
   });
-  throw new Error('PodcastIndex API credentials are required. Please set PODCASTINDEX_API_KEY and PODCASTINDEX_API_SECRET environment variables.');
+  throw new Error('PODCASTINDEX_API_KEY and PODCASTINDEX_API_SECRET must be defined');
 }
+
+// After the check, we can safely assert these are non-null
+const API_KEY = PODCASTINDEX_API_KEY!;
+const API_SECRET = PODCASTINDEX_API_SECRET!;
 
 export interface Episode {
   id: number;
@@ -49,12 +53,12 @@ export class PodcastIndex {
     const timestamp = Math.floor(Date.now() / 1000);
     const hash = crypto
       .createHash('sha1')
-      .update(PODCASTINDEX_API_KEY + PODCASTINDEX_API_SECRET + timestamp)
+      .update(API_KEY + API_SECRET + timestamp)
       .digest('hex');
 
     return {
       'User-Agent': 'Telecast/1.0',
-      'X-Auth-Key': PODCASTINDEX_API_KEY,
+      'X-Auth-Key': API_KEY,
       'X-Auth-Date': timestamp.toString(),
       'Authorization': hash,
     };
@@ -81,7 +85,7 @@ export class PodcastIndex {
         description: feed.description || 'No description available',
         image: feed.image || 'https://via.placeholder.com/150',
         url: feed.url,
-        categories: feed.categories ? Object.values(feed.categories) : [],
+        categories: feed.categories ? Object.values(feed.categories).map(String) : [],
         language: feed.language,
         explicit: feed.explicit,
         episodeCount: feed.episodeCount,
@@ -143,14 +147,14 @@ export class PodcastIndex {
         imageUrl: item.image || feed.image,
       })) || [];
 
-      const podcast = {
+      const podcast: Podcast = {
         id: feed.id,
         title: feed.title,
         author: feed.author || 'Unknown Author',
         description: feed.description || 'No description available',
         image: feed.image || 'https://via.placeholder.com/150',
         url: feed.url,
-        categories: feed.categories ? Object.values(feed.categories) : [],
+        categories: feed.categories ? Object.values(feed.categories).map(String) : [],
         language: feed.language,
         explicit: feed.explicit,
         episodeCount: feed.episodeCount,
@@ -178,3 +182,6 @@ export class PodcastIndex {
     }
   }
 } 
+
+// Export a singleton instance
+export const podcastIndex = new PodcastIndex(); 
