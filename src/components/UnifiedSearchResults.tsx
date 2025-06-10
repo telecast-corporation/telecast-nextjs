@@ -21,9 +21,11 @@ import {
   MusicNote as MusicIcon,
   KeyboardArrowLeft as ArrowLeftIcon,
   KeyboardArrowRight as ArrowRightIcon,
+  PlayArrow,
 } from '@mui/icons-material';
 import { useState } from 'react';
 import Link from 'next/link';
+import { useAudio } from '@/contexts/AudioContext';
 
 interface SearchResult {
   type: 'video' | 'book' | 'podcast' | 'music';
@@ -57,6 +59,7 @@ interface UnifiedSearchResultsProps {
 export default function UnifiedSearchResults({ results, searchType = 'all' }: UnifiedSearchResultsProps) {
   const [expandedType, setExpandedType] = useState<string | null>(null);
   const [carouselStates, setCarouselStates] = useState<Record<string, number>>({});
+  const { play } = useAudio();
   const ITEMS_PER_PAGE = 4;
 
   if (results.length === 0) {
@@ -131,6 +134,32 @@ export default function UnifiedSearchResults({ results, searchType = 'all' }: Un
     }
   };
 
+  const handlePlayPodcast = (e: React.MouseEvent, result: SearchResult) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (result.type === 'podcast') {
+      const podcast = {
+        id: result.id,
+        title: result.title,
+        author: result.author || '',
+        description: result.description || '',
+        image: result.thumbnail || '',
+      };
+      
+      const episode = {
+        id: result.id,
+        title: result.title,
+        description: result.description || '',
+        audioUrl: result.url || '',
+        duration: result.duration || '0:00',
+        publishDate: result.publishedAt || '',
+      };
+      
+      play(podcast, episode);
+    }
+  };
+
   const renderCard = (result: SearchResult) => {
     const contentUrl = getContentUrl(result);
     const isExternal = result.url && !contentUrl.startsWith('/');
@@ -155,19 +184,37 @@ export default function UnifiedSearchResults({ results, searchType = 'all' }: Un
             alt={result.title}
             sx={{ objectFit: 'cover' }}
           />
-          <IconButton
-            sx={{
-              position: 'absolute',
-              top: 8,
-              right: 8,
-              backgroundColor: 'rgba(255, 255, 255, 0.8)',
-              '&:hover': {
-                backgroundColor: 'rgba(255, 255, 255, 0.9)',
-              },
-            }}
-          >
-            {getTypeIcon(result.type)}
-          </IconButton>
+          {result.type === 'podcast' ? (
+            <IconButton
+              onClick={(e) => handlePlayPodcast(e, result)}
+              sx={{
+                position: 'absolute',
+                bottom: 8,
+                right: 8,
+                backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                color: 'white',
+                '&:hover': {
+                  backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                },
+              }}
+            >
+              <PlayArrow />
+            </IconButton>
+          ) : (
+            <IconButton
+              sx={{
+                position: 'absolute',
+                top: 8,
+                right: 8,
+                backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                '&:hover': {
+                  backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                },
+              }}
+            >
+              {getTypeIcon(result.type)}
+            </IconButton>
+          )}
         </Box>
         <CardContent sx={{ flexGrow: 1 }}>
           <Typography gutterBottom variant="h6" component="div" noWrap>
@@ -216,6 +263,10 @@ export default function UnifiedSearchResults({ results, searchType = 'all' }: Un
         </CardContent>
       </Card>
     );
+
+    if (result.type === 'podcast') {
+      return cardContent;
+    }
 
     if (isExternal) {
       return (

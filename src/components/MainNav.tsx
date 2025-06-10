@@ -50,19 +50,25 @@ import {
   Close as CloseIcon,
   Headphones as HeadphonesIcon,
   ArrowBack as ArrowBackIcon,
+  DarkMode as DarkModeIcon,
+  LightMode as LightModeIcon,
 } from '@mui/icons-material';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import useDebounce from '@/hooks/useDebounce';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTheme as useAppTheme } from '@/contexts/ThemeContext';
+import { Lexend } from 'next/font/google';
+
+const lexend = Lexend({ subsets: ['latin'], weight: ['400', '700', '900'] });
 
 const Search = styled('div')(({ theme }) => ({
   position: 'relative',
   borderRadius: theme.shape.borderRadius,
-  backgroundColor: alpha(theme.palette.common.white, 0.15),
+  backgroundColor: alpha(theme.palette.common.black, 0.05),
   '&:hover': {
-    backgroundColor: alpha(theme.palette.common.white, 0.25),
+    backgroundColor: alpha(theme.palette.common.black, 0.08),
   },
   marginRight: theme.spacing(2),
   marginLeft: 0,
@@ -91,25 +97,33 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
     transition: theme.transitions.create('width'),
     width: '100%',
     [theme.breakpoints.up('md')]: {
-      width: '40ch',
+      width: '20ch',
     },
   },
 }));
 
 const NavButton = styled(Button)(({ theme }) => ({
+  fontFamily: lexend.style.fontFamily,
   color: theme.palette.text.primary,
-  fontSize: '1.25rem',
-  fontWeight: 600,
-  height: '50px',
-  minWidth: '100px',
+  fontSize: '1.5rem',
+  fontWeight: 700,
+  letterSpacing: '0.04em',
+  height: '60px',
+  minWidth: '140px',
+  borderRadius: '14px',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
+  background: 'none',
+  boxShadow: 'none',
+  textTransform: 'none',
+  transition: 'background 0.2s, color 0.2s',
   '&:hover': {
     backgroundColor: theme.palette.action.hover,
+    color: theme.palette.primary.main,
   },
-  marginLeft: theme.spacing(1),
-  padding: theme.spacing(0, 1.5),
+  marginLeft: theme.spacing(2),
+  padding: theme.spacing(0, 2.5),
 }));
 
 const FilterButton = styled(Button)(({ theme }) => ({
@@ -153,6 +167,7 @@ const MainNav = memo(() => {
   const [cachedSearchResults, setCachedSearchResults] = useState<SearchResult[]>([]);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('all');
+  const { isDarkMode, toggleDarkMode } = useAppTheme();
 
   // Add debounced search query
   const debouncedSearchQuery = useDebounce(searchQuery, 100); // 100ms delay
@@ -227,8 +242,8 @@ const MainNav = memo(() => {
     
     // If it's not "All", navigate to search page with the filter
     if (filter !== 'All') {
-      // Convert to singular form for consistency
-      const filterType = filter.toLowerCase().slice(0, -1); // "podcasts" -> "podcast"
+      // Convert to singular form for consistency, but handle 'Music' specially
+      const filterType = filter === 'Music' ? 'music' : filter.toLowerCase().slice(0, -1);
       const searchUrl = `/search?type=${filterType}`;
       router.push(searchUrl);
       setIsSearching(false);
@@ -415,6 +430,7 @@ const MainNav = memo(() => {
     { label: 'Videos', icon: <VideoIcon />, path: '/videos' },
     { label: 'Podcasts', icon: <PodcastIcon />, path: '/podcasts' },
     { label: 'Books', icon: <BookIcon />, path: '/books' },
+    { label: 'About', icon: null, path: '/about' },
   ];
 
   const drawer = (
@@ -504,26 +520,7 @@ const MainNav = memo(() => {
         position: 'relative',
         flexWrap: isMobile ? 'wrap' : 'nowrap',
       }}>
-        <IconButton
-          edge="start"
-          color="inherit"
-          aria-label="back"
-          onClick={handleBack}
-          sx={{ mr: 2 }}
-        >
-          <ArrowBackIcon />
-        </IconButton>
-        {isMobile && (
-          <IconButton
-            edge="start"
-            color="inherit"
-            aria-label="menu"
-            onClick={handleDrawerToggle}
-            sx={{ mr: 2 }}
-          >
-            <MenuIcon />
-          </IconButton>
-        )}
+
         <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1 }}>
           {/* Mobile Layout */}
           {isMobile ? (
@@ -538,18 +535,30 @@ const MainNav = memo(() => {
               }}>
                 {/* Logo */}
                 <Link href="/" passHref style={{ textDecoration: 'none' }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      cursor: 'pointer',
+                      mr: { xs: 2, md: 4 },
+                      flexShrink: 0,
+                      minWidth: { xs: '160px', sm: '220px', md: '300px', lg: '400px' },
+                      maxWidth: { xs: '200px', sm: '300px', md: '400px', lg: '500px' },
+                    }}
+                  >
                     <Image
                       src="/telecast-logo.gif"
                       alt="Telecast Logo"
-                      width={300}
-                      height={300}
-                      style={{ 
-                        width: 'auto',
+                      width={500}
+                      height={500}
+                      style={{
+                        width: '100%',
                         height: 'auto',
-                        maxHeight: '240px',
-                        maxWidth: '240px'
+                        maxWidth: '500px',
+                        maxHeight: '160px',
+                        objectFit: 'contain',
                       }}
+                      priority
                     />
                   </Box>
                 </Link>
@@ -655,25 +664,29 @@ const MainNav = memo(() => {
               {/* Left section - Logo */}
               <Link href="/" passHref style={{ textDecoration: 'none' }}>
                 <Box
-                  sx={{ 
+                  sx={{
                     display: 'flex',
                     alignItems: 'center',
                     cursor: 'pointer',
-                    mr: { md: 2, lg: 4 },
+                    mr: { xs: 2, md: 4 },
                     flexShrink: 0,
-                    minWidth: { md: '200px', lg: '240px' },
+                    minWidth: { xs: '160px', sm: '220px', md: '300px', lg: '400px' },
+                    maxWidth: { xs: '200px', sm: '300px', md: '400px', lg: '500px' },
                   }}
                 >
                   <Image
                     src="/telecast-logo.gif"
                     alt="Telecast Logo"
-                    width={isTablet ? 280 : 320}
-                    height={isTablet ? 280 : 320}
-                    style={{ 
-                      width: 'auto',
-                      height: '100%',
-                      maxHeight: isTablet ? '120px' : '140px'
+                    width={500}
+                    height={500}
+                    style={{
+                      width: '100%',
+                      height: 'auto',
+                      maxWidth: '500px',
+                      maxHeight: '160px',
+                      objectFit: 'contain',
                     }}
+                    priority
                   />
                 </Box>
               </Link>
@@ -733,7 +746,7 @@ const MainNav = memo(() => {
                       value={searchQuery}
                       onChange={handleSearchInputChange}
                       onKeyPress={handleKeyPress}
-                      sx={{ 
+                      sx={{  
                         flexGrow: 1,
                         px: 1,
                         '& input': {
@@ -819,6 +832,13 @@ const MainNav = memo(() => {
                       </NavButton>
                     </Link>
                   )}
+                  <IconButton
+                    onClick={toggleDarkMode}
+                    sx={{ color: 'text.primary', mr: 1 }}
+                    aria-label="Toggle dark mode"
+                  >
+                    {isDarkMode ? <LightModeIcon /> : <DarkModeIcon />}
+                  </IconButton>
                   <Link href="/about" passHref style={{ textDecoration: 'none' }}>
                     <NavButton sx={{ fontSize: '1rem', height: '40px', minWidth: '60px' }}>
                       About
@@ -927,135 +947,23 @@ const MainNav = memo(() => {
               </IconButton>
             </Box>
             <Divider sx={{ mb: 3 }} />
-            
             <List sx={{ px: 0 }}>
-              <ListItem 
-                button 
-                onClick={() => { router.push('/'); setMobileMenuOpen(false); }}
-                sx={{ 
-                  py: 1.5, 
-                  px: 2, 
-                  mb: 1, 
-                  borderRadius: 1,
-                  '&:hover': { bgcolor: 'action.hover' }
-                }}
-              >
-                <ListItemIcon sx={{ minWidth: 40 }}>
-                  <HomeIcon />
-                </ListItemIcon>
-                <ListItemText 
-                  primary="Home" 
-                  primaryTypographyProps={{ fontWeight: 500 }}
-                />
+              <ListItem button onClick={() => { router.push('/'); setMobileMenuOpen(false); }}>
+                <ListItemIcon sx={{ minWidth: 40 }}><HomeIcon /></ListItemIcon>
+                <ListItemText primary="Home" primaryTypographyProps={{ fontWeight: 500 }} />
               </ListItem>
-              
-              {isAuthenticated && (
-                <ListItem 
-                  button 
-                  onClick={() => { router.push('/dashboard'); setMobileMenuOpen(false); }}
-                  sx={{ 
-                    py: 1.5, 
-                    px: 2, 
-                    mb: 1, 
-                    borderRadius: 1,
-                    '&:hover': { bgcolor: 'action.hover' }
-                  }}
-                >
-                  <ListItemIcon sx={{ minWidth: 40 }}>
-                    <AccountIcon />
-                  </ListItemIcon>
-                  <ListItemText 
-                    primary="Dashboard" 
-                    primaryTypographyProps={{ fontWeight: 500 }}
-                  />
-                </ListItem>
-              )}
-              
-              <ListItem 
-                button 
-                onClick={() => { router.push('/about'); setMobileMenuOpen(false); }}
-                sx={{ 
-                  py: 1.5, 
-                  px: 2, 
-                  mb: 1, 
-                  borderRadius: 1,
-                  '&:hover': { bgcolor: 'action.hover' }
-                }}
-              >
-                <ListItemIcon sx={{ minWidth: 40 }}>
-                  <AllIcon />
-                </ListItemIcon>
-                <ListItemText 
-                  primary="About" 
-                  primaryTypographyProps={{ fontWeight: 500 }}
-                />
+              <ListItem button onClick={() => { router.push('/about'); setMobileMenuOpen(false); }}>
+                <ListItemIcon sx={{ minWidth: 40 }}><AllIcon /></ListItemIcon>
+                <ListItemText primary="About" primaryTypographyProps={{ fontWeight: 500 }} />
               </ListItem>
-              
-              <ListItem 
-                button 
-                onClick={() => { router.push('/services'); setMobileMenuOpen(false); }}
-                sx={{ 
-                  py: 1.5, 
-                  px: 2, 
-                  mb: 1, 
-                  borderRadius: 1,
-                  '&:hover': { bgcolor: 'action.hover' }
-                }}
-              >
-                <ListItemIcon sx={{ minWidth: 40 }}>
-                  <SettingsIcon />
-                </ListItemIcon>
-                <ListItemText 
-                  primary="Services" 
-                  primaryTypographyProps={{ fontWeight: 500 }}
-                />
+              <ListItem button onClick={() => { router.push('/services'); setMobileMenuOpen(false); }}>
+                <ListItemIcon sx={{ minWidth: 40 }}><SettingsIcon /></ListItemIcon>
+                <ListItemText primary="Services" primaryTypographyProps={{ fontWeight: 500 }} />
               </ListItem>
-              
-              <ListItem 
-                button 
-                onClick={() => { router.push('/contact'); setMobileMenuOpen(false); }}
-                sx={{ 
-                  py: 1.5, 
-                  px: 2, 
-                  mb: 1, 
-                  borderRadius: 1,
-                  '&:hover': { bgcolor: 'action.hover' }
-                }}
-              >
-                <ListItemIcon sx={{ minWidth: 40 }}>
-                  <AllIcon />
-                </ListItemIcon>
-                <ListItemText 
-                  primary="Contact" 
-                  primaryTypographyProps={{ fontWeight: 500 }}
-                />
+              <ListItem button onClick={() => { router.push('/contact'); setMobileMenuOpen(false); }}>
+                <ListItemIcon sx={{ minWidth: 40 }}><AllIcon /></ListItemIcon>
+                <ListItemText primary="Contact" primaryTypographyProps={{ fontWeight: 500 }} />
               </ListItem>
-              
-              <Divider sx={{ my: 2 }} />
-              
-              {!isAuthenticated && (
-                <ListItem 
-                  button 
-                  onClick={() => { login(); setMobileMenuOpen(false); }}
-                  sx={{ 
-                    py: 1.5, 
-                    px: 2, 
-                    mb: 1, 
-                    borderRadius: 1,
-                    bgcolor: 'primary.main',
-                    color: 'white',
-                    '&:hover': { bgcolor: 'primary.dark' }
-                  }}
-                >
-                  <ListItemIcon sx={{ minWidth: 40, color: 'inherit' }}>
-                    <LoginIcon />
-                  </ListItemIcon>
-                  <ListItemText 
-                    primary="Sign In" 
-                    primaryTypographyProps={{ fontWeight: 600, color: 'inherit' }}
-                  />
-                </ListItem>
-              )}
             </List>
           </Box>
         </Drawer>

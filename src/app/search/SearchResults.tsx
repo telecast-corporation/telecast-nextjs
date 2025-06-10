@@ -23,9 +23,11 @@ export default function SearchResults() {
   const [error, setError] = useState<string | null>(null);
   const debounceTimerRef = useRef<NodeJS.Timeout>();
 
+  const showRecommendations = !query && ['podcast', 'video', 'music', 'book'].includes(type);
+
   useEffect(() => {
     const fetchResults = async () => {
-      if (!query) {
+      if (!query && !showRecommendations) {
         setResults([]);
         setLoading(false);
         setError(null);
@@ -42,7 +44,7 @@ export default function SearchResults() {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            query,
+            query: query || 'recommended',
             types: type === 'all' ? ['all'] : [type],
             maxResults: 20,
           }),
@@ -79,9 +81,9 @@ export default function SearchResults() {
         clearTimeout(debounceTimerRef.current);
       }
     };
-  }, [query, type]);
+  }, [query, type, showRecommendations]);
 
-  if (!query) {
+  if (!query && !showRecommendations) {
     return (
       <Container maxWidth="lg" sx={{ py: 4 }}>
         <Box sx={{ textAlign: 'center', py: 8 }}>
@@ -113,10 +115,25 @@ export default function SearchResults() {
     );
   }
 
+  const getRecommendationTitle = () => {
+    switch (type) {
+      case 'podcast':
+        return 'Recommended Podcasts';
+      case 'video':
+        return 'Recommended Videos';
+      case 'music':
+        return 'Recommended Music';
+      case 'book':
+        return 'Recommended Books';
+      default:
+        return `Search Results for "${query}"`;
+    }
+  };
+
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
       <Typography variant="h4" component="h1" gutterBottom>
-        Search Results for "{query}"
+        {query ? `Search Results for "${query}"` : getRecommendationTitle()}
       </Typography>
       <UnifiedSearchResults results={results} searchType={type} />
     </Container>

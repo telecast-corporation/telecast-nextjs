@@ -81,11 +81,6 @@ export default function PodcastPage() {
     }
   };
 
-  const handlePodcastLink = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    e.preventDefault();
-    const url = e.currentTarget.href;
-    window.open(url, '_blank', 'noopener,noreferrer');
-  };
 
   // Function to strip HTML tags and decode HTML entities
   const cleanDescription = (html: string) => {
@@ -150,23 +145,6 @@ export default function PodcastPage() {
 
           {/* Podcast Details */}
           <Grid container spacing={2} sx={{ mt: 2 }}>
-            {podcast.url && (
-              <Grid item xs={12} sm={6}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <LinkIcon color="action" />
-                  <Link 
-                    href={podcast.url} 
-                    onClick={handlePodcastLink}
-                    sx={{ 
-                      textDecoration: 'none',
-                      '&:hover': { textDecoration: 'underline' }
-                    }}
-                  >
-                    {podcast.url}
-                  </Link>
-                </Box>
-              </Grid>
-            )}
             {podcast.language && (
               <Grid item xs={12} sm={6}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>

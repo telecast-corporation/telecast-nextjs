@@ -77,7 +77,15 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
     };
 
     const handleDurationChange = () => {
-      setDuration(audio.duration || 0);
+      if (audio.duration && !isNaN(audio.duration)) {
+        setDuration(audio.duration);
+      }
+    };
+
+    const handleLoadedMetadata = () => {
+      if (audio.duration && !isNaN(audio.duration)) {
+        setDuration(audio.duration);
+      }
     };
 
     const handleEnded = () => {
@@ -93,18 +101,27 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
       setIsPlaying(false);
     };
 
+    const handleError = (e: Event) => {
+      console.error('Audio playback error:', e);
+      setIsPlaying(false);
+    };
+
     audio.addEventListener('timeupdate', handleTimeUpdate);
     audio.addEventListener('durationchange', handleDurationChange);
+    audio.addEventListener('loadedmetadata', handleLoadedMetadata);
     audio.addEventListener('ended', handleEnded);
     audio.addEventListener('play', handlePlay);
     audio.addEventListener('pause', handlePause);
+    audio.addEventListener('error', handleError);
 
     return () => {
       audio.removeEventListener('timeupdate', handleTimeUpdate);
       audio.removeEventListener('durationchange', handleDurationChange);
+      audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
       audio.removeEventListener('ended', handleEnded);
       audio.removeEventListener('play', handlePlay);
       audio.removeEventListener('pause', handlePause);
+      audio.removeEventListener('error', handleError);
       audio.pause();
       audio.src = '';
     };
@@ -112,15 +129,40 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
 
   // Memoize functions to prevent unnecessary re-renders
   const play = useCallback((podcast: Podcast, episode: Episode) => {
-    if (audioRef.current) {
+    if (!audioRef.current) return;
+
+    try {
+      // If it's the same episode, just resume playback
       if (currentEpisode?.id === episode.id) {
-        audioRef.current.play();
-      } else {
-        audioRef.current.src = episode.audioUrl;
-        audioRef.current.play();
-        setCurrentPodcast(podcast);
-        setCurrentEpisode(episode);
+        audioRef.current.play().catch(error => {
+          console.error('Error playing audio:', error);
+        });
+        return;
       }
+
+      // Stop current playback
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+      setCurrentTime(0);
+      setDuration(0);
+
+      // Set new source and start playback
+      audioRef.current.src = episode.audioUrl;
+      audioRef.current.load(); // Ensure the new source is loaded
+      
+      const playPromise = audioRef.current.play();
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            setCurrentPodcast(podcast);
+            setCurrentEpisode(episode);
+          })
+          .catch(error => {
+            console.error('Error playing audio:', error);
+          });
+      }
+    } catch (error) {
+      console.error('Error in play function:', error);
     }
   }, [currentEpisode]);
 
@@ -132,7 +174,9 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
 
   const resume = useCallback(() => {
     if (audioRef.current) {
-      audioRef.current.play();
+      audioRef.current.play().catch(error => {
+        console.error('Error resuming audio:', error);
+      });
     }
   }, []);
 
