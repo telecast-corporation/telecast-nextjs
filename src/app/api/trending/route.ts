@@ -1,136 +1,239 @@
 import { NextResponse } from 'next/server';
+import axios from 'axios';
 
-// Use environment variables for API keys
-const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY || '';
-const SPOTIFY_CLIENT_ID = process.env.SPOTIFY_CLIENT_ID || '';
-const SPOTIFY_CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET || '';
-const PODCAST_INDEX_KEY = process.env.PODCAST_INDEX_KEY || '';
-const PODCAST_INDEX_SECRET = process.env.PODCAST_INDEX_SECRET || '';
+const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;
+const SPOTIFY_CLIENT_ID = process.env.SPOTIFY_CLIENT_ID;
+const SPOTIFY_CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET;
+const GOOGLE_BOOKS_API_KEY = process.env.GOOGLE_BOOKS_API_KEY;
+const PODCASTINDEX_API_KEY = process.env.PODCASTINDEX_API_KEY;
+const PODCASTINDEX_API_SECRET = process.env.PODCASTINDEX_API_SECRET;
 
-async function sha1(message: string) {
-  const msgBuffer = new TextEncoder().encode(message);
-  const hashBuffer = await crypto.subtle.digest('SHA-1', msgBuffer);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+export const dynamic = 'force-dynamic';
+
+async function getTrendingVideos() {
+  try {
+    console.log('Fetching trending videos...');
+    const response = await axios.get(
+      'https://www.googleapis.com/youtube/v3/videos',
+      {
+        params: {
+          part: 'snippet,statistics',
+          chart: 'mostPopular',
+          regionCode: 'US',
+          maxResults: 10,
+          key: YOUTUBE_API_KEY,
+        },
+      }
+    );
+
+    console.log('Videos response:', response.data);
+    return response.data.items.map((item: any) => ({
+      id: item.id,
+      type: 'video',
+      title: item.snippet.title,
+      description: item.snippet.description,
+      thumbnail: item.snippet.thumbnails.high.url,
+      url: `https://www.youtube.com/watch?v=${item.id}`,
+      views: item.statistics.viewCount,
+      publishedAt: item.snippet.publishedAt,
+    }));
+  } catch (error) {
+    console.error('Error fetching trending videos:', error);
+    return [];
+  }
+}
+
+async function getTrendingMusic() {
+  try {
+    console.log('Fetching trending music...');
+    if (!SPOTIFY_CLIENT_ID || !SPOTIFY_CLIENT_SECRET) {
+      console.error('Missing Spotify credentials');
+      return [];
+    }
+
+    // First, get an access token
+    console.log('Getting Spotify access token...');
+    const tokenResponse = await axios.post(
+      'https://accounts.spotify.com/api/token',
+      new URLSearchParams({
+        grant_type: 'client_credentials',
+      }),
+      {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          Authorization: `Basic ${Buffer.from(
+            `${SPOTIFY_CLIENT_ID}:${SPOTIFY_CLIENT_SECRET}`
+          ).toString('base64')}`,
+        },
+      }
+    );
+
+    if (!tokenResponse.data.access_token) {
+      console.error('No access token received from Spotify');
+      return [];
+    }
+
+    const accessToken = tokenResponse.data.access_token;
+    console.log('Got Spotify access token');
+
+    // Get new releases instead of playlist
+    console.log('Fetching new releases from Spotify...');
+    const response = await axios.get(
+      'https://api.spotify.com/v1/browse/new-releases',
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+        params: {
+          limit: 10,
+          country: 'US',
+        },
+      }
+    );
+
+    if (!response.data.albums?.items) {
+      console.error('Invalid response from Spotify:', response.data);
+      return [];
+    }
+
+    console.log('Music response:', {
+      totalAlbums: response.data.albums.items.length,
+      firstAlbum: response.data.albums.items[0]?.name,
+    });
+
+    return response.data.albums.items.map((album: any) => ({
+      id: album.id,
+      type: 'music',
+      title: album.name,
+      description: album.artists.map((artist: any) => artist.name).join(', '),
+      thumbnail: album.images[0]?.url,
+      url: album.external_urls.spotify,
+      artist: album.artists[0].name,
+      album: album.name,
+      releaseDate: album.release_date,
+    }));
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.error('Spotify API error:', {
+        status: error.response?.status,
+        data: error.response?.data,
+        message: error.message,
+      });
+    } else {
+      console.error('Error fetching trending music:', error);
+    }
+    return [];
+  }
+}
+
+async function getTrendingBooks() {
+  try {
+    console.log('Fetching trending books...');
+    const response = await axios.get(
+      'https://www.googleapis.com/books/v1/volumes',
+      {
+        params: {
+          q: 'fiction',
+          maxResults: 10,
+          key: GOOGLE_BOOKS_API_KEY,
+        },
+      }
+    );
+
+    console.log('Books response:', response.data);
+    if (!response.data.items) {
+      console.error('No books found in response');
+      return [];
+    }
+
+    return response.data.items.map((item: any) => ({
+      id: item.id,
+      type: 'book',
+      title: item.volumeInfo.title,
+      description: item.volumeInfo.description,
+      thumbnail: item.volumeInfo.imageLinks?.thumbnail,
+      url: item.volumeInfo.infoLink,
+      author: item.volumeInfo.authors?.[0] || 'Unknown Author',
+      publishedDate: item.volumeInfo.publishedDate,
+      rating: item.volumeInfo.averageRating,
+    }));
+  } catch (error) {
+    console.error('Error fetching trending books:', error);
+    return [];
+  }
+}
+
+async function getTrendingPodcasts() {
+  try {
+    console.log('Fetching trending podcasts...');
+    if (!PODCASTINDEX_API_KEY || !PODCASTINDEX_API_SECRET) {
+      console.error('Missing Podcast Index credentials');
+      return [];
+    }
+
+    const timestamp = Math.floor(Date.now() / 1000);
+    const hash = require('crypto')
+      .createHash('sha1')
+      .update(PODCASTINDEX_API_KEY + PODCASTINDEX_API_SECRET + timestamp)
+      .digest('hex');
+
+    const response = await axios.get(
+      'https://api.podcastindex.org/api/1.0/recent/feeds',
+      {
+        params: { max: 10 },
+        headers: {
+          'User-Agent': 'Telecast/1.0',
+          'X-Auth-Key': PODCASTINDEX_API_KEY,
+          'X-Auth-Date': timestamp.toString(),
+          'Authorization': hash,
+        },
+      }
+    );
+
+    console.log('Podcasts response:', response.data);
+    return response.data.feeds.map((feed: any) => ({
+      id: feed.id,
+      type: 'podcast',
+      title: feed.title,
+      description: feed.description,
+      thumbnail: feed.artwork || feed.image,
+      url: feed.url,
+      author: feed.author,
+      episodeCount: feed.episodeCount,
+      categories: feed.categories ? Object.values(feed.categories) : [],
+    }));
+  } catch (error) {
+    console.error('Error fetching trending podcasts:', error);
+    return [];
+  }
 }
 
 export async function GET() {
   try {
-    // Fetch podcasts from Podcast Index
-    const time = Math.floor(Date.now() / 1000);
-    const hash = await sha1(`${PODCAST_INDEX_KEY}${PODCAST_INDEX_SECRET}${time}`);
-    
-    let podcastData: any = { feeds: [] };
-    const podcastRes = await fetch('https://api.podcastindex.org/api/1.0/recent/feeds?max=3', {
-      method: 'GET',
-      headers: {
-        'User-Agent': 'PodcastSearchExample/1.0',
-        'X-Auth-Date': time.toString(),
-        'X-Auth-Key': PODCAST_INDEX_KEY,
-        'Authorization': hash,
-        'Accept': 'application/json'
-      }
+    console.log('Starting to fetch all trending content...');
+    const [videos, music, books, podcasts] = await Promise.all([
+      getTrendingVideos(),
+      getTrendingMusic(),
+      getTrendingBooks(),
+      getTrendingPodcasts(),
+    ]);
+
+    console.log('All content fetched:', {
+      videosCount: videos.length,
+      musicCount: music.length,
+      booksCount: books.length,
+      podcastsCount: podcasts.length,
     });
 
-    if (!podcastRes.ok) {
-      console.warn('Podcast API error:', await podcastRes.text());
-      // Return empty array instead of throwing
-      podcastData = { feeds: [] };
-    } else {
-      podcastData = await podcastRes.json();
-    }
-
-    // Fetch YouTube trending videos for Canada
-    const videoRes = await fetch(
-      `https://www.googleapis.com/youtube/v3/videos?part=snippet&chart=mostPopular&maxResults=3&regionCode=CA&key=${GOOGLE_API_KEY}`
-    );
-    const videoData = await videoRes.json();
-
-    // Fetch Spotify songs
-    let songData = { tracks: { items: [] } };
-    try {
-      const spotifyTokenRes = await fetch('https://accounts.spotify.com/api/token', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'Authorization': 'Basic ' + Buffer.from(`${SPOTIFY_CLIENT_ID}:${SPOTIFY_CLIENT_SECRET}`).toString('base64')
-        },
-        body: 'grant_type=client_credentials'
-      });
-      
-      if (!spotifyTokenRes.ok) {
-        console.warn('Spotify token error:', await spotifyTokenRes.text());
-      } else {
-        const spotifyTokenData = await spotifyTokenRes.json();
-        const defaultArtist = 'taylorswift';
-        const songRes = await fetch(
-          `https://api.spotify.com/v1/search?q=${encodeURIComponent(defaultArtist)}&type=track&limit=3`,
-          {
-            headers: {
-              'Authorization': `Bearer ${spotifyTokenData.access_token}`
-            }
-          }
-        );
-        
-        if (!songRes.ok) {
-          console.warn('Spotify search error:', await songRes.text());
-        } else {
-          songData = await songRes.json();
-        }
-      }
-    } catch (error) {
-      console.warn('Error fetching from Spotify:', error);
-    }
-
-    // Fetch Google Books
-    const bookRes = await fetch(
-      `https://www.googleapis.com/books/v1/volumes?q=a&maxResults=3&key=${GOOGLE_API_KEY}`
-    );
-    const bookData = await bookRes.json();
-
-    // Process and validate the data before returning
-    const processedData = {
-      podcasts: (podcastData.feeds || []).slice(0, 3).map((podcast: any) => ({
-        id: podcast.id,
-        title: podcast.title,
-        description: podcast.description,
-        image: podcast.artwork || podcast.image,
-        enclosureUrl: podcast.enclosureUrl || podcast.url || null,
-        author: podcast.author,
-        categories: podcast.categories,
-        episodeCount: podcast.episodeCount,
-        language: podcast.language
-      })),
-      videos: (videoData.items || []).slice(0, 3).map((video: any) => ({
-        id: typeof video.id === 'string' ? video.id : video.id?.videoId,
-        snippet: {
-          title: video.snippet.title,
-          description: video.snippet.description,
-          thumbnails: {
-            medium: { url: video.snippet.thumbnails.medium.url }
-          }
-        }
-      })),
-      songs: (songData.tracks?.items || []).slice(0, 3).map((song: any) => ({
-        id: song.id,
-        name: song.name,
-        artists: song.artists.map((artist: any) => ({ name: artist.name })),
-        album: {
-          images: song.album.images || []
-        },
-        preview_url: song.preview_url || null
-      })),
-      books: (bookData.items || []).slice(0, 3).map((book: any) => ({
-        id: book.id,
-        volumeInfo: {
-          title: book.volumeInfo.title,
-          authors: book.volumeInfo.authors || [],
-          imageLinks: book.volumeInfo.imageLinks || { thumbnail: null }
-        }
-      }))
+    // Combine and sort all trending content by type
+    const trendingContent = {
+      videos,
+      music,
+      books,
+      podcasts,
     };
 
-    return NextResponse.json(processedData);
+    return NextResponse.json(trendingContent);
   } catch (error) {
     console.error('Error fetching trending content:', error);
     return NextResponse.json(
