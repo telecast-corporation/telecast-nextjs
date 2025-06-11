@@ -7,7 +7,7 @@ import CssBaseline from '@mui/material/CssBaseline';
 const baseFont = "'Open Sans', Arial, sans-serif";
 
 const lightPalette = {
-  mode: 'light',
+  mode: 'light' as const,
   background: {
     default: '#f4f6fa', // softer, warmer light gray
     paper: '#f9fafb',   // slightly off-white
@@ -28,11 +28,17 @@ const lightPalette = {
     dark: '#b45309',
     contrastText: '#fff',
   },
+  tertiary: {
+    main: '#F6AE2D',
+    light: '#f7c05d',
+    dark: '#c58b24',
+    contrastText: '#fff',
+  },
   divider: '#e3e8ee',
 };
 
 const darkPalette = {
-  mode: 'dark',
+  mode: 'dark' as const,
   background: {
     default: '#23272f', // blue-gray, less intense
     paper: '#2d3340',   // lighter dark for cards
@@ -53,10 +59,16 @@ const darkPalette = {
     dark: '#b45309',
     contrastText: '#23272f',
   },
+  tertiary: {
+    main: '#F6AE2D',
+    light: '#f7c05d',
+    dark: '#c58b24',
+    contrastText: '#23272f',
+  },
   divider: '#3a4151',
 };
 
-function getTheme(isDarkMode) {
+function getTheme(isDarkMode: boolean) {
   return createTheme({
     palette: isDarkMode ? darkPalette : lightPalette,
     typography: {
@@ -138,9 +150,14 @@ function getTheme(isDarkMode) {
   });
 }
 
-const ThemeContext = createContext(undefined);
+type ThemeContextType = {
+  isDarkMode: boolean;
+  toggleDarkMode: () => void;
+};
 
-export function ThemeProvider({ children }) {
+const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
+
+export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [isDarkMode, setIsDarkMode] = useState(false);
 
   useEffect(() => {
