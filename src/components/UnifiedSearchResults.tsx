@@ -145,6 +145,7 @@ export default function UnifiedSearchResults({ results, searchType = 'all' }: Un
         author: result.author || '',
         description: result.description || '',
         image: result.thumbnail || '',
+        url: result.url || '',
       };
       
       const episode = {
