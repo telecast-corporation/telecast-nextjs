@@ -153,7 +153,7 @@ export default function UnifiedSearchResults({ results, searchType = 'all' }: Un
         title: result.title,
         description: result.description || '',
         audioUrl: result.url || '',
-        duration: result.duration || '0:00',
+        duration: Number(result.duration) || 0,
         publishDate: result.publishedAt || '',
       };
       
