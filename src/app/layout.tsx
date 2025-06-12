@@ -4,11 +4,6 @@ import { Box } from '@mui/material';
 import { AuthSessionProvider } from './providers';
 import ClientLayout from '@/components/ClientLayout';
 import { AudioProvider } from '@/contexts/AudioContext';
-import { ThemeProvider } from '@mui/material/styles';
-import CssBaseline from '@mui/material/CssBaseline';
-import theme from '@/theme';
-import { Inter } from 'next/font/google';
-import './globals.css';
 import { ThemeProvider as CustomThemeProvider } from '@/contexts/ThemeContext';
 
 const lexend = Lexend({ 
@@ -16,8 +11,6 @@ const lexend = Lexend({
   weight: ['300', '400', '500', '600', '700'],
   display: 'swap',
 });
-
-const inter = Inter({ subsets: ['latin'] });
 
 export default function RootLayout({
   children,
@@ -45,19 +38,16 @@ export default function RootLayout({
         <link rel="prefetch" href="/contact" as="document" />
         <link rel="prefetch" href="/signup" as="document" />
       </head>
-      <body className={inter.className}>
-        <AuthSessionProvider>
-          <CustomThemeProvider>
-            <CssBaseline />
+      <body className={lexend.className}>
+        <CustomThemeProvider>
+          <AuthSessionProvider>
             <AudioProvider>
-              <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-                <ClientLayout>
-                  {children}
-                </ClientLayout>
-              </Box>
+              <ClientLayout>
+                {children}
+              </ClientLayout>
             </AudioProvider>
-          </CustomThemeProvider>
-        </AuthSessionProvider>
+          </AuthSessionProvider>
+        </CustomThemeProvider>
       </body>
     </html>
   );

@@ -202,19 +202,19 @@ export default function UnifiedSearchResults({ results, searchType = 'all' }: Un
               <PlayArrow />
             </IconButton>
           ) : (
-            <IconButton
-              sx={{
-                position: 'absolute',
-                top: 8,
-                right: 8,
-                backgroundColor: 'rgba(255, 255, 255, 0.8)',
-                '&:hover': {
-                  backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                },
-              }}
-            >
-              {getTypeIcon(result.type)}
-            </IconButton>
+          <IconButton
+            sx={{
+              position: 'absolute',
+              top: 8,
+              right: 8,
+              backgroundColor: 'rgba(255, 255, 255, 0.8)',
+              '&:hover': {
+                backgroundColor: 'rgba(255, 255, 255, 0.9)',
+              },
+            }}
+          >
+            {getTypeIcon(result.type)}
+          </IconButton>
           )}
         </Box>
         <CardContent sx={{ flexGrow: 1 }}>

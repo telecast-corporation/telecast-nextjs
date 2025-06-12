@@ -427,45 +427,154 @@ const MainNav = memo(() => {
 
   const navItems = [
     { label: 'Home', icon: <HomeIcon />, path: '/' },
-    { label: 'Videos', icon: <VideoIcon />, path: '/videos' },
-    { label: 'Podcasts', icon: <PodcastIcon />, path: '/podcasts' },
-    { label: 'Books', icon: <BookIcon />, path: '/books' },
-    { label: 'About', icon: null, path: '/about' },
+    { label: 'Videos', icon: <VideoIcon />, path: '/search?type=video' },
+    { label: 'Podcasts', icon: <PodcastIcon />, path: '/search?type=podcast' },
+    { label: 'Books', icon: <BookIcon />, path: '/search?type=book' },
+    { label: 'Music', icon: <MusicIcon />, path: '/search?type=music' },
+    { label: 'Services', icon: <SettingsIcon />, path: '/services' },
+    { label: 'Contact', icon: <AllIcon />, path: '/contact' },
   ];
 
   const drawer = (
-    <Box sx={{ width: 250 }} role="presentation">
-      <List>
+    <Box sx={{ width: { xs: '100%', sm: 280 } }} role="presentation">
+      <Box sx={{ 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center', 
+        p: { xs: 1.5, sm: 2 },
+        borderBottom: `1px solid ${theme.palette.divider}`
+      }}>
+        <Typography variant="h6" sx={{ 
+          fontWeight: 'bold',
+          fontSize: { xs: '1.1rem', sm: '1.25rem' }
+        }}>Menu</Typography>
+        <IconButton onClick={() => setMobileMenuOpen(false)} sx={{ p: { xs: 0.5, sm: 1 } }}>
+          <CloseIcon sx={{ fontSize: { xs: '1.2rem', sm: '1.5rem' } }} />
+        </IconButton>
+      </Box>
+
+      {/* Mobile Navigation */}
+      <List sx={{ px: 0 }}>
         {navItems.map((item) => (
           <ListItem 
             button 
             key={item.label} 
             onClick={() => handleNavigation(item.path)}
+            sx={{
+              py: { xs: 1, sm: 1.5 },
+              '&:hover': {
+                bgcolor: 'action.hover',
+              },
+              '&.Mui-selected': {
+                bgcolor: 'action.selected',
+                '&:hover': {
+                  bgcolor: 'action.selected',
+                },
+              },
+            }}
+            selected={pathname === item.path}
           >
-            <ListItemIcon>{item.icon}</ListItemIcon>
-            <ListItemText primary={item.label} />
+            <ListItemIcon sx={{ 
+              minWidth: { xs: 36, sm: 40 },
+              color: 'inherit'
+            }}>
+              {React.cloneElement(item.icon, { 
+                sx: { fontSize: { xs: '1.2rem', sm: '1.5rem' } }
+              })}
+            </ListItemIcon>
+            <ListItemText 
+              primary={item.label} 
+              primaryTypographyProps={{ 
+                fontWeight: pathname === item.path ? 600 : 400,
+                color: pathname === item.path ? 'primary.main' : 'text.primary',
+                fontSize: { xs: '0.875rem', sm: '1rem' }
+              }} 
+            />
           </ListItem>
         ))}
       </List>
+
       <Divider />
-      <Box sx={{ p: 2 }}>
-        <form onSubmit={handleSearch}>
-          <TextField
+
+      {/* Mobile Auth Section */}
+      <Box sx={{ p: { xs: 1.5, sm: 2 } }}>
+        {isAuthenticated ? (
+          <>
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: { xs: 1.5, sm: 2 } }}>
+              <Avatar 
+                alt={user?.name} 
+                src={user?.image} 
+                sx={{ width: { xs: 32, sm: 40 }, height: { xs: 32, sm: 40 }, mr: 2 }}
+              />
+              <Box>
+                <Typography variant="subtitle1" sx={{ 
+                  fontWeight: 600,
+                  fontSize: { xs: '0.875rem', sm: '1rem' }
+                }}>
+                  {user?.name}
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ 
+                  fontSize: { xs: '0.75rem', sm: '0.875rem' }
+                }}>
+                  {user?.email}
+                </Typography>
+              </Box>
+            </Box>
+            <List>
+              {[
+                { icon: <AccountIcon />, text: 'Profile', onClick: handleProfileClick },
+                { icon: <SettingsIcon />, text: 'Settings', onClick: handleSettingsClick },
+                { icon: <LogoutIcon />, text: 'Logout', onClick: handleLogoutClick }
+              ].map((item) => (
+                <ListItem 
+                  button 
+                  key={item.text} 
+                  onClick={item.onClick}
+                  sx={{ py: { xs: 0.75, sm: 1 } }}
+                >
+                  <ListItemIcon sx={{ minWidth: { xs: 36, sm: 40 } }}>
+                    {React.cloneElement(item.icon, { 
+                      sx: { fontSize: { xs: '1.2rem', sm: '1.5rem' } }
+                    })}
+                  </ListItemIcon>
+                  <ListItemText 
+                    primary={item.text} 
+                    primaryTypographyProps={{ 
+                      fontSize: { xs: '0.875rem', sm: '1rem' }
+                    }} 
+                  />
+                </ListItem>
+              ))}
+            </List>
+          </>
+        ) : (
+          <Button
             fullWidth
-            size="small"
-            placeholder="Search..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon />
-                </InputAdornment>
-              ),
+            variant="contained"
+            onClick={login}
+            startIcon={<LoginIcon sx={{ fontSize: { xs: '1.2rem', sm: '1.5rem' } }} />}
+            sx={{
+              py: { xs: 1, sm: 1.5 },
+              borderRadius: 2,
+              textTransform: 'none',
+              fontSize: { xs: '0.875rem', sm: '1rem' },
             }}
-          />
-        </form>
+          >
+            Sign In
+          </Button>
+        )}
       </Box>
+
+      {/* New ListItem for theme toggle inside the drawer, above the auth section */}
+      <ListItem button onClick={toggleDarkMode} sx={{ py: { xs: 1, sm: 1.5 } }}>
+        <ListItemIcon sx={{ minWidth: { xs: 36, sm: 40 } }}>
+          {isDarkMode ? <LightModeIcon sx={{ fontSize: { xs: '1.2rem', sm: '1.5rem' } }} /> : <DarkModeIcon sx={{ fontSize: { xs: '1.2rem', sm: '1.5rem' } }} />}
+        </ListItemIcon>
+        <ListItemText 
+          primary={isDarkMode ? 'Light Mode' : 'Dark Mode'} 
+          primaryTypographyProps={{ fontSize: { xs: '0.875rem', sm: '1rem' } }} 
+        />
+      </ListItem>
     </Box>
   );
 
@@ -520,12 +629,11 @@ const MainNav = memo(() => {
         position: 'relative',
         flexWrap: isMobile ? 'wrap' : 'nowrap',
       }}>
-
         <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1 }}>
           {/* Mobile Layout */}
           {isMobile ? (
             <>
-              {/* Top Row - Logo, Menu Button, Profile */}
+              {/* Top Row - Logo, Theme Toggle, Profile */}
               <Box sx={{ 
                 display: 'flex', 
                 justifyContent: 'space-between', 
@@ -540,10 +648,10 @@ const MainNav = memo(() => {
                       display: 'flex',
                       alignItems: 'center',
                       cursor: 'pointer',
-                      mr: { xs: 2, md: 4 },
+                      mr: { xs: 4, sm: 6, md: 8 },
                       flexShrink: 0,
-                      minWidth: { xs: '160px', sm: '220px', md: '300px', lg: '400px' },
-                      maxWidth: { xs: '200px', sm: '300px', md: '400px', lg: '500px' },
+                      minWidth: { xs: '100px', sm: '140px', md: '160px' },
+                      maxWidth: { xs: '140px', sm: '180px', md: '200px' },
                     }}
                   >
                     <Image
@@ -551,7 +659,7 @@ const MainNav = memo(() => {
                       alt="Telecast Logo"
                       width={500}
                       height={500}
-                      style={{
+                      style={{ 
                         width: '100%',
                         height: 'auto',
                         maxWidth: '500px',
@@ -563,29 +671,35 @@ const MainNav = memo(() => {
                   </Box>
                 </Link>
 
-                {/* Mobile Menu & Profile */}
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                {/* Theme Toggle & Profile */}
+                <Box sx={{ 
+                  display: 'flex', 
+                  alignItems: 'flex-end',
+                  gap: 2, 
+                  mr: { xs: 2, sm: 3 },
+                  pb: { xs: 0.5, sm: 1.5 }
+                }}>
                   {isAuthenticated && (
                     <IconButton onClick={handleProfileMenuClick} size="small">
-                      <Avatar alt={user?.name} src={user?.image} sx={{ width: 32, height: 32 }} />
+                      <Avatar alt={user?.name} src={user?.image} sx={{ width: { xs: 28, sm: 32 }, height: { xs: 28, sm: 32 } }} />
                     </IconButton>
                   )}
-                  <IconButton 
-                    onClick={() => setMobileMenuOpen(true)}
-                    sx={{ color: 'text.primary' }}
-                  >
-                    <MenuIcon />
-                  </IconButton>
                 </Box>
               </Box>
 
-              {/* Bottom Row - Search */}
+              {/* Bottom Row - Search & Menu */}
               <Box sx={{ width: '100%' }}>
                 <Box 
                   ref={searchBoxRef}
                   component="form" 
                   onSubmit={handleSearch}
-                  sx={{ position: 'relative' }}
+                  sx={{ 
+                    position: 'relative',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1,
+                    mt: { xs: 1, sm: 1.5 }
+                  }}
                 >
                   <Box sx={{ 
                     display: 'flex',
@@ -593,12 +707,13 @@ const MainNav = memo(() => {
                     bgcolor: 'background.default',
                     borderRadius: 1,
                     border: `1px solid ${theme.palette.divider}`,
+                    flexGrow: 1,
                     '&:hover': {
                       borderColor: theme.palette.primary.main,
                     },
                   }}>
-                    <IconButton type="submit" size="small" sx={{ p: 1 }}>
-                      <SearchIcon />
+                    <IconButton type="submit" size="small" sx={{ p: { xs: 0.5, sm: 1 } }}>
+                      <SearchIcon sx={{ fontSize: { xs: '1.2rem', sm: '1.5rem' } }} />
                     </IconButton>
                     <InputBase
                       name="search"
@@ -606,56 +721,51 @@ const MainNav = memo(() => {
                       value={searchQuery}
                       onChange={handleSearchInputChange}
                       onKeyPress={handleKeyPress}
-                      sx={{ flexGrow: 1, px: 1, '& input': { py: 0.5 } }}
+                      sx={{ 
+                        flexGrow: 1, 
+                        px: 1, 
+                        '& input': { 
+                          py: 0.5,
+                          fontSize: { xs: '0.875rem', sm: '1rem' }
+                        } 
+                      }}
                     />
                   </Box>
-
-                  {/* Mobile Search Results */}
-                  {isSearching && (
-                    <Box sx={{
-                      position: 'absolute',
-                      top: '100%',
-                      left: 0,
-                      right: 0,
-                      zIndex: theme.zIndex.appBar + 1,
-                      mt: 1,
-                    }}>
-                      {renderSearchResults()}
-                    </Box>
-                  )}
+                  <IconButton 
+                    onClick={() => setMobileMenuOpen(true)}
+                    sx={{ 
+                      color: 'text.primary',
+                      bgcolor: 'background.default',
+                      border: `1px solid ${theme.palette.divider}`,
+                      p: { xs: 0.5, sm: 1 },
+                      '&:hover': {
+                        borderColor: theme.palette.primary.main,
+                      },
+                    }}
+                    aria-label="Open menu"
+                  >
+                    <MenuIcon sx={{ fontSize: { xs: '1.2rem', sm: '1.5rem' } }} />
+                  </IconButton>
                 </Box>
 
-                {/* Mobile Filter Buttons */}
-                <Box sx={{ 
-                  display: 'flex', 
-                  gap: 0.5,
-                  mt: 1,
-                  overflowX: 'auto',
-                  pb: 0.5,
-                  '&::-webkit-scrollbar': { display: 'none' },
-                  scrollbarWidth: 'none',
-                }}>
-                  {filterOptions.map((option) => (
-                    <Button
-                      key={option.value}
-                      variant={selectedFilter === option.value ? "contained" : "outlined"}
-                      size="small"
-                      startIcon={option.icon}
-                      onClick={() => handleFilterSelect(option.value)}
-                      sx={{
-                        borderRadius: 1,
-                        textTransform: 'none',
-                        minWidth: 'auto',
-                        px: 1.5,
-                        py: 0.5,
-                        fontSize: '0.75rem',
-                        flexShrink: 0,
-                      }}
-                    >
-                      {option.value}
-                    </Button>
-                  ))}
-                </Box>
+                {/* Mobile Search Results */}
+                {isSearching && (
+                  <Box sx={{
+                    position: 'absolute',
+                    top: '100%',
+                    left: 0,
+                    right: 0,
+                    zIndex: theme.zIndex.appBar + 1,
+                    mt: 1,
+                    bgcolor: 'background.paper',
+                    borderRadius: 1,
+                    boxShadow: 3,
+                    maxHeight: '80vh',
+                    overflow: 'auto',
+                  }}>
+                    {renderSearchResults()}
+                  </Box>
+                )}
               </Box>
             </>
           ) : (
@@ -664,7 +774,7 @@ const MainNav = memo(() => {
               {/* Left section - Logo */}
               <Link href="/" passHref style={{ textDecoration: 'none' }}>
                 <Box
-                  sx={{
+                  sx={{ 
                     display: 'flex',
                     alignItems: 'center',
                     cursor: 'pointer',
@@ -679,7 +789,7 @@ const MainNav = memo(() => {
                     alt="Telecast Logo"
                     width={500}
                     height={500}
-                    style={{
+                    style={{ 
                       width: '100%',
                       height: 'auto',
                       maxWidth: '500px',
@@ -746,7 +856,7 @@ const MainNav = memo(() => {
                       value={searchQuery}
                       onChange={handleSearchInputChange}
                       onKeyPress={handleKeyPress}
-                      sx={{  
+                      sx={{ 
                         flexGrow: 1,
                         px: 1,
                         '& input': {
@@ -832,13 +942,6 @@ const MainNav = memo(() => {
                       </NavButton>
                     </Link>
                   )}
-                  <IconButton
-                    onClick={toggleDarkMode}
-                    sx={{ color: 'text.primary', mr: 1 }}
-                    aria-label="Toggle dark mode"
-                  >
-                    {isDarkMode ? <LightModeIcon /> : <DarkModeIcon />}
-                  </IconButton>
                   <Link href="/about" passHref style={{ textDecoration: 'none' }}>
                     <NavButton sx={{ fontSize: '1rem', height: '40px', minWidth: '60px' }}>
                       About
@@ -894,7 +997,7 @@ const MainNav = memo(() => {
           )}
         </Box>
 
-        {/* Profile Menu (shared between mobile and desktop) */}
+        {/* Profile Menu */}
         <Menu
           anchorEl={profileAnchorEl}
           open={Boolean(profileAnchorEl)}
@@ -939,33 +1042,7 @@ const MainNav = memo(() => {
             }
           }}
         >
-          <Box sx={{ p: 2 }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-              <Typography variant="h6" sx={{ fontWeight: 'bold' }}>Menu</Typography>
-              <IconButton onClick={() => setMobileMenuOpen(false)} sx={{ p: 1 }}>
-                <CloseIcon />
-              </IconButton>
-            </Box>
-            <Divider sx={{ mb: 3 }} />
-            <List sx={{ px: 0 }}>
-              <ListItem button onClick={() => { router.push('/'); setMobileMenuOpen(false); }}>
-                <ListItemIcon sx={{ minWidth: 40 }}><HomeIcon /></ListItemIcon>
-                <ListItemText primary="Home" primaryTypographyProps={{ fontWeight: 500 }} />
-              </ListItem>
-              <ListItem button onClick={() => { router.push('/about'); setMobileMenuOpen(false); }}>
-                <ListItemIcon sx={{ minWidth: 40 }}><AllIcon /></ListItemIcon>
-                <ListItemText primary="About" primaryTypographyProps={{ fontWeight: 500 }} />
-              </ListItem>
-              <ListItem button onClick={() => { router.push('/services'); setMobileMenuOpen(false); }}>
-                <ListItemIcon sx={{ minWidth: 40 }}><SettingsIcon /></ListItemIcon>
-                <ListItemText primary="Services" primaryTypographyProps={{ fontWeight: 500 }} />
-              </ListItem>
-              <ListItem button onClick={() => { router.push('/contact'); setMobileMenuOpen(false); }}>
-                <ListItemIcon sx={{ minWidth: 40 }}><AllIcon /></ListItemIcon>
-                <ListItemText primary="Contact" primaryTypographyProps={{ fontWeight: 500 }} />
-              </ListItem>
-            </List>
-          </Box>
+          {drawer}
         </Drawer>
       </Toolbar>
     </AppBar>

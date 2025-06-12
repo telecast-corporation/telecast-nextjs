@@ -162,11 +162,12 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const savedMode = localStorage.getItem('darkMode');
-    if (savedMode) {
+    
+    if (savedMode !== null) {
       setIsDarkMode(savedMode === 'true');
     } else {
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      setIsDarkMode(prefersDark);
+      setIsDarkMode(false);
+      localStorage.setItem('darkMode', 'false');
     }
   }, []);
 

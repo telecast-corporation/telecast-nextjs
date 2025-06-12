@@ -147,15 +147,15 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
       setDuration(0);
 
       // Set new source and start playback
-      audioRef.current.src = episode.audioUrl;
+        audioRef.current.src = episode.audioUrl;
       audioRef.current.load(); // Ensure the new source is loaded
       
       const playPromise = audioRef.current.play();
       if (playPromise !== undefined) {
         playPromise
           .then(() => {
-            setCurrentPodcast(podcast);
-            setCurrentEpisode(episode);
+        setCurrentPodcast(podcast);
+        setCurrentEpisode(episode);
           })
           .catch(error => {
             console.error('Error playing audio:', error);
