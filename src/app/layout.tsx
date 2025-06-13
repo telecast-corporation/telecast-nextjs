@@ -40,13 +40,13 @@ export default function RootLayout({
       </head>
       <body className={lexend.className}>
         <CustomThemeProvider>
-          <AuthSessionProvider>
+        <AuthSessionProvider>
             <AudioProvider>
-              <ClientLayout>
-                {children}
-              </ClientLayout>
+                <ClientLayout>
+                  {children}
+                </ClientLayout>
             </AudioProvider>
-          </AuthSessionProvider>
+        </AuthSessionProvider>
         </CustomThemeProvider>
       </body>
     </html>

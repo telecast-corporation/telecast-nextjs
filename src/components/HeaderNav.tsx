@@ -165,29 +165,29 @@ const HeaderNav: React.FC = () => {
     <>
       <AppBar position="static" color="default" elevation={1}>
         <Toolbar sx={{ 
-          display: 'flex', 
+        display: 'flex',
           justifyContent: 'space-between',
-          alignItems: 'center',
+        alignItems: 'center',
           flexWrap: 'wrap',
           gap: 2,
           py: 1
-        }}>
-          <Link href="/" style={{ textDecoration: 'none' }}>
+      }}>
+        <Link href="/" style={{ textDecoration: 'none' }}>
             <Box sx={{ 
               display: 'flex', 
               alignItems: 'center',
               maxWidth: { xs: '150px', sm: '200px' }
             }}>
-              <Image
-                src="/telecast-logo.gif"
-                alt="Telecast Logo"
-                width={0}
-                height={0}
+            <Image
+              src="/telecast-logo.gif"
+              alt="Telecast Logo"
+              width={0}
+              height={0}
                 style={{ width: '100%', height: 'auto' }}
-                priority
-              />
+              priority
+            />
             </Box>
-          </Link>
+        </Link>
 
           {isMobile ? (
             <IconButton
@@ -204,24 +204,24 @@ const HeaderNav: React.FC = () => {
               gap: 2,
               alignItems: 'center'
             }}>
-              {navLinks.map(link => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  onClick={link.onClick}
+          {navLinks.map(link => (
+            <Link
+              key={link.href}
+              href={link.href}
+              onClick={link.onClick}
                   style={{ textDecoration: 'none' }}
                 >
                   <Button
                     color={pathname === link.href ? 'primary' : 'inherit'}
                     sx={{ 
-                      fontWeight: 500,
+                fontWeight: 500,
                       textTransform: 'none'
-                    }}
-                  >
-                    {link.label}
+              }}
+            >
+              {link.label}
                   </Button>
-                </Link>
-              ))}
+            </Link>
+          ))}
             </Box>
           )}
         </Toolbar>
@@ -238,21 +238,21 @@ const HeaderNav: React.FC = () => {
         {drawer}
       </Drawer>
 
-      {/* Debug info */}
+        {/* Debug info */}
       <Box sx={{ 
-        fontSize: '12px', 
+          fontSize: '12px', 
         color: 'text.secondary',
-        whiteSpace: 'pre-wrap',
-        textAlign: 'left',
-        maxWidth: '100%',
-        overflow: 'auto',
+          whiteSpace: 'pre-wrap',
+          textAlign: 'left',
+          maxWidth: '100%',
+          overflow: 'auto',
         p: 2,
         bgcolor: 'background.default',
         borderRadius: 1,
         mt: 2,
         mx: 2
-      }}>
-        {debugInfo}
+        }}>
+          {debugInfo}
       </Box>
     </>
   );
