@@ -455,45 +455,63 @@ const MainNav = memo(() => {
       </Box>
 
       {/* Mobile Navigation */}
-      <List sx={{ px: 0 }}>
-        {navItems.map((item) => (
-          <ListItem 
-            button 
-            key={item.label} 
-            onClick={() => handleNavigation(item.path)}
-            sx={{
-              py: { xs: 1, sm: 1.5 },
-              '&:hover': {
-                bgcolor: 'action.hover',
-              },
-              '&.Mui-selected': {
-                bgcolor: 'action.selected',
+      <Box className="container m-auto grid grid-rows-2 grid-cols-1 gap-y-2 w-full md:hidden">
+        {/* Row 1: Sign In/Profile and Hamburger, right-aligned */}
+        <Box className="flex items-center justify-end gap-2">
+          {isAuthenticated ? (
+            <IconButton onClick={handleProfileMenuClick} size="small">
+              <Avatar alt={user?.name} src={user?.image} sx={{ width: { xs: 28, sm: 32 }, height: { xs: 28, sm: 32 } }} />
+            </IconButton>
+          ) : (
+            <IconButton
+              onClick={login}
+              disabled={authLoading}
+              sx={{
+                bgcolor: 'background.paper',
+                color: 'primary.main',
+                border: '2px solid',
+                borderColor: 'primary.main',
+                boxShadow: 1,
                 '&:hover': {
-                  bgcolor: 'action.selected',
+                  bgcolor: 'primary.main',
+                  color: 'white',
                 },
+                borderRadius: '50%',
+                width: { xs: 36, sm: 40 },
+                height: { xs: 36, sm: 40 },
+                p: 0,
+                transition: 'all 0.2s',
+              }}
+              aria-label="Sign in"
+            >
+              <AccountCircleIcon sx={{ width: '70%', height: '70%' }} />
+            </IconButton>
+          )}
+          <IconButton 
+            onClick={() => setMobileMenuOpen(true)}
+            sx={{ 
+              color: 'text.primary',
+              bgcolor: 'background.default',
+              border: `1px solid ${theme.palette.divider}`,
+              p: { xs: 0.5, sm: 1 },
+              '&:hover': {
+                borderColor: theme.palette.primary.main, 
               },
             }}
-            selected={pathname === item.path}
+            aria-label="Open menu"
           >
-            <ListItemIcon sx={{ 
-              minWidth: { xs: 36, sm: 40 },
-              color: 'inherit'
-            }}>
-              {React.cloneElement(item.icon, { 
-                sx: { fontSize: { xs: '1.2rem', sm: '1.5rem' } }
-              })}
-            </ListItemIcon>
-            <ListItemText 
-              primary={item.label} 
-              primaryTypographyProps={{ 
-                fontWeight: pathname === item.path ? 600 : 400,
-                color: pathname === item.path ? 'primary.main' : 'text.primary',
-                fontSize: { xs: '0.875rem', sm: '1rem' }
-              }} 
-            />
-          </ListItem>
-        ))}
-      </List>
+            <MenuIcon sx={{ fontSize: { xs: '1.2rem', sm: '1.5rem' } }} />
+          </IconButton>
+        </Box>
+        {/* Row 2: Quick Links, right-aligned in a single row */}
+        <Box className="flex items-center justify-end gap-2 mt-2">
+          <Button variant="outlined" size="small" className="" onClick={() => router.push('/')}>All</Button>
+          <Button variant="outlined" size="small" className="" onClick={() => router.push('/search?type=podcast')}>Podcast</Button>
+          <Button variant="outlined" size="small" className="" onClick={() => router.push('/search?type=video')}>Videos</Button>
+          <Button variant="outlined" size="small" className="" onClick={() => router.push('/search?type=music')}>Music</Button>
+          <Button variant="outlined" size="small" className="" onClick={() => router.push('/search?type=book')}>Books</Button>
+        </Box>
+      </Box>
 
       <Divider />
 
@@ -639,51 +657,62 @@ const MainNav = memo(() => {
                     />
                   </Box>
                 </Link>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  {isAuthenticated ? (
-                    <IconButton onClick={handleProfileMenuClick} size="small">
-                      <Avatar alt={user?.name} src={user?.image} sx={{ width: { xs: 28, sm: 32 }, height: { xs: 28, sm: 32 } }} />
-                    </IconButton>
-                  ) : (
-                    <IconButton
-                      onClick={login}
-                      disabled={authLoading}
-                      sx={{
-                        bgcolor: 'background.paper',
-                        color: 'primary.main',
-                        border: '2px solid',
-                        borderColor: 'primary.main',
-                        boxShadow: 1,
+                <Box className="container m-auto grid grid-rows-2 grid-cols-1 gap-y-2 w-full md:hidden">
+                  {/* Row 1: Sign In/Profile and Hamburger, right-aligned */}
+                  <Box className="flex items-center justify-end gap-2">
+                    {isAuthenticated ? (
+                      <IconButton onClick={handleProfileMenuClick} size="small">
+                        <Avatar alt={user?.name} src={user?.image} sx={{ width: { xs: 28, sm: 32 }, height: { xs: 28, sm: 32 } }} />
+                      </IconButton>
+                    ) : (
+                      <IconButton
+                        onClick={login}
+                        disabled={authLoading}
+                        sx={{
+                          bgcolor: 'background.paper',
+                          color: 'primary.main',
+                          border: '2px solid',
+                          borderColor: 'primary.main',
+                          boxShadow: 1,
+                          '&:hover': {
+                            bgcolor: 'primary.main',
+                            color: 'white',
+                          },
+                          borderRadius: '50%',
+                          width: { xs: 36, sm: 40 },
+                          height: { xs: 36, sm: 40 },
+                          p: 0,
+                          transition: 'all 0.2s',
+                        }}
+                        aria-label="Sign in"
+                      >
+                        <AccountCircleIcon sx={{ width: '70%', height: '70%' }} />
+                      </IconButton>
+                    )}
+                    <IconButton 
+                      onClick={() => setMobileMenuOpen(true)}
+                      sx={{ 
+                        color: 'text.primary',
+                        bgcolor: 'background.default',
+                        border: `1px solid ${theme.palette.divider}`,
+                        p: { xs: 0.5, sm: 1 },
                         '&:hover': {
-                          bgcolor: 'primary.main',
-                          color: 'white',
+                          borderColor: theme.palette.primary.main,
                         },
-                        borderRadius: '50%',
-                        width: { xs: 36, sm: 40 },
-                        height: { xs: 36, sm: 40 },
-                        p: 0,
-                        transition: 'all 0.2s',
                       }}
-                      aria-label="Sign in"
+                      aria-label="Open menu"
                     >
-                      <AccountCircleIcon sx={{ width: '70%', height: '70%' }} />
+                      <MenuIcon sx={{ fontSize: { xs: '1.2rem', sm: '1.5rem' } }} />
                     </IconButton>
-                  )}
-                  <IconButton 
-                    onClick={() => setMobileMenuOpen(true)}
-                    sx={{ 
-                      color: 'text.primary',
-                      bgcolor: 'background.default',
-                      border: `1px solid ${theme.palette.divider}`,
-                      p: { xs: 0.5, sm: 1 },
-                      '&:hover': {
-                        borderColor: theme.palette.primary.main,
-                      },
-                    }}
-                    aria-label="Open menu"
-                  >
-                    <MenuIcon sx={{ fontSize: { xs: '1.2rem', sm: '1.5rem' } }} />
-                  </IconButton>
+                  </Box>
+                  {/* Row 2: Quick Links, right-aligned in a single row */}
+                  <Box className="flex items-center justify-end gap-2 mt-2">
+                    <Button variant="outlined" size="small" className="" onClick={() => router.push('/')}>All</Button>
+                    <Button variant="outlined" size="small" className="" onClick={() => router.push('/search?type=podcast')}>Podcast</Button>
+                    <Button variant="outlined" size="small" className="" onClick={() => router.push('/search?type=video')}>Videos</Button>
+                    <Button variant="outlined" size="small" className="" onClick={() => router.push('/search?type=music')}>Music</Button>
+                    <Button variant="outlined" size="small" className="" onClick={() => router.push('/search?type=book')}>Books</Button>
+                  </Box>
                 </Box>
               </Box>
               {/* Bottom Row - Search & Menu */}

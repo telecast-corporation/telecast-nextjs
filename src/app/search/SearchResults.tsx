@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Container, Typography, Box, CircularProgress } from '@mui/material';
+import { Container, Typography, Box, CircularProgress, InputBase, Button } from '@mui/material';
 import UnifiedSearchResults from '@/components/UnifiedSearchResults';
 
 interface SearchResult {
@@ -22,8 +22,10 @@ export default function SearchResults() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const debounceTimerRef = useRef<NodeJS.Timeout>();
-
+  const [mobileSearch, setMobileSearch] = useState(query);
+  const [submitting, setSubmitting] = useState(false);
   const showRecommendations = !query && ['podcast', 'video', 'music', 'book'].includes(type);
+  const router = typeof window !== 'undefined' ? require('next/navigation').useRouter() : null;
 
   useEffect(() => {
     const fetchResults = async () => {
@@ -130,8 +132,79 @@ export default function SearchResults() {
     }
   };
 
+  // Mobile search bar submit handler
+  const handleMobileSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!router) return;
+    setSubmitting(true);
+    let url = '/search';
+    if (mobileSearch) {
+      url += `?q=${encodeURIComponent(mobileSearch)}`;
+      if (type && type !== 'all') url += `&type=${type}`;
+    } else if (type && type !== 'all') {
+      url += `?type=${type}`;
+    }
+    router.push(url);
+    setSubmitting(false);
+  };
+
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
+      {/* Mobile Search Bar */}
+      <Box
+        sx={{
+          display: { xs: 'flex', md: 'none' },
+          flexDirection: 'column',
+          alignItems: 'center',
+          mb: 3,
+          px: 1,
+          width: '100%',
+          maxWidth: 480,
+          mx: 'auto',
+        }}
+        component="form"
+        onSubmit={handleMobileSearch}
+      >
+        <InputBase
+          placeholder="Search..."
+          value={mobileSearch}
+          onChange={e => setMobileSearch(e.target.value)}
+          sx={{
+            width: '100%',
+            bgcolor: 'white',
+            borderRadius: 3,
+            boxShadow: 1,
+            border: '1.5px solid #e0e0e0',
+            px: 2,
+            py: 1.5,
+            fontSize: '1.15rem',
+            textAlign: 'center',
+            mb: 2,
+            fontWeight: 500,
+          }}
+          inputProps={{
+            style: { textAlign: 'center' }
+          }}
+        />
+        <Button
+          variant="contained"
+          color="primary"
+          fullWidth
+          sx={{
+            borderRadius: 3,
+            fontWeight: 700,
+            fontSize: '1.1rem',
+            py: 1.2,
+            boxShadow: 2,
+            textTransform: 'none',
+          }}
+          type="submit"
+          disabled={submitting}
+        >
+          Search
+        </Button>
+      </Box>
+      {/* End Mobile Search Bar */}
       <Typography variant="h4" component="h1" gutterBottom>
         {query ? `Search Results for "${query}"` : getRecommendationTitle()}
       </Typography>
