@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { 
   Container, 
   Typography, 
@@ -12,10 +12,15 @@ import {
   CircularProgress,
   Alert,
   IconButton,
+  InputBase,
+  Button,
 } from '@mui/material';
 import { useRouter } from 'next/navigation';
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
+import { Search as SearchIcon, Headphones as HeadphonesIcon, VideoLibrary as VideoIcon, MusicNote as MusicIcon, MenuBook as BookIcon } from '@mui/icons-material';
+import Link from 'next/link';
+import Image from 'next/image';
 
 interface TrendingItem {
     id: string;
@@ -150,6 +155,8 @@ export default function HomePage() {
     podcasts: [],
   });
   const router = useRouter();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedType, setSelectedType] = useState('');
 
   useEffect(() => {
     const fetchTrendingContent = async () => {
@@ -207,28 +214,205 @@ export default function HomePage() {
 
   return (
     <Container maxWidth="lg" sx={{ mt: 8 }}>
+      {/* Quick Links (Mobile Only) */}
+      <Box
+        sx={{
+          display: { xs: 'flex', md: 'none' },
+          gap: 1.5,
+          overflowX: 'auto',
+          mb: 3,
+          px: 1,
+        }}
+      >
+        <Button
+          variant="contained"
+          color="primary"
+          startIcon={<SearchIcon />}
+          sx={{
+            borderRadius: 8,
+            minWidth: 90,
+            fontWeight: 700,
+            fontSize: '1rem',
+            boxShadow: 0,
+            px: 2.5,
+            py: 1.2,
+            textTransform: 'none',
+          }}
+          onClick={() => { setSelectedType(''); router.push('/search'); }}
+        >
+          All
+        </Button>
+        <Button
+          variant="outlined"
+          startIcon={<HeadphonesIcon />}
+          sx={{
+            borderRadius: 8,
+            minWidth: 110,
+            fontWeight: 700,
+            fontSize: '1rem',
+            px: 2.5,
+            py: 1.2,
+            textTransform: 'none',
+            borderColor: 'primary.main',
+            color: 'primary.main',
+            '&:hover': {
+              borderColor: 'primary.dark',
+              background: 'rgba(33, 150, 243, 0.04)',
+            },
+          }}
+          onClick={() => { setSelectedType('podcast'); router.push('/search?type=podcast'); }}
+        >
+          Podcasts
+        </Button>
+        <Button
+          variant="outlined"
+          startIcon={<VideoIcon />}
+          sx={{
+            borderRadius: 8,
+            minWidth: 110,
+            fontWeight: 700,
+            fontSize: '1rem',
+            px: 2.5,
+            py: 1.2,
+            textTransform: 'none',
+            borderColor: 'primary.main',
+            color: 'primary.main',
+            '&:hover': {
+              borderColor: 'primary.dark',
+              background: 'rgba(33, 150, 243, 0.04)',
+            },
+          }}
+          onClick={() => router.push('/search?type=video')}
+        >
+          Videos
+        </Button>
+        <Button
+          variant="outlined"
+          startIcon={<MusicIcon />}
+          sx={{
+            borderRadius: 8,
+            minWidth: 100,
+            fontWeight: 700,
+            fontSize: '1rem',
+            px: 2.5,
+            py: 1.2,
+            textTransform: 'none',
+            borderColor: 'primary.main',
+            color: 'primary.main',
+            '&:hover': {
+              borderColor: 'primary.dark',
+              background: 'rgba(33, 150, 243, 0.04)',
+            },
+          }}
+          onClick={() => router.push('/search?type=music')}
+        >
+          Music
+        </Button>
+        <Button
+          variant="outlined"
+          startIcon={<BookIcon />}
+          sx={{
+            borderRadius: 8,
+            minWidth: 100,
+            fontWeight: 700,
+            fontSize: '1rem',
+            px: 2.5,
+            py: 1.2,
+            textTransform: 'none',
+            borderColor: 'primary.main',
+            color: 'primary.main',
+            '&:hover': {
+              borderColor: 'primary.dark',
+              background: 'rgba(33, 150, 243, 0.04)',
+            },
+          }}
+          onClick={() => router.push('/search?type=book')}
+        >
+          Books
+        </Button>
+      </Box>
+
+      {/* Search Bar (Styled, Mobile Only) */}
+      <Box
+        sx={{
+          display: { xs: 'flex', md: 'none' },
+          flexDirection: 'column',
+          alignItems: 'center',
+          mb: 3,
+          px: 1,
+          width: '100%',
+          maxWidth: 480,
+          mx: 'auto',
+        }}
+      >
+        <InputBase
+          placeholder="Find your entertainment"
+          value={searchQuery}
+          onChange={e => setSearchQuery(e.target.value)}
+          sx={{
+            width: '100%',
+            bgcolor: 'white',
+            borderRadius: 3,
+            boxShadow: 1,
+            border: '1.5px solid #e0e0e0',
+            px: 2,
+            py: 1.5,
+            fontSize: '1.15rem',
+            textAlign: 'center',
+            mb: 2,
+            fontWeight: 500,
+          }}
+          inputProps={{
+            style: { textAlign: 'center' }
+          }}
+        />
+        <Button
+          variant="contained"
+          color="primary"
+          fullWidth
+          sx={{
+            borderRadius: 3,
+            fontWeight: 700,
+            fontSize: '1.1rem',
+            py: 1.2,
+            boxShadow: 2,
+            textTransform: 'none',
+          }}
+          onClick={() => {
+            let url = '/search';
+            if (searchQuery) {
+              url += `?q=${encodeURIComponent(searchQuery)}`;
+              if (selectedType) url += `&type=${selectedType}`;
+            } else if (selectedType) {
+              url += `?type=${selectedType}`;
+            }
+            router.push(url);
+          }}
+        >
+          Search
+        </Button>
+      </Box>
+
       <Typography variant="h4" component="h1" gutterBottom sx={{ textAlign: 'center', mb: 4 }}>
         Trending Now
       </Typography>
 
+      {/* Trending Content */}
       <ContentCarousel
         title="Trending Videos"
         items={trendingContent.videos}
         onItemClick={handleItemClick}
       />
-
       <ContentCarousel
         title="Trending Music"
         items={trendingContent.music}
         onItemClick={handleItemClick}
       />
-
       <ContentCarousel
         title="Trending Books"
         items={trendingContent.books}
         onItemClick={handleItemClick}
       />
-
       <ContentCarousel
         title="Trending Podcasts"
         items={trendingContent.podcasts}

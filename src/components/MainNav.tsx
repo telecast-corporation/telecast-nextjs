@@ -620,26 +620,9 @@ const MainNav = memo(() => {
           {isMobile ? (
             <>
               {/* Top Row - Logo, Theme Toggle, Profile */}
-              <Box sx={{ 
-                display: 'flex', 
-                justifyContent: 'space-between', 
-                alignItems: 'center',
-                width: '100%',
-                mb: 1,
-              }}>
-                {/* Logo */}
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', mb: 1 }}>
                 <Link href="/" passHref style={{ textDecoration: 'none' }}>
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      cursor: 'pointer',
-                      mr: { xs: 4, sm: 6, md: 8 },
-                      flexShrink: 0,
-                      minWidth: { xs: '100px', sm: '140px', md: '160px' },
-                      maxWidth: { xs: '140px', sm: '180px', md: '200px' },
-                    }}
-                  >
+                  <Box sx={{ display: 'flex', alignItems: 'center', flexShrink: 0, minWidth: { xs: '100px', sm: '140px', md: '160px' }, maxWidth: { xs: '140px', sm: '180px', md: '200px' } }}>
                     <Image
                       src="/telecast-logo.gif"
                       alt="Telecast Logo"
@@ -656,19 +639,51 @@ const MainNav = memo(() => {
                     />
                   </Box>
                 </Link>
-                {/* Theme Toggle & Profile */}
-                <Box sx={{ 
-                  display: 'flex', 
-                  alignItems: 'flex-end',
-                  gap: 2, 
-                  mr: { xs: 2, sm: 3 },
-                  pb: { xs: 0.5, sm: 1.5 }
-                }}>
-                  {isAuthenticated && (
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  {isAuthenticated ? (
                     <IconButton onClick={handleProfileMenuClick} size="small">
                       <Avatar alt={user?.name} src={user?.image} sx={{ width: { xs: 28, sm: 32 }, height: { xs: 28, sm: 32 } }} />
                     </IconButton>
+                  ) : (
+                    <IconButton
+                      onClick={login}
+                      disabled={authLoading}
+                      sx={{
+                        bgcolor: 'background.paper',
+                        color: 'primary.main',
+                        border: '2px solid',
+                        borderColor: 'primary.main',
+                        boxShadow: 1,
+                        '&:hover': {
+                          bgcolor: 'primary.main',
+                          color: 'white',
+                        },
+                        borderRadius: '50%',
+                        width: { xs: 36, sm: 40 },
+                        height: { xs: 36, sm: 40 },
+                        p: 0,
+                        transition: 'all 0.2s',
+                      }}
+                      aria-label="Sign in"
+                    >
+                      <AccountCircleIcon sx={{ width: '70%', height: '70%' }} />
+                    </IconButton>
                   )}
+                  <IconButton 
+                    onClick={() => setMobileMenuOpen(true)}
+                    sx={{ 
+                      color: 'text.primary',
+                      bgcolor: 'background.default',
+                      border: `1px solid ${theme.palette.divider}`,
+                      p: { xs: 0.5, sm: 1 },
+                      '&:hover': {
+                        borderColor: theme.palette.primary.main,
+                      },
+                    }}
+                    aria-label="Open menu"
+                  >
+                    <MenuIcon sx={{ fontSize: { xs: '1.2rem', sm: '1.5rem' } }} />
+                  </IconButton>
                 </Box>
               </Box>
               {/* Bottom Row - Search & Menu */}
@@ -686,7 +701,7 @@ const MainNav = memo(() => {
                   }}
                 >
                   <Box sx={{ 
-                    display: 'flex',
+                    display: { xs: 'none', md: 'flex' },
                     alignItems: 'center',
                     bgcolor: 'background.default',
                     borderRadius: 1,
@@ -730,7 +745,7 @@ const MainNav = memo(() => {
                         borderRadius: 2,
                         boxShadow: 1,
                         textTransform: 'none',
-                        display: { xs: 'inline-flex', sm: 'inline-flex', md: 'none' },
+                        display: { xs: 'none', md: 'inline-flex' },
                         height: { xs: 36, sm: 40 },
                         alignSelf: 'stretch',
                       }}
@@ -739,48 +754,6 @@ const MainNav = memo(() => {
                       Search
                     </Button>
                   )}
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, ml: 1 }}>
-                    {!isAuthenticated && (
-                      <IconButton
-                        onClick={login}
-                        disabled={authLoading}
-                        sx={{
-                          bgcolor: 'background.paper',
-                          color: 'primary.main',
-                          border: '2px solid',
-                          borderColor: 'primary.main',
-                          boxShadow: 1,
-                          '&:hover': {
-                            bgcolor: 'primary.main',
-                            color: 'white',
-                          },
-                          borderRadius: '50%',
-                          width: { xs: 36, sm: 40 },
-                          height: { xs: 36, sm: 40 },
-                          p: 0,
-                          transition: 'all 0.2s',
-                        }}
-                        aria-label="Sign in"
-                      >
-                        <AccountCircleIcon sx={{ width: '70%', height: '70%' }} />
-                      </IconButton>
-                    )}
-                    <IconButton 
-                      onClick={() => setMobileMenuOpen(true)}
-                      sx={{ 
-                        color: 'text.primary',
-                        bgcolor: 'background.default',
-                        border: `1px solid ${theme.palette.divider}`,
-                        p: { xs: 0.5, sm: 1 },
-                        '&:hover': {
-                          borderColor: theme.palette.primary.main,
-                        },
-                      }}
-                      aria-label="Open menu"
-                    >
-                      <MenuIcon sx={{ fontSize: { xs: '1.2rem', sm: '1.5rem' } }} />
-                    </IconButton>
-                  </Box>
                   {/* Mobile Search Results */}
                   {isSearching && (
                     <Box sx={{
@@ -859,7 +832,7 @@ const MainNav = memo(() => {
                   gap: 1.5,
                 }}>
                   <Box sx={{ 
-                    display: 'flex',
+                    display: { xs: 'none', md: 'flex' },
                     alignItems: 'center',
                     bgcolor: 'background.paper',
                     borderRadius: 2,
