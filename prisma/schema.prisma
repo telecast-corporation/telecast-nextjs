@@ -15,6 +15,10 @@ model User {
   updatedAt     DateTime  @updatedAt
   emailVerified DateTime?
   image         String?
+  password      String?
+  isVerified    Boolean   @default(false)
+  verifyToken   String?   @unique
+  verifyTokenExpires DateTime?
   accounts      Account[]
   podcasts      Podcast[]
   sessions      Session[]
@@ -34,7 +38,6 @@ model Account {
   id_token          String?
   session_state     String?
   user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-
   @@unique([provider, providerAccountId])
 }
 

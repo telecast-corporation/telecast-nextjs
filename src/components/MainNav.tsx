@@ -199,8 +199,8 @@ const GridNav = styled(AppBar)(({ theme }) => ({
   gridTemplateColumns: 'repeat(15, 1fr)',
   gridTemplateRows: 'auto auto',
   gridTemplateAreas: `
-    "logo logo logo search search search search search search search search theme about contact login signup"
-    "logo logo logo filters filters filters filters filters filters filters filters theme about contact login signup"
+    "logo logo logo search search search search search search search search theme about services contact login"
+    "logo logo logo filters filters filters filters filters filters filters filters theme about services contact login"
   `,
   gap: theme.spacing(2),
   padding: theme.spacing(1, 2),
@@ -210,19 +210,21 @@ const GridNav = styled(AppBar)(({ theme }) => ({
   maxWidth: 'none',
   left: 0,
   right: 0,
+  marginBottom: theme.spacing(8),
   [theme.breakpoints.down('lg')]: {
     gridTemplateColumns: 'repeat(6, 1fr)',
     gridTemplateRows: 'auto auto auto auto',
     gridTemplateAreas: `
       "logo logo logo logo logo logo"
       "logo logo logo logo logo logo"
-      "search search search search search hamburger"
-      "filters filters filters filters filters ."
+      "search search search search search search"
+      "filters filters filters filters filters filters"
     `,
     paddingRight: theme.spacing(1),
     width: '100vw',
     margin: 0,
     padding: theme.spacing(1),
+    marginBottom: theme.spacing(8),
   },
 }));
 
@@ -276,6 +278,16 @@ const AboutButton = styled(Box)(({ theme }) => ({
   },
 }));
 
+const ServicesButton = styled(Box)(({ theme }) => ({
+  gridArea: 'services',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  [theme.breakpoints.down('lg')]: {
+    display: 'none',
+  },
+}));
+
 const LoginButton = styled(Box)(({ theme }) => ({
   gridArea: 'login',
   display: 'flex',
@@ -306,23 +318,24 @@ const ContactButton = styled(Box)(({ theme }) => ({
   },
 }));
 
-const SignUpButton = styled(Box)(({ theme }) => ({
-  gridArea: 'signup',
+// Add hamburger menu area
+const HamburgerArea = styled(Box)(({ theme }) => ({
+  position: 'fixed',
+  top: theme.spacing(2),
+  right: theme.spacing(2),
   display: 'flex',
   alignItems: 'center',
-  justifyContent: 'center',
-  [theme.breakpoints.down('lg')]: {
+  gap: theme.spacing(1),
+  zIndex: theme.zIndex.appBar + 1,
+  [theme.breakpoints.up('lg')]: {
     display: 'none',
   },
 }));
 
-// Add hamburger menu area
-const HamburgerArea = styled(Box)(({ theme }) => ({
-  gridArea: 'hamburger',
+const MobileLoginButton = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  width: '100%',
   [theme.breakpoints.up('lg')]: {
     display: 'none',
   },
@@ -668,6 +681,19 @@ const MainNav = memo(() => {
           />
         </ListItem>
         
+        <ListItem button onClick={() => router.push('/services')} sx={{ py: 1.5 }}>
+          <ListItemIcon sx={{ minWidth: 40 }}>
+            <SettingsIcon />
+          </ListItemIcon>
+          <ListItemText 
+            primary="Services" 
+            primaryTypographyProps={{ 
+              fontFamily: lexend.style.fontFamily,
+              fontWeight: 600 
+            }} 
+          />
+        </ListItem>
+        
         <ListItem button onClick={() => router.push('/contact')} sx={{ py: 1.5 }}>
           <ListItemIcon sx={{ minWidth: 40 }}>
             <EmailIcon />
@@ -682,81 +708,19 @@ const MainNav = memo(() => {
         </ListItem>
         
         <Divider sx={{ my: 1 }} />
-        
-        {/* Auth Section */}
-        {isAuthenticated ? (
-          <>
-            <ListItem button onClick={() => router.push('/dashboard')} sx={{ py: 1.5 }}>
-              <ListItemIcon sx={{ minWidth: 40 }}>
-                <SettingsIcon />
-              </ListItemIcon>
-              <ListItemText 
-                primary="Dashboard" 
-                primaryTypographyProps={{ 
-                  fontFamily: lexend.style.fontFamily,
-                  fontWeight: 600 
-                }} 
-              />
-            </ListItem>
-            
-            <ListItem button onClick={logout} sx={{ py: 1.5 }}>
-              <ListItemIcon sx={{ minWidth: 40 }}>
-                <LogoutIcon />
-                  </ListItemIcon>
-                  <ListItemText 
-                primary="Logout" 
-                    primaryTypographyProps={{ 
-                  fontFamily: lexend.style.fontFamily,
-                  fontWeight: 600 
-                    }} 
-                  />
-                </ListItem>
-          </>
-        ) : (
-          <>
-            <ListItem button onClick={login} sx={{ py: 1.5 }}>
-              <ListItemIcon sx={{ minWidth: 40 }}>
-                <LoginIcon />
-              </ListItemIcon>
-              <ListItemText 
-                primary="Login" 
-                primaryTypographyProps={{ 
-                  fontFamily: lexend.style.fontFamily,
-                  fontWeight: 600 
-                }} 
-              />
-            </ListItem>
-            
-            <ListItem button onClick={() => router.push('/signup')} sx={{ py: 1.5 }}>
-              <ListItemIcon sx={{ minWidth: 40 }}>
-                <AccountIcon />
-              </ListItemIcon>
-              <ListItemText 
-                primary="Sign Up" 
-                primaryTypographyProps={{ 
-                  fontFamily: lexend.style.fontFamily,
-                  fontWeight: 600 
-                }} 
-              />
-            </ListItem>
-          </>
-        )}
-        
-        <Divider sx={{ my: 1 }} />
-        
-        {/* Theme Toggle */}
+
         <ListItem button onClick={toggleDarkMode} sx={{ py: 1.5 }}>
           <ListItemIcon sx={{ minWidth: 40 }}>
             {isDarkMode ? <LightModeIcon /> : <DarkModeIcon />}
-        </ListItemIcon>
-        <ListItemText 
-          primary={isDarkMode ? 'Light Mode' : 'Dark Mode'} 
+          </ListItemIcon>
+          <ListItemText 
+            primary={isDarkMode ? 'Light Mode' : 'Dark Mode'} 
             primaryTypographyProps={{ 
               fontFamily: lexend.style.fontFamily,
               fontWeight: 600 
             }} 
           />
-      </ListItem>
+        </ListItem>
       </List>
     </Box>
   );
@@ -933,6 +897,17 @@ const MainNav = memo(() => {
           </Link>
         </AboutButton>
 
+        <ServicesButton>
+          <Link href="/services" passHref>
+            <Button 
+              variant="text"
+              sx={getNavButtonStyles(theme, pathname, '/services')}
+            >
+              Services
+            </Button>
+          </Link>
+        </ServicesButton>
+
         <ContactButton>
           <Link href="/contact" passHref>
             <Button 
@@ -949,8 +924,18 @@ const MainNav = memo(() => {
             <>
               <IconButton
                 onClick={(e) => setProfileAnchorEl(e.currentTarget)}
+                sx={{
+                  color: theme.palette.primary.main,
+                  '&:hover': {
+                    backgroundColor: alpha(theme.palette.primary.main, 0.1),
+                  }
+                }}
               >
-                <AccountCircleIcon />
+                {user?.image ? (
+                  <Avatar src={user.image} alt={user.name || 'Profile'} />
+                ) : (
+                  <Avatar>{user?.name?.[0] || <AccountCircleIcon />}</Avatar>
+                )}
               </IconButton>
               <Menu
                 anchorEl={profileAnchorEl}
@@ -972,45 +957,87 @@ const MainNav = memo(() => {
               </Menu>
             </>
           ) : (
-            <Button
-              variant="text"
+            <IconButton
               onClick={() => router.push('/login')}
-              startIcon={<LoginIcon />}
-              sx={getNavButtonStyles(theme, pathname, '/login')}
+              sx={{
+                color: theme.palette.primary.main,
+                '&:hover': {
+                  backgroundColor: alpha(theme.palette.primary.main, 0.1),
+                }
+              }}
             >
-              Login
-            </Button>
+              <Avatar>{user?.name?.[0] || <AccountCircleIcon />}</Avatar>
+            </IconButton>
           )}
         </LoginButton>
 
-        <SignUpButton>
-          {!isAuthenticated && (
-            <Button
-              variant="text"
-              onClick={() => router.push('/signup')}
-              sx={getNavButtonStyles(theme, pathname, '/signup')}
-            >
-              Sign Up
-            </Button>
-          )}
-        </SignUpButton>
-
-              <HamburgerArea>
-        <IconButton
-          onClick={handleDrawerToggle}
-          color="inherit"
-          aria-label="menu"
-          sx={{ 
-            width: 48,
-            height: 48,
-            '& .MuiSvgIcon-root': {
-              fontSize: '2rem'
-            }
-          }}
-        >
-          <MenuIcon />
-        </IconButton>
-      </HamburgerArea>
+        <HamburgerArea>
+          <MobileLoginButton>
+            {isAuthenticated ? (
+              <>
+                <IconButton
+                  onClick={(e) => setProfileAnchorEl(e.currentTarget)}
+                  sx={{
+                    color: theme.palette.primary.main,
+                    '&:hover': {
+                      backgroundColor: alpha(theme.palette.primary.main, 0.1),
+                    }
+                  }}
+                >
+                  {user?.image ? (
+                    <Avatar src={user.image} alt={user.name || 'Profile'} />
+                  ) : (
+                    <Avatar>{user?.name?.[0] || <AccountCircleIcon />}</Avatar>
+                  )}
+                </IconButton>
+                <Menu
+                  anchorEl={profileAnchorEl}
+                  open={Boolean(profileAnchorEl)}
+                  onClose={() => setProfileAnchorEl(null)}
+                >
+                  <MenuItem onClick={() => router.push('/dashboard')}>
+                    <ListItemIcon>
+                      <SettingsIcon fontSize="small" />
+                    </ListItemIcon>
+                    Dashboard
+                  </MenuItem>
+                  <MenuItem onClick={logout}>
+                    <ListItemIcon>
+                      <LogoutIcon fontSize="small" color="error" />
+                    </ListItemIcon>
+                    Logout
+                  </MenuItem>
+                </Menu>
+              </>
+            ) : (
+              <IconButton
+                onClick={() => router.push('/login')}
+                sx={{
+                  color: theme.palette.primary.main,
+                  '&:hover': {
+                    backgroundColor: alpha(theme.palette.primary.main, 0.1),
+                  }
+                }}
+              >
+                <Avatar>{user?.name?.[0] || <AccountCircleIcon />}</Avatar>
+              </IconButton>
+            )}
+          </MobileLoginButton>
+          <IconButton
+            onClick={handleDrawerToggle}
+            color="inherit"
+            aria-label="menu"
+            sx={{ 
+              width: 48,
+              height: 48,
+              '& .MuiSvgIcon-root': {
+                fontSize: '2rem'
+              }
+            }}
+          >
+            <MenuIcon />
+          </IconButton>
+        </HamburgerArea>
       </GridNav>
 
         <Drawer

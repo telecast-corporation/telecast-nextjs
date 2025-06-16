@@ -32,7 +32,7 @@ export async function POST(request: Request) {
     }
 
     // Check if email is verified
-    if (!user.isVerified) {
+    if (!user.emailVerified) {
       return NextResponse.json(
         { error: 'Please verify your email before logging in' },
         { status: 401 }

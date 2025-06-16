@@ -183,7 +183,7 @@ export default function UnifiedSearchResults({ results, searchType = 'all', load
     const cardContent = (
       <Card 
         sx={{ 
-          height: '100%', 
+          height: { xs: 'auto', sm: '100%' }, 
           display: 'flex', 
           flexDirection: 'column',
           '&:hover': {
@@ -195,10 +195,10 @@ export default function UnifiedSearchResults({ results, searchType = 'all', load
         <Box sx={{ position: 'relative' }}>
           <CardMedia
             component="img"
-            height="200"
+            height="180"
             image={result.thumbnail || '/placeholder.png'}
             alt={result.title}
-            sx={{ objectFit: 'cover' }}
+            sx={{ objectFit: 'cover', width: '100%', maxHeight: { xs: 120, sm: 180, md: 200 } }}
           />
           {result.type === 'podcast' ? (
             <IconButton
@@ -466,7 +466,7 @@ export default function UnifiedSearchResults({ results, searchType = 'all', load
   return (
     <Box>
       {sortedEntries.map(([type, typeResults], index) => (
-        <Box key={type} sx={{ mb: 4 }}>
+        <Box key={type} sx={{ mb: 4, mt: index === 0 ? 12 : 0 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
             <IconButton sx={{ mr: 1 }}>
               {getTypeIcon(type)}

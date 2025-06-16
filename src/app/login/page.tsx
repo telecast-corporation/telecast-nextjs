@@ -8,6 +8,8 @@ import {
   Divider,
   Link as MuiLink,
   useTheme,
+  TextField,
+  Alert,
 } from '@mui/material';
 import {
   Google as GoogleIcon,
@@ -21,6 +23,8 @@ export default function LoginPage() {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
 
   const handleGoogleLogin = async () => {
     try {
@@ -40,6 +44,26 @@ export default function LoginPage() {
       setError('An unexpected error occurred.');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+
+    // Call your login API endpoint
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    });
+
+    if (res.ok) {
+      // Redirect to dashboard or home
+      router.push('/dashboard');
+    } else {
+      const data = await res.json();
+      setError(data.error || 'Login failed');
     }
   };
 
@@ -153,6 +177,51 @@ export default function LoginPage() {
             Privacy Policy
           </Link>
         </Typography>
+
+        <Box
+          component="form"
+          onSubmit={handleSubmit}
+          sx={{
+            maxWidth: 400,
+            mx: 'auto',
+            mt: 8,
+            p: 4,
+            borderRadius: 2,
+            boxShadow: 3,
+            backgroundColor: 'background.paper',
+          }}
+        >
+          <Typography variant="h4" align="center" gutterBottom>
+            Login
+          </Typography>
+          <TextField
+            label="Email"
+            type="email"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+            fullWidth
+            margin="normal"
+            required
+          />
+          <TextField
+            label="Password"
+            type="password"
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            fullWidth
+            margin="normal"
+            required
+          />
+          <Button
+            type="submit"
+            variant="contained"
+            color="primary"
+            fullWidth
+            sx={{ mt: 2 }}
+          >
+            Login
+          </Button>
+        </Box>
       </Box>
     </Box>
   );

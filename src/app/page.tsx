@@ -50,7 +50,7 @@ function ContentCarousel({ title, items, onItemClick }: ContentCarouselProps) {
   const [startIndex, setStartIndex] = useState(0);
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('md'));
-  const itemsPerPage = isSmallScreen ? 2 : 3;
+  const itemsPerPage = isSmallScreen ? 1 : 3;
 
   const handlePrev = () => {
     setStartIndex((prev) => Math.max(0, prev - itemsPerPage));
@@ -63,9 +63,9 @@ function ContentCarousel({ title, items, onItemClick }: ContentCarouselProps) {
   const visibleItems = items.slice(startIndex, startIndex + itemsPerPage);
 
   return (
-    <Box sx={{ mb: 6 }}>
+    <Box sx={{ mb: { xs: 4, md: 6 } }}>
       <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-        <Typography variant="h5" component="h2" sx={{ flexGrow: 1 }}>
+        <Typography variant="h5" component="h2" sx={{ flexGrow: 1, fontSize: { xs: '1.2rem', sm: '1.5rem', md: '2rem' } }}>
           {title}
         </Typography>
         <Box>
@@ -85,9 +85,9 @@ function ContentCarousel({ title, items, onItemClick }: ContentCarouselProps) {
           </IconButton>
         </Box>
       </Box>
-      <Grid container spacing={3}>
+      <Grid container spacing={{ xs: 1, sm: 2, md: 3 }}>
         {visibleItems.map((item) => (
-          <Grid item xs={6} sm={6} md={4} key={item.id}>
+          <Grid item xs={12} sm={6} md={4} key={item.id}>
             <Card 
               sx={{ 
                 height: '100%', 
@@ -107,10 +107,10 @@ function ContentCarousel({ title, items, onItemClick }: ContentCarouselProps) {
                 height="200"
                 image={item.thumbnail}
                 alt={item.title}
-                sx={{ objectFit: 'cover' }}
+                sx={{ objectFit: 'cover', width: '100%', maxHeight: { xs: 140, sm: 180, md: 200 } }}
               />
               <CardContent sx={{ flexGrow: 1 }}>
-                <Typography gutterBottom variant="h6" component="div" noWrap>
+                <Typography gutterBottom variant="h6" component="div" noWrap sx={{ fontSize: { xs: '1rem', sm: '1.1rem', md: '1.25rem' } }}>
                   {item.title}
                 </Typography>
                 {item.type === 'video' && item.views && (
@@ -213,7 +213,7 @@ export default function HomePage() {
   }
 
   return (
-    <Container maxWidth="lg" sx={{ mt: 8 }}>
+    <Container maxWidth="lg" sx={{ mt: { xs: 24, sm: 16, md: 16 } }}>
       {/* Trending Content */}
       <ContentCarousel
         title="Trending Videos"

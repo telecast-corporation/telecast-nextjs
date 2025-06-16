@@ -1,6 +1,7 @@
 import { NextAuthOptions } from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
 import { prisma } from './prisma';
+import crypto from 'crypto';
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -61,4 +62,8 @@ export const authOptions: NextAuthOptions = {
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   debug: process.env.NODE_ENV === 'development',
-}; 
+};
+
+export function generateToken(length = 32): string {
+  return crypto.randomBytes(length).toString('hex');
+} 

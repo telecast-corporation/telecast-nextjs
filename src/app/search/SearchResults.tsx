@@ -42,7 +42,7 @@ export default function SearchResults() {
                   body: JSON.stringify({
           query: query || 'recommended',
           types: type === 'all' ? ['all'] : [type],
-          maxResults: 20,
+          maxResults: 50,
           trending: showRecommendations,
         }),
         });

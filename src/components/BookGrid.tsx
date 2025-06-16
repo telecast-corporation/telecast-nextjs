@@ -96,12 +96,12 @@ export default function BookGrid({ searchQuery }: BookGridProps) {
       <Typography variant="subtitle1" sx={{ mb: 2 }}>
         Found {totalItems} results
       </Typography>
-      <Grid container spacing={3}>
+      <Grid container spacing={{ xs: 1, sm: 2, md: 3 }}>
         {books.map((book) => (
           <Grid item xs={12} sm={6} md={4} lg={3} key={book.id}>
             <Card 
               sx={{ 
-                height: '100%', 
+                height: { xs: 'auto', sm: '100%' }, 
                 display: 'flex', 
                 flexDirection: 'column',
                 '&:hover': {
@@ -113,10 +113,10 @@ export default function BookGrid({ searchQuery }: BookGridProps) {
             >
               <CardMedia
                 component="img"
-                height="300"
+                height="180"
                 image={book.volumeInfo.imageLinks?.thumbnail || '/book-placeholder.png'}
                 alt={book.volumeInfo.title}
-                sx={{ objectFit: 'contain', p: 2 }}
+                sx={{ objectFit: 'contain', width: '100%', maxHeight: { xs: 120, sm: 180, md: 300 }, p: { xs: 1, sm: 2 } }}
               />
               <CardContent sx={{ flexGrow: 1 }}>
                 <Typography gutterBottom variant="h6" component="div" noWrap>

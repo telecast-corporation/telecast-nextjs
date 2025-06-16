@@ -10,7 +10,7 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const query = searchParams.get('q');
-    const maxResults = searchParams.get('maxResults') || '10';
+    const maxResults = searchParams.get('maxResults') || '50';
 
     if (!query) {
       return NextResponse.json({ error: 'Query parameter is required' }, { status: 400 });
