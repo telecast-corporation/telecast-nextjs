@@ -198,7 +198,7 @@ export async function POST(request: Request) {
     // If trending is true and query is 'recommended', fetch trending content
     if (trending && query === 'recommended') {
       try {
-        const trendingResponse = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/trending`);
+        const trendingResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/trending`);
         const trendingData = await trendingResponse.json();
         
         let trendingResults: any[] = [];

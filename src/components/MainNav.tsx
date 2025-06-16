@@ -723,18 +723,46 @@ const MainNav = memo(() => {
           />
         </ListItem>
         
-        <ListItem button onClick={() => { handleDrawerToggle(); router.push('/login'); }} sx={{ py: 1.5 }}>
-          <ListItemIcon sx={{ minWidth: 40 }}>
-            <LoginIcon />
-                  </ListItemIcon>
-                  <ListItemText 
-            primary="Sign In" 
-                    primaryTypographyProps={{ 
-              fontFamily: lexend.style.fontFamily,
-              ...typography.nav
-                    }} 
-                  />
-                </ListItem>
+        {isAuthenticated ? (
+          <ListItem button onClick={() => { handleDrawerToggle(); router.push('/profile'); }} sx={{ py: 1.5 }}>
+            <ListItemIcon sx={{ minWidth: 40 }}>
+              <Avatar
+                src={user?.image || undefined}
+                alt={user?.name || 'Profile'}
+                sx={{
+                  width: 32,
+                  height: 32,
+                  bgcolor: theme.palette.primary.main,
+                  color: theme.palette.primary.contrastText,
+                  fontSize: '0.875rem',
+                  fontWeight: 600,
+                }}
+              >
+                {!user?.image && user?.name ? user.name.charAt(0).toUpperCase() : <AccountCircleIcon />}
+              </Avatar>
+            </ListItemIcon>
+            <ListItemText 
+              primary="Profile" 
+              primaryTypographyProps={{ 
+                fontFamily: lexend.style.fontFamily,
+                ...typography.nav
+              }} 
+            />
+          </ListItem>
+        ) : (
+          <ListItem button onClick={() => { handleDrawerToggle(); router.push('/login'); }} sx={{ py: 1.5 }}>
+            <ListItemIcon sx={{ minWidth: 40 }}>
+              <LoginIcon />
+            </ListItemIcon>
+            <ListItemText 
+              primary="Sign In" 
+              primaryTypographyProps={{ 
+                fontFamily: lexend.style.fontFamily,
+                ...typography.nav
+              }} 
+            />
+          </ListItem>
+        )}
         
         <Divider sx={{ my: 1 }} />
 
@@ -901,14 +929,47 @@ const MainNav = memo(() => {
         </ContactButton>
 
         <LoginButton>
-          <Link href="/login" passHref>
-            <Button 
-              variant="text"
-              sx={getNavButtonStyles(theme, pathname, '/login')}
-            >
-              Sign In
-            </Button>
-          </Link>
+          {isAuthenticated ? (
+            <Tooltip title="Profile">
+              <IconButton
+                onClick={() => router.push('/profile')}
+                sx={{
+                  p: 0.5,
+                  border: pathname === '/profile' ? `2px solid ${theme.palette.primary.main}` : '2px solid transparent',
+                  borderRadius: '50%',
+                  transition: 'all 0.2s ease-in-out',
+                  '&:hover': {
+                    border: `2px solid ${theme.palette.primary.main}`,
+                    transform: 'scale(1.05)',
+                  },
+                }}
+              >
+                <Avatar
+                  src={user?.image || undefined}
+                  alt={user?.name || 'Profile'}
+                  sx={{
+                    width: '3rem',
+                    height: '3rem',
+                    bgcolor: theme.palette.primary.main,
+                    color: theme.palette.primary.contrastText,
+                    fontSize: '1.25rem',
+                    fontWeight: 600,
+                  }}
+                >
+                  {!user?.image && user?.name ? user.name.charAt(0).toUpperCase() : <AccountCircleIcon />}
+                </Avatar>
+              </IconButton>
+            </Tooltip>
+          ) : (
+            <Link href="/login" passHref>
+              <Button 
+                variant="text"
+                sx={getNavButtonStyles(theme, pathname, '/login')}
+              >
+                Sign In
+              </Button>
+            </Link>
+          )}
         </LoginButton>
 
         <HamburgerArea>

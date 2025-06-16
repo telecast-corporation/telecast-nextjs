@@ -1,12 +1,13 @@
 'use client';
 
 import { useAuth } from '@/contexts/AuthContext';
-import { Box, Container, Typography, Avatar, Paper, Grid } from '@mui/material';
+import { Box, Container, Typography, Avatar, Paper, Grid, Button, Divider } from '@mui/material';
+import { LogoutOutlined as LogoutIcon } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
 export default function ProfilePage() {
-  const { user, isAuthenticated, isLoading } = useAuth();
+  const { user, isAuthenticated, isLoading, logout } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -55,6 +56,31 @@ export default function ProfilePage() {
             </Box>
           </Grid>
         </Grid>
+        
+        <Divider sx={{ my: 4 }} />
+        
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <Button
+            variant="outlined"
+            color="error"
+            startIcon={<LogoutIcon />}
+            onClick={logout}
+            sx={{
+              borderRadius: 2,
+              px: 3,
+              py: 1.5,
+              textTransform: 'none',
+              fontWeight: 600,
+              '&:hover': {
+                backgroundColor: 'error.main',
+                color: 'white',
+                borderColor: 'error.main',
+              },
+            }}
+          >
+            Sign Out
+          </Button>
+        </Box>
       </Paper>
     </Container>
   );
