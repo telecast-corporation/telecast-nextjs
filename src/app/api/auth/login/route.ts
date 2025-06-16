@@ -31,8 +31,9 @@ export async function POST(request: Request) {
       );
     }
 
-    // Check if email is verified
-    if (!user.emailVerified) {
+    // Check if email verification is required and if email is verified
+    const emailVerificationEnabled = process.env.ENABLE_EMAIL_VERIFICATION === 'true';
+    if (emailVerificationEnabled && !user.emailVerified) {
       return NextResponse.json(
         { error: 'Please verify your email before logging in' },
         { status: 401 }

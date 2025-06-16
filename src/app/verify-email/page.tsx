@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import {
   Container,
   Box,
@@ -8,11 +8,12 @@ import {
   Button,
   Paper,
   useTheme,
+  CircularProgress,
 } from '@mui/material';
 import { useTheme as useAppTheme } from '@/contexts/ThemeContext';
 import { useSearchParams } from 'next/navigation';
 
-export default function VerifyEmail() {
+function VerifyEmailContent() {
   const theme = useTheme();
   const { isDarkMode } = useAppTheme();
   const searchParams = useSearchParams();
@@ -141,5 +142,17 @@ export default function VerifyEmail() {
         </Box>
       </Paper>
     </Container>
+  );
+}
+
+export default function VerifyEmail() {
+  return (
+    <Suspense fallback={
+      <Container maxWidth="sm" sx={{ py: 8, display: 'flex', justifyContent: 'center' }}>
+        <CircularProgress />
+      </Container>
+    }>
+      <VerifyEmailContent />
+    </Suspense>
   );
 } 
