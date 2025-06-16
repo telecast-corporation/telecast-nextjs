@@ -13,6 +13,9 @@ import {
   Button,
   List,
   ListItem,
+  CircularProgress,
+  useTheme,
+  useMediaQuery,
 } from '@mui/material';
 import {
   PlayCircleOutline as VideoIcon,
@@ -54,13 +57,25 @@ interface SearchResult {
 interface UnifiedSearchResultsProps {
   results: SearchResult[];
   searchType?: string;
+  loading?: boolean;
+  trending?: boolean;
 }
 
-export default function UnifiedSearchResults({ results, searchType = 'all' }: UnifiedSearchResultsProps) {
+export default function UnifiedSearchResults({ results, searchType = 'all', loading = false, trending = false }: UnifiedSearchResultsProps) {
   const [expandedType, setExpandedType] = useState<string | null>(null);
   const [carouselStates, setCarouselStates] = useState<Record<string, number>>({});
   const { play } = useAudio();
-  const ITEMS_PER_PAGE = 4;
+  const theme = useTheme();
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down('md'));
+  const ITEMS_PER_PAGE = isSmallScreen ? 2 : 4;
+
+  if (loading) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   if (results.length === 0) {
     return (
@@ -88,13 +103,13 @@ export default function UnifiedSearchResults({ results, searchType = 'all' }: Un
   const getTypeTitle = (type: string) => {
     switch (type) {
       case 'video':
-        return 'Videos';
+        return trending ? 'Trending Videos' : 'Videos';
       case 'book':
-        return 'Books';
+        return trending ? 'Trending Books' : 'Books';
       case 'podcast':
-        return 'Podcasts';
+        return trending ? 'Trending Podcasts' : 'Podcasts';
       case 'music':
-        return 'Music';
+        return trending ? 'Trending Music' : 'Music';
       default:
         return type;
     }
@@ -396,7 +411,7 @@ export default function UnifiedSearchResults({ results, searchType = 'all' }: Un
       <Box sx={{ position: 'relative' }}>
         <Grid container spacing={3}>
           {visibleItems.map((result) => (
-            <Grid item xs={12} sm={6} md={3} key={`${result.type}-${result.id}`}>
+            <Grid item xs={6} sm={6} md={3} key={`${result.type}-${result.id}`}>
               {renderCard(result)}
             </Grid>
           ))}

@@ -27,6 +27,7 @@ interface SearchRequest {
   query: string;
   types: string[];
   maxResults?: number;
+  trending?: boolean;
 }
 
 async function getSpotifyAccessToken() {
@@ -192,7 +193,39 @@ async function searchMusic(query: string, maxResults: number = 10) {
 export async function POST(request: Request) {
   try {
     const body: SearchRequest = await request.json();
-    const { query, types, maxResults = 20 } = body;
+    const { query, types, maxResults = 20, trending = false } = body;
+
+    // If trending is true and query is 'recommended', fetch trending content
+    if (trending && query === 'recommended') {
+      try {
+        const trendingResponse = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/trending`);
+        const trendingData = await trendingResponse.json();
+        
+        let trendingResults: any[] = [];
+        
+        if (types.includes('all')) {
+          trendingResults = [
+            ...trendingData.videos || [],
+            ...trendingData.music || [],
+            ...trendingData.books || [],
+            ...trendingData.podcasts || []
+          ];
+        } else {
+          if (types.includes('video')) trendingResults.push(...(trendingData.videos || []));
+          if (types.includes('music')) trendingResults.push(...(trendingData.music || []));
+          if (types.includes('book')) trendingResults.push(...(trendingData.books || []));
+          if (types.includes('podcast')) trendingResults.push(...(trendingData.podcasts || []));
+        }
+        
+        return NextResponse.json({
+          results: trendingResults,
+          total: trendingResults.length,
+        });
+      } catch (error) {
+        console.error('Error fetching trending content:', error);
+        // Fall back to regular search if trending fails
+      }
+    }
 
     if (!query) {
       return NextResponse.json(

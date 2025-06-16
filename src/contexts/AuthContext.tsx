@@ -82,19 +82,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = useCallback(async () => {
     try {
       const result = await signIn('google', { 
-        callbackUrl: '/',
+        callbackUrl: window.location.href,
         redirect: false 
       });
       
       if (result?.error) {
         console.error('Login error:', result.error);
-      } else if (result?.url) {
-        router.push(result.url);
       }
+      // Don't manually redirect - let NextAuth handle it
     } catch (error) {
       console.error('Login error:', error);
     }
-  }, [router]);
+  }, []);
 
   const logout = useCallback(async () => {
     try {

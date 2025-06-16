@@ -12,8 +12,8 @@ import {
   CircularProgress,
   Alert,
   IconButton,
-  InputBase,
-  Button,
+  useTheme,
+  useMediaQuery,
 } from '@mui/material';
 import { useRouter } from 'next/navigation';
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
@@ -48,7 +48,9 @@ interface ContentCarouselProps {
 
 function ContentCarousel({ title, items, onItemClick }: ContentCarouselProps) {
   const [startIndex, setStartIndex] = useState(0);
-  const itemsPerPage = 3;
+  const theme = useTheme();
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down('md'));
+  const itemsPerPage = isSmallScreen ? 2 : 3;
 
   const handlePrev = () => {
     setStartIndex((prev) => Math.max(0, prev - itemsPerPage));
@@ -85,7 +87,7 @@ function ContentCarousel({ title, items, onItemClick }: ContentCarouselProps) {
       </Box>
       <Grid container spacing={3}>
         {visibleItems.map((item) => (
-          <Grid item xs={12} sm={6} md={4} key={item.id}>
+          <Grid item xs={6} sm={6} md={4} key={item.id}>
             <Card 
               sx={{ 
                 height: '100%', 
@@ -155,8 +157,6 @@ export default function HomePage() {
     podcasts: [],
   });
   const router = useRouter();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedType, setSelectedType] = useState('');
 
   useEffect(() => {
     const fetchTrendingContent = async () => {
@@ -214,71 +214,6 @@ export default function HomePage() {
 
   return (
     <Container maxWidth="lg" sx={{ mt: 8 }}>
-      {/* Search Bar (Styled, Mobile Only) */}
-      <Box
-        sx={{
-          display: { xs: 'flex', md: 'none' },
-          flexDirection: 'column',
-          alignItems: 'center',
-          mb: 3,
-          px: 1,
-          width: '100%',
-          maxWidth: 480,
-          mx: 'auto',
-        }}
-      >
-        <InputBase
-          placeholder="Find your entertainment"
-          value={searchQuery}
-          onChange={e => setSearchQuery(e.target.value)}
-          sx={{
-            width: '100%',
-            bgcolor: 'white',
-            borderRadius: 3,
-            boxShadow: 1,
-            border: '1.5px solid #e0e0e0',
-            px: 2,
-            py: 1.5,
-            fontSize: '1.15rem',
-            textAlign: 'center',
-            mb: 2,
-            fontWeight: 500,
-          }}
-          inputProps={{
-            style: { textAlign: 'center' }
-          }}
-        />
-        <Button
-          variant="contained"
-          color="primary"
-          fullWidth
-          sx={{
-            borderRadius: 3,
-            fontWeight: 700,
-            fontSize: '1.1rem',
-            py: 1.2,
-            boxShadow: 2,
-            textTransform: 'none',
-          }}
-          onClick={() => {
-            let url = '/search';
-            if (searchQuery) {
-              url += `?q=${encodeURIComponent(searchQuery)}`;
-              if (selectedType) url += `&type=${selectedType}`;
-            } else if (selectedType) {
-              url += `?type=${selectedType}`;
-            }
-            router.push(url);
-          }}
-        >
-          Search
-        </Button>
-      </Box>
-
-      <Typography variant="h4" component="h1" gutterBottom sx={{ textAlign: 'center', mb: 4 }}>
-        Trending Now
-      </Typography>
-
       {/* Trending Content */}
       <ContentCarousel
         title="Trending Videos"

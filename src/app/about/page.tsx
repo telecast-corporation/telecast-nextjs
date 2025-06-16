@@ -4,18 +4,13 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import {
-  Container,
   Typography,
   Box,
   Grid,
   Card,
   CardContent,
-  CardMedia,
-  Divider,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
+  useTheme,
+  alpha,
 } from '@mui/material';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import GroupsIcon from '@mui/icons-material/Groups';
@@ -65,104 +60,349 @@ const coreValues = [
 ];
 
 export default function About() {
+  const theme = useTheme();
+
   return (
-    <>
-      {/* Features Row */}
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '2rem', padding: '2rem', justifyContent: 'center', maxWidth: 1200, margin: '4rem auto' }}>
-        <div style={{ flex: 1, minWidth: 300, backgroundColor: '#3498db', borderRadius: 16, padding: '2rem', boxShadow: '0 6px 18px rgba(0,0,0,0.08)' }}>
-          <h2 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '1rem', color: 'white' }}>
-            <span style={{ verticalAlign: 'middle', marginRight: '0.5rem' }}>👆</span>User-Friendly Experience
-          </h2>
-          <p style={{ color: 'white', lineHeight: 1.7 }}>
-            At the core of our service, we offer an exceptionally user-friendly platform designed for both novice and seasoned podcasters. Our recording tools are intuitive, allowing creators to focus on content rather than the complexities of technology. Uploading is streamlined to ensure that your podcast reaches your audience without delay or technical hiccups. For listeners, our playback system is optimized for all devices, providing uninterrupted access to their favorite shows anytime, anywhere.
-          </p>
-        </div>
-        <div style={{ flex: 1, minWidth: 300, backgroundColor: '#2980b9', borderRadius: 16, padding: '2rem', boxShadow: '0 6px 18px rgba(0,0,0,0.08)' }}>
-          <h2 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '1rem', color: 'white' }}>
-            <span style={{ verticalAlign: 'middle', marginRight: '0.5rem' }}>👥</span>Community & Collaboration
-          </h2>
-          <p style={{ color: 'white', lineHeight: 1.7 }}>
-            We believe in the power of community. Our platform isn't just a place to host podcasts; it's a thriving ecosystem where listeners can engage directly with creators and each other. We facilitate discussions, feedback loops, and collaborative projects, turning passive listening into an active community experience. Special features like live recording sessions with audience interaction, Q&A segments, and community-driven content suggestions are designed to deepen the connection between podcasters and their audience.
-          </p>
-        </div>
-        <div style={{ flex: 1, minWidth: 300, backgroundColor: '#1f6aa5', borderRadius: 16, padding: '2rem', boxShadow: '0 6px 18px rgba(0,0,0,0.08)' }}>
-          <h2 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '1rem', color: 'white' }}>
-            <span style={{ verticalAlign: 'middle', marginRight: '0.5rem' }}>🌍</span>Content Diversity & Discovery
-          </h2>
-          <p style={{ color: 'white', lineHeight: 1.7 }}>
-            Our directory is curated to showcase the richness of human experience through audio. We commit to promoting a wide array of genres, from the niche to the mainstream, ensuring there's something for everyone. Our recommendation algorithms are tuned not just to user preferences but also to introduce listeners to new horizons, fostering discovery and broadening perspectives. We actively work with creators from underrepresented groups to bring unique voices to the forefront.
-          </p>
-        </div>
-      </div>
+    <Box
+      component="main"
+      sx={{
+        maxWidth: 700,
+        mx: 'auto',
+        my: { xs: 4, md: 8 },
+        p: { xs: 2, sm: 4 },
+        borderRadius: 4,
+        backgroundColor: theme.palette.background.paper,
+        boxShadow: 4,
+        fontFamily: 'Open Sans, sans-serif',
+      }}
+    >
+      <Typography
+        variant="h2"
+        align="center"
+        sx={{
+          color: theme.palette.primary.main,
+          fontWeight: 700,
+          mb: 4,
+          fontSize: { xs: '2rem', sm: '2.5rem' },
+          fontFamily: 'inherit',
+        }}
+      >
+        About Telecast
+      </Typography>
+
+      {/* Features Section */}
+      <Box sx={{ mb: 6 }}>
+        <Grid container spacing={3}>
+          <Grid item xs={12}>
+            <Card 
+              sx={{ 
+                backgroundColor: theme.palette.primary.main,
+                color: 'white',
+                borderRadius: 3,
+                boxShadow: 3,
+                mb: 3,
+              }}
+            >
+              <CardContent sx={{ p: 3 }}>
+                <Typography variant="h5" sx={{ fontWeight: 700, mb: 2, display: 'flex', alignItems: 'center' }}>
+                  <span style={{ marginRight: '0.5rem' }}>👆</span>
+                  User-Friendly Experience
+                </Typography>
+                <Typography variant="body1" sx={{ lineHeight: 1.7 }}>
+                  At the core of our service, we offer an exceptionally user-friendly platform designed for both novice and seasoned podcasters. Our recording tools are intuitive, allowing creators to focus on content rather than the complexities of technology.
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+          
+          <Grid item xs={12}>
+            <Card 
+              sx={{ 
+                backgroundColor: theme.palette.primary.dark,
+                color: 'white',
+                borderRadius: 3,
+                boxShadow: 3,
+                mb: 3,
+              }}
+            >
+              <CardContent sx={{ p: 3 }}>
+                <Typography variant="h5" sx={{ fontWeight: 700, mb: 2, display: 'flex', alignItems: 'center' }}>
+                  <span style={{ marginRight: '0.5rem' }}>👥</span>
+                  Community & Collaboration
+                </Typography>
+                <Typography variant="body1" sx={{ lineHeight: 1.7 }}>
+                  We believe in the power of community. Our platform isn't just a place to host podcasts; it's a thriving ecosystem where listeners can engage directly with creators and each other.
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+          
+          <Grid item xs={12}>
+            <Card 
+              sx={{ 
+                backgroundColor: alpha(theme.palette.primary.main, 0.8),
+                color: 'white',
+                borderRadius: 3,
+                boxShadow: 3,
+              }}
+            >
+              <CardContent sx={{ p: 3 }}>
+                <Typography variant="h5" sx={{ fontWeight: 700, mb: 2, display: 'flex', alignItems: 'center' }}>
+                  <span style={{ marginRight: '0.5rem' }}>🌍</span>
+                  Content Diversity & Discovery
+                </Typography>
+                <Typography variant="body1" sx={{ lineHeight: 1.7 }}>
+                  Our directory is curated to showcase the richness of human experience through audio. We commit to promoting a wide array of genres, from the niche to the mainstream.
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+        </Grid>
+      </Box>
 
       {/* Innovation Section */}
-      <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '2rem', padding: '3rem 2rem', maxWidth: 1100, margin: 'auto' }}>
-        <div style={{ flex: 1, minWidth: 300 }}>
-          <Image 
-            src="https://img.freepik.com/free-vector/podcast-concept-illustration_114360-7885.jpg?w=826&t=st=1716210000~exp=1716210600~hmac=9c4dc9b5f997e71669a40e6ec9c3068d19d3c1aa24e39f73ed0e57c8bc207f25" 
-            alt="Innovation" 
-            width={826}
-            height={620}
-            style={{ width: '100%', borderRadius: 12 }}
-          />
-        </div>
-        <div style={{ flex: 1, minWidth: 300 }}>
-          <h2 style={{ fontSize: '2rem', fontWeight: 700, color: '#2F4858' }}>Innovation That Elevates Your Voice</h2>
-          <p style={{ color: '#2F4858', lineHeight: 1.7, marginTop: '1rem' }}>
-            Our tools support emerging formats like 3D audio, choose-your-own-adventure episodes, and smart home integration—so you're not just podcasting, you're pioneering.
-          </p>
-        </div>
-      </div>
+      <Box sx={{ mb: 6 }}>
+        <Grid container spacing={4} alignItems="center">
+          <Grid item xs={12} md={6}>
+            <Box
+              sx={{
+                position: 'relative',
+                borderRadius: 3,
+                overflow: 'hidden',
+                boxShadow: 3,
+              }}
+            >
+              <Image 
+                src="https://img.freepik.com/free-vector/podcast-concept-illustration_114360-7885.jpg?w=826&t=st=1716210000~exp=1716210600~hmac=9c4dc9b5f997e71669a40e6ec9c3068d19d3c1aa24e39f73ed0e57c8bc207f25" 
+                alt="Innovation" 
+                width={826}
+                height={620}
+                style={{ width: '100%', height: 'auto' }}
+              />
+            </Box>
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <Typography 
+              variant="h3" 
+              sx={{ 
+                fontWeight: 700, 
+                color: theme.palette.text.primary,
+                mb: 2,
+                fontSize: { xs: '1.5rem', sm: '2rem' }
+              }}
+            >
+              Innovation That Elevates Your Voice
+            </Typography>
+            <Typography 
+              variant="body1" 
+              sx={{ 
+                color: theme.palette.text.secondary, 
+                lineHeight: 1.7,
+                fontSize: '1.1rem'
+              }}
+            >
+              Our tools support emerging formats like 3D audio, choose-your-own-adventure episodes, and smart home integration—so you're not just podcasting, you're pioneering.
+            </Typography>
+          </Grid>
+        </Grid>
+      </Box>
 
       {/* Why Creators Choose Telecast */}
-      <div style={{ backgroundColor: '#f0f9ff', padding: '3rem 2rem', textAlign: 'center' }}>
-        <h2 style={{ fontSize: '2rem', fontWeight: 700, color: '#fa7202' }}>Why Creators Choose Telecast</h2>
-        <p style={{ maxWidth: 800, margin: 'auto', marginTop: '1rem', color: '#2F4858' }}>
+      <Box 
+        sx={{ 
+          backgroundColor: alpha(theme.palette.primary.main, 0.05),
+          borderRadius: 3,
+          p: 4,
+          textAlign: 'center',
+          mb: 6
+        }}
+      >
+        <Typography 
+          variant="h3" 
+          sx={{ 
+            fontWeight: 700, 
+            color: theme.palette.primary.main,
+            mb: 2,
+            fontSize: { xs: '1.5rem', sm: '2rem' }
+          }}
+        >
+          Why Creators Choose Telecast
+        </Typography>
+        <Typography 
+          variant="body1" 
+          sx={{ 
+            color: theme.palette.text.secondary,
+            fontSize: '1.1rem',
+            maxWidth: 600,
+            mx: 'auto'
+          }}
+        >
           From easy tools to audience insights, Telecast is designed for storytellers who want simplicity, power, and growth in one place.
-        </p>
-      </div>
+        </Typography>
+      </Box>
 
-      {/* Stats Strip */}
-      <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-around', background: '#f0f9ff', padding: '2rem', margin: '3rem auto', maxWidth: 1000, borderRadius: 12 }}>
-        <div style={{ flex: '1 1 200px', textAlign: 'center', marginBottom: '1.5rem' }}>
-          <span style={{ fontSize: '2.2rem', color: '#fa7202' }}>🎧</span>
-          <h3 style={{ margin: '0.5rem 0', fontSize: '1.5rem', color: '#2F4858' }}>5,000+</h3>
-          <p style={{ fontSize: '1rem', color: '#2F4858' }}>Podcasts Hosted</p>
-        </div>
-        <div style={{ flex: '1 1 200px', textAlign: 'center', marginBottom: '1.5rem' }}>
-          <span style={{ fontSize: '2.2rem', color: '#0279c3' }}>👥</span>
-          <h3 style={{ margin: '0.5rem 0', fontSize: '1.5rem', color: '#2F4858' }}>1M+</h3>
-          <p style={{ fontSize: '1rem', color: '#2F4858' }}>Listeners Reached</p>
-        </div>
-        <div style={{ flex: '1 1 200px', textAlign: 'center' }}>
-          <span style={{ fontSize: '2.2rem', color: '#F6AE2D' }}>🚀</span>
-          <h3 style={{ margin: '0.5rem 0', fontSize: '1.5rem', color: '#2F4858' }}>98%</h3>
-          <p style={{ fontSize: '1rem', color: '#2F4858' }}>Satisfaction Rate</p>
-        </div>
-      </div>
+      {/* Stats Section */}
+      <Box sx={{ mb: 6 }}>
+        <Grid container spacing={3}>
+          <Grid item xs={12} sm={4}>
+            <Box sx={{ textAlign: 'center' }}>
+              <Typography sx={{ fontSize: '3rem', mb: 1 }}>🎧</Typography>
+              <Typography 
+                variant="h4" 
+                sx={{ 
+                  fontWeight: 700, 
+                  color: theme.palette.primary.main,
+                  mb: 1
+                }}
+              >
+                5,000+
+              </Typography>
+              <Typography variant="body1" color="text.secondary">
+                Podcasts Hosted
+              </Typography>
+            </Box>
+          </Grid>
+          <Grid item xs={12} sm={4}>
+            <Box sx={{ textAlign: 'center' }}>
+              <Typography sx={{ fontSize: '3rem', mb: 1 }}>👥</Typography>
+              <Typography 
+                variant="h4" 
+                sx={{ 
+                  fontWeight: 700, 
+                  color: theme.palette.primary.main,
+                  mb: 1
+                }}
+              >
+                1M+
+              </Typography>
+              <Typography variant="body1" color="text.secondary">
+                Listeners Reached
+              </Typography>
+            </Box>
+          </Grid>
+          <Grid item xs={12} sm={4}>
+            <Box sx={{ textAlign: 'center' }}>
+              <Typography sx={{ fontSize: '3rem', mb: 1 }}>🚀</Typography>
+              <Typography 
+                variant="h4" 
+                sx={{ 
+                  fontWeight: 700, 
+                  color: theme.palette.primary.main,
+                  mb: 1
+                }}
+              >
+                98%
+              </Typography>
+              <Typography variant="body1" color="text.secondary">
+                Satisfaction Rate
+              </Typography>
+            </Box>
+          </Grid>
+        </Grid>
+      </Box>
 
       {/* Creator Spotlight */}
-      <div style={{ maxWidth: 900, margin: '4rem auto', padding: '2rem', textAlign: 'center' }}>
-        <h2 style={{ fontSize: '2rem', fontWeight: 700, color: '#111827' }}>Creator Spotlight</h2>
-        <Image 
-          src="https://randomuser.me/api/portraits/women/44.jpg" 
-          alt="Jessie T." 
-          width={100}
-          height={100}
-          style={{ borderRadius: '50%', margin: '1rem 0' }}
-        />
-        <blockquote style={{ fontStyle: 'italic', color: '#4b5563', maxWidth: 700, margin: 'auto' }}>
+      <Box sx={{ textAlign: 'center', mb: 6 }}>
+        <Typography 
+          variant="h3" 
+          sx={{ 
+            fontWeight: 700, 
+            color: theme.palette.text.primary,
+            mb: 3,
+            fontSize: { xs: '1.5rem', sm: '2rem' }
+          }}
+        >
+          Creator Spotlight
+        </Typography>
+        <Box
+          sx={{
+            width: 100,
+            height: 100,
+            borderRadius: '50%',
+            mx: 'auto',
+            mb: 3,
+            overflow: 'hidden',
+            boxShadow: 3,
+          }}
+        >
+          <Image 
+            src="https://randomuser.me/api/portraits/women/44.jpg" 
+            alt="Jessie T." 
+            width={100}
+            height={100}
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+          />
+        </Box>
+        <Typography 
+          variant="body1" 
+          sx={{ 
+            fontStyle: 'italic', 
+            color: theme.palette.text.secondary,
+            fontSize: '1.1rem',
+            maxWidth: 600,
+            mx: 'auto',
+            mb: 2
+          }}
+        >
           "Telecast helped me go from zero to viral. Their tools were easy, and I felt heard every step of the way."
-        </blockquote>
-        <p style={{ marginTop: '1rem', fontWeight: 600, color: '#1f2937' }}>Jessie T., Host of "Mind Over Mic"</p>
-      </div>
+        </Typography>
+        <Typography 
+          variant="body1" 
+          sx={{ 
+            fontWeight: 600, 
+            color: theme.palette.text.primary
+          }}
+        >
+          Jessie T., Host of "Mind Over Mic"
+        </Typography>
+      </Box>
 
-      {/* CTA Footer */}
-      <div style={{ background: 'linear-gradient(to right, #3b82f6, #9333ea)', padding: '3rem 2rem', borderRadius: 12, textAlign: 'center', color: 'white', marginTop: '4rem' }}>
-        <h2 style={{ fontSize: '2rem', fontWeight: 700 }}>Ready to Start Your Podcast Journey?</h2>
-        <p style={{ marginTop: '1rem', fontSize: '1.125rem' }}>Join the Telecast community today and turn your voice into impact.</p>
-        <Link href="/signup" style={{ marginTop: '1.5rem', display: 'inline-block', padding: '0.75rem 2rem', background: 'white', color: '#3b82f6', fontWeight: 600, borderRadius: 999, textDecoration: 'none' }}>Get Started</Link>
-      </div>
-    </>
+      {/* CTA Section */}
+      <Box 
+        sx={{ 
+          background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
+          borderRadius: 3,
+          p: 4,
+          textAlign: 'center',
+          color: 'white'
+        }}
+      >
+        <Typography 
+          variant="h3" 
+          sx={{ 
+            fontWeight: 700,
+            mb: 2,
+            fontSize: { xs: '1.5rem', sm: '2rem' }
+          }}
+        >
+          Ready to Start Your Podcast Journey?
+        </Typography>
+        <Typography 
+          variant="body1" 
+          sx={{ 
+            fontSize: '1.1rem',
+            mb: 3
+          }}
+        >
+          Join the Telecast community today and turn your voice into impact.
+        </Typography>
+        <Link 
+          href="/signup" 
+          style={{ 
+            display: 'inline-block',
+            padding: '12px 32px',
+            backgroundColor: 'white',
+            color: theme.palette.primary.main,
+            fontWeight: 600,
+            borderRadius: '50px',
+            textDecoration: 'none',
+            fontSize: '1.1rem',
+            transition: 'transform 0.2s ease-in-out',
+          }}
+        >
+          Get Started
+        </Link>
+      </Box>
+    </Box>
   );
 } 

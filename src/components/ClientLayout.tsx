@@ -17,7 +17,7 @@ export default function ClientLayout({
         component="main" 
         sx={{ 
           flexGrow: 1,
-          pt: { xs: 8, sm: 10 }, // Reduced top padding
+          pt: { xs: 55, sm: 30, md: 15 }, // Reduced large screen padding by 50%
           pb: { xs: 8, sm: 9 },   // Keep bottom padding for floating player
           minHeight: '100vh',     // Ensure minimum full viewport height
           mt: 0, // Remove extra margin top

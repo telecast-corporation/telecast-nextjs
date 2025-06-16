@@ -45,3 +45,47 @@ button:focus,
 button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
+
+/* Global Lexend font override for ALL text elements */
+* {
+  font-family: 'Lexend', system-ui, Avenir, Helvetica, Arial, sans-serif !important;
+}
+
+/* Ensure Material-UI components use Lexend */
+.MuiTypography-root,
+.MuiButton-root,
+.MuiInputBase-root,
+.MuiInputBase-input,
+.MuiFormLabel-root,
+.MuiMenuItem-root,
+.MuiListItemText-primary,
+.MuiListItemText-secondary,
+.MuiTab-root,
+.MuiChip-root,
+.MuiAlert-root,
+.MuiDialog-root,
+.MuiTooltip-tooltip,
+.MuiSnackbar-root,
+.MuiCard-root,
+.MuiCardContent-root,
+.MuiAppBar-root,
+.MuiToolbar-root {
+  font-family: 'Lexend', system-ui, Avenir, Helvetica, Arial, sans-serif !important;
+}
+
+/* Ensure all text inputs use Lexend */
+input,
+textarea,
+select {
+  font-family: 'Lexend', system-ui, Avenir, Helvetica, Arial, sans-serif !important;
+}
+
+/* Ensure all headings use Lexend */
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Lexend', system-ui, Avenir, Helvetica, Arial, sans-serif !important;
+}
+
+/* Ensure paragraphs and spans use Lexend */
+p, span, div, label {
+  font-family: 'Lexend', system-ui, Avenir, Helvetica, Arial, sans-serif !important;
+}

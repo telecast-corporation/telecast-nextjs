@@ -8,6 +8,7 @@ import {
   Box,
   Button,
   InputBase,
+  Input,
   alpha,
   styled,
   useTheme,
@@ -30,6 +31,7 @@ import {
   InputAdornment,
   Tabs,
   Tab,
+  Tooltip,
 } from '@mui/material';
 import {
   Search as SearchIcon,
@@ -53,30 +55,36 @@ import {
   DarkMode as DarkModeIcon,
   LightMode as LightModeIcon,
   AccountCircle as AccountCircleIcon,
+  Email as EmailIcon,
 } from '@mui/icons-material';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import useDebounce from '@/hooks/useDebounce';
+import { useAutocomplete } from '@/hooks/useAutocomplete';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme as useAppTheme } from '@/contexts/ThemeContext';
 import { Lexend } from 'next/font/google';
+import { Search } from 'lucide-react';
+
 
 const lexend = Lexend({ subsets: ['latin'], weight: ['400', '700', '900'] });
 
-const Search = styled('div')(({ theme }) => ({
+const SearchWrapper = styled(Box)(({ theme }) => ({
   position: 'relative',
-  borderRadius: theme.shape.borderRadius,
-  backgroundColor: alpha(theme.palette.common.black, 0.05),
-  '&:hover': {
-    backgroundColor: alpha(theme.palette.common.black, 0.08),
-  },
-  marginRight: theme.spacing(2),
-  marginLeft: 0,
   width: '100%',
-  [theme.breakpoints.up('sm')]: {
-    marginLeft: theme.spacing(3),
-    width: 'auto',
+  '& .MuiInputBase-root': {
+    width: '100%',
+    backgroundColor: theme.palette.background.default,
+    borderRadius: theme.shape.borderRadius,
+    border: `1px solid ${theme.palette.primary.main}`,
+    color: theme.palette.primary.main,
+    '&:hover': {
+      backgroundColor: theme.palette.action.hover,
+    },
+    '&:before, &:after': {
+      display: 'none',
+    },
   },
 }));
 
@@ -88,10 +96,11 @@ const SearchIconWrapper = styled('div')(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
+  color: theme.palette.primary.main,
 }));
 
 const StyledInputBase = styled(InputBase)(({ theme }) => ({
-  color: 'inherit',
+  color: theme.palette.primary.main,
   '& .MuiInputBase-input': {
     padding: theme.spacing(1, 1, 1, 0),
     paddingLeft: `calc(1em + ${theme.spacing(4)})`,
@@ -105,7 +114,7 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
 
 const NavButton = styled(Button)(({ theme }) => ({
   fontFamily: lexend.style.fontFamily,
-  color: theme.palette.text.primary,
+  color: theme.palette.primary.main,
   fontSize: '1.5rem',
   fontWeight: 700,
   letterSpacing: '0.04em',
@@ -121,20 +130,58 @@ const NavButton = styled(Button)(({ theme }) => ({
   transition: 'background 0.2s, color 0.2s',
   '&:hover': {
     backgroundColor: theme.palette.action.hover,
-    color: theme.palette.primary.main,
+    color: theme.palette.primary.dark,
   },
   marginLeft: theme.spacing(2),
   padding: theme.spacing(0, 2.5),
 }));
 
 const FilterButton = styled(Button)(({ theme }) => ({
-  minWidth: '100px',
-  borderLeft: `1px solid ${theme.palette.divider}`,
-  borderRadius: '0 8px 8px 0',
+  '&.MuiButton-root': {
+    color: theme.palette.primary.main,
+  },
+  '&.MuiButton-text': {
+    color: theme.palette.primary.main,
+  },
+  '&.MuiButton-contained': {
+    backgroundColor: theme.palette.primary.main,
+    color: theme.palette.primary.contrastText,
   '&:hover': {
-    backgroundColor: theme.palette.action.hover,
+      backgroundColor: theme.palette.primary.dark,
+    },
+  },
+  '&.MuiButton-outlined': {
+    borderColor: theme.palette.primary.main,
+    color: theme.palette.primary.main,
+    '&:hover': {
+      borderColor: theme.palette.primary.dark,
+      backgroundColor: theme.palette.primary.main,
+      color: theme.palette.primary.contrastText,
+    },
   },
 }));
+
+// Shared navigation button styles
+const getNavButtonStyles = (theme: any, pathname: string, targetPath: string, isAuthenticated?: boolean) => ({
+  fontFamily: lexend.style.fontFamily,
+  color: pathname === targetPath ? theme.palette.primary.main : theme.palette.text.primary,
+  fontSize: '1.5rem', // Larger font size for better visibility
+  fontWeight: pathname === targetPath ? 700 : 600,
+  textTransform: 'none',
+  borderRadius: 2,
+  px: 2,
+  py: 1,
+  backgroundColor: pathname === targetPath ? alpha(theme.palette.primary.main, 0.1) : 'transparent',
+  border: pathname === targetPath ? `1px solid ${theme.palette.primary.main}` : '1px solid transparent',
+  transition: 'all 0.2s ease-in-out',
+  '&:hover': {
+    backgroundColor: alpha(theme.palette.primary.main, 0.1),
+    color: theme.palette.primary.main,
+    border: `1px solid ${theme.palette.primary.main}`,
+    transform: 'translateY(-1px)',
+    boxShadow: `0 2px 8px ${alpha(theme.palette.primary.main, 0.2)}`,
+  },
+});
 
 interface SearchResult {
   id: number;
@@ -147,6 +194,140 @@ interface SearchResult {
   tags?: string[];
 }
 
+const GridNav = styled(AppBar)(({ theme }) => ({
+  display: 'grid',
+  gridTemplateColumns: 'repeat(15, 1fr)',
+  gridTemplateRows: 'auto auto',
+  gridTemplateAreas: `
+    "logo logo logo search search search search search search search search theme about contact login signup"
+    "logo logo logo filters filters filters filters filters filters filters filters theme about contact login signup"
+  `,
+  gap: theme.spacing(2),
+  padding: theme.spacing(1, 2),
+  backgroundColor: theme.palette.background.paper,
+  borderBottom: `1px solid ${theme.palette.divider}`,
+  width: '100%',
+  maxWidth: 'none',
+  left: 0,
+  right: 0,
+  [theme.breakpoints.down('lg')]: {
+    gridTemplateColumns: 'repeat(6, 1fr)',
+    gridTemplateRows: 'auto auto auto auto',
+    gridTemplateAreas: `
+      "logo logo logo logo logo logo"
+      "logo logo logo logo logo logo"
+      "search search search search search hamburger"
+      "filters filters filters filters filters ."
+    `,
+    paddingRight: theme.spacing(1),
+    width: '100vw',
+    margin: 0,
+    padding: theme.spacing(1),
+  },
+}));
+
+const LogoArea = styled(Box)(({ theme }) => ({
+  gridArea: 'logo',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'flex-start',
+  height: '100%',
+  [theme.breakpoints.down('lg')]: {
+    justifyContent: 'center',
+  },
+}));
+
+const SearchContainer = styled(Box)(({ theme }) => ({
+  gridArea: 'search',
+  display: 'flex',
+  alignItems: 'center',
+  width: '100%',
+  [theme.breakpoints.down('lg')]: {
+    width: '100%',
+  },
+}));
+
+const SearchInput = styled(Input)(({ theme }) => ({
+  width: '100%',
+  '& .MuiInputBase-root': {
+    width: '100%',
+    textAlign: 'center',
+  },
+  '& .MuiInputBase-input': {
+    textAlign: 'center',
+  },
+}));
+
+const FiltersArea = styled(Box)(({ theme }) => ({
+  gridArea: 'filters',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: theme.spacing(1),
+}));
+
+const AboutButton = styled(Box)(({ theme }) => ({
+  gridArea: 'about',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  [theme.breakpoints.down('lg')]: {
+    display: 'none',
+  },
+}));
+
+const LoginButton = styled(Box)(({ theme }) => ({
+  gridArea: 'login',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  [theme.breakpoints.down('lg')]: {
+    display: 'none',
+  },
+}));
+
+const ThemeButton = styled(Box)(({ theme }) => ({
+  gridArea: 'theme',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  [theme.breakpoints.down('lg')]: {
+    display: 'none',
+  },
+}));
+
+const ContactButton = styled(Box)(({ theme }) => ({
+  gridArea: 'contact',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  [theme.breakpoints.down('lg')]: {
+    display: 'none',
+  },
+}));
+
+const SignUpButton = styled(Box)(({ theme }) => ({
+  gridArea: 'signup',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  [theme.breakpoints.down('lg')]: {
+    display: 'none',
+  },
+}));
+
+// Add hamburger menu area
+const HamburgerArea = styled(Box)(({ theme }) => ({
+  gridArea: 'hamburger',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  width: '100%',
+  [theme.breakpoints.up('lg')]: {
+    display: 'none',
+  },
+}));
+
 const MainNav = memo(() => {
   const router = useRouter();
   const pathname = usePathname();
@@ -156,22 +337,41 @@ const MainNav = memo(() => {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterAnchorEl, setFilterAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedFilter, setSelectedFilter] = useState('All');
-  const [searchResultsAnchorEl, setSearchResultsAnchorEl] = useState<null | HTMLElement>(null);
-  const [isSearching, setIsSearching] = useState(false);
-  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
   const searchBoxRef = useRef<HTMLDivElement>(null);
   const { user, isAuthenticated, login, logout, isLoading: authLoading } = useAuth();
   const [profileAnchorEl, setProfileAnchorEl] = useState<null | HTMLElement>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [cachedSearchQuery, setCachedSearchQuery] = useState('');
-  const [cachedSearchResults, setCachedSearchResults] = useState<SearchResult[]>([]);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('all');
   const { isDarkMode, toggleDarkMode } = useAppTheme();
 
-  // Add debounced search query
-  const debouncedSearchQuery = useDebounce(searchQuery, 100); // 100ms delay
+  // Convert filter to API type
+  const getApiType = (filter: string) => {
+    const typeMap: { [key: string]: string } = {
+      'All': 'all',
+      'Podcasts': 'podcast',
+      'Videos': 'video',
+      'Music': 'music',
+      'Books': 'book'
+    };
+    return typeMap[filter] || 'all';
+  };
+
+  // Use the new autocomplete hook
+  const {
+    suggestions,
+    isLoading: isAutocompleteLoading,
+    selectedIndex,
+    isOpen: isAutocompleteOpen,
+    setIsOpen: setAutocompleteOpen,
+    handleKeyDown: handleAutocompleteKeyDown,
+    handleSuggestionClick,
+    clearSuggestions,
+  } = useAutocomplete(searchQuery, getApiType(selectedFilter), {
+    minLength: 2,
+    debounceMs: 300,
+    maxResults: 8,
+  });
 
   // Memoize filter options to prevent recreation on every render
   const filterOptions = [
@@ -182,53 +382,29 @@ const MainNav = memo(() => {
     { value: 'Books', icon: <BookIcon /> }
   ];
 
-  // Memoize callbacks to prevent unnecessary re-renders
-  const performPreviewSearch = useCallback(async (query: string) => {
-    if (!query.trim()) {
-      setSearchResults([]);
-      return;
+  // Handle autocomplete suggestion selection
+  const handleAutocompleteSelect = useCallback((suggestion: any) => {
+    if (suggestion.url?.startsWith('/')) {
+      // Internal URL - navigate directly
+      router.push(suggestion.url);
+    } else {
+      // External URL or search - perform search
+      setSearchQuery(suggestion.title);
+      const type = getApiType(selectedFilter);
+      const searchUrl = `/search?q=${encodeURIComponent(suggestion.title)}${type !== 'all' ? `&type=${type}` : ''}`;
+      router.push(searchUrl);
     }
-
-    try {
-      // Convert filter to singular form for API consistency
-      const typeMap: { [key: string]: string } = {
-        'All': 'all',
-        'Podcasts': 'podcast',
-        'Videos': 'video',
-        'Music': 'music',
-        'Books': 'book'
-      };
-      const type = typeMap[selectedFilter];
-      const response = await fetch(`/api/search?q=${encodeURIComponent(query)}&type=${type}`);
-      if (!response.ok) throw new Error('Failed to fetch results');
-      const data = await response.json();
-      setSearchResults(Array.isArray(data) ? data.slice(0, 5) : []);
-    } catch (err) {
-      console.error('Preview search error:', err);
-      setSearchResults([]);
-    }
-  }, [selectedFilter]);
-
-  const handleSearchClose = useCallback(() => {
-    setIsSearching(false);
-  }, []);
+    clearSuggestions();
+  }, [router, selectedFilter, clearSuggestions, getApiType]);
 
   const submitSearch = useCallback(() => {
     if (!searchQuery.trim()) return;
     
-    // Convert filter to singular form for API consistency
-    const typeMap: { [key: string]: string } = {
-      'All': 'all',
-      'Podcasts': 'podcast',
-      'Videos': 'video',
-      'Music': 'music',
-      'Books': 'book'
-    };
-    const type = typeMap[selectedFilter];
+    const type = getApiType(selectedFilter);
     const searchUrl = `/search?q=${encodeURIComponent(searchQuery)}${type !== 'all' ? `&type=${type}` : ''}`;
     router.push(searchUrl);
-    handleSearchClose();
-  }, [searchQuery, selectedFilter, router, handleSearchClose]);
+    clearSuggestions();
+  }, [searchQuery, selectedFilter, router, clearSuggestions, getApiType]);
 
   const handleFilterClick = useCallback((event: React.MouseEvent<HTMLElement>) => {
     setFilterAnchorEl(event.currentTarget);
@@ -243,23 +419,18 @@ const MainNav = memo(() => {
     
     // If it's not "All", navigate to search page with the filter
     if (filter !== 'All') {
-      // Convert to singular form for consistency, but handle 'Music' specially
-      const filterType = filter === 'Music' ? 'music' : filter.toLowerCase().slice(0, -1);
+      const filterType = getApiType(filter);
       const searchUrl = `/search?type=${filterType}`;
       router.push(searchUrl);
-      setIsSearching(false);
+      setAutocompleteOpen(false);
     } else {
-      // If "All" is selected
-      if (searchQuery) {
-        // If there's a search query, perform search with all types
-        performPreviewSearch(searchQuery);
-      } else {
-        // If no search query, navigate back to home page
+      // If "All" is selected and no search query, navigate back to home page
+      if (!searchQuery) {
         router.push('/');
-        setIsSearching(false);
+        setAutocompleteOpen(false);
       }
     }
-  }, [router, searchQuery, performPreviewSearch]);
+  }, [router, searchQuery, getApiType, setAutocompleteOpen]);
 
   const handleSearch = useCallback(async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -272,31 +443,25 @@ const MainNav = memo(() => {
   }, []);
 
   const handleKeyPress = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && searchQuery.trim()) {
+    // First, let the autocomplete handle the key press
+    const handled = handleAutocompleteKeyDown(e);
+    
+    if (!handled && e.key === 'Enter' && searchQuery.trim()) {
       e.preventDefault();
       submitSearch();
     }
-  }, [searchQuery, submitSearch]);
+  }, [searchQuery, submitSearch, handleAutocompleteKeyDown]);
 
-  const handleResultClick = useCallback((result: SearchResult) => {
-    handleSearchClose();
-    if (result.source === 'spotify') {
-      // Preserve the current filter type when clicking Spotify results
-      const filterParam = selectedFilter === 'All' ? '' : `&type=${selectedFilter.toLowerCase().slice(0, -1)}`;
-      const searchUrl = `/search?q=${encodeURIComponent(result.title)}${filterParam}`;
-      router.push(searchUrl);
-    } else {
-      const podcastUrl = `/podcast/${result.id}`;
-      router.push(podcastUrl);
-    }
-  }, [router, handleSearchClose, selectedFilter]);
-
-  const getIconForType = useCallback((source: string) => {
-    switch (source) {
-      case 'telecast':
+  const getIconForType = useCallback((type: string) => {
+    switch (type) {
+      case 'podcast':
         return <PodcastIcon />;
-      case 'spotify':
+      case 'video':
+        return <VideoIcon />;
+      case 'music':
         return <MusicIcon />;
+      case 'book':
+        return <BookIcon />;
       default:
         return <SearchIcon />;
     }
@@ -325,21 +490,13 @@ const MainNav = memo(() => {
     handleProfileClose();
   }, [logout, handleProfileClose]);
 
-  // Effect to trigger preview search when debounced query changes (NO NAVIGATION)
-  useEffect(() => {
-    if (debouncedSearchQuery.trim()) {
-      performPreviewSearch(debouncedSearchQuery);
-    } else {
-      setIsSearching(false);
-      setSearchResults([]);
-    }
-  }, [debouncedSearchQuery, performPreviewSearch]);
 
-  // Add click outside handler
+
+  // Add click outside handler for autocomplete
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (searchBoxRef.current && !searchBoxRef.current.contains(event.target as Node)) {
-        setIsSearching(false);
+        setAutocompleteOpen(false);
       }
     }
 
@@ -347,64 +504,105 @@ const MainNav = memo(() => {
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, []);
+  }, [setAutocompleteOpen]);
 
-  // Memoize search results rendering
-  const renderSearchResults = useCallback(() => {
-    if (!searchQuery) return null;
+  // Memoize autocomplete results rendering
+  const renderAutocompleteResults = useCallback(() => {
+    if (!isAutocompleteOpen || !searchQuery) return null;
 
     return (
       <Paper 
         sx={{ 
-          width: '100%', 
-          maxWidth: 600,
+          position: 'absolute',
+          top: '100%',
+          left: 0,
+          right: 0,
           maxHeight: 400,
           overflow: 'auto',
-          mt: 1,
-          boxShadow: theme.shadows[4],
-          zIndex: 1000,
+          mt: 0.5,
+          boxShadow: theme.shadows[8],
+          zIndex: 1300,
+          borderRadius: 2,
         }}
       >
-        {isLoading ? (
+        {isAutocompleteLoading ? (
           <Box sx={{ p: 2, textAlign: 'center' }}>
-            <Typography>Searching...</Typography>
+            <Typography variant="body2" color="text.secondary">
+              Searching...
+            </Typography>
           </Box>
-        ) : searchResults.length > 0 ? (
-          <List>
-            {searchResults.map((result, index) => (
-              <React.Fragment key={`${result.source}-${result.id}`}>
-                <ListItem 
-                  button 
-                  onClick={() => handleResultClick(result)}
-                  sx={{ 
-                    cursor: 'pointer',
+        ) : suggestions.length > 0 ? (
+          <List sx={{ py: 0 }}>
+            {suggestions.map((suggestion, index) => (
+              <ListItem 
+                key={`${suggestion.type}-${suggestion.id}`}
+                button 
+                selected={index === selectedIndex}
+                onClick={() => {
+                  handleSuggestionClick(suggestion);
+                  handleAutocompleteSelect(suggestion);
+                }}
+                sx={{ 
+                  cursor: 'pointer',
+                  '&:hover': {
+                    backgroundColor: 'action.hover',
+                  },
+                  '&.Mui-selected': {
+                    backgroundColor: 'action.selected',
                     '&:hover': {
-                      backgroundColor: 'action.hover',
+                      backgroundColor: 'action.selected',
                     },
-                  }}
-                >
-                  <ListItemAvatar>
-                    <Avatar src={result.imageUrl}>
-                      {getIconForType(result.source)}
-                    </Avatar>
-                  </ListItemAvatar>
-                  <ListItemText 
-                    primary={result.title} 
-                    secondary={result.author} 
-                  />
-                </ListItem>
-                {index < searchResults.length - 1 && <Divider />}
-              </React.Fragment>
+                  },
+                }}
+              >
+                <ListItemAvatar>
+                  <Avatar 
+                    src={suggestion.thumbnail} 
+                    sx={{ width: 32, height: 32 }}
+                  >
+                    {getIconForType(suggestion.type)}
+                  </Avatar>
+                </ListItemAvatar>
+                <ListItemText 
+                  primary={
+                    <Typography variant="body2" noWrap>
+                      {suggestion.title}
+                    </Typography>
+                  }
+                  secondary={
+                    suggestion.author && (
+                      <Typography variant="body2" color="text.secondary" noWrap>
+                        {suggestion.author}
+                      </Typography>
+                    )
+                  }
+                />
+                <ListItemIcon sx={{ minWidth: 'auto', ml: 1 }}>
+                  {getIconForType(suggestion.type)}
+                </ListItemIcon>
+              </ListItem>
             ))}
           </List>
         ) : (
           <Box sx={{ p: 2, textAlign: 'center' }}>
-            <Typography>No results found</Typography>
+            <Typography variant="body2" color="text.secondary">
+              No suggestions found
+            </Typography>
           </Box>
         )}
       </Paper>
     );
-  }, [searchQuery, isLoading, searchResults, handleResultClick, getIconForType, theme.shadows]);
+  }, [
+    isAutocompleteOpen,
+    searchQuery,
+    isAutocompleteLoading,
+    suggestions,
+    selectedIndex,
+    handleSuggestionClick,
+    handleAutocompleteSelect,
+    getIconForType,
+    theme.shadows
+  ]);
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: string) => {
     setActiveTab(newValue);
@@ -446,201 +644,153 @@ const MainNav = memo(() => {
         borderBottom: `1px solid ${theme.palette.divider}`
       }}>
         <Typography variant="h6" sx={{ 
-          fontWeight: 'bold',
+          fontFamily: lexend.style.fontFamily,
+          fontWeight: 700,
           fontSize: { xs: '1.1rem', sm: '1.25rem' }
         }}>Menu</Typography>
-        <IconButton onClick={() => setMobileMenuOpen(false)} sx={{ p: { xs: 0.5, sm: 1 } }}>
+        <IconButton onClick={handleDrawerToggle} sx={{ p: { xs: 0.5, sm: 1 } }}>
           <CloseIcon sx={{ fontSize: { xs: '1.2rem', sm: '1.5rem' } }} />
         </IconButton>
       </Box>
 
-      {/* Mobile Navigation */}
-      <Box className="container m-auto grid grid-rows-2 grid-cols-1 gap-y-2 w-full md:hidden">
-        {/* Row 1: Sign In/Profile and Hamburger, right-aligned */}
-        <Box className="flex items-center justify-end gap-2">
-          {isAuthenticated ? (
-            <IconButton onClick={handleProfileMenuClick} size="small">
-              <Avatar alt={user?.name} src={user?.image} sx={{ width: { xs: 28, sm: 32 }, height: { xs: 28, sm: 32 } }} />
-            </IconButton>
-          ) : (
-            <IconButton
-              onClick={login}
-              disabled={authLoading}
-              sx={{
-                bgcolor: 'background.paper',
-                color: 'primary.main',
-                border: '2px solid',
-                borderColor: 'primary.main',
-                boxShadow: 1,
-                '&:hover': {
-                  bgcolor: 'primary.main',
-                  color: 'white',
-                },
-                borderRadius: '50%',
-                width: { xs: 36, sm: 40 },
-                height: { xs: 36, sm: 40 },
-                p: 0,
-                transition: 'all 0.2s',
-              }}
-              aria-label="Sign in"
-            >
-              <AccountCircleIcon sx={{ width: '70%', height: '70%' }} />
-            </IconButton>
-          )}
-          <IconButton 
-            onClick={() => setMobileMenuOpen(true)}
-            sx={{ 
-              color: 'text.primary',
-              bgcolor: 'background.default',
-              border: `1px solid ${theme.palette.divider}`,
-              p: { xs: 0.5, sm: 1 },
-              '&:hover': {
-                borderColor: theme.palette.primary.main, 
-              },
-            }}
-            aria-label="Open menu"
-          >
-            <MenuIcon sx={{ fontSize: { xs: '1.2rem', sm: '1.5rem' } }} />
-          </IconButton>
-        </Box>
-        {/* Row 2: Quick Links, right-aligned in a single row */}
-        <Box className="flex items-center justify-end gap-2 mt-2">
-          <Button variant="outlined" size="small" className="" onClick={() => router.push('/')}>All</Button>
-          <Button variant="outlined" size="small" className="" onClick={() => router.push('/search?type=podcast')}>Podcast</Button>
-          <Button variant="outlined" size="small" className="" onClick={() => router.push('/search?type=video')}>Videos</Button>
-          <Button variant="outlined" size="small" className="" onClick={() => router.push('/search?type=music')}>Music</Button>
-          <Button variant="outlined" size="small" className="" onClick={() => router.push('/search?type=book')}>Books</Button>
-        </Box>
-      </Box>
-
-      <Divider />
-
-      {/* Mobile Auth Section */}
-      <Box sx={{ p: { xs: 1.5, sm: 2 } }}>
+      {/* Mobile Navigation - Vertical Stack */}
+      <List sx={{ px: 2, py: 1 }}>
+        <ListItem button onClick={() => router.push('/about')} sx={{ py: 1.5 }}>
+          <ListItemIcon sx={{ minWidth: 40 }}>
+            <HomeIcon />
+          </ListItemIcon>
+          <ListItemText 
+            primary="About" 
+            primaryTypographyProps={{ 
+              fontFamily: lexend.style.fontFamily,
+              fontWeight: 600 
+            }} 
+          />
+        </ListItem>
+        
+        <ListItem button onClick={() => router.push('/contact')} sx={{ py: 1.5 }}>
+          <ListItemIcon sx={{ minWidth: 40 }}>
+            <EmailIcon />
+          </ListItemIcon>
+          <ListItemText 
+            primary="Contact" 
+            primaryTypographyProps={{ 
+              fontFamily: lexend.style.fontFamily,
+              fontWeight: 600 
+            }} 
+          />
+        </ListItem>
+        
+        <Divider sx={{ my: 1 }} />
+        
+        {/* Auth Section */}
         {isAuthenticated ? (
           <>
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: { xs: 1.5, sm: 2 } }}>
-              <Avatar 
-                alt={user?.name} 
-                src={user?.image} 
-                sx={{ width: { xs: 32, sm: 40 }, height: { xs: 32, sm: 40 }, mr: 2 }}
+            <ListItem button onClick={() => router.push('/dashboard')} sx={{ py: 1.5 }}>
+              <ListItemIcon sx={{ minWidth: 40 }}>
+                <SettingsIcon />
+              </ListItemIcon>
+              <ListItemText 
+                primary="Dashboard" 
+                primaryTypographyProps={{ 
+                  fontFamily: lexend.style.fontFamily,
+                  fontWeight: 600 
+                }} 
               />
-              <Box>
-                <Typography variant="subtitle1" sx={{ 
-                  fontWeight: 600,
-                  fontSize: { xs: '0.875rem', sm: '1rem' }
-                }}>
-                  {user?.name}
-                </Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ 
-                  fontSize: { xs: '0.75rem', sm: '0.875rem' }
-                }}>
-                  {user?.email}
-                </Typography>
-              </Box>
-            </Box>
-            <List>
-              {[
-                { icon: <AccountIcon />, text: 'Profile', onClick: handleProfileClick },
-                { icon: <SettingsIcon />, text: 'Settings', onClick: handleSettingsClick },
-                { icon: <LogoutIcon />, text: 'Logout', onClick: handleLogoutClick }
-              ].map((item) => (
-                <ListItem 
-                  button 
-                  key={item.text} 
-                  onClick={item.onClick}
-                  sx={{ py: { xs: 0.75, sm: 1 } }}
-                >
-                  <ListItemIcon sx={{ minWidth: { xs: 36, sm: 40 } }}>
-                    {React.cloneElement(item.icon, { 
-                      sx: { fontSize: { xs: '1.2rem', sm: '1.5rem' } }
-                    })}
+            </ListItem>
+            
+            <ListItem button onClick={logout} sx={{ py: 1.5 }}>
+              <ListItemIcon sx={{ minWidth: 40 }}>
+                <LogoutIcon />
                   </ListItemIcon>
                   <ListItemText 
-                    primary={item.text} 
+                primary="Logout" 
                     primaryTypographyProps={{ 
-                      fontSize: { xs: '0.875rem', sm: '1rem' }
+                  fontFamily: lexend.style.fontFamily,
+                  fontWeight: 600 
                     }} 
                   />
                 </ListItem>
-              ))}
-            </List>
           </>
-        ) : null}
-      </Box>
-
-      {/* New ListItem for theme toggle inside the drawer, above the auth section */}
-      <ListItem button onClick={toggleDarkMode} sx={{ py: { xs: 1, sm: 1.5 } }}>
-        <ListItemIcon sx={{ minWidth: { xs: 36, sm: 40 } }}>
-          {isDarkMode ? <LightModeIcon sx={{ fontSize: { xs: '1.2rem', sm: '1.5rem' } }} /> : <DarkModeIcon sx={{ fontSize: { xs: '1.2rem', sm: '1.5rem' } }} />}
+        ) : (
+          <>
+            <ListItem button onClick={login} sx={{ py: 1.5 }}>
+              <ListItemIcon sx={{ minWidth: 40 }}>
+                <LoginIcon />
+              </ListItemIcon>
+              <ListItemText 
+                primary="Login" 
+                primaryTypographyProps={{ 
+                  fontFamily: lexend.style.fontFamily,
+                  fontWeight: 600 
+                }} 
+              />
+            </ListItem>
+            
+            <ListItem button onClick={() => router.push('/signup')} sx={{ py: 1.5 }}>
+              <ListItemIcon sx={{ minWidth: 40 }}>
+                <AccountIcon />
+              </ListItemIcon>
+              <ListItemText 
+                primary="Sign Up" 
+                primaryTypographyProps={{ 
+                  fontFamily: lexend.style.fontFamily,
+                  fontWeight: 600 
+                }} 
+              />
+            </ListItem>
+          </>
+        )}
+        
+        <Divider sx={{ my: 1 }} />
+        
+        {/* Theme Toggle */}
+        <ListItem button onClick={toggleDarkMode} sx={{ py: 1.5 }}>
+          <ListItemIcon sx={{ minWidth: 40 }}>
+            {isDarkMode ? <LightModeIcon /> : <DarkModeIcon />}
         </ListItemIcon>
         <ListItemText 
           primary={isDarkMode ? 'Light Mode' : 'Dark Mode'} 
-          primaryTypographyProps={{ fontSize: { xs: '0.875rem', sm: '1rem' } }} 
+            primaryTypographyProps={{ 
+              fontFamily: lexend.style.fontFamily,
+              fontWeight: 600 
+            }} 
           />
       </ListItem>
+      </List>
     </Box>
   );
 
   // Don't render the navbar until auth state is determined
   if (authLoading) {
     return (
-      <AppBar 
-        position="fixed" 
-        color="default" 
-        elevation={0}
-        sx={{ 
-          borderBottom: `1px solid ${theme.palette.divider}`,
-          bgcolor: 'background.paper',
-          zIndex: (theme) => theme.zIndex.drawer + 1,
-          height: 'auto',
-        }}
-      >
-        <Toolbar sx={{ 
-          minHeight: '64px !important',
-          py: 2,
-          px: { xs: 2, sm: 4 },
-          display: 'flex',
-          justifyContent: 'space-between',
-          position: 'relative',
-        }}>
-          {/* Loading skeleton that maintains layout */}
+      <GridNav position="fixed" color="default" elevation={1}>
+        <LogoArea>
           <Box sx={{ width: '240px', height: '50px', bgcolor: 'action.hover', borderRadius: 1, opacity: 0.3 }} />
+        </LogoArea>
+        <SearchContainer>
           <Box sx={{ flexGrow: 1, mx: 2, height: '80px', bgcolor: 'action.hover', borderRadius: 1, opacity: 0.3 }} />
+        </SearchContainer>
+        <FiltersArea>
           <Box sx={{ width: '200px', height: '50px', bgcolor: 'action.hover', borderRadius: 1, opacity: 0.3 }} />
-        </Toolbar>
-      </AppBar>
+        </FiltersArea>
+      </GridNav>
     );
   }
 
   return (
-    <AppBar 
-      position="fixed" 
+    <>
+      <GridNav position="fixed" color="default" elevation={1}>
+        <LogoArea>
+          <Link href="/" passHref>
+            <Box
+              component="a"
       sx={{ 
-        bgcolor: 'background.paper',
-        color: 'text.primary',
-        boxShadow: '0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24)',
-        borderBottom: `1px solid ${theme.palette.divider}`,
-        zIndex: theme.zIndex.drawer + 1,
-      }}
-    >
-      <Toolbar sx={{ 
-        minHeight: { xs: '56px', sm: '64px' },
-        py: { xs: 1, sm: 2 },
-        px: { xs: 1, sm: 2, md: 4 },
-        display: 'flex',
-        justifyContent: 'space-between',
-        position: 'relative',
-        flexWrap: isMobile ? 'wrap' : 'nowrap',
-      }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1 }}>
-          {/* Mobile Layout */}
-          {isMobile ? (
-            <>
-              {/* Top Row - Logo, Theme Toggle, Profile */}
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', mb: 1 }}>
-                <Link href="/" passHref style={{ textDecoration: 'none' }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', flexShrink: 0, minWidth: { xs: '100px', sm: '140px', md: '160px' }, maxWidth: { xs: '140px', sm: '180px', md: '200px' } }}>
+                      display: 'flex',
+                      alignItems: 'center',
+                textDecoration: 'none',
+                    }}
+                  >
                     <Image
                       src="/telecast-logo.gif"
                       alt="Telecast Logo"
@@ -657,433 +807,223 @@ const MainNav = memo(() => {
                     />
                   </Box>
                 </Link>
-                <Box className="container m-auto grid grid-rows-2 grid-cols-1 gap-y-2 w-full md:hidden">
-                  {/* Row 1: Sign In/Profile and Hamburger, right-aligned */}
-                  <Box className="flex items-center justify-end gap-2">
-                    {isAuthenticated ? (
-                      <IconButton onClick={handleProfileMenuClick} size="small">
-                        <Avatar alt={user?.name} src={user?.image} sx={{ width: { xs: 28, sm: 32 }, height: { xs: 28, sm: 32 } }} />
-                      </IconButton>
-                    ) : (
-                      <IconButton
-                        onClick={login}
-                        disabled={authLoading}
+      </LogoArea>
+
+        <SearchContainer>
+          <SearchWrapper ref={searchBoxRef} sx={{ position: 'relative' }}>
+            <SearchIconWrapper>
+              <SearchIcon />
+            </SearchIconWrapper>
+            <SearchInput
+              placeholder="Search…"
+              inputProps={{ 'aria-label': 'search' }}
+              value={searchQuery}
+              onChange={handleSearchInputChange}
+              onKeyPress={handleKeyPress}
+              onFocus={() => searchQuery.length >= 2 && setAutocompleteOpen(true)}
+            />
+            {renderAutocompleteResults()}
+          </SearchWrapper>
+        </SearchContainer>
+
+              <FiltersArea>
+        <Button
+          variant="text"
+          onClick={() => handleFilterSelect('All')}
                         sx={{
-                          bgcolor: 'background.paper',
-                          color: 'primary.main',
-                          border: '2px solid',
-                          borderColor: 'primary.main',
-                          boxShadow: 1,
+            border: `1px solid ${theme.palette.primary.main}`,
+            borderRadius: theme.shape.borderRadius,
+            padding: theme.spacing(1, 2),
+            backgroundColor: selectedFilter === 'All' ? theme.palette.primary.main : 'transparent',
+            color: selectedFilter === 'All' ? theme.palette.primary.contrastText : theme.palette.primary.main,
+            fontFamily: lexend.style.fontFamily,
                           '&:hover': {
-                            bgcolor: 'primary.main',
-                            color: 'white',
-                          },
-                          borderRadius: '50%',
-                          width: { xs: 36, sm: 40 },
-                          height: { xs: 36, sm: 40 },
-                          p: 0,
-                          transition: 'all 0.2s',
-                        }}
-                        aria-label="Sign in"
-                      >
-                        <AccountCircleIcon sx={{ width: '70%', height: '70%' }} />
-                      </IconButton>
-                    )}
-                    <IconButton 
-                      onClick={() => setMobileMenuOpen(true)}
+              backgroundColor: selectedFilter === 'All' ? theme.palette.primary.dark : theme.palette.action.hover,
+            },
+          }}
+        >
+          All
+        </Button>
+        <Button
+          variant="text"
+          startIcon={<PodcastIcon />}
+          onClick={() => handleFilterSelect('Podcasts')}
                       sx={{ 
-                        color: 'text.primary',
-                        bgcolor: 'background.default',
-                        border: `1px solid ${theme.palette.divider}`,
-                        p: { xs: 0.5, sm: 1 },
+            border: `1px solid ${theme.palette.primary.main}`,
+            borderRadius: theme.shape.borderRadius,
+            padding: theme.spacing(1, 2),
+            backgroundColor: selectedFilter === 'Podcasts' ? theme.palette.primary.main : 'transparent',
+            color: selectedFilter === 'Podcasts' ? theme.palette.primary.contrastText : theme.palette.primary.main,
+            fontFamily: lexend.style.fontFamily,
                         '&:hover': {
-                          borderColor: theme.palette.primary.main,
-                        },
-                      }}
-                      aria-label="Open menu"
-                    >
-                      <MenuIcon sx={{ fontSize: { xs: '1.2rem', sm: '1.5rem' } }} />
-                    </IconButton>
-                  </Box>
-                  {/* Row 2: Quick Links, right-aligned in a single row */}
-                  <Box className="flex items-center justify-end gap-2 mt-2">
-                    <Button variant="outlined" size="small" className="" onClick={() => router.push('/')}>All</Button>
-                    <Button variant="outlined" size="small" className="" onClick={() => router.push('/search?type=podcast')}>Podcast</Button>
-                    <Button variant="outlined" size="small" className="" onClick={() => router.push('/search?type=video')}>Videos</Button>
-                    <Button variant="outlined" size="small" className="" onClick={() => router.push('/search?type=music')}>Music</Button>
-                    <Button variant="outlined" size="small" className="" onClick={() => router.push('/search?type=book')}>Books</Button>
-                  </Box>
-                </Box>
-              </Box>
-              {/* Bottom Row - Search & Menu */}
-              <Box sx={{ width: '100%' }}>
-                <Box 
-                  ref={searchBoxRef}
-                  component="form" 
-                  onSubmit={handleSearch}
+              backgroundColor: selectedFilter === 'Podcasts' ? theme.palette.primary.dark : theme.palette.action.hover,
+            },
+          }}
+        >
+          Podcasts
+        </Button>
+        <Button
+          variant="text"
+          startIcon={<VideoIcon />}
+          onClick={() => handleFilterSelect('Videos')}
                   sx={{ 
-                    position: 'relative',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 1,
-                    mt: { xs: 1, sm: 1.5 }
-                  }}
-                >
-                  <Box sx={{ 
-                    display: { xs: 'none', md: 'flex' },
-                    alignItems: 'center',
-                    bgcolor: 'background.default',
-                    borderRadius: 1,
-                    border: `1px solid ${theme.palette.divider}`,
-                    flexGrow: 2,
-                    maxWidth: { xs: '100%', sm: '420px' },
+            border: `1px solid ${theme.palette.primary.main}`,
+            borderRadius: theme.shape.borderRadius,
+            padding: theme.spacing(1, 2),
+            backgroundColor: selectedFilter === 'Videos' ? theme.palette.primary.main : 'transparent',
+            color: selectedFilter === 'Videos' ? theme.palette.primary.contrastText : theme.palette.primary.main,
+            fontFamily: lexend.style.fontFamily,
                     '&:hover': {
-                      borderColor: theme.palette.primary.main,
-                    },
-                  }}>
-                    <IconButton type="submit" size="small" sx={{ p: { xs: 0.5, sm: 1 } }}>
-                      <SearchIcon sx={{ fontSize: { xs: '1.2rem', sm: '1.5rem' } }} />
-                    </IconButton>
-                    <InputBase
-                      name="search"
-                      placeholder="Search..."
-                      value={searchQuery}
-                      onChange={handleSearchInputChange}
-                      onKeyPress={handleKeyPress}
-                      sx={{ 
-                        flexGrow: 1, 
-                        px: 1, 
-                        '& input': { 
-                          py: 0.5,
-                          fontSize: { xs: '0.95rem', sm: '1rem' }
-                        } 
-                      }}
-                    />
-                  </Box>
-                  {isMobile && (
-                    <Button
-                      type="submit"
-                      variant="contained"
-                      color="primary"
-                      sx={{
-                        ml: 1,
-                        minWidth: 0,
-                        px: 2,
-                        py: 1,
-                        fontSize: '0.95rem',
-                        borderRadius: 2,
-                        boxShadow: 1,
-                        textTransform: 'none',
-                        display: { xs: 'none', md: 'inline-flex' },
-                        height: { xs: 36, sm: 40 },
-                        alignSelf: 'stretch',
-                      }}
-                      disabled={authLoading}
-                    >
-                      Search
+              backgroundColor: selectedFilter === 'Videos' ? theme.palette.primary.dark : theme.palette.action.hover,
+            },
+          }}
+        >
+          Videos
                     </Button>
-                  )}
-                  {/* Mobile Search Results */}
-                  {isSearching && (
-                    <Box sx={{
-                      position: 'absolute',
-                      top: '100%',
-                      left: 0,
-                      right: 0,
-                      zIndex: theme.zIndex.appBar + 1,
-                      mt: 1,
-                      bgcolor: 'background.paper',
-                      borderRadius: 1,
-                      boxShadow: 3,
-                      maxHeight: '80vh',
-                      overflow: 'auto',
-                    }}>
-                      {renderSearchResults()}
-                    </Box>
-                  )}
-                </Box>
-              </Box>
+        <Button
+          variant="text"
+          startIcon={<MusicIcon />}
+          onClick={() => handleFilterSelect('Music')}
+                  sx={{ 
+            border: `1px solid ${theme.palette.primary.main}`,
+            borderRadius: theme.shape.borderRadius,
+            padding: theme.spacing(1, 2),
+            backgroundColor: selectedFilter === 'Music' ? theme.palette.primary.main : 'transparent',
+            color: selectedFilter === 'Music' ? theme.palette.primary.contrastText : theme.palette.primary.main,
+                    '&:hover': {
+              backgroundColor: selectedFilter === 'Music' ? theme.palette.primary.dark : theme.palette.action.hover,
+            },
+          }}
+        >
+          Music
+        </Button>
+                      <Button
+          variant="text"
+          startIcon={<BookIcon />}
+          onClick={() => handleFilterSelect('Books')}
+                        sx={{
+            border: `1px solid ${theme.palette.primary.main}`,
+            borderRadius: theme.shape.borderRadius,
+            padding: theme.spacing(1, 2),
+            backgroundColor: selectedFilter === 'Books' ? theme.palette.primary.main : 'transparent',
+            color: selectedFilter === 'Books' ? theme.palette.primary.contrastText : theme.palette.primary.main,
+                            '&:hover': {
+              backgroundColor: selectedFilter === 'Books' ? theme.palette.primary.dark : theme.palette.action.hover,
+            },
+                        }}
+                      >
+          Books
+                      </Button>
+      </FiltersArea>
+
+        <ThemeButton>
+          <IconButton onClick={toggleDarkMode}>
+            {isDarkMode ? <LightModeIcon /> : <DarkModeIcon />}
+          </IconButton>
+        </ThemeButton>
+
+        <AboutButton>
+          <Link href="/about" passHref>
+            <Button 
+              variant="text"
+              sx={getNavButtonStyles(theme, pathname, '/about')}
+            >
+              About
+            </Button>
+          </Link>
+        </AboutButton>
+
+        <ContactButton>
+          <Link href="/contact" passHref>
+            <Button 
+              variant="text"
+              sx={getNavButtonStyles(theme, pathname, '/contact')}
+            >
+              Contact
+            </Button>
+          </Link>
+        </ContactButton>
+
+        <LoginButton>
+          {isAuthenticated ? (
+            <>
+              <IconButton
+                onClick={(e) => setProfileAnchorEl(e.currentTarget)}
+              >
+                <AccountCircleIcon />
+              </IconButton>
+              <Menu
+                anchorEl={profileAnchorEl}
+                open={Boolean(profileAnchorEl)}
+                onClose={() => setProfileAnchorEl(null)}
+              >
+                <MenuItem onClick={() => router.push('/dashboard')}>
+                  <ListItemIcon>
+                    <SettingsIcon fontSize="small" />
+                  </ListItemIcon>
+                  Dashboard
+                </MenuItem>
+                <MenuItem onClick={logout}>
+                  <ListItemIcon>
+                    <LogoutIcon fontSize="small" color="error" />
+                  </ListItemIcon>
+                  Logout
+                </MenuItem>
+              </Menu>
             </>
           ) : (
-            <>
-              {/* Desktop Layout */}
-              {/* Left section - Logo */}
-              <Link href="/" passHref style={{ textDecoration: 'none' }}>
-                <Box
-                  sx={{ 
-                    display: 'flex',
-                    alignItems: 'center',
-                    cursor: 'pointer',
-                    mr: { xs: 2, md: 4 },
-                    flexShrink: 0,
-                    minWidth: { xs: '160px', sm: '220px', md: '300px', lg: '400px' },
-                    maxWidth: { xs: '200px', sm: '300px', md: '400px', lg: '500px' },
-                  }}
-                >
-                  <Image
-                    src="/telecast-logo.gif"
-                    alt="Telecast Logo"
-                    width={500}
-                    height={500}
-                    style={{ 
-                      width: '100%',
-                      height: 'auto',
-                      maxWidth: '500px',
-                      maxHeight: '160px',
-                      objectFit: 'contain',
-                    }}
-                    priority
-                  />
-                </Box>
-              </Link>
-
-              {/* Center section - Search */}
-              <Box 
-                ref={searchBoxRef}
-                component="form" 
-                onSubmit={handleSearch}
-                sx={{ 
-                  flexGrow: 1,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  mx: 'auto',
-                  maxWidth: '800px',
-                  px: { md: 1, lg: 2 },
-                  position: 'relative',
-                }}
-              >
-                <Box sx={{ 
-                  width: '100%',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  gap: 1.5,
-                }}>
-                  <Box sx={{ 
-                    display: { xs: 'none', md: 'flex' },
-                    alignItems: 'center',
-                    bgcolor: 'background.paper',
-                    borderRadius: 2,
-                    border: `1px solid ${theme.palette.divider}`,
-                    '&:hover': {
-                      borderColor: theme.palette.primary.main,
-                    },
-                    transition: 'border-color 0.2s',
-                    position: 'relative',
-                    width: '100%',
-                    maxWidth: '600px',
-                  }}>
-                    <IconButton 
-                      type="submit" 
-                      sx={{ 
-                        p: 1,
-                        color: 'text.secondary',
-                        '&:hover': {
-                          color: 'primary.main',
-                        }
-                      }}
-                    >
-                      <SearchIcon />
-                    </IconButton>
-                    <InputBase
-                      name="search"
-                      placeholder="Search podcasts, videos, music..."
-                      value={searchQuery}
-                      onChange={handleSearchInputChange}
-                      onKeyPress={handleKeyPress}
-                      sx={{ 
-                        flexGrow: 1,
-                        px: 1,
-                        '& input': {
-                          py: 1,
-                        }
-                      }}
-                    />
-                  </Box>
-
-                  {/* Desktop Search Results */}
-                  {isSearching && (
-                    <Box
-                      sx={{
-                        position: 'absolute',
-                        top: '100%',
-                        left: '50%',
-                        transform: 'translateX(-50%)',
-                        zIndex: theme.zIndex.appBar + 1,
-                        mt: 1,
-                        width: '100%',
-                        maxWidth: '600px',
-                        display: 'flex',
-                        justifyContent: 'center',
-                      }}
-                    >
-                      {renderSearchResults()}
-                    </Box>
-                  )}
-
-                  {/* Desktop Filter Buttons */}
-                  <Box sx={{ 
-                    display: 'flex', 
-                    gap: 1,
-                    justifyContent: 'center',
-                    flexWrap: 'wrap',
-                    width: '100%',
-                    pb: 1,
-                    maxWidth: '600px',
-                  }}>
-                    {filterOptions.map((option) => (
-                      <Button
-                        key={option.value}
-                        variant={selectedFilter === option.value ? "contained" : "outlined"}
-                        size="small"
-                        startIcon={option.icon}
-                        onClick={() => handleFilterSelect(option.value)}
-                        sx={{
-                          borderRadius: 2,
-                          textTransform: 'none',
-                          minWidth: isTablet ? '80px' : '100px',
-                          ...(selectedFilter === option.value && {
-                            bgcolor: 'primary.main',
-                            color: 'white',
-                            '&:hover': {
-                              bgcolor: 'primary.dark',
-                            }
-                          })
-                        }}
-                      >
-                        {option.value}
-                      </Button>
-                    ))}
-                  </Box>
-                </Box>
-              </Box>
-
-              {/* Right section - Navigation and Auth */}
-              <Box sx={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                gap: { md: 1, lg: 2 },
-                ml: { md: 1, lg: 2 },
-                flexShrink: 0,
-                minWidth: { md: '150px', lg: '200px' },
-                justifyContent: 'flex-end',
-              }}>
-                {/* Desktop Navigation Links */}
-                <Box sx={{ display: { xs: 'none', lg: 'flex' }, gap: 1 }}>
-                  {isAuthenticated && (
-                    <Link href="/dashboard" passHref style={{ textDecoration: 'none' }}>
-                      <NavButton sx={{ fontSize: '1rem', height: '40px', minWidth: '80px' }}>
-                        Dashboard
-                      </NavButton>
-                    </Link>
-                  )}
-                  <Link href="/about" passHref style={{ textDecoration: 'none' }}>
-                    <NavButton sx={{ fontSize: '1rem', height: '40px', minWidth: '60px' }}>
-                      About
-                    </NavButton>
-                  </Link>
-                  <Link href="/services" passHref style={{ textDecoration: 'none' }}>
-                    <NavButton sx={{ fontSize: '1rem', height: '40px', minWidth: '70px' }}>
-                      Services
-                    </NavButton>
-                  </Link>
-                  <Link href="/contact" passHref style={{ textDecoration: 'none' }}>
-                    <NavButton sx={{ fontSize: '1rem', height: '40px', minWidth: '60px' }}>
-                      Contact
-                    </NavButton>
-                  </Link>
-                </Box>
-
-                <Box sx={{ flexGrow: 0 }}>
-                  {isAuthenticated ? (
-                      <IconButton
-                        onClick={handleProfileMenuClick}
-                        sx={{ p: 0 }}
-                        aria-label="profile menu"
-                      >
-                        <Avatar alt={user?.name} src={user?.image} />
-                      </IconButton>
-                  ) : (
-                    <IconButton
-                      onClick={login}
-                      disabled={authLoading}
-                      sx={{
-                        bgcolor: 'background.paper',
-                        color: 'primary.main',
-                        border: '2px solid',
-                        borderColor: 'primary.main',
-                        boxShadow: 1,
-                        '&:hover': {
-                        bgcolor: 'primary.main',
-                        color: 'white',
-                        },
-                        borderRadius: '50%',
-                        width: { xs: 36, sm: 40 },
-                        height: { xs: 36, sm: 40 },
-                        p: 0,
-                        transition: 'all 0.2s',
-                      }}
-                      aria-label="Sign in"
-                    >
-                      <AccountCircleIcon sx={{ width: '70%', height: '70%' }} />
-                    </IconButton>
-                  )}
-                </Box>
-              </Box>
-            </>
+            <Button
+              variant="text"
+              onClick={() => router.push('/login')}
+              startIcon={<LoginIcon />}
+              sx={getNavButtonStyles(theme, pathname, '/login')}
+            >
+              Login
+            </Button>
           )}
-        </Box>
+        </LoginButton>
 
-        {/* Profile Menu */}
-        <Menu
-          anchorEl={profileAnchorEl}
-          open={Boolean(profileAnchorEl)}
-          onClose={handleProfileClose}
-          PaperProps={{
-            sx: {
-              mt: 1.5,
-              minWidth: 200,
+        <SignUpButton>
+          {!isAuthenticated && (
+            <Button
+              variant="text"
+              onClick={() => router.push('/signup')}
+              sx={getNavButtonStyles(theme, pathname, '/signup')}
+            >
+              Sign Up
+            </Button>
+          )}
+        </SignUpButton>
+
+              <HamburgerArea>
+        <IconButton
+          onClick={handleDrawerToggle}
+          color="inherit"
+          aria-label="menu"
+          sx={{ 
+            width: 48,
+            height: 48,
+            '& .MuiSvgIcon-root': {
+              fontSize: '2rem'
             }
           }}
         >
-          <MenuItem onClick={handleProfileClick}>
-            <ListItemIcon>
-              <AccountIcon fontSize="small" />
-            </ListItemIcon>
-            <ListItemText primary="Profile" />
-          </MenuItem>
-          <MenuItem onClick={handleSettingsClick}>
-            <ListItemIcon>
-              <SettingsIcon fontSize="small" />
-            </ListItemIcon>
-            <ListItemText primary="Settings" />
-          </MenuItem>
-          <Divider />
-          <MenuItem onClick={handleLogoutClick}>
-            <ListItemIcon>
-              <LogoutIcon fontSize="small" />
-            </ListItemIcon>
-            <ListItemText primary="Logout" />
-          </MenuItem>
-        </Menu>
+          <MenuIcon />
+        </IconButton>
+      </HamburgerArea>
+      </GridNav>
 
-        {/* Mobile Drawer Menu */}
         <Drawer
           anchor="right"
-          open={mobileMenuOpen}
-          onClose={() => setMobileMenuOpen(false)}
-          PaperProps={{
-            sx: {
-              width: 280,
-              bgcolor: 'background.paper',
-            }
+        open={drawerOpen}
+        onClose={handleDrawerToggle}
+        ModalProps={{
+          keepMounted: true, // Better open performance on mobile.
           }}
         >
           {drawer}
         </Drawer>
-      </Toolbar>
-    </AppBar>
+    </>
   );
 });
 

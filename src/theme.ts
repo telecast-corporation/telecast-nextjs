@@ -11,27 +11,17 @@ declare module '@mui/material/styles' {
   }
 }
 
+const { palette } = createTheme();
+const { augmentColor } = palette;
+
+const createColor = (mainColor: string) => augmentColor({ color: { main: mainColor } });
+
 const theme = createTheme({
   palette: {
     mode: 'light',
-    primary: {
-      main: '#fa7202', // Vibrant Orange
-      light: '#fb8c33',
-      dark: '#c85a02',
-      contrastText: '#FFFFFF',
-    },
-    secondary: {
-      main: '#0279c3', // Blue
-      light: '#3498db',
-      dark: '#015a94',
-      contrastText: '#FFFFFF',
-    },
-    tertiary: {
-      main: '#F6AE2D', // Hunyadi Yellow
-      light: '#f7c05d',
-      dark: '#c58b24',
-      contrastText: '#fff',
-    },
+    primary: createColor('#fa7202'), // Vibrant Orange
+    secondary: createColor('#0279c3'), // Blue
+    tertiary: createColor('#F6AE2D'), // Hunyadi Yellow
     background: {
       default: '#FFFFFF',
       paper: '#FFFFFF',
@@ -40,18 +30,10 @@ const theme = createTheme({
       primary: '#2F4858', // Charcoal
       secondary: '#33658A', // Lapis Lazuli
     },
-    error: {
-      main: '#F26419', // Orange Pantone
-    },
-    warning: {
-      main: '#F6AE2D', // Hunyadi Yellow
-    },
-    info: {
-      main: '#55DDE0', // Robin Egg Blue
-    },
-    success: {
-      main: '#33658A', // Lapis Lazuli
-    },
+    error: createColor('#F26419'), // Orange Pantone
+    warning: createColor('#F6AE2D'), // Hunyadi Yellow
+    info: createColor('#55DDE0'), // Robin Egg Blue
+    success: createColor('#33658A'), // Lapis Lazuli
   },
   typography: {
     fontFamily: '"Lexend", "Inter", "Roboto", "Helvetica", "Arial", sans-serif',
@@ -143,6 +125,9 @@ const theme = createTheme({
       },
     },
     MuiButton: {
+      defaultProps: {
+        color: 'primary',
+      },
       styleOverrides: {
         root: {
           borderRadius: 8,
@@ -152,6 +137,31 @@ const theme = createTheme({
           boxShadow: 'none',
           '&:hover': {
             boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+          },
+        },
+        text: {
+          color: '#fa7202',
+          '&:hover': {
+            backgroundColor: 'rgba(250, 114, 2, 0.04)',
+          },
+        },
+        outlined: {
+          borderColor: '#fa7202',
+          color: '#fa7202',
+          '&:hover': {
+            borderColor: '#c85a02',
+            backgroundColor: '#fa7202',
+            color: '#FFFFFF',
+          },
+        },
+      },
+    },
+    MuiIconButton: {
+      styleOverrides: {
+        root: {
+          color: '#fa7202',
+          '&:hover': {
+            backgroundColor: 'rgba(250, 114, 2, 0.04)',
           },
         },
       },

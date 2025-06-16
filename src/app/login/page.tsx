@@ -2,21 +2,22 @@
 
 import { useState } from 'react';
 import {
-  Container,
   Box,
   Typography,
   Button,
-  Paper,
   Divider,
   Link as MuiLink,
+  useTheme,
 } from '@mui/material';
 import {
   Google as GoogleIcon,
 } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
 import { signIn } from 'next-auth/react';
+import Link from 'next/link';
 
 export default function LoginPage() {
+  const theme = useTheme();
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -43,87 +44,116 @@ export default function LoginPage() {
   };
 
   return (
-    <Container maxWidth="sm" sx={{ py: 8 }}>
-      <Paper 
-        elevation={3} 
-        sx={{ 
-          p: 4, 
-          borderRadius: 2,
-          background: 'rgba(255, 255, 255, 0.9)',
-          backdropFilter: 'blur(10px)',
+    <Box
+      component="main"
+      sx={{
+        maxWidth: 700,
+        mx: 'auto',
+        my: { xs: 4, md: 8 },
+        p: { xs: 2, sm: 4 },
+        borderRadius: 4,
+        backgroundColor: theme.palette.background.paper,
+        boxShadow: 4,
+        fontFamily: 'Open Sans, sans-serif',
+      }}
+    >
+      <Typography
+        variant="h2"
+        align="center"
+        sx={{
+          color: theme.palette.primary.main,
+          fontWeight: 700,
+          mb: 1,
+          fontSize: { xs: '2rem', sm: '2.5rem' },
+          fontFamily: 'inherit',
         }}
       >
-        <Box sx={{ textAlign: 'center', mb: 4 }}>
-          <Typography
-            variant="h4"
-            component="h1"
-            sx={{
-              fontWeight: 700,
-              mb: 1,
-              background: 'linear-gradient(45deg, #FF6B6B 30%, #4ECDC4 90%)',
-              backgroundClip: 'text',
-              textFillColor: 'transparent',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-            }}
-          >
-            Welcome Back
-          </Typography>
-          <Typography variant="body1" color="text.secondary">
-            Sign in to continue your journey
-          </Typography>
-        </Box>
+        Welcome Back
+      </Typography>
+      
+      <Typography 
+        variant="body1" 
+        align="center"
+        sx={{ 
+          color: 'text.secondary', 
+          mb: 4,
+          fontSize: '1.1rem'
+        }}
+      >
+        Sign in to continue your journey
+      </Typography>
 
-        {error && (
-          <Box sx={{ mb: 3, p: 2, bgcolor: 'error.light', borderRadius: 1 }}>
-            <Typography color="error">{error}</Typography>
-          </Box>
-        )}
+      {error && (
+        <Typography sx={{ color: 'error.main', textAlign: 'center', fontSize: '1rem', mb: 3 }}>
+          {error}
+        </Typography>
+      )}
 
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          <Button
-            fullWidth
-            variant="outlined"
-            startIcon={<GoogleIcon />}
-            onClick={handleGoogleLogin}
-            disabled={isLoading}
-            sx={{
-              py: 1.5,
-              borderColor: 'text.secondary',
-              '&:hover': {
-                borderColor: 'primary.main',
-                backgroundColor: 'rgba(25, 118, 210, 0.04)',
-              },
-            }}
-          >
-            {isLoading ? 'Signing in...' : 'Continue with Google'}
-          </Button>
-        </Box>
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+        <Button
+          fullWidth
+          variant="outlined"
+          startIcon={<GoogleIcon />}
+          onClick={handleGoogleLogin}
+          disabled={isLoading}
+          sx={{
+            fontSize: '1.25rem',
+            padding: '14px 0',
+            borderRadius: '8px',
+            fontWeight: 600,
+            textTransform: 'none',
+            borderColor: theme.palette.divider,
+            color: theme.palette.text.primary,
+            '&:hover': {
+              borderColor: 'primary.main',
+              backgroundColor: 'rgba(25, 118, 210, 0.04)',
+            },
+            '&:disabled': {
+              opacity: 0.5,
+            },
+          }}
+        >
+          {isLoading ? 'Signing in...' : 'Continue with Google'}
+        </Button>
 
-        <Divider sx={{ my: 4 }}>
-          <Typography variant="body2" color="text.secondary">
+        <Divider sx={{ my: 2 }}>
+          <Typography variant="body2" color="text.secondary" sx={{ fontSize: '1rem' }}>
             OR
           </Typography>
         </Divider>
 
-        <Box sx={{ textAlign: 'center' }}>
-          <Typography variant="body2" color="text.secondary">
-            Don't have an account?{' '}
-            <MuiLink href="/signup" underline="hover">
-              Sign up
-            </MuiLink>
-          </Typography>
-        </Box>
+        <Typography sx={{ textAlign: 'center', fontSize: '1rem', color: 'text.secondary' }}>
+          Don't have an account?{' '}
+          <Link href="/signup" style={{ color: theme.palette.primary.main, textDecoration: 'none', fontWeight: 600 }}>
+            Sign up
+          </Link>
+        </Typography>
 
-        <Box sx={{ mt: 4, textAlign: 'center' }}>
-          <Typography variant="body2" color="text.secondary">
-            By continuing, you agree to our{' '}
-            <MuiLink href="/terms" underline="hover">Terms of Service</MuiLink>
-            {' '}and{' '}
-            <MuiLink href="/privacy" underline="hover">Privacy Policy</MuiLink>
-          </Typography>
-        </Box>
-      </Paper>
-    </Container>
+        <Typography sx={{ textAlign: 'center', fontSize: '1rem' }}>
+          <Link href="/" style={{ color: theme.palette.primary.main, textDecoration: 'none', fontWeight: 600 }}>
+            ← Back to Home
+          </Link>
+        </Typography>
+
+        <Typography 
+          variant="body2" 
+          align="center"
+          sx={{ 
+            color: 'text.secondary',
+            fontSize: '0.9rem',
+            mt: 2
+          }}
+        >
+          By continuing, you agree to our{' '}
+          <Link href="/terms" style={{ color: theme.palette.primary.main, textDecoration: 'none' }}>
+            Terms of Service
+          </Link>
+          {' '}and{' '}
+          <Link href="/privacy" style={{ color: theme.palette.primary.main, textDecoration: 'none' }}>
+            Privacy Policy
+          </Link>
+        </Typography>
+      </Box>
+    </Box>
   );
 } 
