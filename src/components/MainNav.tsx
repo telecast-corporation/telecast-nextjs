@@ -64,6 +64,7 @@ import useDebounce from '@/hooks/useDebounce';
 import { useAutocomplete } from '@/hooks/useAutocomplete';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme as useAppTheme } from '@/contexts/ThemeContext';
+import { typography, spacing, borderRadius } from '@/styles/typography';
 import { Lexend } from 'next/font/google';
 import { Search } from 'lucide-react';
 
@@ -76,10 +77,10 @@ const SearchWrapper = styled(Box)(({ theme }) => ({
   '& .MuiInputBase-root': {
     width: '100%',
     backgroundColor: theme.palette.background.default,
-    borderRadius: theme.shape.borderRadius,
+  borderRadius: theme.shape.borderRadius,
     border: `1px solid ${theme.palette.primary.main}`,
     color: theme.palette.primary.main,
-    '&:hover': {
+  '&:hover': {
       backgroundColor: theme.palette.action.hover,
     },
     '&:before, &:after': {
@@ -165,8 +166,7 @@ const FilterButton = styled(Button)(({ theme }) => ({
 const getNavButtonStyles = (theme: any, pathname: string, targetPath: string, isAuthenticated?: boolean) => ({
   fontFamily: lexend.style.fontFamily,
   color: pathname === targetPath ? theme.palette.primary.main : theme.palette.text.primary,
-  fontSize: '1.5rem', // Larger font size for better visibility
-  fontWeight: pathname === targetPath ? 700 : 600,
+  ...typography.nav, // Use shared navigation typography
   textTransform: 'none',
   borderRadius: 2,
   px: 2,
@@ -180,6 +180,20 @@ const getNavButtonStyles = (theme: any, pathname: string, targetPath: string, is
     border: `1px solid ${theme.palette.primary.main}`,
     transform: 'translateY(-1px)',
     boxShadow: `0 2px 8px ${alpha(theme.palette.primary.main, 0.2)}`,
+  },
+});
+
+// Shared filter button styles
+const getFilterButtonStyles = (theme: any, selectedFilter: string, filterName: string) => ({
+  border: `1px solid ${theme.palette.primary.main}`,
+  borderRadius: theme.shape.borderRadius,
+  padding: theme.spacing(1.5, 3),
+  backgroundColor: selectedFilter === filterName ? theme.palette.primary.main : 'transparent',
+  color: selectedFilter === filterName ? theme.palette.primary.contrastText : theme.palette.primary.main,
+  fontFamily: lexend.style.fontFamily,
+  ...typography.nav,
+  '&:hover': {
+    backgroundColor: selectedFilter === filterName ? theme.palette.primary.dark : theme.palette.action.hover,
   },
 });
 
@@ -203,7 +217,8 @@ const GridNav = styled(AppBar)(({ theme }) => ({
     "logo logo logo filters filters filters filters filters filters filters filters theme about services contact login"
   `,
   gap: theme.spacing(2),
-  padding: theme.spacing(1, 2),
+  padding: theme.spacing(3, 2), // Increased from theme.spacing(1, 2) to theme.spacing(3, 2)
+  minHeight: '120px', // Added minimum height
   backgroundColor: theme.palette.background.paper,
   borderBottom: `1px solid ${theme.palette.divider}`,
   width: '100%',
@@ -223,7 +238,8 @@ const GridNav = styled(AppBar)(({ theme }) => ({
     paddingRight: theme.spacing(1),
     width: '100vw',
     margin: 0,
-    padding: theme.spacing(1),
+    padding: theme.spacing(2), // Increased from theme.spacing(1) to theme.spacing(2)
+    minHeight: '140px', // Added minimum height for mobile
     marginBottom: theme.spacing(8),
   },
 }));
@@ -262,8 +278,8 @@ const SearchInput = styled(Input)(({ theme }) => ({
 
 const FiltersArea = styled(Box)(({ theme }) => ({
   gridArea: 'filters',
-  display: 'flex',
-  alignItems: 'center',
+    display: 'flex',
+    alignItems: 'center',
   justifyContent: 'center',
   gap: theme.spacing(1),
 }));
@@ -547,36 +563,36 @@ const MainNav = memo(() => {
         ) : suggestions.length > 0 ? (
           <List sx={{ py: 0 }}>
             {suggestions.map((suggestion, index) => (
-              <ListItem 
+                <ListItem 
                 key={`${suggestion.type}-${suggestion.id}`}
-                button 
+                  button 
                 selected={index === selectedIndex}
                 onClick={() => {
                   handleSuggestionClick(suggestion);
                   handleAutocompleteSelect(suggestion);
                 }}
-                sx={{ 
-                  cursor: 'pointer',
-                  '&:hover': {
-                    backgroundColor: 'action.hover',
-                  },
+                  sx={{ 
+                    cursor: 'pointer',
+                    '&:hover': {
+                      backgroundColor: 'action.hover',
+                    },
                   '&.Mui-selected': {
                     backgroundColor: 'action.selected',
                     '&:hover': {
                       backgroundColor: 'action.selected',
                     },
-                  },
-                }}
-              >
-                <ListItemAvatar>
+                    },
+                  }}
+                >
+                  <ListItemAvatar>
                   <Avatar 
                     src={suggestion.thumbnail} 
                     sx={{ width: 32, height: 32 }}
                   >
                     {getIconForType(suggestion.type)}
-                  </Avatar>
-                </ListItemAvatar>
-                <ListItemText 
+                    </Avatar>
+                  </ListItemAvatar>
+                  <ListItemText 
                   primary={
                     <Typography variant="body2" noWrap>
                       {suggestion.title}
@@ -593,7 +609,7 @@ const MainNav = memo(() => {
                 <ListItemIcon sx={{ minWidth: 'auto', ml: 1 }}>
                   {getIconForType(suggestion.type)}
                 </ListItemIcon>
-              </ListItem>
+                </ListItem>
             ))}
           </List>
         ) : (
@@ -668,7 +684,7 @@ const MainNav = memo(() => {
 
       {/* Mobile Navigation - Vertical Stack */}
       <List sx={{ px: 2, py: 1 }}>
-        <ListItem button onClick={() => router.push('/about')} sx={{ py: 1.5 }}>
+        <ListItem button onClick={() => { handleDrawerToggle(); router.push('/about'); }} sx={{ py: 1.5 }}>
           <ListItemIcon sx={{ minWidth: 40 }}>
             <HomeIcon />
           </ListItemIcon>
@@ -676,12 +692,12 @@ const MainNav = memo(() => {
             primary="About" 
             primaryTypographyProps={{ 
               fontFamily: lexend.style.fontFamily,
-              fontWeight: 600 
+              ...typography.nav
             }} 
           />
         </ListItem>
         
-        <ListItem button onClick={() => router.push('/services')} sx={{ py: 1.5 }}>
+        <ListItem button onClick={() => { handleDrawerToggle(); router.push('/services'); }} sx={{ py: 1.5 }}>
           <ListItemIcon sx={{ minWidth: 40 }}>
             <SettingsIcon />
           </ListItemIcon>
@@ -689,12 +705,12 @@ const MainNav = memo(() => {
             primary="Services" 
             primaryTypographyProps={{ 
               fontFamily: lexend.style.fontFamily,
-              fontWeight: 600 
+              ...typography.nav
             }} 
           />
         </ListItem>
         
-        <ListItem button onClick={() => router.push('/contact')} sx={{ py: 1.5 }}>
+        <ListItem button onClick={() => { handleDrawerToggle(); router.push('/contact'); }} sx={{ py: 1.5 }}>
           <ListItemIcon sx={{ minWidth: 40 }}>
             <EmailIcon />
           </ListItemIcon>
@@ -702,25 +718,38 @@ const MainNav = memo(() => {
             primary="Contact" 
             primaryTypographyProps={{ 
               fontFamily: lexend.style.fontFamily,
-              fontWeight: 600 
+              ...typography.nav
             }} 
           />
         </ListItem>
+        
+        <ListItem button onClick={() => { handleDrawerToggle(); router.push('/login'); }} sx={{ py: 1.5 }}>
+          <ListItemIcon sx={{ minWidth: 40 }}>
+            <LoginIcon />
+                  </ListItemIcon>
+                  <ListItemText 
+            primary="Sign In" 
+                    primaryTypographyProps={{ 
+              fontFamily: lexend.style.fontFamily,
+              ...typography.nav
+                    }} 
+                  />
+                </ListItem>
         
         <Divider sx={{ my: 1 }} />
 
         <ListItem button onClick={toggleDarkMode} sx={{ py: 1.5 }}>
           <ListItemIcon sx={{ minWidth: 40 }}>
             {isDarkMode ? <LightModeIcon /> : <DarkModeIcon />}
-          </ListItemIcon>
-          <ListItemText 
-            primary={isDarkMode ? 'Light Mode' : 'Dark Mode'} 
+        </ListItemIcon>
+        <ListItemText 
+          primary={isDarkMode ? 'Light Mode' : 'Dark Mode'} 
             primaryTypographyProps={{ 
               fontFamily: lexend.style.fontFamily,
-              fontWeight: 600 
+              ...typography.nav
             }} 
           />
-        </ListItem>
+      </ListItem>
       </List>
     </Box>
   );
@@ -746,10 +775,10 @@ const MainNav = memo(() => {
     <>
       <GridNav position="fixed" color="default" elevation={1}>
         <LogoArea>
-          <Link href="/" passHref>
+            <Link href="/" passHref>
             <Box
               component="a"
-      sx={{ 
+                        sx={{
                       display: 'flex',
                       alignItems: 'center',
                 textDecoration: 'none',
@@ -769,42 +798,32 @@ const MainNav = memo(() => {
                       }}
                       priority
                     />
-                  </Box>
-                </Link>
+                </Box>
+              </Link>
       </LogoArea>
 
-        <SearchContainer>
+          <SearchContainer>
           <SearchWrapper ref={searchBoxRef} sx={{ position: 'relative' }}>
-            <SearchIconWrapper>
-              <SearchIcon />
-            </SearchIconWrapper>
+              <SearchIconWrapper>
+                      <SearchIcon />
+              </SearchIconWrapper>
             <SearchInput
-              placeholder="Search…"
-              inputProps={{ 'aria-label': 'search' }}
-              value={searchQuery}
+                placeholder="Search…"
+                inputProps={{ 'aria-label': 'search' }}
+                      value={searchQuery}
               onChange={handleSearchInputChange}
               onKeyPress={handleKeyPress}
               onFocus={() => searchQuery.length >= 2 && setAutocompleteOpen(true)}
-            />
+              />
             {renderAutocompleteResults()}
-          </SearchWrapper>
-        </SearchContainer>
+            </SearchWrapper>
+          </SearchContainer>
 
               <FiltersArea>
         <Button
           variant="text"
           onClick={() => handleFilterSelect('All')}
-                        sx={{
-            border: `1px solid ${theme.palette.primary.main}`,
-            borderRadius: theme.shape.borderRadius,
-            padding: theme.spacing(1, 2),
-            backgroundColor: selectedFilter === 'All' ? theme.palette.primary.main : 'transparent',
-            color: selectedFilter === 'All' ? theme.palette.primary.contrastText : theme.palette.primary.main,
-            fontFamily: lexend.style.fontFamily,
-                          '&:hover': {
-              backgroundColor: selectedFilter === 'All' ? theme.palette.primary.dark : theme.palette.action.hover,
-            },
-          }}
+          sx={getFilterButtonStyles(theme, selectedFilter, 'All')}
         >
           All
         </Button>
@@ -812,17 +831,7 @@ const MainNav = memo(() => {
           variant="text"
           startIcon={<PodcastIcon />}
           onClick={() => handleFilterSelect('Podcasts')}
-                      sx={{ 
-            border: `1px solid ${theme.palette.primary.main}`,
-            borderRadius: theme.shape.borderRadius,
-            padding: theme.spacing(1, 2),
-            backgroundColor: selectedFilter === 'Podcasts' ? theme.palette.primary.main : 'transparent',
-            color: selectedFilter === 'Podcasts' ? theme.palette.primary.contrastText : theme.palette.primary.main,
-            fontFamily: lexend.style.fontFamily,
-                        '&:hover': {
-              backgroundColor: selectedFilter === 'Podcasts' ? theme.palette.primary.dark : theme.palette.action.hover,
-            },
-          }}
+          sx={getFilterButtonStyles(theme, selectedFilter, 'Podcasts')}
         >
           Podcasts
         </Button>
@@ -830,60 +839,32 @@ const MainNav = memo(() => {
           variant="text"
           startIcon={<VideoIcon />}
           onClick={() => handleFilterSelect('Videos')}
-                  sx={{ 
-            border: `1px solid ${theme.palette.primary.main}`,
-            borderRadius: theme.shape.borderRadius,
-            padding: theme.spacing(1, 2),
-            backgroundColor: selectedFilter === 'Videos' ? theme.palette.primary.main : 'transparent',
-            color: selectedFilter === 'Videos' ? theme.palette.primary.contrastText : theme.palette.primary.main,
-            fontFamily: lexend.style.fontFamily,
-                    '&:hover': {
-              backgroundColor: selectedFilter === 'Videos' ? theme.palette.primary.dark : theme.palette.action.hover,
-            },
-          }}
+          sx={getFilterButtonStyles(theme, selectedFilter, 'Videos')}
         >
           Videos
-                    </Button>
+        </Button>
         <Button
           variant="text"
           startIcon={<MusicIcon />}
           onClick={() => handleFilterSelect('Music')}
-                  sx={{ 
-            border: `1px solid ${theme.palette.primary.main}`,
-            borderRadius: theme.shape.borderRadius,
-            padding: theme.spacing(1, 2),
-            backgroundColor: selectedFilter === 'Music' ? theme.palette.primary.main : 'transparent',
-            color: selectedFilter === 'Music' ? theme.palette.primary.contrastText : theme.palette.primary.main,
-                    '&:hover': {
-              backgroundColor: selectedFilter === 'Music' ? theme.palette.primary.dark : theme.palette.action.hover,
-            },
-          }}
+          sx={getFilterButtonStyles(theme, selectedFilter, 'Music')}
         >
           Music
         </Button>
-                      <Button
+        <Button
           variant="text"
           startIcon={<BookIcon />}
           onClick={() => handleFilterSelect('Books')}
-                        sx={{
-            border: `1px solid ${theme.palette.primary.main}`,
-            borderRadius: theme.shape.borderRadius,
-            padding: theme.spacing(1, 2),
-            backgroundColor: selectedFilter === 'Books' ? theme.palette.primary.main : 'transparent',
-            color: selectedFilter === 'Books' ? theme.palette.primary.contrastText : theme.palette.primary.main,
-                            '&:hover': {
-              backgroundColor: selectedFilter === 'Books' ? theme.palette.primary.dark : theme.palette.action.hover,
-            },
-                        }}
-                      >
+          sx={getFilterButtonStyles(theme, selectedFilter, 'Books')}
+        >
           Books
-                      </Button>
+        </Button>
       </FiltersArea>
 
         <ThemeButton>
           <IconButton onClick={toggleDarkMode}>
-            {isDarkMode ? <LightModeIcon /> : <DarkModeIcon />}
-          </IconButton>
+              {isDarkMode ? <LightModeIcon /> : <DarkModeIcon />}
+            </IconButton>
         </ThemeButton>
 
         <AboutButton>
@@ -899,12 +880,12 @@ const MainNav = memo(() => {
 
         <ServicesButton>
           <Link href="/services" passHref>
-            <Button 
+              <Button
               variant="text"
               sx={getNavButtonStyles(theme, pathname, '/services')}
-            >
+              >
               Services
-            </Button>
+              </Button>
           </Link>
         </ServicesButton>
 
@@ -920,111 +901,19 @@ const MainNav = memo(() => {
         </ContactButton>
 
         <LoginButton>
-          {isAuthenticated ? (
-            <>
-              <IconButton
-                onClick={(e) => setProfileAnchorEl(e.currentTarget)}
-                sx={{
-                  color: theme.palette.primary.main,
-                  '&:hover': {
-                    backgroundColor: alpha(theme.palette.primary.main, 0.1),
-                  }
-                }}
-              >
-                {user?.image ? (
-                  <Avatar src={user.image} alt={user.name || 'Profile'} />
-                ) : (
-                  <Avatar>{user?.name?.[0] || <AccountCircleIcon />}</Avatar>
-                )}
-              </IconButton>
-              <Menu
-                anchorEl={profileAnchorEl}
-                open={Boolean(profileAnchorEl)}
-                onClose={() => setProfileAnchorEl(null)}
-              >
-                <MenuItem onClick={() => router.push('/dashboard')}>
-                  <ListItemIcon>
-                    <SettingsIcon fontSize="small" />
-                  </ListItemIcon>
-                  Dashboard
-                </MenuItem>
-                <MenuItem onClick={logout}>
-                  <ListItemIcon>
-                    <LogoutIcon fontSize="small" color="error" />
-                  </ListItemIcon>
-                  Logout
-                </MenuItem>
-              </Menu>
-            </>
-          ) : (
-            <IconButton
-              onClick={() => router.push('/login')}
-              sx={{
-                color: theme.palette.primary.main,
-                '&:hover': {
-                  backgroundColor: alpha(theme.palette.primary.main, 0.1),
-                }
-              }}
+          <Link href="/login" passHref>
+            <Button 
+              variant="text"
+              sx={getNavButtonStyles(theme, pathname, '/login')}
             >
-              <Avatar>{user?.name?.[0] || <AccountCircleIcon />}</Avatar>
-            </IconButton>
-          )}
+              Sign In
+            </Button>
+          </Link>
         </LoginButton>
 
         <HamburgerArea>
-          <MobileLoginButton>
-            {isAuthenticated ? (
-              <>
-                <IconButton
-                  onClick={(e) => setProfileAnchorEl(e.currentTarget)}
-                  sx={{
-                    color: theme.palette.primary.main,
-                    '&:hover': {
-                      backgroundColor: alpha(theme.palette.primary.main, 0.1),
-                    }
-                  }}
-                >
-                  {user?.image ? (
-                    <Avatar src={user.image} alt={user.name || 'Profile'} />
-                  ) : (
-                    <Avatar>{user?.name?.[0] || <AccountCircleIcon />}</Avatar>
-                  )}
-                </IconButton>
-                <Menu
-                  anchorEl={profileAnchorEl}
-                  open={Boolean(profileAnchorEl)}
-                  onClose={() => setProfileAnchorEl(null)}
-                >
-                  <MenuItem onClick={() => router.push('/dashboard')}>
-                    <ListItemIcon>
-                      <SettingsIcon fontSize="small" />
-                    </ListItemIcon>
-                    Dashboard
-                  </MenuItem>
-                  <MenuItem onClick={logout}>
-                    <ListItemIcon>
-                      <LogoutIcon fontSize="small" color="error" />
-                    </ListItemIcon>
-                    Logout
-                  </MenuItem>
-                </Menu>
-              </>
-            ) : (
               <IconButton
-                onClick={() => router.push('/login')}
-                sx={{
-                  color: theme.palette.primary.main,
-                  '&:hover': {
-                    backgroundColor: alpha(theme.palette.primary.main, 0.1),
-                  }
-                }}
-              >
-                <Avatar>{user?.name?.[0] || <AccountCircleIcon />}</Avatar>
-              </IconButton>
-            )}
-          </MobileLoginButton>
-          <IconButton
-            onClick={handleDrawerToggle}
+                onClick={handleDrawerToggle}
             color="inherit"
             aria-label="menu"
             sx={{ 
@@ -1034,9 +923,9 @@ const MainNav = memo(() => {
                 fontSize: '2rem'
               }
             }}
-          >
-            <MenuIcon />
-          </IconButton>
+              >
+                <MenuIcon />
+              </IconButton>
         </HamburgerArea>
       </GridNav>
 

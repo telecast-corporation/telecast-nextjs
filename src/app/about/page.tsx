@@ -12,6 +12,7 @@ import {
   useTheme,
   alpha,
 } from '@mui/material';
+import { typography, spacing, borderRadius } from '@/styles/typography';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import GroupsIcon from '@mui/icons-material/Groups';
 import SecurityIcon from '@mui/icons-material/Security';
@@ -64,12 +65,9 @@ export default function About() {
 
   return (
     <Box
-      component="main"
       sx={{
-        maxWidth: 700,
         mx: 'auto',
-        my: { xs: 4, md: 8 },
-        p: { xs: 2, sm: 4 },
+        p: spacing.component,
         borderRadius: 4,
         backgroundColor: theme.palette.background.paper,
         boxShadow: 4,
@@ -81,38 +79,36 @@ export default function About() {
         align="center"
         sx={{
           color: theme.palette.primary.main,
-          fontWeight: 700,
-          mb: 4,
-          fontSize: { xs: '2rem', sm: '2.5rem' },
-          fontFamily: 'inherit',
+          ...typography.title,
+          mb: spacing.section,
         }}
       >
         About Telecast
       </Typography>
 
       {/* Features Section */}
-      <Box sx={{ mb: 6 }}>
-        <Grid container spacing={3}>
+      <Box sx={{ mb: spacing.section }}>
+        <Grid container spacing={spacing.gap}>
           <Grid item xs={12}>
-            <Card 
-              sx={{ 
-                backgroundColor: theme.palette.primary.main,
-                color: 'white',
-                borderRadius: 3,
-                boxShadow: 3,
-                mb: 3,
-              }}
-            >
-              <CardContent sx={{ p: 3 }}>
-                <Typography variant="h5" sx={{ fontWeight: 700, mb: 2, display: 'flex', alignItems: 'center' }}>
-                  <span style={{ marginRight: '0.5rem' }}>👆</span>
-                  User-Friendly Experience
-                </Typography>
-                <Typography variant="body1" sx={{ lineHeight: 1.7 }}>
-                  At the core of our service, we offer an exceptionally user-friendly platform designed for both novice and seasoned podcasters. Our recording tools are intuitive, allowing creators to focus on content rather than the complexities of technology.
-                </Typography>
-              </CardContent>
-            </Card>
+                          <Card 
+                sx={{ 
+                  backgroundColor: theme.palette.primary.main,
+                  color: 'white',
+                  borderRadius: borderRadius.large,
+                  boxShadow: 3,
+                  mb: spacing.gap,
+                }}
+              >
+                <CardContent sx={{ p: spacing.gap }}>
+                  <Typography variant="h5" sx={{ ...typography.subheading, mb: spacing.gap, display: 'flex', alignItems: 'center' }}>
+                    <span style={{ marginRight: '0.5rem' }}>👆</span>
+                    User-Friendly Experience
+                  </Typography>
+                  <Typography variant="body1" sx={{ ...typography.body }}>
+                    At the core of our service, we offer an exceptionally user-friendly platform designed for both novice and seasoned podcasters. Our recording tools are intuitive, allowing creators to focus on content rather than the complexities of technology.
+                  </Typography>
+                </CardContent>
+              </Card>
           </Grid>
           
           <Grid item xs={12}>
@@ -120,17 +116,17 @@ export default function About() {
               sx={{ 
                 backgroundColor: theme.palette.primary.dark,
                 color: 'white',
-                borderRadius: 3,
+                borderRadius: borderRadius.large,
                 boxShadow: 3,
-                mb: 3,
+                mb: spacing.gap,
               }}
             >
-              <CardContent sx={{ p: 3 }}>
-                <Typography variant="h5" sx={{ fontWeight: 700, mb: 2, display: 'flex', alignItems: 'center' }}>
+              <CardContent sx={{ p: spacing.gap }}>
+                <Typography variant="h5" sx={{ ...typography.subheading, mb: spacing.gap, display: 'flex', alignItems: 'center' }}>
                   <span style={{ marginRight: '0.5rem' }}>👥</span>
                   Community & Collaboration
                 </Typography>
-                <Typography variant="body1" sx={{ lineHeight: 1.7 }}>
+                <Typography variant="body1" sx={{ ...typography.body }}>
                   We believe in the power of community. Our platform isn't just a place to host podcasts; it's a thriving ecosystem where listeners can engage directly with creators and each other.
                 </Typography>
               </CardContent>
@@ -142,16 +138,16 @@ export default function About() {
               sx={{ 
                 backgroundColor: alpha(theme.palette.primary.main, 0.8),
                 color: 'white',
-                borderRadius: 3,
+                borderRadius: borderRadius.large,
                 boxShadow: 3,
               }}
             >
-              <CardContent sx={{ p: 3 }}>
-                <Typography variant="h5" sx={{ fontWeight: 700, mb: 2, display: 'flex', alignItems: 'center' }}>
+              <CardContent sx={{ p: spacing.gap }}>
+                <Typography variant="h5" sx={{ ...typography.subheading, mb: spacing.gap, display: 'flex', alignItems: 'center' }}>
                   <span style={{ marginRight: '0.5rem' }}>🌍</span>
                   Content Diversity & Discovery
                 </Typography>
-                <Typography variant="body1" sx={{ lineHeight: 1.7 }}>
+                <Typography variant="body1" sx={{ ...typography.body }}>
                   Our directory is curated to showcase the richness of human experience through audio. We commit to promoting a wide array of genres, from the niche to the mainstream.
                 </Typography>
               </CardContent>
@@ -161,17 +157,17 @@ export default function About() {
       </Box>
 
       {/* Innovation Section */}
-      <Box sx={{ mb: 6 }}>
-        <Grid container spacing={4} alignItems="center">
+      <Box sx={{ mb: spacing.section }}>
+        <Grid container spacing={spacing.section} alignItems="center">
           <Grid item xs={12} md={6}>
-            <Box
-              sx={{
-                position: 'relative',
-                borderRadius: 3,
-                overflow: 'hidden',
-                boxShadow: 3,
-              }}
-            >
+                          <Box
+                sx={{
+                  position: 'relative',
+                  borderRadius: borderRadius.large,
+                  overflow: 'hidden',
+                  boxShadow: 3,
+                }}
+              >
               <Image 
                 src="https://img.freepik.com/free-vector/podcast-concept-illustration_114360-7885.jpg?w=826&t=st=1716210000~exp=1716210600~hmac=9c4dc9b5f997e71669a40e6ec9c3068d19d3c1aa24e39f73ed0e57c8bc207f25" 
                 alt="Innovation" 
@@ -185,10 +181,9 @@ export default function About() {
             <Typography 
               variant="h3" 
               sx={{ 
-                fontWeight: 700, 
+                ...typography.heading,
                 color: theme.palette.text.primary,
-                mb: 2,
-                fontSize: { xs: '1.5rem', sm: '2rem' }
+                mb: spacing.gap,
               }}
             >
               Innovation That Elevates Your Voice
@@ -196,9 +191,8 @@ export default function About() {
             <Typography 
               variant="body1" 
               sx={{ 
+                ...typography.body,
                 color: theme.palette.text.secondary, 
-                lineHeight: 1.7,
-                fontSize: '1.1rem'
               }}
             >
               Our tools support emerging formats like 3D audio, choose-your-own-adventure episodes, and smart home integration—so you're not just podcasting, you're pioneering.

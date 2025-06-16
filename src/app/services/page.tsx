@@ -3,6 +3,9 @@
 import React from 'react';
 import { MdStar, MdConnectWithoutContact, MdPlaylistAddCheck } from 'react-icons/md';
 import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+import { useTheme } from '@mui/material/styles';
+import { typography, spacing, borderRadius } from '@/styles/typography';
 
 const services = [
   { icon: '🎧', title: 'Audio Production', desc: 'Recording, editing, mixing, and adding effects for high-quality audio.' },
@@ -17,98 +20,105 @@ const services = [
 ];
 
 export default function Services() {
+  const theme = useTheme();
+  
   return (
-    <main style={{ padding: '2rem', maxWidth: 1200, margin: '0 auto' }}>
-      <div style={{ textAlign: 'center', maxWidth: 900, margin: '0 auto 2rem' }}>
-        <h2 style={{ color: '#007bff', marginBottom: '1rem' }}><strong>Empower Your Podcasting Journey</strong></h2>
-        <p style={{ lineHeight: 1.6, color: '#334155' }}>
+    <Box sx={{ mx: 'auto', p: spacing.component }}>
+      <Box sx={{ textAlign: 'center', mx: 'auto', mb: spacing.section }}>
+        <Typography variant="h2" sx={{ ...typography.title, color: theme.palette.primary.main, mb: spacing.gap }}>
+          Empower Your Podcasting Journey
+        </Typography>
+        <Typography variant="body1" sx={{ ...typography.body, color: theme.palette.text.secondary }}>
           Telecast brings together the tools, support, and creative professionals you need to turn your podcast vision into reality.
           Whether you're launching your first episode or scaling a growing audience, we're here for every step.
-        </p>
-      </div>
+        </Typography>
+      </Box>
 
-      <div style={{ 
-        backgroundColor: '#f8fafc', 
-        padding: '2rem', 
-        borderRadius: '8px', 
-        marginBottom: '2rem' 
+      <Box sx={{ 
+        backgroundColor: theme.palette.background.default, 
+        p: spacing.section, 
+        borderRadius: borderRadius.medium, 
+        mb: spacing.section 
       }}>
-        <h3 style={{ 
-          color: '#0f172a', 
-          marginBottom: '1rem',
+        <Typography variant="h3" sx={{ 
+          ...typography.subheading,
+          color: theme.palette.text.primary, 
+          mb: spacing.gap,
           display: 'flex',
           alignItems: 'center',
           gap: '0.5rem'
         }}>
-          <MdStar style={{ color: '#0ea5e9' }} /> Why Choose Telecast?
-        </h3>
-        <p style={{ color: '#475569', lineHeight: 1.6 }}>
+          <MdStar style={{ color: theme.palette.primary.main }} /> Why Choose Telecast?
+        </Typography>
+        <Typography variant="body1" sx={{ ...typography.body, color: theme.palette.text.secondary }}>
           We blend cutting-edge technology with human creativity, offering curated services such as audio production, design, legal advice, and growth strategy to help you succeed in the podcasting world.
-        </p>
-      </div>
+        </Typography>
+      </Box>
 
-      <div style={{ 
-        backgroundColor: '#f8fafc', 
-        padding: '2rem', 
-        borderRadius: '8px', 
-        marginBottom: '2rem' 
+      <Box sx={{ 
+        backgroundColor: theme.palette.background.default, 
+        p: spacing.section, 
+        borderRadius: borderRadius.medium, 
+        mb: spacing.section 
       }}>
-        <h3 style={{ 
-          color: '#0f172a', 
-          marginBottom: '1rem',
+        <Typography variant="h3" sx={{ 
+          ...typography.subheading,
+          color: theme.palette.text.primary, 
+          mb: spacing.gap,
           display: 'flex',
           alignItems: 'center',
           gap: '0.5rem'
         }}>
-          <MdConnectWithoutContact style={{ color: '#0ea5e9' }} /> Join the Community
-        </h3>
-        <p style={{ color: '#475569', lineHeight: 1.6 }}>
+          <MdConnectWithoutContact style={{ color: theme.palette.primary.main }} /> Join the Community
+        </Typography>
+        <Typography variant="body1" sx={{ ...typography.body, color: theme.palette.text.secondary }}>
           Become part of a vibrant community of creators who collaborate, share, and inspire one another. From live Q&As to collaborative projects, we bring creators and listeners together.
-        </p>
-      </div>
+        </Typography>
+      </Box>
 
-      <div style={{ 
-        backgroundColor: '#f8fafc', 
-        padding: '2rem', 
-        borderRadius: '8px' 
+      <Box sx={{ 
+        backgroundColor: theme.palette.background.default, 
+        p: spacing.section, 
+        borderRadius: borderRadius.medium 
       }}>
-        <h3 style={{ 
-          color: '#0f172a', 
-          marginBottom: '1rem',
+        <Typography variant="h3" sx={{ 
+          ...typography.subheading,
+          color: theme.palette.text.primary, 
+          mb: spacing.gap,
           display: 'flex',
           alignItems: 'center',
           gap: '0.5rem'
         }}>
-          <MdPlaylistAddCheck style={{ color: '#0ea5e9' }} /> Services You Might Need
-        </h3>
-        <p style={{ color: '#475569', lineHeight: 1.6, marginBottom: '2rem' }}>
+          <MdPlaylistAddCheck style={{ color: theme.palette.primary.main }} /> Services You Might Need
+        </Typography>
+        <Typography variant="body1" sx={{ ...typography.body, color: theme.palette.text.secondary, mb: spacing.section }}>
           These services can help you create a polished, professional podcast that attracts and retains listeners:
-        </p>
-        <div style={{ 
+        </Typography>
+        <Box sx={{ 
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-          gap: '1.5rem'
+          gridTemplateColumns: 'repeat(auto-fit, minmax(18.75rem, 1fr))',
+          gap: spacing.gap
         }}>
           {services.map((service, idx) => (
             <Box key={idx} sx={{
-              backgroundColor: 'white',
-              p: '1.5rem',
-              borderRadius: '8px',
+              backgroundColor: theme.palette.background.paper,
+              p: spacing.gap,
+              borderRadius: borderRadius.medium,
               boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
               transition: 'transform 0.2s, box-shadow 0.2s',
               cursor: 'pointer',
               '&:hover': {
-                transform: 'translateY(-2px)',
+                transform: 'translateY(-0.125rem)',
                 boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
               }
             }}>
-              <span style={{ fontSize: '2rem', display: 'block', marginBottom: '0.5rem' }}>{service.icon}</span>
-              <span style={{ fontWeight: 700, color: '#1e3a8a', fontSize: '1.1rem', display: 'block' }}>{service.title}</span>
-              <span style={{ display: 'block', color: '#475569', fontSize: '0.95rem', marginTop: '0.5rem' }}>{service.desc}</span>
+              <Typography sx={{ fontSize: '2rem', display: 'block', mb: '0.5rem' }}>{service.icon}</Typography>
+              <Typography sx={{ ...typography.subheading, color: theme.palette.primary.dark, display: 'block' }}>{service.title}</Typography>
+              <Typography sx={{ ...typography.body, color: theme.palette.text.secondary, display: 'block', mt: '0.5rem' }}>{service.desc}</Typography>
             </Box>
           ))}
-        </div>
-      </div>
-    </main>
+        </Box>
+      </Box>
+    </Box>
   );
 } 

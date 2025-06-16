@@ -1,35 +1,59 @@
+'use client';
+
 import React from 'react';
 import Button from '@mui/material/Button';
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+import { useTheme } from '@mui/material/styles';
 import Link from 'next/link';
+import { typography, spacing, borderRadius } from '@/styles/typography';
 
 export default function ThankYou() {
+  const theme = useTheme();
+  
   return (
-    <main style={{ maxWidth: 600, margin: '6rem auto', padding: '2.5rem', borderRadius: 16, backgroundColor: '#f4f6fa', boxShadow: '0 4px 16px rgba(30,64,175,0.08)', fontFamily: 'Open Sans, sans-serif', textAlign: 'center' }}>
-      <h2 style={{ fontSize: '2.5rem', color: '#2563eb', fontWeight: 700, marginBottom: '1.5rem', fontFamily: 'inherit' }}>
+    <Box sx={{ 
+      maxWidth: 600, 
+      mx: 'auto', 
+      my: spacing.section, 
+      p: spacing.component, 
+      borderRadius: borderRadius.xlarge, 
+      backgroundColor: theme.palette.background.paper, 
+      boxShadow: 4, 
+      textAlign: 'center' 
+    }}>
+      <Typography variant="h2" sx={{ 
+        ...typography.title, 
+        color: theme.palette.primary.main, 
+        mb: spacing.gap 
+      }}>
         Thank You!
-      </h2>
-      <p style={{ fontSize: '1.5rem', color: '#23272f', marginBottom: '2.5rem', fontFamily: 'inherit' }}>
+      </Typography>
+      <Typography variant="body1" sx={{ 
+        ...typography.body, 
+        color: theme.palette.text.primary, 
+        mb: spacing.section 
+      }}>
         Your message has been received. We appreciate your feedback and will get back to you as soon as possible.
-      </p>
+      </Typography>
       <Link href="/" passHref legacyBehavior>
         <Button 
           sx={{
-            backgroundColor: '#2563eb',
+            backgroundColor: theme.palette.primary.main,
             color: 'white',
-            fontSize: '1.25rem',
-            padding: '12px 32px',
-            borderRadius: '8px',
-            fontWeight: 600,
+            ...typography.button,
+            padding: spacing.button,
+            borderRadius: borderRadius.medium,
             textTransform: 'none',
             boxShadow: '0 2px 8px rgba(37,99,235,0.08)',
             '&:hover': {
-              backgroundColor: '#1e40af',
+              backgroundColor: theme.palette.primary.dark,
             },
           }}
         >
           Back to Home
         </Button>
       </Link>
-    </main>
+    </Box>
   );
 } 

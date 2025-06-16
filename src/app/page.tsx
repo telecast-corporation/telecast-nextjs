@@ -206,14 +206,14 @@ export default function HomePage() {
 
   if (error) {
     return (
-      <Container maxWidth="lg" sx={{ mt: 4 }}>
+      <Container sx={{ mt: 4 }}>
         <Alert severity="error">{error}</Alert>
       </Container>
     );
   }
 
   return (
-    <Container maxWidth="lg" sx={{ mt: { xs: 24, sm: 16, md: 16 } }}>
+    <Container>
       {/* Trending Content */}
       <ContentCarousel
         title="Trending Videos"

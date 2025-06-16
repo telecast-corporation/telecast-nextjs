@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { typography, spacing, borderRadius } from '@/styles/typography';
 import { Box, Typography, Button, useTheme } from '@mui/material';
 
 export default function SignUp() {
@@ -51,12 +52,10 @@ export default function SignUp() {
 
   return (
     <Box
-      component="main"
       sx={{
-        maxWidth: 700,
+        maxWidth: { xs: '100%', sm: 'md', md: 'lg', lg: 'xl' },
         mx: 'auto',
-        my: { xs: 4, md: 8 },
-        p: { xs: 2, sm: 4 },
+        p: spacing.component,
         borderRadius: 4,
         backgroundColor: theme.palette.background.paper,
         boxShadow: 4,
@@ -68,10 +67,8 @@ export default function SignUp() {
         align="center"
         sx={{
           color: theme.palette.primary.main,
-          fontWeight: 700,
-          mb: 3,
-          fontSize: { xs: '2rem', sm: '2.5rem' },
-          fontFamily: 'inherit',
+          ...typography.title,
+          mb: spacing.section,
         }}
       >
         Create your account
@@ -80,10 +77,10 @@ export default function SignUp() {
       <Box
         component="form"
         onSubmit={handleSubmit}
-        sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}
+        sx={{ display: 'flex', flexDirection: 'column', gap: spacing.gap }}
       >
         <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-          <Typography component="label" htmlFor="username" sx={{ mb: 1, fontWeight: 600, color: 'text.primary', fontSize: '1.2rem' }}>
+          <Typography component="label" htmlFor="username" sx={{ mb: 1, ...typography.label, color: 'text.primary' }}>
             Username
           </Typography>
           <input
@@ -95,12 +92,12 @@ export default function SignUp() {
             onChange={(e) => setUsername(e.target.value)}
             placeholder="Enter your username"
             style={{
-              padding: '1rem',
+              padding: '1.75rem',
               border: `1px solid ${theme.palette.divider}`,
-              borderRadius: 10,
+              borderRadius: borderRadius.medium,
               backgroundColor: theme.palette.background.default,
               color: theme.palette.text.primary,
-              fontSize: '1.2rem',
+              fontSize: '1.8rem',
               fontFamily: 'inherit',
               outline: 'none',
               transition: 'border-color 0.2s',
@@ -109,7 +106,7 @@ export default function SignUp() {
         </Box>
 
         <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-          <Typography component="label" htmlFor="email" sx={{ mb: 1, fontWeight: 600, color: 'text.primary', fontSize: '1.2rem' }}>
+          <Typography component="label" htmlFor="email" sx={{ mb: 1, ...typography.label, color: 'text.primary' }}>
             Email
           </Typography>
           <input
@@ -122,12 +119,12 @@ export default function SignUp() {
             onChange={(e) => setEmail(e.target.value)}
             placeholder="Enter your email"
             style={{
-              padding: '1rem',
+              padding: '1.75rem',
               border: `1px solid ${theme.palette.divider}`,
-              borderRadius: 10,
+              borderRadius: borderRadius.medium,
               backgroundColor: theme.palette.background.default,
               color: theme.palette.text.primary,
-              fontSize: '1.2rem',
+              fontSize: '1.8rem',
               fontFamily: 'inherit',
               outline: 'none',
               transition: 'border-color 0.2s',
@@ -136,7 +133,7 @@ export default function SignUp() {
         </Box>
 
         <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-          <Typography component="label" htmlFor="password" sx={{ mb: 1, fontWeight: 600, color: 'text.primary', fontSize: '1.2rem' }}>
+          <Typography component="label" htmlFor="password" sx={{ mb: 1, ...typography.label, color: 'text.primary' }}>
             Password
           </Typography>
           <input
@@ -149,12 +146,12 @@ export default function SignUp() {
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Enter your password"
             style={{
-              padding: '1rem',
+              padding: '1.75rem',
               border: `1px solid ${theme.palette.divider}`,
-              borderRadius: 10,
+              borderRadius: borderRadius.medium,
               backgroundColor: theme.palette.background.default,
               color: theme.palette.text.primary,
-              fontSize: '1.2rem',
+              fontSize: '1.8rem',
               fontFamily: 'inherit',
               outline: 'none',
               transition: 'border-color 0.2s',
@@ -163,13 +160,13 @@ export default function SignUp() {
         </Box>
 
         {error && (
-          <Typography sx={{ color: 'error.main', textAlign: 'center', fontSize: '1rem' }}>
+          <Typography sx={{ color: 'error.main', textAlign: 'center', ...typography.body }}>
             {error}
           </Typography>
         )}
 
         {success && (
-          <Typography sx={{ color: 'success.main', textAlign: 'center', fontSize: '1rem' }}>
+          <Typography sx={{ color: 'success.main', textAlign: 'center', ...typography.body }}>
             {success}
           </Typography>
         )}
@@ -180,13 +177,12 @@ export default function SignUp() {
           sx={{
             backgroundColor: 'primary.main',
             color: 'white',
-            fontSize: '1.25rem',
-            padding: '14px 0',
-            borderRadius: '8px',
-            fontWeight: 700,
+            ...typography.button,
+            padding: spacing.button,
+            borderRadius: borderRadius.medium,
             textTransform: 'none',
             boxShadow: '0 2px 8px rgba(37,99,235,0.08)',
-            mt: 2,
+            mt: spacing.gap,
             '&:hover': {
               backgroundColor: 'primary.dark',
             },
@@ -198,14 +194,14 @@ export default function SignUp() {
           {loading ? 'Creating account...' : 'Sign up'}
         </Button>
 
-        <Typography sx={{ textAlign: 'center', fontSize: '1rem', color: 'text.secondary' }}>
+        <Typography sx={{ textAlign: 'center', ...typography.body, color: 'text.secondary' }}>
           Already have an account?{' '}
           <Link href="/login" style={{ color: theme.palette.primary.main, textDecoration: 'none', fontWeight: 600 }}>
             Sign in
           </Link>
         </Typography>
 
-        <Typography sx={{ textAlign: 'center', fontSize: '1rem' }}>
+        <Typography sx={{ textAlign: 'center', ...typography.body }}>
           <Link href="/" style={{ color: theme.palette.primary.main, textDecoration: 'none', fontWeight: 600 }}>
             ← Back to Home
           </Link>
