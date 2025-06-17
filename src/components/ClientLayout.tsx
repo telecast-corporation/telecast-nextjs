@@ -4,6 +4,7 @@ import { Box, useTheme, useMediaQuery } from '@mui/material';
 import MainNav from './MainNav';
 import Footer from './Footer';
 import FloatingPlayer from './FloatingPlayer';
+import { navbarSizing } from '@/styles/typography';
 
 export default function ClientLayout({
   children,
@@ -21,7 +22,12 @@ export default function ClientLayout({
         component="main" 
         sx={{ 
           flexGrow: 1,
-          pt: { xs: 40, sm: 40, md: 40, lg: 25 }, // More consistent padding for small screens, gradually decreasing
+          pt: { 
+            xs: navbarSizing.pagePadding.xs, // Automatically calculated: navbar height + 5vh
+            sm: navbarSizing.pagePadding.sm, // Automatically calculated: navbar height + 5vh
+            md: navbarSizing.pagePadding.md, // Automatically calculated: navbar height + 5vh
+            lg: navbarSizing.pagePadding.lg  // Automatically calculated: navbar height + 5vh
+          },
           pb: { xs: 8, sm: 9 },   // Keep bottom padding for floating player
           minHeight: '100vh',     // Ensure minimum full viewport height
           mt: 0, // Remove extra margin top

@@ -23,7 +23,17 @@ export default function Services() {
   const theme = useTheme();
   
   return (
-    <Box sx={{ mx: 'auto', p: spacing.component }}>
+    <Box
+      sx={{
+        maxWidth: { xs: '100%', sm: 'md', md: 'lg', lg: 'xl' },
+        mx: 'auto',
+        p: spacing.component,
+        borderRadius: 4,
+        backgroundColor: theme.palette.background.paper,
+        boxShadow: 4,
+        fontFamily: 'Open Sans, sans-serif',
+      }}
+    >
       <Box sx={{ textAlign: 'center', mx: 'auto', mb: spacing.section }}>
         <Typography variant="h2" sx={{ ...typography.title, color: theme.palette.primary.main, mb: spacing.gap }}>
           Empower Your Podcasting Journey

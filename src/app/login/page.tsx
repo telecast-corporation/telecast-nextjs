@@ -84,13 +84,16 @@ export default function LoginPage() {
   return (
         <Box
       sx={{
-        maxWidth: { xs: '100%', sm: 'md', md: 'lg', lg: 'xl' },
+        maxWidth: { xs: '90%', sm: '450px', md: '500px', lg: '550px' },
         mx: 'auto',
-        p: spacing.component,
+        p: { xs: 2, sm: 3, md: 4 },
         borderRadius: 4,
         backgroundColor: theme.palette.background.paper,
         boxShadow: 4,
         fontFamily: 'Open Sans, sans-serif',
+        minHeight: 'fit-content',
+        maxHeight: '50vh',
+        overflow: 'auto',
       }}
     >
       <Typography
@@ -99,7 +102,7 @@ export default function LoginPage() {
         sx={{
           color: theme.palette.primary.main,
           ...typography.title,
-          mb: spacing.section.xs,
+          mb: 1,
         }}
       >
         Welcome Back
@@ -111,25 +114,25 @@ export default function LoginPage() {
         sx={{ 
           color: 'text.secondary', 
           ...typography.body,
-          mb: spacing.section,
+          mb: 1,
         }}
       >
         Sign in to continue your journey
       </Typography>
 
       {error && (
-        <Alert severity="error" sx={{ mb: 3 }}>
+        <Alert severity="error" sx={{ mb: 2 }}>
           {error}
         </Alert>
       )}
 
       {success && (
-        <Alert severity="success" sx={{ mb: 3 }}>
+        <Alert severity="success" sx={{ mb: 2 }}>
           {success}
         </Alert>
       )}
 
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
         {/* Google Login Button */}
         <Button
           fullWidth
@@ -156,9 +159,9 @@ export default function LoginPage() {
           {isLoading ? 'Signing in...' : 'Continue with Google'}
         </Button>
 
-        <Divider sx={{ my: spacing.gap }}>
-          <Typography variant="body2" color="text.secondary" sx={{ ...typography.caption }}>
-            OR
+        <Divider sx={{ my: 0.5 }}>
+          <Typography variant="body1" color="text.secondary" sx={{ ...typography.body }}>
+            Or sign in with email
           </Typography>
         </Divider>
 
@@ -169,7 +172,7 @@ export default function LoginPage() {
           sx={{
             display: 'flex',
             flexDirection: 'column',
-            gap: 2,
+            gap: 1,
           }}
         >
           <TextField
@@ -230,13 +233,13 @@ export default function LoginPage() {
               mt: spacing.gap.xs,
             }}
           >
-            {isLoading ? 'Signing in...' : 'Sign in with Email'}
+            {isLoading ? 'Signing in...' : 'Sign In'}
           </Button>
         </Box>
 
         {/* Links */}
-        <Box sx={{ textAlign: 'center', mt: spacing.section }}>
-          <Typography sx={{ ...typography.body, color: 'text.secondary', mb: spacing.gap }}>
+        <Box sx={{ textAlign: 'center', mt: 1 }}>
+          <Typography sx={{ ...typography.body, color: 'text.secondary', mb: 0.5 }}>
             Don't have an account?{' '}
             <Link 
               href="/signup" 

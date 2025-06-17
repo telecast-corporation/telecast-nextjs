@@ -64,7 +64,7 @@ import useDebounce from '@/hooks/useDebounce';
 import { useAutocomplete } from '@/hooks/useAutocomplete';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme as useAppTheme } from '@/contexts/ThemeContext';
-import { typography, spacing, borderRadius } from '@/styles/typography';
+import { typography, spacing, borderRadius, navbarSizing } from '@/styles/typography';
 import { Lexend } from 'next/font/google';
 import { Search } from 'lucide-react';
 
@@ -90,21 +90,24 @@ const SearchWrapper = styled(Box)(({ theme }) => ({
 }));
 
 const SearchIconWrapper = styled('div')(({ theme }) => ({
-  padding: theme.spacing(0, 2),
+  padding: theme.spacing(0, 1),
   height: '100%',
   position: 'absolute',
+  top: 0,
+  left: 0,
   pointerEvents: 'none',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
   color: theme.palette.primary.main,
+  zIndex: 1,
 }));
 
 const StyledInputBase = styled(InputBase)(({ theme }) => ({
   color: theme.palette.primary.main,
   '& .MuiInputBase-input': {
     padding: theme.spacing(1, 1, 1, 0),
-    paddingLeft: `calc(1em + ${theme.spacing(4)})`,
+    paddingLeft: `calc(1em + ${theme.spacing(3)})`, // Reduced to match icon wrapper padding
     transition: theme.transitions.create('width'),
     width: '100%',
     [theme.breakpoints.up('md')]: {
@@ -187,11 +190,57 @@ const getNavButtonStyles = (theme: any, pathname: string, targetPath: string, is
 const getFilterButtonStyles = (theme: any, selectedFilter: string, filterName: string) => ({
   border: `1px solid ${theme.palette.primary.main}`,
   borderRadius: theme.shape.borderRadius,
-  padding: theme.spacing(1.5, 3),
+  padding: {
+    xs: theme.spacing(0.5, 1), // Even smaller padding on mobile
+    sm: theme.spacing(1, 2), // Medium padding on small screens
+    md: theme.spacing(1.5, 3), // Default padding on desktop
+  },
   backgroundColor: selectedFilter === filterName ? theme.palette.primary.main : 'transparent',
   color: selectedFilter === filterName ? theme.palette.primary.contrastText : theme.palette.primary.main,
   fontFamily: lexend.style.fontFamily,
   ...typography.nav,
+  fontSize: {
+    xs: '0.75rem', // Smaller text on mobile
+    sm: '0.875rem', // Medium text on small screens
+    md: typography.nav.fontSize, // Default size on desktop
+  },
+  minHeight: {
+    xs: '2rem', // Smaller button height on mobile
+    sm: '2.5rem', // Medium height on small screens
+    md: '3rem', // Default height on desktop
+  },
+  minWidth: {
+    xs: 0, // Override Material-UI default minWidth on mobile
+    sm: 'auto',
+  },
+  flex: {
+    xs: '1 1 auto', // Flexible sizing on mobile
+    sm: '0 0 auto', // Fixed sizing on larger screens
+  },
+  maxWidth: {
+    xs: 'calc(20% - 0.25rem)', // Ensure 5 buttons fit with gaps
+    sm: 'none',
+  },
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+  '& .MuiButton-startIcon': {
+    marginRight: {
+      xs: theme.spacing(0.25), // Smaller icon margin on mobile
+      sm: theme.spacing(0.5),
+      md: theme.spacing(1),
+    },
+    '& > svg': {
+      fontSize: {
+        xs: '1rem', // Smaller icons on mobile
+        sm: '1.25rem',
+        md: '1.5rem',
+      },
+    },
+  },
+  '& .MuiButton-root': {
+    minWidth: 0, // Allow buttons to shrink below default minWidth
+  },
   '&:hover': {
     backgroundColor: selectedFilter === filterName ? theme.palette.primary.dark : theme.palette.action.hover,
   },
@@ -208,39 +257,63 @@ interface SearchResult {
   tags?: string[];
 }
 
-const GridNav = styled(AppBar)(({ theme }) => ({
+const GridNav = styled(Box)(({ theme }) => ({
   display: 'grid',
-  gridTemplateColumns: 'repeat(15, 1fr)',
-  gridTemplateRows: 'auto auto',
+  gridTemplateColumns: 'repeat(10, 1fr)',
+  gridTemplateRows: '50% 50%',
   gridTemplateAreas: `
-    "logo logo logo search search search search search search search search theme about services contact login"
-    "logo logo logo filters filters filters filters filters filters filters filters theme about services contact login"
+    "logo logo logo search search search search navgroup navgroup navgroup navgroup navgroup"
+    "logo logo logo filters filters filters filters navgroup navgroup navgroup navgroup navgroup"
   `,
-  gap: theme.spacing(2),
-  padding: theme.spacing(3, 2), // Increased from theme.spacing(1, 2) to theme.spacing(3, 2)
-  minHeight: '120px', // Added minimum height
+  gap: '2%', // Small gap between grid components
+  padding: '0% 0%',
+  maxHeight: `${navbarSizing.height.lg} !important`,
+  minHeight: `${navbarSizing.height.lg} !important`,
+  height: `${navbarSizing.height.lg} !important`,
+  overflow: 'hidden',
+  alignItems: 'center',
   backgroundColor: theme.palette.background.paper,
   borderBottom: `1px solid ${theme.palette.divider}`,
-  width: '100%',
-  maxWidth: 'none',
+  marginBottom: theme.spacing(8),
+  position: 'fixed',
+  top: 0,
   left: 0,
   right: 0,
-  marginBottom: theme.spacing(8),
-  [theme.breakpoints.down('lg')]: {
+  width: '100%',
+  zIndex: theme.zIndex.appBar,
+  boxShadow: theme.shadows[1],
+  [theme.breakpoints.down('sm')]: {
     gridTemplateColumns: 'repeat(6, 1fr)',
-    gridTemplateRows: 'auto auto auto auto',
+    gridTemplateRows: '33.33% 33.33% 33.33%',
+    gridTemplateAreas: `
+      "logo logo logo logo logo hamburger"
+      "search search search search search search"
+      "filters filters filters filters filters filters"
+    `,
+    padding: '1% 1%',
+    maxHeight: `${navbarSizing.height.xs} !important`,
+    minHeight: `${navbarSizing.height.xs} !important`,
+    height: `${navbarSizing.height.xs} !important`,
+    overflow: 'hidden',
+  alignItems: 'center',
+    marginBottom: theme.spacing(4),
+  },
+  [theme.breakpoints.between('sm', 'lg')]: {
+    gridTemplateColumns: 'repeat(6, 1fr)',
+    gridTemplateRows: '25% 25% 25% 25%',
     gridTemplateAreas: `
       "logo logo logo logo logo logo"
       "logo logo logo logo logo logo"
       "search search search search search search"
       "filters filters filters filters filters filters"
     `,
-    paddingRight: theme.spacing(1),
-    width: '100vw',
-    margin: 0,
-    padding: theme.spacing(2), // Increased from theme.spacing(1) to theme.spacing(2)
-    minHeight: '140px', // Added minimum height for mobile
-    marginBottom: theme.spacing(8),
+    padding: '1.5% 1.5%',
+    maxHeight: `${navbarSizing.height.md} !important`,
+    minHeight: `${navbarSizing.height.md} !important`,
+    height: `${navbarSizing.height.md} !important`,
+    overflow: 'hidden',
+    alignItems: 'center',
+    marginBottom: theme.spacing(6),
   },
 }));
 
@@ -250,8 +323,25 @@ const LogoArea = styled(Box)(({ theme }) => ({
   alignItems: 'center',
   justifyContent: 'flex-start',
   height: '100%',
+  overflow: 'hidden',
+  '& img': {
+    maxHeight: '1000%',
+    maxWidth: '100%', // Ensure logo doesn't exceed container width
+    width: 'auto',
+    objectFit: 'contain',
+  },
   [theme.breakpoints.down('lg')]: {
     justifyContent: 'center',
+    '& img': {
+      maxHeight: '100%', // Smaller on mobile
+      maxWidth: '100%', // Leave some margin on mobile
+    },
+  },
+  [theme.breakpoints.down('sm')]: {
+    '& img': {
+      maxHeight: '100%', // Even smaller on very small screens
+      maxWidth: '85%', // More conservative width on small screens
+    },
   },
 }));
 
@@ -260,8 +350,36 @@ const SearchContainer = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
   width: '100%',
+  height: '100%',
+  overflow: 'hidden',
+  backgroundColor: theme.palette.background.default,
+  borderRadius: theme.shape.borderRadius,
+  border: `1px solid ${theme.palette.primary.main}`,
+  '& .search-icon': {
+    padding: '0 0.5rem',
+    color: theme.palette.primary.main,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  '& .MuiInputBase-root': {
+    height: '60%',
+    minHeight: 'auto',
+    fontSize: '0.9rem',
+    flex: 1,
+    border: 'none',
+    backgroundColor: 'transparent',
+  },
+  '& .MuiInputBase-input': {
+    padding: '0.5% 1%',
+    textAlign: 'center',
+  },
   [theme.breakpoints.down('lg')]: {
     width: '100%',
+    '& .MuiInputBase-root': {
+      height: '50%',
+      fontSize: '0.8rem',
+    },
   },
 }));
 
@@ -274,75 +392,64 @@ const SearchInput = styled(Input)(({ theme }) => ({
   '& .MuiInputBase-input': {
     textAlign: 'center',
   },
+  '&:before, &:after': {
+    display: 'none', // Remove underline
+  },
+  '&:hover:not(.Mui-disabled):before': {
+    display: 'none', // Remove underline on hover
+  },
 }));
 
 const FiltersArea = styled(Box)(({ theme }) => ({
   gridArea: 'filters',
-    display: 'flex',
-    alignItems: 'center',
-  justifyContent: 'center',
-  gap: theme.spacing(1),
-}));
-
-const AboutButton = styled(Box)(({ theme }) => ({
-  gridArea: 'about',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  [theme.breakpoints.down('lg')]: {
-    display: 'none',
+  gap: '1%',
+  flexWrap: 'wrap',
+  width: '100%',
+  height: '100%',
+  overflow: 'hidden',
+  '& .MuiButton-root': {
+    minHeight: 'auto',
+    height: '70%',
+    padding: '1% 2%',
+    fontSize: '0.75rem',
+    minWidth: 'auto',
+    [theme.breakpoints.up('lg')]: {
+      fontSize: '0.7rem',
+      height: '60%',
+    },
+  },
+  [theme.breakpoints.down('sm')]: {
+    gap: '0.5%',
+    justifyContent: 'space-between',
+    padding: '0 1%',
+    '& .MuiButton-root': {
+      height: '60%',
+      fontSize: '0.65rem',
+      padding: '0.5% 1%',
+    },
   },
 }));
 
-const ServicesButton = styled(Box)(({ theme }) => ({
-  gridArea: 'services',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  [theme.breakpoints.down('lg')]: {
-    display: 'none',
-  },
-}));
 
-const LoginButton = styled(Box)(({ theme }) => ({
-  gridArea: 'login',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  [theme.breakpoints.down('lg')]: {
-    display: 'none',
-  },
-}));
-
-const ThemeButton = styled(Box)(({ theme }) => ({
-  gridArea: 'theme',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  [theme.breakpoints.down('lg')]: {
-    display: 'none',
-  },
-}));
-
-const ContactButton = styled(Box)(({ theme }) => ({
-  gridArea: 'contact',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  [theme.breakpoints.down('lg')]: {
-    display: 'none',
-  },
-}));
 
 // Add hamburger menu area
 const HamburgerArea = styled(Box)(({ theme }) => ({
-  position: 'fixed',
-  top: theme.spacing(2),
-  right: theme.spacing(2),
+  gridArea: 'hamburger',
   display: 'flex',
   alignItems: 'center',
-  gap: theme.spacing(1),
-  zIndex: theme.zIndex.appBar + 1,
+  justifyContent: 'center',
+  height: '100%',
+  '& .MuiIconButton-root': {
+    padding: '1%', // Percentage-based padding
+    width: '80%', // 80% of container height
+    height: '80%', // 80% of container height
+  },
+  '& .MuiSvgIcon-root': {
+    fontSize: '1.5rem', // Relative to button size
+  },
   [theme.breakpoints.up('lg')]: {
     display: 'none',
   },
@@ -353,6 +460,60 @@ const MobileLoginButton = styled(Box)(({ theme }) => ({
   alignItems: 'center',
   justifyContent: 'center',
   [theme.breakpoints.up('lg')]: {
+    display: 'none',
+  },
+}));
+
+// New NavGroup component that contains all navigation buttons
+const NavGroup = styled(Box)(({ theme }) => ({
+  gridArea: 'navgroup',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'flex-start', // Align buttons to start instead of space-between
+  height: '100%',
+  width: '100%',
+  gap: '5%', // Reduced gap between buttons
+  padding: '0 1%', // Small padding on sides
+  '& .nav-button': {
+    flex: '0 0 auto', // Don't grow/shrink, size based on content
+    minHeight: 'auto',
+    height: '3rem', // Same height as theme button
+    fontSize: typography.nav.fontSize,
+    fontWeight: typography.nav.fontWeight,
+    padding: '0.125rem 0.25rem', // Reduced padding for smaller inner space
+    minWidth: 'auto',
+    maxWidth: 'none',
+    whiteSpace: 'nowrap', // Prevent text wrapping
+    borderRadius: '0.5rem', // Rounded corners for highlight box
+    border: 'none', // Remove border
+    '&:hover': {
+      backgroundColor: 'rgba(0, 0, 0, 0.04)', // Light hover background
+      border: 'none', // Ensure no border on hover
+    },
+  },
+  '& .theme-button': {
+    flex: '0 0 auto', // Theme button doesn't grow
+    width: '3rem', // Fixed width for perfect circle
+    height: '3rem', // Fixed height for perfect circle
+    padding: '0.25rem', // Reduced padding for smaller inner space
+    minWidth: '3rem', // Minimum width for touch targets
+    maxWidth: '3rem', // Maximum width to prevent stretching
+    borderRadius: '50%', // Ensure circular shape
+    border: 'none', // Remove border
+    '&:hover': {
+      backgroundColor: 'rgba(0, 0, 0, 0.04)', // Same hover background as nav buttons
+      border: 'none', // Ensure no border on hover
+    },
+    '& .MuiSvgIcon-root': {
+      fontSize: typography.heading.fontSize,
+    },
+  },
+  '& .MuiAvatar-root': {
+    width: '60%',
+    height: '60%',
+    fontSize: typography.caption.fontSize,
+  },
+  [theme.breakpoints.down('lg')]: {
     display: 'none',
   },
 }));
@@ -726,7 +887,7 @@ const MainNav = memo(() => {
         {isAuthenticated ? (
           <ListItem button onClick={() => { handleDrawerToggle(); router.push('/profile'); }} sx={{ py: 1.5 }}>
             <ListItemIcon sx={{ minWidth: 40 }}>
-              <Avatar
+              <Avatar 
                 src={user?.image || undefined}
                 alt={user?.name || 'Profile'}
                 sx={{
@@ -740,15 +901,15 @@ const MainNav = memo(() => {
               >
                 {!user?.image && user?.name ? user.name.charAt(0).toUpperCase() : <AccountCircleIcon />}
               </Avatar>
-            </ListItemIcon>
-            <ListItemText 
+                  </ListItemIcon>
+                  <ListItemText 
               primary="Profile" 
-              primaryTypographyProps={{ 
+                    primaryTypographyProps={{ 
                 fontFamily: lexend.style.fontFamily,
                 ...typography.nav
-              }} 
-            />
-          </ListItem>
+                    }} 
+                  />
+                </ListItem>
         ) : (
           <ListItem button onClick={() => { handleDrawerToggle(); router.push('/login'); }} sx={{ py: 1.5 }}>
             <ListItemIcon sx={{ minWidth: 40 }}>
@@ -785,7 +946,7 @@ const MainNav = memo(() => {
   // Don't render the navbar until auth state is determined
   if (authLoading) {
     return (
-      <GridNav position="fixed" color="default" elevation={1}>
+      <GridNav>
         <LogoArea>
           <Box sx={{ width: '240px', height: '50px', bgcolor: 'action.hover', borderRadius: 1, opacity: 0.3 }} />
         </LogoArea>
@@ -801,7 +962,7 @@ const MainNav = memo(() => {
 
   return (
     <>
-      <GridNav position="fixed" color="default" elevation={1}>
+      <GridNav>
         <LogoArea>
             <Link href="/" passHref>
             <Box
@@ -830,11 +991,10 @@ const MainNav = memo(() => {
               </Link>
       </LogoArea>
 
-          <SearchContainer>
-          <SearchWrapper ref={searchBoxRef} sx={{ position: 'relative' }}>
-              <SearchIconWrapper>
+          <SearchContainer ref={searchBoxRef}>
+            <Box className="search-icon">
                       <SearchIcon />
-              </SearchIconWrapper>
+            </Box>
             <SearchInput
                 placeholder="Search…"
                 inputProps={{ 'aria-label': 'search' }}
@@ -844,7 +1004,6 @@ const MainNav = memo(() => {
               onFocus={() => searchQuery.length >= 2 && setAutocompleteOpen(true)}
               />
             {renderAutocompleteResults()}
-            </SearchWrapper>
           </SearchContainer>
 
               <FiltersArea>
@@ -889,49 +1048,47 @@ const MainNav = memo(() => {
         </Button>
       </FiltersArea>
 
-        <ThemeButton>
-          <IconButton onClick={toggleDarkMode}>
+        <NavGroup>
+            <IconButton
+              onClick={toggleDarkMode}
+            className="theme-button"
+            >
               {isDarkMode ? <LightModeIcon /> : <DarkModeIcon />}
             </IconButton>
-        </ThemeButton>
 
-        <AboutButton>
           <Link href="/about" passHref>
             <Button 
               variant="text"
+              className="nav-button"
               sx={getNavButtonStyles(theme, pathname, '/about')}
             >
               About
             </Button>
           </Link>
-        </AboutButton>
 
-        <ServicesButton>
           <Link href="/services" passHref>
-              <Button
+            <Button
               variant="text"
+              className="nav-button"
               sx={getNavButtonStyles(theme, pathname, '/services')}
-              >
+            >
               Services
-              </Button>
+            </Button>
           </Link>
-        </ServicesButton>
 
-        <ContactButton>
           <Link href="/contact" passHref>
             <Button 
               variant="text"
+              className="nav-button"
               sx={getNavButtonStyles(theme, pathname, '/contact')}
             >
               Contact
             </Button>
           </Link>
-        </ContactButton>
-
-        <LoginButton>
-          {isAuthenticated ? (
+            
+                  {isAuthenticated ? (
             <Tooltip title="Profile">
-              <IconButton
+                      <IconButton
                 onClick={() => router.push('/profile')}
                 sx={{
                   p: 0.5,
@@ -958,19 +1115,20 @@ const MainNav = memo(() => {
                 >
                   {!user?.image && user?.name ? user.name.charAt(0).toUpperCase() : <AccountCircleIcon />}
                 </Avatar>
-              </IconButton>
+                      </IconButton>
             </Tooltip>
-          ) : (
+                  ) : (
             <Link href="/login" passHref>
-              <Button 
+              <Button
                 variant="text"
+                className="nav-button"
                 sx={getNavButtonStyles(theme, pathname, '/login')}
               >
                 Sign In
               </Button>
             </Link>
-          )}
-        </LoginButton>
+            )}
+        </NavGroup>
 
         <HamburgerArea>
               <IconButton
