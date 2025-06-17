@@ -75,6 +75,11 @@ async function getYouTubeAutocomplete(query: string): Promise<AutocompleteResult
   }
 }
 
+function ensureHttps(url) {
+  if (!url) return url;
+  return url.replace(/^http:/, 'https:');
+}
+
 async function getBooksAutocomplete(query: string): Promise<AutocompleteResult[]> {
   try {
     const response = await axios.get('https://www.googleapis.com/books/v1/volumes', {
@@ -90,7 +95,7 @@ async function getBooksAutocomplete(query: string): Promise<AutocompleteResult[]
       title: item.volumeInfo.title,
       type: 'book' as const,
       author: item.volumeInfo.authors?.[0],
-      thumbnail: item.volumeInfo.imageLinks?.smallThumbnail,
+      thumbnail: ensureHttps(item.volumeInfo.imageLinks?.smallThumbnail),
       url: `/book/${item.id}`,
     })) || [];
   } catch (error) {

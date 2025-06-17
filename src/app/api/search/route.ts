@@ -97,6 +97,11 @@ async function searchYouTube(query: string, maxResults: number = 10) {
   }
 }
 
+function ensureHttps(url) {
+  if (!url) return url;
+  return url.replace(/^http:/, 'https:');
+}
+
 async function searchBooks(query: string, maxResults: number = 10) {
   try {
     const response = await axios.get('https://www.googleapis.com/books/v1/volumes', {
@@ -112,7 +117,7 @@ async function searchBooks(query: string, maxResults: number = 10) {
       id: item.id,
       title: truncateText(item.volumeInfo.title, 50),
       description: truncateText(item.volumeInfo.description, 100),
-      thumbnail: item.volumeInfo.imageLinks?.thumbnail,
+      thumbnail: ensureHttps(item.volumeInfo.imageLinks?.thumbnail),
       url: `/book/${item.id}`, // Link to our internal book page
       author: truncateText(item.volumeInfo.authors?.join(', ') || 'Unknown Author', 30),
       publishedDate: item.volumeInfo.publishedDate,

@@ -55,6 +55,12 @@ function TabPanel(props: TabPanelProps) {
   );
 }
 
+// Helper to ensure HTTPS
+function ensureHttps(url: string | undefined): string | undefined {
+  if (!url) return url;
+  return url.replace(/^http:/, 'https:');
+}
+
 export default function TrendingPage() {
   const [value, setValue] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -211,7 +217,7 @@ export default function TrendingPage() {
                   <CardMedia
                     component="img"
                     height="200"
-                    image={book.thumbnail}
+                    image={ensureHttps(book.thumbnail)}
                     alt={book.title}
                     sx={{ objectFit: 'contain', bgcolor: 'grey.100' }}
                   />

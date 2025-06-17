@@ -60,6 +60,12 @@ interface BookDetails {
   }[];
 }
 
+// Helper to ensure HTTPS
+function ensureHttps(url: string | undefined): string | undefined {
+  if (!url) return url;
+  return url.replace(/^http:/, 'https:');
+}
+
 export default function BookPage() {
   const params = useParams();
   const router = useRouter();
@@ -116,7 +122,7 @@ export default function BookPage() {
           <Grid item xs={12} md={4}>
             <CardMedia
               component="img"
-              image={book.cover}
+              image={ensureHttps(book.cover)}
               alt={book.title}
               sx={{
                 width: '100%',
@@ -235,7 +241,7 @@ export default function BookPage() {
               >
                 <ListItemAvatar>
                   <Avatar
-                    src={relatedBook.thumbnail}
+                    src={ensureHttps(relatedBook.thumbnail)}
                     alt={relatedBook.title}
                     variant="rounded"
                     sx={{ width: 56, height: 80 }}

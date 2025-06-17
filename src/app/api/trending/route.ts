@@ -126,6 +126,11 @@ async function getTrendingMusic() {
   }
 }
 
+function ensureHttps(url) {
+  if (!url) return url;
+  return url.replace(/^http:/, 'https:');
+}
+
 async function getTrendingBooks() {
   try {
     console.log('Fetching trending books...');
@@ -151,7 +156,7 @@ async function getTrendingBooks() {
       type: 'book',
       title: item.volumeInfo.title,
       description: item.volumeInfo.description,
-      thumbnail: item.volumeInfo.imageLinks?.thumbnail,
+      thumbnail: ensureHttps(item.volumeInfo.imageLinks?.thumbnail),
       url: item.volumeInfo.infoLink,
       author: item.volumeInfo.authors?.[0] || 'Unknown Author',
       publishedDate: item.volumeInfo.publishedDate,

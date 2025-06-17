@@ -24,6 +24,12 @@ export async function GET(
   }
 
   try {
+    // Helper to ensure HTTPS
+    function ensureHttps(url) {
+      if (!url) return url;
+      return url.replace(/^http:/, 'https:');
+    }
+
     // Fetch book details from Google Books API
     const response = await axios.get(
       `https://www.googleapis.com/books/v1/volumes/${bookId}?key=${GOOGLE_BOOKS_API_KEY}`
@@ -37,12 +43,12 @@ export async function GET(
     );
 
     const relatedBooks = relatedResponse.data.items
-      ?.filter((item: any) => item.id !== bookId)
-      .map((item: any) => ({
+      ?.filter((item) => item.id !== bookId)
+      .map((item) => ({
         id: item.id,
         title: item.volumeInfo.title,
         author: item.volumeInfo.authors?.[0] || 'Unknown Author',
-        thumbnail: item.volumeInfo.imageLinks?.thumbnail || '/placeholder-book.png',
+        thumbnail: ensureHttps(item.volumeInfo.imageLinks?.thumbnail) || '/placeholder-book.png',
         description: item.volumeInfo.description || 'No description available',
       })) || [];
 
@@ -52,7 +58,7 @@ export async function GET(
       title: bookData.volumeInfo.title,
       author: {
         name: bookData.volumeInfo.authors?.[0] || 'Unknown Author',
-        image: bookData.volumeInfo.imageLinks?.thumbnail || '/placeholder-author.png',
+        image: ensureHttps(bookData.volumeInfo.imageLinks?.thumbnail) || '/placeholder-author.png',
       },
       details: {
         publisher: bookData.volumeInfo.publisher || 'Unknown Publisher',
@@ -62,7 +68,7 @@ export async function GET(
         isbn: bookData.volumeInfo.industryIdentifiers?.[0]?.identifier || 'Unknown',
       },
       description: bookData.volumeInfo.description || 'No description available',
-      cover: bookData.volumeInfo.imageLinks?.thumbnail || '/placeholder-book.png',
+      cover: ensureHttps(bookData.volumeInfo.imageLinks?.thumbnail) || '/placeholder-book.png',
       categories: bookData.volumeInfo.categories || [],
       rating: bookData.volumeInfo.averageRating || 0,
       ratingCount: bookData.volumeInfo.ratingsCount || 0,
