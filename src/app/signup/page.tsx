@@ -269,18 +269,35 @@ export default function SignUp() {
           </Button>
         </Box>
 
-        <Typography sx={{ textAlign: 'center', ...typography.body, color: 'text.secondary' }}>
-          Already have an account?{' '}
-          <Link href="/login" style={{ color: theme.palette.primary.main, textDecoration: 'none', fontWeight: 600 }}>
-            Sign in
-          </Link>
-        </Typography>
+        {/* Links */}
+        <Box sx={{ textAlign: 'center', mt: 1 }}>
+          <Typography sx={{ ...typography.body, color: 'text.secondary', mb: 0.5 }}>
+            Already have an account?{' '}
+            <Link 
+              href="/login" 
+              style={{ 
+                color: theme.palette.primary.main, 
+                textDecoration: 'none', 
+                fontWeight: 600 
+              }}
+            >
+              Sign in
+            </Link>
+          </Typography>
 
-        <Typography sx={{ textAlign: 'center', ...typography.body }}>
-          <Link href="/" style={{ color: theme.palette.primary.main, textDecoration: 'none', fontWeight: 600 }}>
-            ← Back to Home
-          </Link>
-        </Typography>
+          <Typography sx={{ ...typography.body }}>
+            <Link 
+              href="/" 
+              style={{ 
+                color: theme.palette.primary.main, 
+                textDecoration: 'none', 
+                fontWeight: 600 
+              }}
+            >
+              ← Back to Home
+            </Link>
+          </Typography>
+        </Box>
       </Box>
     </Box>
   );
