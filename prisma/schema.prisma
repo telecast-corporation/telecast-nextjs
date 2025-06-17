@@ -15,7 +15,7 @@ model User {
   updatedAt     DateTime  @updatedAt
   image         String?
   password      String?
-  emailVerified Boolean   @default(false)
+  emailVerified Boolean? @default(false)
   verifyToken   String?   @unique
   verifyTokenExpires DateTime?
   accounts      Account[]
