@@ -47,16 +47,31 @@ export default function BookGrid({ searchQuery }: BookGridProps) {
       setError(null);
       
       try {
+        console.log('Fetching books for query:', searchQuery);
         const response = await fetch(`/api/books/search?q=${encodeURIComponent(searchQuery)}`);
         const data = await response.json();
+        
+        console.log('Books API response:', {
+          status: response.status,
+          ok: response.ok,
+          data: data
+        });
         
         if (!response.ok) {
           throw new Error(data.error || 'Failed to fetch books');
         }
         
+        if (!data.items) {
+          console.warn('No items in response:', data);
+          setBooks([]);
+          setTotalItems(0);
+          return;
+        }
+        
         setBooks(data.items || []);
         setTotalItems(data.totalItems || 0);
       } catch (err) {
+        console.error('Error fetching books:', err);
         setError(err instanceof Error ? err.message : 'An error occurred');
       } finally {
         setLoading(false);
