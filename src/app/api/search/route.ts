@@ -97,7 +97,7 @@ async function searchYouTube(query: string, maxResults: number = 10) {
   }
 }
 
-function ensureHttps(url) {
+function ensureHttps(url: string | undefined): string | undefined {
   if (!url) return url;
   return url.replace(/^http:/, 'https:');
 }
