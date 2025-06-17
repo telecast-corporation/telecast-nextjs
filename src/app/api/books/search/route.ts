@@ -5,6 +5,12 @@ const GOOGLE_BOOKS_API_URL = 'https://www.googleapis.com/books/v1/volumes';
 
 export const dynamic = 'force-dynamic';
 
+// Helper function to convert HTTP URLs to HTTPS
+function ensureHttps(url: string | undefined): string | undefined {
+  if (!url) return url;
+  return url.replace(/^http:/, 'https:');
+}
+
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -64,6 +70,18 @@ export async function GET(request: Request) {
         { error: 'Google Books API error', details: response.data.error },
         { status: 500 }
       );
+    }
+
+    // Convert all image URLs to HTTPS
+    if (response.data.items) {
+      response.data.items = response.data.items.map((item: any) => {
+        if (item.volumeInfo?.imageLinks) {
+          Object.keys(item.volumeInfo.imageLinks).forEach(key => {
+            item.volumeInfo.imageLinks[key] = ensureHttps(item.volumeInfo.imageLinks[key]);
+          });
+        }
+        return item;
+      });
     }
 
     return NextResponse.json(response.data);
