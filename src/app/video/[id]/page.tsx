@@ -164,36 +164,6 @@ export default function VideoPage() {
                 <Box sx={{ flexGrow: 1 }}>
                   <Typography variant="subtitle1">{video.author}</Typography>
                 </Box>
-                <Button variant="contained" color="primary" sx={{ mr: 1 }}>
-                  Subscribe
-                </Button>
-                <IconButton onClick={handleBookmark}>
-                  {isBookmarked ? <Bookmark color="primary" /> : <BookmarkBorder />}
-                </IconButton>
-              </Box>
-
-              <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
-                <Button
-                  variant="outlined"
-                  startIcon={<ThumbUp />}
-                  sx={{ flex: 1 }}
-                >
-                  {video.likeCount.toLocaleString()}
-                </Button>
-                <Button
-                  variant="outlined"
-                  startIcon={<ThumbDown />}
-                  sx={{ flex: 1 }}
-                >
-                  Dislike
-                </Button>
-                <Button
-                  variant="outlined"
-                  startIcon={<Share />}
-                  sx={{ flex: 1 }}
-                >
-                  Share
-                </Button>
               </Box>
 
               <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>

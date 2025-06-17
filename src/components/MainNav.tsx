@@ -77,10 +77,10 @@ const SearchWrapper = styled(Box)(({ theme }) => ({
   '& .MuiInputBase-root': {
     width: '100%',
     backgroundColor: theme.palette.background.default,
-  borderRadius: theme.shape.borderRadius,
+    borderRadius: theme.shape.borderRadius,
     border: `1px solid ${theme.palette.primary.main}`,
     color: theme.palette.primary.main,
-  '&:hover': {
+    '&:hover': {
       backgroundColor: theme.palette.action.hover,
     },
     '&:before, &:after': {
@@ -119,11 +119,11 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
 const NavButton = styled(Button)(({ theme }) => ({
   fontFamily: lexend.style.fontFamily,
   color: theme.palette.primary.main,
-  fontSize: '1.5rem',
+  fontSize: '1.1vw',
   fontWeight: 700,
   letterSpacing: '0.04em',
   height: '60px',
-  minWidth: '140px',
+  minWidth: '100px',
   borderRadius: '14px',
   display: 'flex',
   alignItems: 'center',
@@ -321,8 +321,9 @@ const LogoArea = styled(Box)(({ theme }) => ({
   gridArea: 'logo',
   display: 'flex',
   alignItems: 'center',
-  justifyContent: 'flex-start',
+  justifyContent: 'center',
   height: '100%',
+  width: '100%',
   overflow: 'hidden',
   '& img': {
     maxHeight: '1000%',
@@ -355,6 +356,8 @@ const SearchContainer = styled(Box)(({ theme }) => ({
   backgroundColor: theme.palette.background.default,
   borderRadius: theme.shape.borderRadius,
   border: `1px solid ${theme.palette.primary.main}`,
+  marginTop: theme.spacing(1),
+  marginBottom: theme.spacing(1),
   '& .search-icon': {
     padding: '0 0.5rem',
     color: theme.palette.primary.main,
@@ -437,20 +440,39 @@ const FiltersArea = styled(Box)(({ theme }) => ({
 
 // Add hamburger menu area
 const HamburgerArea = styled(Box)(({ theme }) => ({
-  gridArea: 'hamburger',
+  position: 'fixed',
+  top: theme.spacing(2),
+  right: theme.spacing(2),
   display: 'flex',
   alignItems: 'center',
-  justifyContent: 'center',
-  height: '100%',
-  '& .MuiIconButton-root': {
-    padding: '1%', // Percentage-based padding
-    width: '80%', // 80% of container height
-    height: '80%', // 80% of container height
+  gap: theme.spacing(1),
+  zIndex: theme.zIndex.appBar + 1,
+  [theme.breakpoints.up('lg')]: {
+    display: 'none',
   },
-  '& .MuiSvgIcon-root': {
-    fontSize: '1.5rem', // Relative to button size
+  [theme.breakpoints.down('lg')]: {
+    display: 'flex',
+  },
+}));
+
+// Add a new breakpoint for NavButtonBox to show only two buttons on md and below
+const NavButtonBox = styled(Box)(({ theme }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  '& > *:nth-of-type(n+3)': {
+    display: 'none',
   },
   [theme.breakpoints.up('lg')]: {
+    '& > *': {
+      display: 'flex',
+    },
+  },
+  [theme.breakpoints.down('md')]: {
+    '& > *:nth-of-type(n+3)': {
+      display: 'none',
+    },
+  },
+  [theme.breakpoints.down('sm')]: {
     display: 'none',
   },
 }));
@@ -724,36 +746,36 @@ const MainNav = memo(() => {
         ) : suggestions.length > 0 ? (
           <List sx={{ py: 0 }}>
             {suggestions.map((suggestion, index) => (
-                <ListItem 
+              <ListItem 
                 key={`${suggestion.type}-${suggestion.id}`}
-                  button 
+                button 
                 selected={index === selectedIndex}
                 onClick={() => {
                   handleSuggestionClick(suggestion);
                   handleAutocompleteSelect(suggestion);
                 }}
-                  sx={{ 
-                    cursor: 'pointer',
-                    '&:hover': {
-                      backgroundColor: 'action.hover',
-                    },
+                sx={{ 
+                  cursor: 'pointer',
+                  '&:hover': {
+                    backgroundColor: 'action.hover',
+                  },
                   '&.Mui-selected': {
                     backgroundColor: 'action.selected',
                     '&:hover': {
                       backgroundColor: 'action.selected',
                     },
-                    },
-                  }}
-                >
-                  <ListItemAvatar>
+                  },
+                }}
+              >
+                <ListItemAvatar>
                   <Avatar 
                     src={suggestion.thumbnail} 
                     sx={{ width: 32, height: 32 }}
                   >
                     {getIconForType(suggestion.type)}
-                    </Avatar>
-                  </ListItemAvatar>
-                  <ListItemText 
+                  </Avatar>
+                </ListItemAvatar>
+                <ListItemText 
                   primary={
                     <Typography variant="body2" noWrap>
                       {suggestion.title}
@@ -770,7 +792,7 @@ const MainNav = memo(() => {
                 <ListItemIcon sx={{ minWidth: 'auto', ml: 1 }}>
                   {getIconForType(suggestion.type)}
                 </ListItemIcon>
-                </ListItem>
+              </ListItem>
             ))}
           </List>
         ) : (
@@ -872,21 +894,21 @@ const MainNav = memo(() => {
         </ListItem>
         
         <ListItem button onClick={() => { handleDrawerToggle(); router.push('/contact'); }} sx={{ py: 1.5 }}>
-          <ListItemIcon sx={{ minWidth: 40 }}>
+              <ListItemIcon sx={{ minWidth: 40 }}>
             <EmailIcon />
-          </ListItemIcon>
-          <ListItemText 
+              </ListItemIcon>
+              <ListItemText 
             primary="Contact" 
-            primaryTypographyProps={{ 
-              fontFamily: lexend.style.fontFamily,
+                primaryTypographyProps={{ 
+                  fontFamily: lexend.style.fontFamily,
               ...typography.nav
-            }} 
-          />
-        </ListItem>
-        
+                }} 
+              />
+            </ListItem>
+            
         {isAuthenticated ? (
           <ListItem button onClick={() => { handleDrawerToggle(); router.push('/profile'); }} sx={{ py: 1.5 }}>
-            <ListItemIcon sx={{ minWidth: 40 }}>
+              <ListItemIcon sx={{ minWidth: 40 }}>
               <Avatar 
                 src={user?.image || undefined}
                 alt={user?.name || 'Profile'}
@@ -905,28 +927,28 @@ const MainNav = memo(() => {
                   <ListItemText 
               primary="Profile" 
                     primaryTypographyProps={{ 
-                fontFamily: lexend.style.fontFamily,
+                  fontFamily: lexend.style.fontFamily,
                 ...typography.nav
                     }} 
                   />
                 </ListItem>
         ) : (
           <ListItem button onClick={() => { handleDrawerToggle(); router.push('/login'); }} sx={{ py: 1.5 }}>
-            <ListItemIcon sx={{ minWidth: 40 }}>
-              <LoginIcon />
-            </ListItemIcon>
-            <ListItemText 
+              <ListItemIcon sx={{ minWidth: 40 }}>
+                <LoginIcon />
+              </ListItemIcon>
+              <ListItemText 
               primary="Sign In" 
-              primaryTypographyProps={{ 
-                fontFamily: lexend.style.fontFamily,
+                primaryTypographyProps={{ 
+                  fontFamily: lexend.style.fontFamily,
                 ...typography.nav
-              }} 
-            />
-          </ListItem>
+                }} 
+              />
+            </ListItem>
         )}
         
         <Divider sx={{ my: 1 }} />
-
+        
         <ListItem button onClick={toggleDarkMode} sx={{ py: 1.5 }}>
           <ListItemIcon sx={{ minWidth: 40 }}>
             {isDarkMode ? <LightModeIcon /> : <DarkModeIcon />}
@@ -964,10 +986,10 @@ const MainNav = memo(() => {
     <>
       <GridNav>
         <LogoArea>
-            <Link href="/" passHref>
+          <Link href="/" passHref>
             <Box
               component="a"
-                        sx={{
+      sx={{ 
                       display: 'flex',
                       alignItems: 'center',
                 textDecoration: 'none',
@@ -978,33 +1000,33 @@ const MainNav = memo(() => {
                       alt="Telecast Logo"
                       width={500}
                       height={500}
-                      style={{ 
+                      style={{
                         width: '100%',
                         height: 'auto',
-                        maxWidth: '500px',
-                        maxHeight: '160px',
+                        maxWidth: '180px',
+                        maxHeight: '60px',
                         objectFit: 'contain',
                       }}
-                      priority
+                      sizes="(max-width: 600px) 120px, (max-width: 900px) 160px, 180px"
                     />
-                </Box>
-              </Link>
+                  </Box>
+                </Link>
       </LogoArea>
 
           <SearchContainer ref={searchBoxRef}>
             <Box className="search-icon">
-                      <SearchIcon />
+              <SearchIcon />
             </Box>
             <SearchInput
-                placeholder="Search…"
-                inputProps={{ 'aria-label': 'search' }}
-                      value={searchQuery}
+              placeholder="Search…"
+              inputProps={{ 'aria-label': 'search' }}
+              value={searchQuery}
               onChange={handleSearchInputChange}
               onKeyPress={handleKeyPress}
               onFocus={() => searchQuery.length >= 2 && setAutocompleteOpen(true)}
-              />
+            />
             {renderAutocompleteResults()}
-          </SearchContainer>
+        </SearchContainer>
 
               <FiltersArea>
         <Button
@@ -1029,7 +1051,7 @@ const MainNav = memo(() => {
           sx={getFilterButtonStyles(theme, selectedFilter, 'Videos')}
         >
           Videos
-        </Button>
+                    </Button>
         <Button
           variant="text"
           startIcon={<MusicIcon />}
@@ -1038,14 +1060,14 @@ const MainNav = memo(() => {
         >
           Music
         </Button>
-        <Button
+                      <Button
           variant="text"
           startIcon={<BookIcon />}
           onClick={() => handleFilterSelect('Books')}
           sx={getFilterButtonStyles(theme, selectedFilter, 'Books')}
-        >
+                      >
           Books
-        </Button>
+                      </Button>
       </FiltersArea>
 
         <NavGroup>
@@ -1053,8 +1075,8 @@ const MainNav = memo(() => {
               onClick={toggleDarkMode}
             className="theme-button"
             >
-              {isDarkMode ? <LightModeIcon /> : <DarkModeIcon />}
-            </IconButton>
+            {isDarkMode ? <LightModeIcon /> : <DarkModeIcon />}
+          </IconButton>
 
           <Link href="/about" passHref>
             <Button 
@@ -1085,10 +1107,10 @@ const MainNav = memo(() => {
               Contact
             </Button>
           </Link>
-            
-                  {isAuthenticated ? (
+
+          {isAuthenticated ? (
             <Tooltip title="Profile">
-                      <IconButton
+              <IconButton
                 onClick={() => router.push('/profile')}
                 sx={{
                   p: 0.5,
@@ -1119,33 +1141,33 @@ const MainNav = memo(() => {
             </Tooltip>
                   ) : (
             <Link href="/login" passHref>
-              <Button
-                variant="text"
+            <Button
+              variant="text"
                 className="nav-button"
-                sx={getNavButtonStyles(theme, pathname, '/login')}
-              >
+              sx={getNavButtonStyles(theme, pathname, '/login')}
+            >
                 Sign In
-              </Button>
+            </Button>
             </Link>
             )}
         </NavGroup>
 
-        <HamburgerArea>
-              <IconButton
-                onClick={handleDrawerToggle}
-            color="inherit"
-            aria-label="menu"
-            sx={{ 
-              width: 48,
-              height: 48,
-              '& .MuiSvgIcon-root': {
-                fontSize: '2rem'
-              }
-            }}
-              >
-                <MenuIcon />
-              </IconButton>
-        </HamburgerArea>
+              <HamburgerArea>
+        <IconButton
+          onClick={handleDrawerToggle}
+          color="inherit"
+          aria-label="menu"
+          sx={{ 
+            width: 48,
+            height: 48,
+            '& .MuiSvgIcon-root': {
+              fontSize: '2rem'
+            }
+          }}
+        >
+          <MenuIcon />
+        </IconButton>
+      </HamburgerArea>
       </GridNav>
 
         <Drawer

@@ -4,63 +4,63 @@
 export const typography = {
   // Main headings (page titles) - reduced by half
   title: {
-    fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2rem', lg: '2.25rem' },
+    fontSize: { xs: '5vw', sm: '4vw', md: '3vw', lg: '2vw' },
     fontWeight: 700,
     lineHeight: 1.2,
   },
   
   // Section headings - reduced by half
   heading: {
-    fontSize: { xs: '1rem', sm: '1.25rem', md: '1.5rem', lg: '1.75rem' },
+    fontSize: { xs: '3.5vw', sm: '2.8vw', md: '2vw', lg: '1.5vw' },
     fontWeight: 600,
     lineHeight: 1.3,
   },
   
   // Subheadings - reduced by half
   subheading: {
-    fontSize: { xs: '0.75rem', sm: '0.9rem', md: '1rem', lg: '1.1rem' },
+    fontSize: { xs: '2.5vw', sm: '2vw', md: '1.5vw', lg: '1vw' },
     fontWeight: 500,
     lineHeight: 1.4,
   },
   
   // Body text (paragraphs, descriptions) - increased size
   body: {
-    fontSize: { xs: '0.7rem', sm: '0.9rem', md: '1.1rem', lg: '1.3rem' },
+    fontSize: { xs: '2vw', sm: '1.5vw', md: '1vw', lg: '0.9vw' },
     fontWeight: 400,
     lineHeight: 1.6,
   },
   
   // Button text - reduced by half
   button: {
-    fontSize: { xs: '0.65rem', sm: '0.75rem', md: '0.85rem', lg: '0.95rem' },
+    fontSize: { xs: '2vw', sm: '1.5vw', md: '1vw', lg: '0.9vw' },
     fontWeight: 600,
     lineHeight: 1.2,
   },
   
   // Form labels - reduced by half
   label: {
-    fontSize: { xs: '0.6rem', sm: '0.7rem', md: '0.8rem', lg: '0.9rem' },
+    fontSize: { xs: '1.8vw', sm: '1.3vw', md: '1vw', lg: '0.8vw' },
     fontWeight: 600,
     lineHeight: 1.4,
   },
   
   // Form inputs - reduced by half
   input: {
-    fontSize: { xs: '0.6rem', sm: '0.7rem', md: '0.8rem', lg: '0.9rem' },
+    fontSize: { xs: '1.8vw', sm: '1.3vw', md: '1vw', lg: '0.8vw' },
     fontWeight: 400,
     lineHeight: 1.4,
   },
   
   // Small text (captions, helper text) - reduced by half
   caption: {
-    fontSize: { xs: '0.5rem', sm: '0.55rem', md: '0.6rem', lg: '0.65rem' },
+    fontSize: { xs: '1.2vw', sm: '1vw', md: '0.8vw', lg: '0.7vw' },
     fontWeight: 400,
     lineHeight: 1.5,
   },
   
   // Navigation text - UNCHANGED as requested
   nav: {
-    fontSize: { xs: '1.3rem', sm: '1.5rem', md: '1.7rem', lg: '1rem' },
+    fontSize: { xs: '4vw', sm: '3vw', md: '2vw', lg: '1vw' },
     fontWeight: 600,
     lineHeight: 1.2,
   },

@@ -62,7 +62,7 @@ export async function POST(request: Request) {
             name: username,
             email,
             password: hashedPassword,
-            emailVerified: false,
+            emailVerified: null,
           },
         });
 
@@ -86,14 +86,14 @@ export async function POST(request: Request) {
         // Continue with signup process even if email fails
       }
     } else {
-      // Create user without email verification (but keep emailVerified as false)
+      // Create user without email verification (but keep emailVerified as null)
       // This allows enabling verification later for these users
       result = await prisma.user.create({
         data: {
           name: username,
           email,
           password: hashedPassword,
-             emailVerified: false, // Keep as false for future verification capability
+          emailVerified: null,
         },
       });
     }

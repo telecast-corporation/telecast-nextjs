@@ -110,26 +110,39 @@ function ContentCarousel({ title, items, onItemClick }: ContentCarouselProps) {
                 sx={{ objectFit: 'cover', width: '100%', maxHeight: { xs: 140, sm: 180, md: 200 } }}
               />
               <CardContent sx={{ flexGrow: 1 }}>
-                <Typography gutterBottom variant="h6" component="div" noWrap sx={{ fontSize: { xs: '1rem', sm: '1.1rem', md: '1.25rem' } }}>
+                <Typography
+                  gutterBottom
+                  variant="h6"
+                  component="div"
+                  sx={{
+                    whiteSpace: 'normal',
+                    wordBreak: 'break-word',
+                    overflowWrap: 'break-word',
+                    textOverflow: 'unset',
+                    fontSize: { xs: '5vw', sm: '2.5vw', md: '1.5rem' },
+                    fontWeight: 800,
+                    mb: 0.5,
+                  }}
+                >
                   {item.title}
                 </Typography>
                 {item.type === 'video' && item.views && (
-                  <Typography variant="body2" color="text.secondary">
+                  <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '3vw', sm: '1.3vw', md: '1rem' }, fontWeight: 400 }}>
                     {parseInt(item.views).toLocaleString()} views
                   </Typography>
                 )}
                 {item.type === 'music' && item.artist && (
-                  <Typography variant="body2" color="text.secondary">
+                  <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '3vw', sm: '1.3vw', md: '1rem' }, fontWeight: 400 }}>
                     {item.artist} • {item.album}
                   </Typography>
                 )}
                 {item.type === 'book' && item.author && (
-                  <Typography variant="body2" color="text.secondary">
+                  <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '3vw', sm: '1.3vw', md: '1rem' }, fontWeight: 400 }}>
                     {item.author} • {item.rating ? `${item.rating.toFixed(1)} ★` : 'No rating'}
                   </Typography>
                 )}
                 {item.type === 'podcast' && item.author && (
-                  <Typography variant="body2" color="text.secondary">
+                  <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '3vw', sm: '1.3vw', md: '1rem' }, fontWeight: 400 }}>
                     {item.author} • {item.episodeCount} episodes
                   </Typography>
                 )}

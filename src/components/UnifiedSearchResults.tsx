@@ -29,6 +29,7 @@ import {
 import { useState } from 'react';
 import Link from 'next/link';
 import { useAudio } from '@/contexts/AudioContext';
+import { typography } from '@/styles/typography';
 
 interface SearchResult {
   type: 'video' | 'book' | 'podcast' | 'music';
@@ -233,12 +234,39 @@ export default function UnifiedSearchResults({ results, searchType = 'all', load
           )}
         </Box>
         <CardContent sx={{ flexGrow: 1 }}>
-          <Typography gutterBottom variant="h6" component="div" noWrap>
+          <Typography
+            gutterBottom
+            variant="h6"
+            component="div"
+            sx={{
+              ...typography.heading,
+              whiteSpace: 'normal',
+              wordBreak: 'break-word',
+              overflowWrap: 'break-word',
+              textOverflow: 'unset',
+              fontSize: { xs: '5vw', sm: '2.5vw', md: '1.5rem' },
+              fontWeight: 800,
+              mb: 0.5,
+            }}
+          >
             {result.title}
           </Typography>
-          
           {result.author && (
-            <Typography variant="body2" color="text.secondary" gutterBottom>
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              gutterBottom
+              sx={{
+                ...typography.body,
+                whiteSpace: 'normal',
+                wordBreak: 'break-word',
+                overflowWrap: 'break-word',
+                textOverflow: 'unset',
+                fontSize: { xs: '3vw', sm: '1.3vw', md: '1rem' },
+                fontWeight: 400,
+                mb: 0.5,
+              }}
+            >
               {result.author}
             </Typography>
           )}
@@ -330,12 +358,40 @@ export default function UnifiedSearchResults({ results, searchType = 'all', load
                 sx={{ objectFit: 'cover', height: '100%' }}
               />
             </Box>
-            <CardContent sx={{ flexGrow: 1 }}>
-              <Typography gutterBottom variant="h6" component="div">
+            <CardContent sx={{ flexGrow: 1, minWidth: 0, width: '100%' }}>
+              <Typography
+                gutterBottom
+                variant="h6"
+                component="div"
+                sx={{
+                  ...typography.heading,
+                  whiteSpace: 'normal',
+                  wordBreak: 'break-word',
+                  overflowWrap: 'break-word',
+                  textOverflow: 'unset',
+                  fontSize: { xs: '5vw', sm: '2.5vw', md: '1.5rem' },
+                  fontWeight: 800,
+                  mb: 0.5,
+                }}
+              >
                 {result.title}
               </Typography>
               {result.author && (
-                <Typography variant="body2" color="text.secondary" gutterBottom>
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  gutterBottom
+                  sx={{
+                    ...typography.body,
+                    whiteSpace: 'normal',
+                    wordBreak: 'break-word',
+                    overflowWrap: 'break-word',
+                    textOverflow: 'unset',
+                    fontSize: { xs: '3vw', sm: '1.3vw', md: '1rem' },
+                    fontWeight: 400,
+                    mb: 0.5,
+                  }}
+                >
                   {result.author}
                 </Typography>
               )}
