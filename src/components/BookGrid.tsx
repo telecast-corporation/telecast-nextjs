@@ -12,6 +12,12 @@ import {
   Stack,
 } from '@mui/material';
 
+// Helper function to ensure HTTPS
+const ensureHttps = (url: string | undefined): string => {
+  if (!url) return '/book-placeholder.png';
+  return url.replace(/^http:/, 'https:');
+};
+
 interface Book {
   id: string;
   volumeInfo: {
@@ -20,6 +26,7 @@ interface Book {
     description?: string;
     imageLinks?: {
       thumbnail: string;
+      smallThumbnail?: string;
     };
     averageRating?: number;
     ratingsCount?: number;
@@ -47,31 +54,28 @@ export default function BookGrid({ searchQuery }: BookGridProps) {
       setError(null);
       
       try {
-        console.log('Fetching books for query:', searchQuery);
         const response = await fetch(`/api/books/search?q=${encodeURIComponent(searchQuery)}`);
         const data = await response.json();
-        
-        console.log('Books API response:', {
-          status: response.status,
-          ok: response.ok,
-          data: data
-        });
         
         if (!response.ok) {
           throw new Error(data.error || 'Failed to fetch books');
         }
         
-        if (!data.items) {
-          console.warn('No items in response:', data);
-          setBooks([]);
-          setTotalItems(0);
-          return;
-        }
+        // Process books to ensure HTTPS URLs
+        const processedBooks = (data.items || []).map((book: Book) => ({
+          ...book,
+          volumeInfo: {
+            ...book.volumeInfo,
+            imageLinks: book.volumeInfo.imageLinks ? {
+              thumbnail: ensureHttps(book.volumeInfo.imageLinks.thumbnail),
+              smallThumbnail: ensureHttps(book.volumeInfo.imageLinks.smallThumbnail),
+            } : undefined
+          }
+        }));
         
-        setBooks(data.items || []);
+        setBooks(processedBooks);
         setTotalItems(data.totalItems || 0);
       } catch (err) {
-        console.error('Error fetching books:', err);
         setError(err instanceof Error ? err.message : 'An error occurred');
       } finally {
         setLoading(false);
@@ -129,7 +133,7 @@ export default function BookGrid({ searchQuery }: BookGridProps) {
               <CardMedia
                 component="img"
                 height="180"
-                image={book.volumeInfo.imageLinks?.thumbnail || '/book-placeholder.png'}
+                image={ensureHttps(book.volumeInfo.imageLinks?.thumbnail)}
                 alt={book.volumeInfo.title}
                 sx={{ objectFit: 'contain', width: '100%', maxHeight: { xs: 120, sm: 180, md: 300 }, p: { xs: 1, sm: 2 } }}
               />
