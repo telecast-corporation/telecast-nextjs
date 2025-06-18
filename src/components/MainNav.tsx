@@ -191,34 +191,34 @@ const getFilterButtonStyles = (theme: any, selectedFilter: string, filterName: s
   border: `1px solid ${theme.palette.primary.main}`,
   borderRadius: theme.shape.borderRadius,
   padding: {
-    xs: theme.spacing(0.5, 1), // Even smaller padding on mobile
-    sm: theme.spacing(1, 2), // Medium padding on small screens
-    md: theme.spacing(1.5, 3), // Default padding on desktop
+    xs: theme.spacing(1, 2), // More padding on mobile
+    sm: theme.spacing(1, 2),
+    md: theme.spacing(1.5, 3),
+  },
+  minWidth: {
+    xs: '70px', // Wider minWidth on mobile
+    sm: 'auto',
   },
   backgroundColor: selectedFilter === filterName ? theme.palette.primary.main : 'transparent',
   color: selectedFilter === filterName ? theme.palette.primary.contrastText : theme.palette.primary.main,
   fontFamily: lexend.style.fontFamily,
   ...typography.nav,
   fontSize: {
-    xs: '0.75rem', // Smaller text on mobile
-    sm: '0.875rem', // Medium text on small screens
-    md: typography.nav.fontSize, // Default size on desktop
+    xs: '0.85rem', // Slightly smaller text on mobile
+    sm: '0.95rem',
+    md: typography.nav.fontSize,
   },
   minHeight: {
-    xs: '2rem', // Smaller button height on mobile
-    sm: '2.5rem', // Medium height on small screens
-    md: '3rem', // Default height on desktop
-  },
-  minWidth: {
-    xs: 0, // Override Material-UI default minWidth on mobile
-    sm: 'auto',
+    xs: '2.2rem',
+    sm: '2.5rem',
+    md: '3rem',
   },
   flex: {
-    xs: '1 1 auto', // Flexible sizing on mobile
-    sm: '0 0 auto', // Fixed sizing on larger screens
+    xs: '1 1 auto',
+    sm: '0 0 auto',
   },
   maxWidth: {
-    xs: 'calc(20% - 0.25rem)', // Ensure 5 buttons fit with gaps
+    xs: 'none',
     sm: 'none',
   },
   overflow: 'hidden',
@@ -226,20 +226,20 @@ const getFilterButtonStyles = (theme: any, selectedFilter: string, filterName: s
   whiteSpace: 'nowrap',
   '& .MuiButton-startIcon': {
     marginRight: {
-      xs: theme.spacing(0.25), // Smaller icon margin on mobile
+      xs: theme.spacing(0.25),
       sm: theme.spacing(0.5),
       md: theme.spacing(1),
     },
     '& > svg': {
       fontSize: {
-        xs: '1rem', // Smaller icons on mobile
+        xs: '1rem',
         sm: '1.25rem',
         md: '1.5rem',
       },
     },
   },
   '& .MuiButton-root': {
-    minWidth: 0, // Allow buttons to shrink below default minWidth
+    minWidth: 0,
   },
   '&:hover': {
     backgroundColor: selectedFilter === filterName ? theme.palette.primary.dark : theme.palette.action.hover,
@@ -441,8 +441,8 @@ const FiltersArea = styled(Box)(({ theme }) => ({
 // Add hamburger menu area
 const HamburgerArea = styled(Box)(({ theme }) => ({
   position: 'fixed',
-  top: theme.spacing(2),
-  right: theme.spacing(2),
+  top: theme.spacing(0.5), // Move closer to the top
+  right: theme.spacing(1), // Move closer to the right
   display: 'flex',
   alignItems: 'center',
   gap: theme.spacing(1),

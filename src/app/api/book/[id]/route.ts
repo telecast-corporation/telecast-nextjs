@@ -25,7 +25,7 @@ export async function GET(
 
   try {
     // Helper to ensure HTTPS
-    function ensureHttps(url) {
+    function ensureHttps(url: string | undefined): string | undefined {
       if (!url) return url;
       return url.replace(/^http:/, 'https:');
     }
@@ -43,8 +43,8 @@ export async function GET(
     );
 
     const relatedBooks = relatedResponse.data.items
-      ?.filter((item) => item.id !== bookId)
-      .map((item) => ({
+      ?.filter((item: any) => item.id !== bookId)
+      .map((item: any) => ({
         id: item.id,
         title: item.volumeInfo.title,
         author: item.volumeInfo.authors?.[0] || 'Unknown Author',

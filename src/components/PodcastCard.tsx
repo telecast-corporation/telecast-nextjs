@@ -37,10 +37,14 @@ const PodcastCard = memo(({ podcast, episode }: PodcastCardProps) => {
       <Box sx={{ position: 'relative' }}>
         <CardMedia
           component="img"
-          height="200"
           image={podcast.image}
           alt={podcast.title}
-          sx={{ objectFit: 'cover' }}
+          sx={{
+            objectFit: 'cover',
+            width: '100%',
+            height: { xs: 120, sm: 160, md: 200 },
+            maxHeight: { xs: 120, sm: 160, md: 200 },
+          }}
         />
         <IconButton
           className="play-button"
@@ -61,30 +65,32 @@ const PodcastCard = memo(({ podcast, episode }: PodcastCardProps) => {
           <PlayArrowIcon />
         </IconButton>
       </Box>
-      <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
-        <Typography gutterBottom variant="h6" component="div" noWrap>
+      <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', p: { xs: 1, sm: 2 } }}>
+        <Typography gutterBottom variant="h6" component="div" noWrap sx={{ fontSize: { xs: '1rem', sm: '1.1rem', md: '1.25rem' } }}>
           {podcast.title}
         </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }} noWrap>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5, fontSize: { xs: '0.85rem', sm: '0.95rem', md: '1rem' } }} noWrap>
           {podcast.author}
         </Typography>
         {episode && (
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }} noWrap>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5, fontSize: { xs: '0.85rem', sm: '0.95rem', md: '1rem' } }} noWrap>
             {episode.title}
           </Typography>
         )}
-        <Box sx={{ mt: 'auto', display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+        <Box sx={{ mt: 'auto', display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
           {podcast.categories?.map((category) => (
             <Chip
               key={category}
               label={category}
               size="small"
-              sx={{ 
+              sx={{
                 backgroundColor: 'primary.light',
                 color: 'primary.contrastText',
+                fontSize: { xs: '0.7rem', sm: '0.8rem', md: '0.9rem' },
+                height: { xs: 20, sm: 24, md: 28 },
                 '&:hover': {
                   backgroundColor: 'primary.main',
-                }
+                },
               }}
             />
           ))}

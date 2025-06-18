@@ -75,7 +75,7 @@ async function getYouTubeAutocomplete(query: string): Promise<AutocompleteResult
   }
 }
 
-function ensureHttps(url) {
+function ensureHttps(url: string | undefined): string | undefined {
   if (!url) return url;
   return url.replace(/^http:/, 'https:');
 }

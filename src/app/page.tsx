@@ -104,12 +104,12 @@ function ContentCarousel({ title, items, onItemClick }: ContentCarouselProps) {
             >
               <CardMedia
                 component="img"
-                height="200"
+                height={isSmallScreen ? 100 : 200}
                 image={item.thumbnail}
                 alt={item.title}
-                sx={{ objectFit: 'cover', width: '100%', maxHeight: { xs: 140, sm: 180, md: 200 } }}
+                sx={{ objectFit: 'cover', width: '100%', maxHeight: isSmallScreen ? 100 : { xs: 140, sm: 180, md: 200 } }}
               />
-              <CardContent sx={{ flexGrow: 1 }}>
+              <CardContent sx={{ flexGrow: 1, p: { xs: 1, sm: 2 } }}>
                 <Typography
                   gutterBottom
                   variant="h6"
@@ -119,7 +119,7 @@ function ContentCarousel({ title, items, onItemClick }: ContentCarouselProps) {
                     wordBreak: 'break-word',
                     overflowWrap: 'break-word',
                     textOverflow: 'unset',
-                    fontSize: { xs: '5vw', sm: '2.5vw', md: '1.5rem' },
+                    fontSize: { xs: '1.1rem', sm: '2.5vw', md: '1.5rem' },
                     fontWeight: 800,
                     mb: 0.5,
                   }}
@@ -127,22 +127,22 @@ function ContentCarousel({ title, items, onItemClick }: ContentCarouselProps) {
                   {item.title}
                 </Typography>
                 {item.type === 'video' && item.views && (
-                  <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '3vw', sm: '1.3vw', md: '1rem' }, fontWeight: 400 }}>
+                  <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.9rem', sm: '1.3vw', md: '1rem' }, fontWeight: 400 }}>
                     {parseInt(item.views).toLocaleString()} views
                   </Typography>
                 )}
                 {item.type === 'music' && item.artist && (
-                  <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '3vw', sm: '1.3vw', md: '1rem' }, fontWeight: 400 }}>
+                  <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.9rem', sm: '1.3vw', md: '1rem' }, fontWeight: 400 }}>
                     {item.artist} • {item.album}
                   </Typography>
                 )}
                 {item.type === 'book' && item.author && (
-                  <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '3vw', sm: '1.3vw', md: '1rem' }, fontWeight: 400 }}>
+                  <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.9rem', sm: '1.3vw', md: '1rem' }, fontWeight: 400 }}>
                     {item.author} • {item.rating ? `${item.rating.toFixed(1)} ★` : 'No rating'}
                   </Typography>
                 )}
                 {item.type === 'podcast' && item.author && (
-                  <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '3vw', sm: '1.3vw', md: '1rem' }, fontWeight: 400 }}>
+                  <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.9rem', sm: '1.3vw', md: '1rem' }, fontWeight: 400 }}>
                     {item.author} • {item.episodeCount} episodes
                   </Typography>
                 )}
