@@ -196,10 +196,14 @@ export default function UnifiedSearchResults({ results, searchType = 'all', load
         <Box sx={{ position: 'relative' }}>
           <CardMedia
             component="img"
-            height="180"
             image={result.thumbnail || '/placeholder.png'}
             alt={result.title}
-            sx={{ objectFit: 'cover', width: '100%', maxHeight: { xs: 120, sm: 180, md: 200 } }}
+            sx={{
+              objectFit: 'cover',
+              width: '100%',
+              height: { xs: 10, sm: 14, md: 19, lg: 21 },
+              maxHeight: { xs: 10, sm: 14, md: 19, lg: 21 },
+            }}
           />
           {result.type === 'podcast' ? (
             <IconButton
@@ -233,7 +237,7 @@ export default function UnifiedSearchResults({ results, searchType = 'all', load
           </IconButton>
           )}
         </Box>
-        <CardContent sx={{ flexGrow: 1 }}>
+        <CardContent sx={{ flexGrow: 1, p: { xs: 0.35, sm: 0.7, md: 1, lg: 1.4 } }}>
           <Typography
             gutterBottom
             variant="h6"
@@ -244,9 +248,9 @@ export default function UnifiedSearchResults({ results, searchType = 'all', load
               wordBreak: 'break-word',
               overflowWrap: 'break-word',
               textOverflow: 'unset',
-              fontSize: { xs: '5vw', sm: '2.5vw', md: '1.5rem' },
+              fontSize: { xs: '0.77rem', sm: '0.84rem', md: '0.91rem', lg: '0.77rem' },
               fontWeight: 800,
-              mb: 0.5,
+              mb: 0.2,
             }}
           >
             {result.title}
@@ -262,9 +266,9 @@ export default function UnifiedSearchResults({ results, searchType = 'all', load
                 wordBreak: 'break-word',
                 overflowWrap: 'break-word',
                 textOverflow: 'unset',
-                fontSize: { xs: '3vw', sm: '1.3vw', md: '1rem' },
+                fontSize: { xs: '0.56rem', sm: '0.63rem', md: '0.7rem', lg: '0.56rem' },
                 fontWeight: 400,
-                mb: 0.5,
+                mb: 0.2,
               }}
             >
               {result.author}
@@ -467,7 +471,7 @@ export default function UnifiedSearchResults({ results, searchType = 'all', load
       <Box sx={{ position: 'relative' }}>
         <Grid container spacing={3}>
           {visibleItems.map((result) => (
-            <Grid item xs={6} sm={6} md={3} key={`${result.type}-${result.id}`}>
+            <Grid item xs={12} sm={6} md={4} lg={2} key={`${result.type}-${result.id}`}>
               {renderCard(result)}
             </Grid>
           ))}
