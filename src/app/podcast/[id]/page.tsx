@@ -138,24 +138,26 @@ export default function PodcastPage() {
             <Typography variant="subtitle1" color="text.secondary" gutterBottom>
               {podcast.author}
             </Typography>
-            <Typography variant="body1" sx={{ mt: 2, mb: 2, maxWidth: 600 }}>
+            <Typography 
+              variant="body1" 
+              sx={{ 
+                mt: 2, 
+                mb: 2, 
+                maxWidth: 600,
+                fontSize: { xs: '0.75rem', sm: '0.85rem', md: '0.9rem' },
+                lineHeight: 1.4,
+                color: 'text.secondary'
+              }}
+            >
               {cleanDescription(podcast.description)}
             </Typography>
           </Box>
 
           {/* Podcast Details */}
           <Grid container spacing={2} sx={{ mt: 2 }}>
-            {podcast.language && (
-              <Grid item xs={12} sm={6}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <Language color="action" />
-                  <Typography variant="body2">{podcast.language}</Typography>
-                </Box>
-              </Grid>
-            )}
             {podcast.explicit && (
-              <Grid item xs={12} sm={6}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Grid item xs={12}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: 'center' }}>
                   <Warning color="warning" />
                   <Typography variant="body2">Explicit Content</Typography>
                 </Box>
@@ -213,19 +215,19 @@ export default function PodcastPage() {
                 <ListItemButton
                   onClick={() => handlePlayEpisode(episode)}
                   sx={{
-                    py: 2,
-                    px: 3,
+                    py: { xs: 1, sm: 1.5 },
+                    px: { xs: 1, sm: 2 },
                   }}
                 >
                   <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
                     <IconButton
-                      size="large"
+                      size="small"
                       sx={{
-                        mr: 2,
+                        mr: 1,
                         color: 'primary.main',
                       }}
                     >
-                      <PlayArrow />
+                      <PlayArrow fontSize="small" />
                     </IconButton>
                     <ListItemText
                       primary={
@@ -234,14 +236,21 @@ export default function PodcastPage() {
                           sx={{
                             fontWeight: 500,
                             color: 'text.primary',
+                            fontSize: { xs: '0.8rem', sm: '0.9rem' },
+                            lineHeight: 1.2,
+                            mb: 0.5
                           }}
                         >
                           {episode.title}
                         </Typography>
                       }
                       secondary={
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
-                          <Typography variant="body2" color="text.secondary">
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0 }}>
+                          <Typography 
+                            variant="body2" 
+                            color="text.secondary"
+                            sx={{ fontSize: { xs: '0.7rem', sm: '0.75rem' } }}
+                          >
                             {new Date(Number(episode.publishDate) * 1000).toLocaleDateString('en-US', {
                               year: 'numeric',
                               month: 'long',
@@ -250,8 +259,16 @@ export default function PodcastPage() {
                           </Typography>
                           {episode.duration && (
                             <>
-                              <Typography variant="body2" color="text.secondary">•</Typography>
-                              <Typography variant="body2" color="text.secondary">
+                              <Typography 
+                                variant="body2" 
+                                color="text.secondary"
+                                sx={{ fontSize: { xs: '0.7rem', sm: '0.75rem' } }}
+                              >•</Typography>
+                              <Typography 
+                                variant="body2" 
+                                color="text.secondary"
+                                sx={{ fontSize: { xs: '0.7rem', sm: '0.75rem' } }}
+                              >
                                 {formatDuration(episode.duration)}
                               </Typography>
                             </>

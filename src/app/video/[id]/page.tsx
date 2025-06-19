@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
 import {
   Container,
   Typography,
@@ -12,7 +13,7 @@ import {
   Box,
   IconButton,
   Chip,
-  Link,
+  Link as MuiLink,
   Divider,
   CircularProgress,
   Paper,
@@ -166,7 +167,12 @@ export default function VideoPage() {
                 </Box>
               </Box>
 
-              <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
+              <Typography variant="body1" sx={{ 
+                whiteSpace: 'pre-wrap',
+                fontSize: { xs: '0.75rem', sm: '0.85rem', md: '0.9rem' },
+                lineHeight: 1.4,
+                color: 'text.secondary'
+              }}>
                 {video.description}
               </Typography>
             </CardContent>
@@ -179,26 +185,76 @@ export default function VideoPage() {
             Related Videos
           </Typography>
           {relatedVideos.map((relatedVideo) => (
-            <Card key={relatedVideo.id} sx={{ mb: 2, display: 'flex' }}>
-              <CardMedia
-                component="img"
-                image={relatedVideo.thumbnail}
-                alt={relatedVideo.title}
-                sx={{ width: 168, height: 94 }}
-              />
-              <CardContent sx={{ flex: 1, p: 1 }}>
-                <Typography variant="subtitle2" noWrap>
-                  {relatedVideo.title}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  {relatedVideo.author}
-                </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  {relatedVideo.viewCount.toLocaleString()} views •{' '}
-                  {new Date(relatedVideo.publishedAt).toLocaleDateString()}
-                </Typography>
-              </CardContent>
-            </Card>
+            <Link 
+              key={relatedVideo.id} 
+              href={`/video/${relatedVideo.id}`}
+              style={{ textDecoration: 'none' }}
+            >
+              <Card 
+                sx={{ 
+                  mb: 2, 
+                  display: 'flex',
+                  '&:hover': {
+                    transform: 'translateY(-2px)',
+                    boxShadow: 3,
+                    transition: 'all 0.2s ease-in-out'
+                  },
+                  cursor: 'pointer'
+                }}
+              >
+                <CardMedia
+                  component="img"
+                  image={relatedVideo.thumbnail}
+                  alt={relatedVideo.title}
+                  sx={{ 
+                    width: 168,
+                    minHeight: '100%',
+                    objectFit: 'cover'
+                  }}
+                />
+                <CardContent sx={{ flex: 1, p: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                  <Typography 
+                    variant="subtitle2" 
+                    sx={{ 
+                      whiteSpace: 'normal',
+                      display: '-webkit-box',
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: 'vertical',
+                      overflow: 'hidden',
+                      lineHeight: 1.2,
+                      mb: 0.5,
+                      fontSize: { xs: '0.8rem', sm: '0.85rem' }
+                    }}
+                  >
+                    {relatedVideo.title}
+                  </Typography>
+                  <Typography 
+                    variant="body2" 
+                    color="text.secondary"
+                    sx={{ 
+                      fontSize: { xs: '0.7rem', sm: '0.75rem' },
+                      whiteSpace: 'normal',
+                      display: '-webkit-box',
+                      WebkitLineClamp: 1,
+                      WebkitBoxOrient: 'vertical',
+                      overflow: 'hidden'
+                    }}
+                  >
+                    {relatedVideo.author}
+                  </Typography>
+                  <Typography 
+                    variant="caption" 
+                    color="text.secondary"
+                    sx={{ 
+                      fontSize: { xs: '0.65rem', sm: '0.7rem' }
+                    }}
+                  >
+                    {relatedVideo.viewCount.toLocaleString()} views •{' '}
+                    {new Date(relatedVideo.publishedAt).toLocaleDateString()}
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Link>
           ))}
         </Grid>
       </Grid>

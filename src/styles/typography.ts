@@ -25,7 +25,7 @@ export const typography = {
   
   // Body text (paragraphs, descriptions) - increased size
   body: {
-    fontSize: { xs: '2vw', sm: '1.5vw', md: '1vw', lg: '0.9vw' },
+    fontSize: { xs: '1vw', sm: '1.5vw', md: '1vw', lg: '0.9vw' },
     fontWeight: 400,
     lineHeight: 1.6,
   },

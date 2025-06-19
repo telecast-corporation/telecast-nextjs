@@ -441,8 +441,8 @@ const FiltersArea = styled(Box)(({ theme }) => ({
 // Add hamburger menu area
 const HamburgerArea = styled(Box)(({ theme }) => ({
   position: 'fixed',
-  top: theme.spacing(0.5), // Move closer to the top
-  right: theme.spacing(1), // Move closer to the right
+  top: theme.spacing(0.5),
+  right: theme.spacing(1),
   display: 'flex',
   alignItems: 'center',
   gap: theme.spacing(1),
@@ -894,73 +894,32 @@ const MainNav = memo(() => {
         </ListItem>
         
         <ListItem button onClick={() => { handleDrawerToggle(); router.push('/contact'); }} sx={{ py: 1.5 }}>
-              <ListItemIcon sx={{ minWidth: 40 }}>
+          <ListItemIcon sx={{ minWidth: 40 }}>
             <EmailIcon />
-              </ListItemIcon>
-              <ListItemText 
+          </ListItemIcon>
+          <ListItemText 
             primary="Contact" 
-                primaryTypographyProps={{ 
-                  fontFamily: lexend.style.fontFamily,
+            primaryTypographyProps={{ 
+              fontFamily: lexend.style.fontFamily,
               ...typography.nav
-                }} 
-              />
-            </ListItem>
-            
-        {isAuthenticated ? (
-          <ListItem button onClick={() => { handleDrawerToggle(); router.push('/profile'); }} sx={{ py: 1.5 }}>
-              <ListItemIcon sx={{ minWidth: 40 }}>
-              <Avatar 
-                src={user?.image || undefined}
-                alt={user?.name || 'Profile'}
-                sx={{
-                  width: 32,
-                  height: 32,
-                  bgcolor: theme.palette.primary.main,
-                  color: theme.palette.primary.contrastText,
-                  fontSize: '0.875rem',
-                  fontWeight: 600,
-                }}
-              >
-                {!user?.image && user?.name ? user.name.charAt(0).toUpperCase() : <AccountCircleIcon />}
-              </Avatar>
-                  </ListItemIcon>
-                  <ListItemText 
-              primary="Profile" 
-                    primaryTypographyProps={{ 
-                  fontFamily: lexend.style.fontFamily,
-                ...typography.nav
-                    }} 
-                  />
-                </ListItem>
-        ) : (
-          <ListItem button onClick={() => { handleDrawerToggle(); router.push('/login'); }} sx={{ py: 1.5 }}>
-              <ListItemIcon sx={{ minWidth: 40 }}>
-                <LoginIcon />
-              </ListItemIcon>
-              <ListItemText 
-              primary="Sign In" 
-                primaryTypographyProps={{ 
-                  fontFamily: lexend.style.fontFamily,
-                ...typography.nav
-                }} 
-              />
-            </ListItem>
-        )}
+            }} 
+          />
+        </ListItem>
         
         <Divider sx={{ my: 1 }} />
         
         <ListItem button onClick={toggleDarkMode} sx={{ py: 1.5 }}>
           <ListItemIcon sx={{ minWidth: 40 }}>
             {isDarkMode ? <LightModeIcon /> : <DarkModeIcon />}
-        </ListItemIcon>
-        <ListItemText 
-          primary={isDarkMode ? 'Light Mode' : 'Dark Mode'} 
+          </ListItemIcon>
+          <ListItemText 
+            primary={isDarkMode ? 'Light Mode' : 'Dark Mode'} 
             primaryTypographyProps={{ 
               fontFamily: lexend.style.fontFamily,
               ...typography.nav
             }} 
           />
-      </ListItem>
+        </ListItem>
       </List>
     </Box>
   );
@@ -1153,15 +1112,56 @@ const MainNav = memo(() => {
         </NavGroup>
 
               <HamburgerArea>
+        {isAuthenticated ? (
+          <IconButton
+            onClick={() => router.push('/profile')}
+            sx={{
+              p: 0.5,
+              width: 40,
+              height: 40,
+              '&:hover': {
+                backgroundColor: 'action.hover',
+              },
+            }}
+          >
+            <Avatar
+              src={user?.image || undefined}
+              alt={user?.name || 'Profile'}
+              sx={{
+                width: 32,
+                height: 32,
+                bgcolor: theme.palette.primary.main,
+                color: theme.palette.primary.contrastText,
+                fontSize: '1rem',
+              }}
+            >
+              {!user?.image && user?.name ? user.name.charAt(0).toUpperCase() : <AccountCircleIcon />}
+            </Avatar>
+          </IconButton>
+        ) : (
+          <IconButton
+            onClick={() => router.push('/login')}
+            sx={{
+              p: 0.5,
+              width: 40,
+              height: 40,
+              '&:hover': {
+                backgroundColor: 'action.hover',
+              },
+            }}
+          >
+            <AccountCircleIcon sx={{ fontSize: '1.75rem' }} />
+          </IconButton>
+        )}
         <IconButton
           onClick={handleDrawerToggle}
           color="inherit"
           aria-label="menu"
           sx={{ 
-            width: 48,
-            height: 48,
+            width: 40,
+            height: 40,
             '& .MuiSvgIcon-root': {
-              fontSize: '2rem'
+              fontSize: '1.75rem'
             }
           }}
         >

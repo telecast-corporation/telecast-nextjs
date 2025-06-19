@@ -21,6 +21,7 @@ import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import { Search as SearchIcon, Headphones as HeadphonesIcon, VideoLibrary as VideoIcon, MusicNote as MusicIcon, MenuBook as BookIcon } from '@mui/icons-material';
 import Link from 'next/link';
 import Image from 'next/image';
+import StarIcon from '@mui/icons-material/Star';
 
 interface TrendingItem {
     id: string;
@@ -104,12 +105,12 @@ function ContentCarousel({ title, items, onItemClick }: ContentCarouselProps) {
             >
               <CardMedia
                 component="img"
-                height={isSmallScreen ? 100 : 200}
+                height={isSmallScreen ? 100 : 140}
                 image={item.thumbnail}
                 alt={item.title}
-                sx={{ objectFit: 'cover', width: '100%', maxHeight: isSmallScreen ? 100 : { xs: 140, sm: 180, md: 200 } }}
+                sx={{ objectFit: 'cover', width: '100%', height: isSmallScreen ? 100 : 140, maxHeight: isSmallScreen ? 100 : 140 }}
               />
-              <CardContent sx={{ flexGrow: 1, p: { xs: 1, sm: 2 } }}>
+              <CardContent sx={{ flexGrow: 1, p: { xs: 0.5, sm: 1 } }}>
                 <Typography
                   gutterBottom
                   variant="h6"
@@ -119,30 +120,31 @@ function ContentCarousel({ title, items, onItemClick }: ContentCarouselProps) {
                     wordBreak: 'break-word',
                     overflowWrap: 'break-word',
                     textOverflow: 'unset',
-                    fontSize: { xs: '1.1rem', sm: '2.5vw', md: '1.5rem' },
-                    fontWeight: 800,
+                    fontSize: { xs: '0.95rem', sm: '1.8vw', md: '1.1rem' },
+                    fontWeight: 700,
                     mb: 0.5,
+                    lineHeight: 1.2
                   }}
                 >
                   {item.title}
                 </Typography>
                 {item.type === 'video' && item.views && (
-                  <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.9rem', sm: '1.3vw', md: '1rem' }, fontWeight: 400 }}>
+                  <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.9rem', sm: '1.4vw', md: '1.1rem' }, fontWeight: 400 }}>
                     {parseInt(item.views).toLocaleString()} views
                   </Typography>
                 )}
                 {item.type === 'music' && item.artist && (
-                  <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.9rem', sm: '1.3vw', md: '1rem' }, fontWeight: 400 }}>
+                  <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.85rem', sm: '1.2vw', md: '0.9rem' }, fontWeight: 400 }}>
                     {item.artist} • {item.album}
                   </Typography>
                 )}
                 {item.type === 'book' && item.author && (
-                  <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.9rem', sm: '1.3vw', md: '1rem' }, fontWeight: 400 }}>
+                  <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.85rem', sm: '1.2vw', md: '0.9rem' }, fontWeight: 400 }}>
                     {item.author} • {item.rating ? `${item.rating.toFixed(1)} ★` : 'No rating'}
                   </Typography>
                 )}
                 {item.type === 'podcast' && item.author && (
-                  <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.9rem', sm: '1.3vw', md: '1rem' }, fontWeight: 400 }}>
+                  <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.85rem', sm: '1.2vw', md: '0.9rem' }, fontWeight: 400 }}>
                     {item.author} • {item.episodeCount} episodes
                   </Typography>
                 )}
@@ -227,6 +229,38 @@ export default function HomePage() {
 
   return (
     <Container>
+      <Typography
+        variant="h6"
+        align="center"
+        sx={{
+          mt: 4,
+          mb: 4,
+          px: 3,
+          py: 2,
+          fontWeight: 400,
+          fontSize: { xs: '0.95rem', sm: '1.1rem', md: '1.2rem' },
+          background: '#2563eb',
+          borderRadius: 5,
+          boxShadow: '0 2px 16px 0 rgba(30, 64, 175, 0.07)',
+          color: '#fff',
+          letterSpacing: 0.7,
+          maxWidth: 720,
+          mx: 'auto',
+          fontStyle: 'italic',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1.5,
+          transition: 'box-shadow 0.3s',
+          animation: 'fadeInTagline 1.2s ease',
+          '@keyframes fadeInTagline': {
+            from: { opacity: 0, transform: 'translateY(-16px)' },
+            to: { opacity: 1, transform: 'none' },
+          },
+        }}
+      >
+        <StarIcon sx={{ fontSize: { xs: 18, sm: 20, md: 22 }, color: '#fff', mr: 1, opacity: 0.85 }} />
+        Your premier destination for podcasts, videos, and music. Discover, listen, and share your favorite content.
+      </Typography>
       {/* Trending Content */}
       <ContentCarousel
         title="Trending Videos"

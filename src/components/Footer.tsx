@@ -17,6 +17,9 @@ import {
   LinkedIn as LinkedInIcon,
 } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
+import { Lexend } from 'next/font/google';
+
+const lexend = Lexend({ subsets: ['latin'], weight: ['400', '700', '900'] });
 
 export default function Footer() {
   const theme = useTheme();
@@ -44,12 +47,21 @@ export default function Footer() {
               Telecast
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.9rem', sm: '1rem' } }}>
-              Your premier destination for podcasts, videos, and music. Discover, listen, and share your favorite content.
+            Your dynamic source for podcasts, videos, live streams, books,  music, and exclusive shows. Uncover compelling stories, binge captivating content, and share your passions effortlessly.
             </Typography>
           </Grid>
           
           <Grid item xs={12} sm={4}>
-            <Typography variant="h6" color="text.primary" gutterBottom sx={{ fontSize: { xs: '1.1rem', sm: '1.25rem' } }}>
+            <Typography 
+              variant="h6" 
+              color="text.primary" 
+              gutterBottom 
+              sx={{ 
+                fontSize: { xs: '1.1rem', sm: '1.25rem' },
+                fontFamily: lexend.style.fontFamily,
+                fontWeight: 700
+              }}
+            >
               Quick Links
             </Typography>
             <Box sx={{ display: 'flex', flexDirection: { xs: 'row', sm: 'column' }, flexWrap: 'wrap', gap: 1 }}>
@@ -57,7 +69,13 @@ export default function Footer() {
                 component="button"
                 variant="body2"
                 onClick={() => handleNavigation('/about')}
-                sx={{ textAlign: 'left', color: 'text.secondary' }}
+                sx={{ 
+                  textAlign: 'left', 
+                  color: 'text.secondary',
+                  fontSize: { xs: '0.9rem', sm: '1rem' },
+                  fontFamily: lexend.style.fontFamily,
+                  fontWeight: 400
+                }}
               >
                 About
               </Link>
@@ -65,7 +83,13 @@ export default function Footer() {
                 component="button"
                 variant="body2"
                 onClick={() => handleNavigation('/services')}
-                sx={{ textAlign: 'left', color: 'text.secondary' }}
+                sx={{ 
+                  textAlign: 'left', 
+                  color: 'text.secondary',
+                  fontSize: { xs: '0.9rem', sm: '1rem' },
+                  fontFamily: lexend.style.fontFamily,
+                  fontWeight: 400
+                }}
               >
                 Services
               </Link>
@@ -73,7 +97,13 @@ export default function Footer() {
                 component="button"
                 variant="body2"
                 onClick={() => handleNavigation('/contact')}
-                sx={{ textAlign: 'left', color: 'text.secondary' }}
+                sx={{ 
+                  textAlign: 'left', 
+                  color: 'text.secondary',
+                  fontSize: { xs: '0.9rem', sm: '1rem' },
+                  fontFamily: lexend.style.fontFamily,
+                  fontWeight: 400
+                }}
               >
                 Contact
               </Link>
@@ -81,7 +111,13 @@ export default function Footer() {
                 component="button"
                 variant="body2"
                 onClick={() => handleNavigation('/mission')}
-                sx={{ textAlign: 'left', color: 'text.secondary' }}
+                sx={{ 
+                  textAlign: 'left', 
+                  color: 'text.secondary',
+                  fontSize: { xs: '0.9rem', sm: '1rem' },
+                  fontFamily: lexend.style.fontFamily,
+                  fontWeight: 400
+                }}
               >
                 Mission
               </Link>

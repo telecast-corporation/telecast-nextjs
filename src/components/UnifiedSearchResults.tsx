@@ -30,6 +30,8 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useAudio } from '@/contexts/AudioContext';
 import { typography } from '@/styles/typography';
+import React from 'react';
+import StarIcon from '@mui/icons-material/Star';
 
 interface SearchResult {
   type: 'video' | 'book' | 'podcast' | 'music';
@@ -61,6 +63,14 @@ interface UnifiedSearchResultsProps {
   loading?: boolean;
   trending?: boolean;
 }
+
+const TAGLINE_COLORS: Record<string, string> = {
+  all: '#2563eb',
+  podcast: '#0ea5e9',
+  video: '#f59e42',
+  music: '#10b981',
+  book: '#a855f7',
+};
 
 export default function UnifiedSearchResults({ results, searchType = 'all', loading = false, trending = false }: UnifiedSearchResultsProps) {
   const [expandedType, setExpandedType] = useState<string | null>(null);
@@ -201,8 +211,8 @@ export default function UnifiedSearchResults({ results, searchType = 'all', load
             sx={{
               objectFit: 'cover',
               width: '100%',
-              height: { xs: 10, sm: 14, md: 19, lg: 21 },
-              maxHeight: { xs: 10, sm: 14, md: 19, lg: 21 },
+              height: { xs: 25, sm: 30, md: 35, lg: 40 },
+              maxHeight: { xs: 25, sm: 30, md: 35, lg: 40 },
             }}
           />
           {result.type === 'podcast' ? (
@@ -210,34 +220,25 @@ export default function UnifiedSearchResults({ results, searchType = 'all', load
               onClick={(e) => handlePlayPodcast(e, result)}
               sx={{
                 position: 'absolute',
-                bottom: 8,
-                right: 8,
+                bottom: 4,
+                right: 4,
                 backgroundColor: 'rgba(0, 0, 0, 0.7)',
                 color: 'white',
+                width: 24,
+                height: 24,
                 '&:hover': {
                   backgroundColor: 'rgba(0, 0, 0, 0.8)',
                 },
               }}
             >
-              <PlayArrow />
+              <PlayArrow sx={{ fontSize: 16 }} />
             </IconButton>
           ) : (
-          <IconButton
-            sx={{
-              position: 'absolute',
-              top: 8,
-              right: 8,
-              backgroundColor: 'rgba(255, 255, 255, 0.8)',
-              '&:hover': {
-                backgroundColor: 'rgba(255, 255, 255, 0.9)',
-              },
-            }}
-          >
-            {getTypeIcon(result.type)}
-          </IconButton>
+            getTypeIcon(result.type) &&
+              React.cloneElement(getTypeIcon(result.type) as React.ReactElement, { sx: { fontSize: 16 } })
           )}
         </Box>
-        <CardContent sx={{ flexGrow: 1, p: { xs: 0.35, sm: 0.7, md: 1, lg: 1.4 } }}>
+        <CardContent sx={{ flexGrow: 1, p: { xs: 0.15, sm: 0.25, md: 0.4, lg: 0.5 } }}>
           <Typography
             gutterBottom
             variant="h6"
@@ -248,9 +249,9 @@ export default function UnifiedSearchResults({ results, searchType = 'all', load
               wordBreak: 'break-word',
               overflowWrap: 'break-word',
               textOverflow: 'unset',
-              fontSize: { xs: '0.77rem', sm: '0.84rem', md: '0.91rem', lg: '0.77rem' },
-              fontWeight: 800,
-              mb: 0.2,
+              fontWeight: 700,
+              mb: 0.1,
+              lineHeight: 1.2,
             }}
           >
             {result.title}
@@ -266,9 +267,9 @@ export default function UnifiedSearchResults({ results, searchType = 'all', load
                 wordBreak: 'break-word',
                 overflowWrap: 'break-word',
                 textOverflow: 'unset',
-                fontSize: { xs: '0.56rem', sm: '0.63rem', md: '0.7rem', lg: '0.56rem' },
                 fontWeight: 400,
-                mb: 0.2,
+                mb: 0.1,
+                lineHeight: 1.1,
               }}
             >
               {result.author}
@@ -278,26 +279,35 @@ export default function UnifiedSearchResults({ results, searchType = 'all', load
           {result.type === 'book' && (
             <>
               {result.rating && (
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
                   <Rating 
                     value={result.rating} 
                     precision={0.5} 
                     size="small" 
                     readOnly 
+                    sx={{ fontSize: '0.7rem' }}
                   />
-                  <Typography variant="caption" color="text.secondary" sx={{ ml: 1 }}>
+                  <Typography variant="caption" color="text.secondary" sx={{ ml: 0.5, fontSize: '0.3rem' }}>
                     ({result.ratingsCount})
                   </Typography>
                 </Box>
               )}
               {result.categories && (
-                <Stack direction="row" spacing={1} sx={{ mt: 1, flexWrap: 'wrap', gap: 0.5 }}>
+                <Stack direction="row" spacing={0.5} sx={{ mt: 0.5, flexWrap: 'wrap', gap: 0.3 }}>
                   {result.categories.slice(0, 2).map((category) => (
                     <Chip 
                       key={category} 
                       label={category} 
                       size="small" 
                       variant="outlined"
+                      sx={{ 
+                        fontSize: '0.25rem', 
+                        height: 'auto', 
+                        '& .MuiChip-label': { 
+                          px: 0.5, 
+                          py: 0.2 
+                        } 
+                      }}
                     />
                   ))}
                 </Stack>
@@ -305,7 +315,15 @@ export default function UnifiedSearchResults({ results, searchType = 'all', load
             </>
           )}
           
-          <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+          <Typography 
+            variant="caption" 
+            color="text.secondary" 
+            sx={{ 
+              mt: 0.5, 
+              display: 'block',
+              fontSize: { xs: '0.25rem', sm: '0.3rem', md: '0.35rem', lg: '0.4rem' }
+            }}
+          >
             {result.publishedAt || result.publishedDate || result.releaseDate}
           </Typography>
         </CardContent>
@@ -353,16 +371,16 @@ export default function UnifiedSearchResults({ results, searchType = 'all', load
               },
             }}
           >
-            <Box sx={{ position: 'relative', width: 200, flexShrink: 0 }}>
+            <Box sx={{ position: 'relative', width: 120, flexShrink: 0 }}>
               <CardMedia
                 component="img"
-                height="200"
+                height="120"
                 image={result.thumbnail || '/placeholder.png'}
                 alt={result.title}
                 sx={{ objectFit: 'cover', height: '100%' }}
               />
             </Box>
-            <CardContent sx={{ flexGrow: 1, minWidth: 0, width: '100%' }}>
+            <CardContent sx={{ flexGrow: 1, minWidth: 0, width: '100%', p: 1 }}>
               <Typography
                 gutterBottom
                 variant="h6"
@@ -373,9 +391,10 @@ export default function UnifiedSearchResults({ results, searchType = 'all', load
                   wordBreak: 'break-word',
                   overflowWrap: 'break-word',
                   textOverflow: 'unset',
-                  fontSize: { xs: '5vw', sm: '2.5vw', md: '1.5rem' },
-                  fontWeight: 800,
-                  mb: 0.5,
+                  fontSize: { xs: '3.5vw', sm: '2vw', md: '1.2rem' },
+                  fontWeight: 700,
+                  mb: 0.3,
+                  lineHeight: 1.2,
                 }}
               >
                 {result.title}
@@ -391,28 +410,38 @@ export default function UnifiedSearchResults({ results, searchType = 'all', load
                     wordBreak: 'break-word',
                     overflowWrap: 'break-word',
                     textOverflow: 'unset',
-                    fontSize: { xs: '3vw', sm: '1.3vw', md: '1rem' },
+                    fontSize: { xs: '2.5vw', sm: '1.1vw', md: '0.8rem' },
                     fontWeight: 400,
-                    mb: 0.5,
+                    mb: 0.3,
+                    lineHeight: 1.1,
                   }}
                 >
                   {result.author}
                 </Typography>
               )}
               {result.type === 'book' && result.rating && (
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
                   <Rating 
                     value={result.rating} 
                     precision={0.5} 
                     size="small" 
                     readOnly 
+                    sx={{ fontSize: '0.8rem' }}
                   />
-                  <Typography variant="caption" color="text.secondary" sx={{ ml: 1 }}>
+                  <Typography variant="caption" color="text.secondary" sx={{ ml: 0.5, fontSize: '0.7rem' }}>
                     ({result.ratingsCount})
                   </Typography>
                 </Box>
               )}
-              <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+              <Typography 
+                variant="caption" 
+                color="text.secondary" 
+                sx={{ 
+                  mt: 0.5, 
+                  display: 'block',
+                  fontSize: { xs: '2vw', sm: '0.9vw', md: '0.7rem' }
+                }}
+              >
                 {result.publishedAt || result.publishedDate || result.releaseDate}
               </Typography>
             </CardContent>
@@ -423,7 +452,7 @@ export default function UnifiedSearchResults({ results, searchType = 'all', load
           <ListItem
             key={`${result.type}-${result.id}`}
             sx={{
-              mb: 2,
+              mb: 1,
               p: 0,
             }}
           >
@@ -469,7 +498,7 @@ export default function UnifiedSearchResults({ results, searchType = 'all', load
 
     return (
       <Box sx={{ position: 'relative' }}>
-        <Grid container spacing={3}>
+        <Grid container spacing={2}>
           {visibleItems.map((result) => (
             <Grid item xs={12} sm={6} md={4} lg={2} key={`${result.type}-${result.id}`}>
               {renderCard(result)}
@@ -524,11 +553,43 @@ export default function UnifiedSearchResults({ results, searchType = 'all', load
   };
 
   return (
-    <Box>
+    <Box sx={{ mt: 0, pt: 0 }}>
+      <Typography
+        variant="h6"
+        align="center"
+        sx={{
+          mt: 4,
+          mb: 4,
+          px: 3,
+          py: 2,
+          fontWeight: 400,
+          fontSize: { xs: '0.95rem', sm: '1.1rem', md: '1.2rem' },
+          background: TAGLINE_COLORS[searchType?.toLowerCase() || 'all'] || '#2563eb',
+          borderRadius: 5,
+          boxShadow: '0 2px 16px 0 rgba(30, 64, 175, 0.07)',
+          color: '#fff',
+          letterSpacing: 0.7,
+          maxWidth: 720,
+          mx: 'auto',
+          fontStyle: 'italic',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1.5,
+          transition: 'box-shadow 0.3s',
+          animation: 'fadeInTagline 1.2s ease',
+          '@keyframes fadeInTagline': {
+            from: { opacity: 0, transform: 'translateY(-16px)' },
+            to: { opacity: 1, transform: 'none' },
+          },
+        }}
+      >
+        <StarIcon sx={{ fontSize: { xs: 18, sm: 20, md: 22 }, color: '#fff', mr: 1, opacity: 0.85 }} />
+        Your premier destination for podcasts, videos, and music. Discover, listen, and share your favorite content.
+      </Typography>
       {sortedEntries.map(([type, typeResults], index) => (
-        <Box key={type} sx={{ mb: 4, mt: index === 0 ? 12 : 0 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-            <IconButton sx={{ mr: 1 }}>
+        <Box key={type} sx={{ mt: 0, pt: 0 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', mb: 0, mt: 0, pt: 0 }}>
+            <IconButton sx={{ mr: 0 }}>
               {getTypeIcon(type)}
             </IconButton>
             <Typography variant="h5" component="h2">
@@ -543,10 +604,10 @@ export default function UnifiedSearchResults({ results, searchType = 'all', load
           )}
 
           {index < sortedEntries.length - 1 && (
-            <Divider sx={{ my: 4 }} />
+            <Divider sx={{ my: 3 }} />
           )}
         </Box>
       ))}
     </Box>
   );
-} 
+}
