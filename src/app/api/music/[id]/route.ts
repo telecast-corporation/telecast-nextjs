@@ -28,6 +28,56 @@ async function getAccessToken() {
   }
 }
 
+// Function to generate alternative preview options
+function generatePreviewOptions(track: any, artist: any) {
+  const previewOptions = [];
+  
+  // If Spotify has a preview URL, use it as primary option
+  if (track.preview_url) {
+    previewOptions.push({
+      type: 'spotify_preview',
+      url: track.preview_url,
+      label: 'Spotify Preview',
+      duration: '30s',
+      source: 'spotify'
+    });
+  }
+  
+  // Add YouTube Music search as fallback
+  const searchQuery = `${track.name} ${track.artists[0].name} audio`;
+  const youtubeMusicUrl = `https://music.youtube.com/search?q=${encodeURIComponent(searchQuery)}`;
+  previewOptions.push({
+    type: 'youtube_music',
+    url: youtubeMusicUrl,
+    label: 'Listen on YouTube Music',
+    duration: 'Full track',
+    source: 'youtube_music'
+  });
+  
+  // Add Spotify full track link
+  if (track.external_urls?.spotify) {
+    previewOptions.push({
+      type: 'spotify_full',
+      url: track.external_urls.spotify,
+      label: 'Listen on Spotify',
+      duration: 'Full track',
+      source: 'spotify'
+    });
+  }
+  
+  // Add Apple Music search as another option
+  const appleMusicUrl = `https://music.apple.com/search?term=${encodeURIComponent(searchQuery)}`;
+  previewOptions.push({
+    type: 'apple_music',
+    url: appleMusicUrl,
+    label: 'Listen on Apple Music',
+    duration: 'Full track',
+    source: 'apple_music'
+  });
+  
+  return previewOptions;
+}
+
 export async function GET(
   request: Request,
   { params }: { params: { id: string } }
@@ -98,6 +148,9 @@ export async function GET(
       return `${minutes}:${seconds.toString().padStart(2, '0')}`;
     };
 
+    // Generate preview options
+    const previewOptions = generatePreviewOptions(track, artist);
+
     const response = {
       id: track.id,
       title: track.name,
@@ -113,7 +166,9 @@ export async function GET(
       },
       duration: formatDuration(track.duration_ms),
       popularity: track.popularity,
-      previewUrl: track.preview_url,
+      previewUrl: track.preview_url, // Keep original for backward compatibility
+      previewOptions, // New field with multiple options
+      hasPreview: previewOptions.length > 0,
       relatedTracks,
     };
 

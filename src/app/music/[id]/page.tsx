@@ -32,6 +32,7 @@ import {
   Person as PersonIcon,
   PlayArrow as PlayIcon,
   Pause as PauseIcon,
+  Headphones as HeadphonesIcon,
 } from '@mui/icons-material';
 import axios from 'axios';
 
@@ -51,6 +52,14 @@ interface MusicDetails {
   duration: string;
   popularity: number;
   previewUrl: string | null;
+  previewOptions?: {
+    type: string;
+    url: string;
+    label: string;
+    duration: string;
+    source: string;
+  }[];
+  hasPreview?: boolean;
   relatedTracks: {
     id: string;
     title: string;
@@ -66,6 +75,8 @@ export default function MusicPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [selectedPlatform, setSelectedPlatform] = useState<'spotify' | 'youtube'>('spotify');
+  const [youtubeVideoId, setYoutubeVideoId] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
@@ -94,6 +105,43 @@ export default function MusicPage() {
       fetchMusicDetails();
     }
   }, [params.id]);
+
+  // Fetch YouTube video ID when platform changes to YouTube
+  useEffect(() => {
+    const fetchYoutubeVideo = async () => {
+      if (selectedPlatform === 'youtube' && music) {
+        try {
+          const response = await axios.get('/api/youtube/search', {
+            params: {
+              q: `${music.artist.name} - ${music.title} official audio`,
+              type: 'video'
+            }
+          });
+          if (response.data.videoId) {
+            setYoutubeVideoId(response.data.videoId);
+          }
+        } catch (err) {
+          console.error('Error fetching YouTube video:', err);
+          // Fallback to music video search if audio search fails
+          try {
+            const fallbackResponse = await axios.get('/api/youtube/search', {
+              params: {
+                q: `${music.artist.name} - ${music.title} official music video`,
+                type: 'video'
+              }
+            });
+            if (fallbackResponse.data.videoId) {
+              setYoutubeVideoId(fallbackResponse.data.videoId);
+            }
+          } catch (fallbackErr) {
+            console.error('Error fetching fallback YouTube video:', fallbackErr);
+          }
+        }
+      }
+    };
+
+    fetchYoutubeVideo();
+  }, [selectedPlatform, music]);
 
   const handleTrackClick = (trackId: string) => {
     router.push(`/music/${trackId}`);
@@ -157,25 +205,37 @@ export default function MusicPage() {
               </Typography>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <PersonIcon color="action" />
-                <Typography variant="h6" color="text.secondary">
+                <Typography variant="body1" color="text.secondary" sx={{ 
+                  fontSize: { xs: '0.75rem', sm: '0.85rem', md: '0.9rem' },
+                  lineHeight: 1.4
+                }}>
                   {music.artist.name}
                 </Typography>
               </Box>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <AlbumIcon color="action" />
-                <Typography color="text.secondary">
+                <Typography variant="body1" color="text.secondary" sx={{ 
+                  fontSize: { xs: '0.75rem', sm: '0.85rem', md: '0.9rem' },
+                  lineHeight: 1.4
+                }}>
                   Album: {music.album.name}
                 </Typography>
               </Box>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <TimeIcon color="action" />
-                <Typography color="text.secondary">
+                <Typography variant="body1" color="text.secondary" sx={{ 
+                  fontSize: { xs: '0.75rem', sm: '0.85rem', md: '0.9rem' },
+                  lineHeight: 1.4
+                }}>
                   Duration: {music.duration}
                 </Typography>
               </Box>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <StarIcon color="action" />
-                <Typography color="text.secondary">
+                <Typography variant="body1" color="text.secondary" sx={{ 
+                  fontSize: { xs: '0.75rem', sm: '0.85rem', md: '0.9rem' },
+                  lineHeight: 1.4
+                }}>
                   Popularity: {music.popularity}/100
                 </Typography>
               </Box>
@@ -187,18 +247,54 @@ export default function MusicPage() {
                 </Box>
               )}
               <Box sx={{ mt: 2 }}>
-                {music.previewUrl ? (
-                  <Button
-                    variant="contained"
-                    onClick={handlePlayPause}
-                    startIcon={isPlaying ? <PauseIcon /> : <PlayIcon />}
-                  >
-                    {isPlaying ? 'Pause' : 'Play Preview'}
-                  </Button>
+                {music.previewOptions && music.previewOptions.length > 0 ? (
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    {/* Spotify Preview Button (if available) */}
+                    {music.previewUrl && (
+                      <Button
+                        variant="contained"
+                        onClick={handlePlayPause}
+                        startIcon={isPlaying ? <PauseIcon /> : <PlayIcon />}
+                        sx={{ alignSelf: 'flex-start' }}
+                      >
+                        {isPlaying ? 'Pause' : 'Play Preview (30s)'}
+                      </Button>
+                    )}
+                    
+                    {/* Other listening options */}
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                      <Typography variant="body2" color="text.secondary" sx={{ 
+                        fontSize: { xs: '0.75rem', sm: '0.85rem', md: '0.9rem' },
+                        fontWeight: 500,
+                        mb: 1
+                      }}>
+                        Listen on:
+                      </Typography>
+                      {music.previewOptions.map((option, index) => (
+                        <Button
+                          key={index}
+                          variant="outlined"
+                          size="small"
+                          onClick={() => window.open(option.url, '_blank')}
+                          startIcon={<PlayIcon />}
+                          sx={{ 
+                            alignSelf: 'flex-start',
+                            fontSize: { xs: '0.7rem', sm: '0.8rem' },
+                            py: 0.5,
+                            px: 2
+                          }}
+                        >
+                          {option.label}
+                        </Button>
+                      ))}
+                    </Box>
+                  </Box>
                 ) : (
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <MusicIcon color="action" />
-                    <Typography color="text.secondary" variant="body2">
+                    <Typography color="text.secondary" variant="body2" sx={{ 
+                      fontSize: { xs: '0.75rem', sm: '0.85rem', md: '0.9rem' }
+                    }}>
                       Preview not available for this track
                     </Typography>
                   </Box>
@@ -209,9 +305,134 @@ export default function MusicPage() {
         </Grid>
       </Paper>
 
+      {/* Spotify Embed Player */}
+      <Paper elevation={3} sx={{ p: 4, mb: 4, borderRadius: 2 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
+          <HeadphonesIcon color="primary" />
+          <Typography variant="h6" component="h2">
+            Listen to Full Song
+          </Typography>
+        </Box>
+        
+        {/* Platform Selection */}
+        <Box sx={{ mb: 3 }}>
+          <Typography variant="body2" color="text.secondary" sx={{ 
+            fontSize: { xs: '0.75rem', sm: '0.85rem', md: '0.9rem' },
+            mb: 2
+          }}>
+            Choose your preferred platform:
+          </Typography>
+          <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+            <Button
+              variant="contained"
+              size="small"
+              onClick={() => setSelectedPlatform('spotify')}
+              sx={{ 
+                fontSize: { xs: '0.7rem', sm: '0.8rem' },
+                bgcolor: selectedPlatform === 'spotify' ? 'primary.main' : 'grey.300',
+                color: selectedPlatform === 'spotify' ? 'white' : 'text.primary'
+              }}
+            >
+              Spotify
+            </Button>
+            <Button
+              variant="outlined"
+              size="small"
+              onClick={() => setSelectedPlatform('youtube')}
+              sx={{ 
+                fontSize: { xs: '0.7rem', sm: '0.8rem' },
+                borderColor: selectedPlatform === 'youtube' ? 'primary.main' : 'grey.300',
+                color: selectedPlatform === 'youtube' ? 'primary.main' : 'text.primary'
+              }}
+            >
+              YouTube Music
+            </Button>
+          </Box>
+        </Box>
+        
+        {/* Spotify Embed */}
+        {selectedPlatform === 'spotify' && (
+          <Box sx={{ 
+            position: 'relative', 
+            width: '100%', 
+            height: '352px',
+            borderRadius: 2,
+            overflow: 'hidden',
+            bgcolor: 'background.paper',
+            border: '1px solid',
+            borderColor: 'divider'
+          }}>
+            <iframe
+              src={`https://open.spotify.com/embed/track/${music.id}?utm_source=generator&theme=0`}
+              width="100%"
+              height="100%"
+              frameBorder="0"
+              allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+              loading="lazy"
+              style={{
+                border: 'none',
+                borderRadius: '8px'
+              }}
+            />
+          </Box>
+        )}
+        
+        {/* YouTube Music Embed */}
+        {selectedPlatform === 'youtube' && (
+          <Box sx={{ 
+            position: 'relative', 
+            width: '100%', 
+            height: '352px',
+            borderRadius: 2,
+            overflow: 'hidden',
+            bgcolor: 'background.paper',
+            border: '1px solid',
+            borderColor: 'divider'
+          }}>
+            {youtubeVideoId ? (
+              <iframe
+                src={`https://www.youtube.com/embed/${youtubeVideoId}?autoplay=0`}
+                width="100%"
+                height="100%"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                style={{
+                  border: 'none',
+                  borderRadius: '8px'
+                }}
+              />
+            ) : (
+              <Box sx={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                height: '100%',
+                flexDirection: 'column',
+                gap: 2
+              }}>
+                <CircularProgress size={40} />
+                <Typography variant="body2" color="text.secondary">
+                  Loading video...
+                </Typography>
+              </Box>
+            )}
+          </Box>
+        )}
+        
+        <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}>
+          <Typography variant="body2" color="text.secondary" sx={{ 
+            fontSize: { xs: '0.75rem', sm: '0.85rem', md: '0.9rem' },
+            textAlign: 'center'
+          }}>
+            Powered by {selectedPlatform === 'spotify' ? 'Spotify' : 'YouTube Music'} • Full track streaming available
+          </Typography>
+        </Box>
+      </Paper>
+
       {/* Related Tracks */}
       <Paper elevation={3} sx={{ p: 4, mt: 4, borderRadius: 2 }}>
-        <Typography variant="h5" gutterBottom>
+        <Typography variant="h6" gutterBottom>
           Related Tracks
         </Typography>
         <List>
@@ -234,12 +455,43 @@ export default function MusicPage() {
                     src={track.thumbnail}
                     alt={track.title}
                     variant="rounded"
-                    sx={{ width: 56, height: 56 }}
+                    sx={{ width: 48, height: 48 }}
                   />
                 </ListItemAvatar>
                 <ListItemText
-                  primary={track.title}
-                  secondary={track.artist}
+                  primary={
+                    <Typography 
+                      variant="subtitle2" 
+                      sx={{ 
+                        whiteSpace: 'normal',
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden',
+                        lineHeight: 1.2,
+                        mb: 0.5,
+                        fontSize: { xs: '0.8rem', sm: '0.85rem' }
+                      }}
+                    >
+                      {track.title}
+                    </Typography>
+                  }
+                  secondary={
+                    <Typography 
+                      variant="body2" 
+                      color="text.secondary"
+                      sx={{ 
+                        fontSize: { xs: '0.7rem', sm: '0.75rem' },
+                        whiteSpace: 'normal',
+                        display: '-webkit-box',
+                        WebkitLineClamp: 1,
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden'
+                      }}
+                    >
+                      {track.artist}
+                    </Typography>
+                  }
                 />
               </ListItem>
               {index < music.relatedTracks.length - 1 && <Divider />}

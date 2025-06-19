@@ -9,6 +9,7 @@ const PODCASTINDEX_API_KEY = process.env.PODCASTINDEX_API_KEY;
 const PODCASTINDEX_API_SECRET = process.env.PODCASTINDEX_API_SECRET;
 
 export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 async function getTrendingVideos() {
   try {
@@ -76,41 +77,47 @@ async function getTrendingMusic() {
     const accessToken = tokenResponse.data.access_token;
     console.log('Got Spotify access token');
 
-    // Get new releases instead of playlist
-    console.log('Fetching new releases from Spotify...');
+    // Search for tracks from popular artists
+    const popularArtists = ['Taylor Swift', 'Drake', 'The Weeknd', 'Ed Sheeran'];
+    const randomArtist = popularArtists[Math.floor(Math.random() * popularArtists.length)];
+    
+    console.log('Searching tracks for artist:', randomArtist);
     const response = await axios.get(
-      'https://api.spotify.com/v1/browse/new-releases',
+      'https://api.spotify.com/v1/search',
       {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
         params: {
+          q: `artist:${randomArtist}`,
+          type: 'track',
           limit: 10,
-          country: 'US',
+          market: 'US',
         },
       }
     );
 
-    if (!response.data.albums?.items) {
+    if (!response.data.tracks?.items) {
       console.error('Invalid response from Spotify:', response.data);
       return [];
     }
 
     console.log('Music response:', {
-      totalAlbums: response.data.albums.items.length,
-      firstAlbum: response.data.albums.items[0]?.name,
+      totalTracks: response.data.tracks.items.length,
+      firstTrack: response.data.tracks.items[0]?.name,
+      artist: randomArtist,
     });
 
-    return response.data.albums.items.map((album: any) => ({
-      id: album.id,
+    return response.data.tracks.items.map((track: any) => ({
+      id: track.id,
       type: 'music',
-      title: album.name,
-      description: album.artists.map((artist: any) => artist.name).join(', '),
-      thumbnail: album.images[0]?.url,
-      url: album.external_urls.spotify,
-      artist: album.artists[0].name,
-      album: album.name,
-      releaseDate: album.release_date,
+      title: track.name,
+      description: track.artists.map((artist: any) => artist.name).join(', '),
+      thumbnail: track.album.images[0]?.url,
+      url: track.external_urls?.spotify,
+      artist: track.artists[0].name,
+      album: track.album.name,
+      releaseDate: track.album.release_date,
     }));
   } catch (error) {
     if (axios.isAxiosError(error)) {
@@ -213,7 +220,7 @@ async function getTrendingPodcasts() {
   }
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     console.log('Starting to fetch all trending content...');
     const [videos, music, books, podcasts] = await Promise.all([
@@ -238,12 +245,18 @@ export async function GET() {
       podcasts,
     };
 
-    return NextResponse.json(trendingContent);
+    return new NextResponse(JSON.stringify(trendingContent), {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-store, must-revalidate',
+      },
+    });
   } catch (error) {
     console.error('Error fetching trending content:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch trending content' },
-      { status: 500 }
+    return new NextResponse(
+      JSON.stringify({ error: 'Failed to fetch trending content' }),
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
     );
   }
 } 
