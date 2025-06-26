@@ -200,11 +200,33 @@ export async function POST(request: Request) {
     const body: SearchRequest = await request.json();
     const { query, types, maxResults = 20, trending = false } = body;
 
+    console.log('🔍 Search API called:', { query, types, maxResults, trending });
+
     // If trending is true and query is 'recommended', fetch trending content
     if (trending && query === 'recommended') {
+      console.log('📈 Fetching trending content for types:', types);
       try {
-        const trendingResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/trending`);
+        // Use relative URL instead of absolute URL with environment variable
+        const trendingResponse = await fetch('/api/trending', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+        
+        console.log('📈 Trending API response status:', trendingResponse.status);
+        
+        if (!trendingResponse.ok) {
+          throw new Error(`Trending API returned ${trendingResponse.status}`);
+        }
+        
         const trendingData = await trendingResponse.json();
+        console.log('📈 Trending data received:', {
+          videos: trendingData.videos?.length || 0,
+          books: trendingData.books?.length || 0,
+          music: trendingData.music?.length || 0,
+          podcasts: trendingData.podcasts?.length || 0,
+        });
         
         let trendingResults: any[] = [];
         
@@ -222,13 +244,23 @@ export async function POST(request: Request) {
           if (types.includes('podcast')) trendingResults.push(...(trendingData.podcasts || []));
         }
         
+        console.log('📈 Returning trending results:', trendingResults.length);
         return NextResponse.json({
           results: trendingResults,
           total: trendingResults.length,
         });
       } catch (error) {
-        console.error('Error fetching trending content:', error);
+        console.error('❌ Error fetching trending content:', error);
         // Fall back to regular search if trending fails
+        // For books, search for popular fiction as fallback
+        if (types.includes('book')) {
+          console.log('📚 Falling back to fiction search for books');
+          const fallbackResults = await searchBooks('fiction', maxResults);
+          return NextResponse.json({
+            results: fallbackResults,
+            total: fallbackResults.length,
+          });
+        }
       }
     }
 
@@ -239,6 +271,8 @@ export async function POST(request: Request) {
       );
     }
 
+    console.log('🔍 Performing regular search for query:', query);
+
     const searchPromises = [];
 
     // If types includes 'all', search all types
@@ -247,7 +281,7 @@ export async function POST(request: Request) {
       searchPromises.push(searchBooks(query, maxResults));
       searchPromises.push(searchPodcasts(query, maxResults));
       searchPromises.push(searchMusic(query, maxResults));
-          } else {
+    } else {
       // Otherwise, only search the specified types
       if (types.includes('video')) {
         searchPromises.push(searchYouTube(query, maxResults));
@@ -289,12 +323,13 @@ export async function POST(request: Request) {
       return 0;
     });
 
+    console.log('🔍 Search completed, returning results:', searchResults.length);
     return NextResponse.json({
       results: searchResults,
       total: searchResults.length,
     });
   } catch (error) {
-    console.error('Search error:', error);
+    console.error('❌ Search error:', error);
     return NextResponse.json(
       { error: 'An error occurred while searching' },
       { status: 500 }

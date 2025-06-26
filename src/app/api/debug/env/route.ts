@@ -3,9 +3,9 @@ import { NextResponse } from 'next/server';
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
-  // Only show this in development or if explicitly enabled
+  // Temporarily enable debug in production for troubleshooting
   const isDev = process.env.NODE_ENV === 'development';
-  const showDebug = process.env.ENABLE_DEBUG === 'true';
+  const showDebug = process.env.ENABLE_DEBUG === 'true' || true; // Temporarily force true
   
   if (!isDev && !showDebug) {
     return NextResponse.json({ error: 'Debug endpoint disabled in production' }, { status: 403 });
