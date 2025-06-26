@@ -387,25 +387,120 @@ export async function POST(request: Request) {
       .filter((result): result is PromiseFulfilledResult<any[]> => result.status === 'fulfilled')
       .flatMap(result => result.value);
 
-    // Sort results by relevance
+    // Enhanced relevance scoring and sorting
+    const queryWords = query.toLowerCase().split(/\s+/).filter(word => word.length > 0);
+    
+    const calculateRelevanceScore = (item: any) => {
+      const title = item.title.toLowerCase();
+      const description = (item.description || '').toLowerCase();
+      const author = (item.author || '').toLowerCase();
+      
+      let score = 0;
+      
+      // Exact title match (highest priority)
+      if (title === query.toLowerCase()) {
+        score += 1000;
+      }
+      
+      // Title starts with query
+      if (title.startsWith(query.toLowerCase())) {
+        score += 500;
+      }
+      
+      // All query words found in title (in order)
+      const titleWords = title.split(/\s+/);
+      let allWordsInOrder = true;
+      let wordIndex = 0;
+      
+      for (const queryWord of queryWords) {
+        const foundIndex = titleWords.findIndex((titleWord: string, index: number) => 
+          index >= wordIndex && titleWord.includes(queryWord)
+        );
+        if (foundIndex === -1) {
+          allWordsInOrder = false;
+          break;
+        }
+        wordIndex = foundIndex + 1;
+      }
+      
+      if (allWordsInOrder) {
+        score += 300;
+      }
+      
+      // All query words found in title (any order)
+      const allWordsFound = queryWords.every(queryWord => 
+        titleWords.some((titleWord: string) => titleWord.includes(queryWord))
+      );
+      
+      if (allWordsFound) {
+        score += 200;
+      }
+      
+      // Query words found in title (partial matches)
+      let titleWordMatches = 0;
+      for (const queryWord of queryWords) {
+        for (const titleWord of titleWords) {
+          if (titleWord.includes(queryWord)) {
+            titleWordMatches++;
+            break;
+          }
+        }
+      }
+      score += titleWordMatches * 50;
+      
+      // Author matches
+      if (author.includes(query.toLowerCase())) {
+        score += 150;
+      }
+      
+      // Description matches
+      const descWords = description.split(/\s+/);
+      let descWordMatches = 0;
+      for (const queryWord of queryWords) {
+        for (const descWord of descWords) {
+          if (descWord.includes(queryWord)) {
+            descWordMatches++;
+            break;
+          }
+        }
+      }
+      score += descWordMatches * 10;
+      
+      // Boost for shorter titles (more specific)
+      score += Math.max(0, 50 - titleWords.length * 2);
+      
+      // Boost for recent content (if available)
+      if (item.publishedAt || item.publishedDate || item.releaseDate) {
+        score += 5;
+      }
+      
+      // Boost for high ratings (if available)
+      if (item.rating && item.rating >= 4) {
+        score += 20;
+      }
+      
+      return score;
+    };
+    
+    // Sort by relevance score (highest first)
     searchResults.sort((a, b) => {
-      const aTitle = a.title.toLowerCase();
-      const bTitle = b.title.toLowerCase();
-      const queryLower = query.toLowerCase();
+      const scoreA = calculateRelevanceScore(a);
+      const scoreB = calculateRelevanceScore(b);
       
-      const aExactMatch = aTitle === queryLower;
-      const bExactMatch = bTitle === queryLower;
+      if (scoreA !== scoreB) {
+        return scoreB - scoreA; // Higher score first
+      }
       
-      if (aExactMatch && !bExactMatch) return -1;
-      if (!aExactMatch && bExactMatch) return 1;
-      
-      const aStartsWith = aTitle.startsWith(queryLower);
-      const bStartsWith = bTitle.startsWith(queryLower);
-      
-      if (aStartsWith && !bStartsWith) return -1;
-      if (!aStartsWith && bStartsWith) return 1;
-      
-      return 0;
+      // If scores are equal, prefer shorter titles
+      return a.title.length - b.title.length;
+    });
+
+    // Log top results with their relevance scores
+    const topResults = searchResults.slice(0, 10);
+    console.log('🔍 Top results with relevance scores:');
+    topResults.forEach((result, index) => {
+      const score = calculateRelevanceScore(result);
+      console.log(`${index + 1}. [${score}pts] ${result.title} (${result.type})`);
     });
 
     console.log('🔍 Search completed, returning results:', searchResults.length);
