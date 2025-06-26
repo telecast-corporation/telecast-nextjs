@@ -165,8 +165,9 @@ export default function UnifiedSearchResults({ results, searchType = 'all', load
       case 'book':
         return `/book/${result.id}`;
       case 'audiobook':
-        const audiobookUrl = result.audibleUrl || `/audiobook/${result.id}`;
-        console.log('🎧 Audiobook URL:', { title: result.title, audibleUrl: result.audibleUrl, finalUrl: audiobookUrl });
+        // Always use the real Audible URL, never fall back to local route
+        const audiobookUrl = result.audibleUrl || result.url || `https://www.audible.ca/search?keywords=${encodeURIComponent(result.title)}`;
+        console.log('🎧 Audiobook URL:', { title: result.title, audibleUrl: result.audibleUrl, url: result.url, finalUrl: audiobookUrl });
         return audiobookUrl;
       case 'music':
         return `/music/${result.id}`;
