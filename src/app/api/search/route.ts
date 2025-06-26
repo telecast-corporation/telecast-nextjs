@@ -6,6 +6,7 @@ import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import axios from 'axios';
 import { PodcastIndex, Podcast } from '@/lib/podcast-index';
+import { searchAudible } from '@/lib/audible-search';
 
 // Import trending functions directly
 // import { getTrendingVideos, getTrendingMusic, getTrendingBooks, getTrendingPodcasts } from '../trending/route';
@@ -205,15 +206,10 @@ async function searchAudiobooks(query: string, maxResults: number = 40) {
   try {
     console.log('🎧 Searching audiobooks for query:', query);
     
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-    const response = await axios.get(`${baseUrl}/api/audible/search?q=${encodeURIComponent(query)}&maxResults=${maxResults}`);
+    // Call the searchAudible function directly
+    const books = await searchAudible(query, maxResults);
     
-    if (!response.data.items) {
-      console.log('No audiobooks found');
-      return [];
-    }
-
-    return response.data.items.map((item: any) => ({
+    return books.map((item: any) => ({
       type: 'audiobook',
       id: item.id,
       title: truncateText(item.title, 50),
@@ -228,8 +224,15 @@ async function searchAudiobooks(query: string, maxResults: number = 40) {
       source: 'audible',
       sourceUrl: item.sourceUrl,
     }));
-  } catch (error) {
-    console.error('Audiobook search error:', error);
+  } catch (error: any) {
+    console.error('🎧 Audiobook search error:', error);
+    if (error.response) {
+      console.error('🎧 Error response:', {
+        status: error.response.status,
+        statusText: error.response.statusText,
+        data: error.response.data,
+      });
+    }
     return [];
   }
 }
