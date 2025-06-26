@@ -86,21 +86,32 @@ export async function searchAudible(query: string, maxResults: number = 40) {
               'Accept-Language': 'en-US,en;q=0.9',
             },
             timeout: 10000,
+            validateStatus: (status) => status < 500, // Accept 404 and other client errors
           });
-          const productHtml = productPage.data;
-          // Try og:image meta tag first
-          const ogImgMatch = productHtml.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"'>]+)["']/i);
-          if (ogImgMatch && ogImgMatch[1]) {
-            productImageUrl = ogImgMatch[1];
-          } else {
-            // Fallback: look for main product image
-            const imgMatch = productHtml.match(/<img[^>]+src=["']([^"'>]+)["'][^>]+class=["'][^"'>]*productImage[^"'>]*["']/i);
-            if (imgMatch && imgMatch[1]) {
-              productImageUrl = imgMatch[1];
+          
+          if (productPage.status === 200) {
+            const productHtml = productPage.data;
+            // Try og:image meta tag first
+            const ogImgMatch = productHtml.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"'>]+)["']/i);
+            if (ogImgMatch && ogImgMatch[1]) {
+              productImageUrl = ogImgMatch[1];
+            } else {
+              // Fallback: look for main product image
+              const imgMatch = productHtml.match(/<img[^>]+src=["']([^"'>]+)["'][^>]+class=["'][^"'>]*productImage[^"'>]*["']/i);
+              if (imgMatch && imgMatch[1]) {
+                productImageUrl = imgMatch[1];
+              }
             }
+          } else {
+            console.log(`Product page returned ${productPage.status} for ${audibleUrl}`);
           }
         } catch (e) {
-          console.error('Failed to fetch product page image:', e instanceof Error ? e.message : String(e));
+          // Only log as error if it's not a 404
+          if (e instanceof Error && e.message.includes('404')) {
+            console.log(`Product page not found for ${audibleUrl}`);
+          } else {
+            console.error('Failed to fetch product page image:', e instanceof Error ? e.message : String(e));
+          }
         }
         // Prefer product page image if found
         let imageUrl = productImageUrl;

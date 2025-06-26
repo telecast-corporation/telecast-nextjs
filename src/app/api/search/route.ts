@@ -261,7 +261,13 @@ export async function POST(request: Request) {
       // For other types, try to get trending content
       try {
         // Use axios for server-side request to trending API
-        const trendingResponse = await axios.get(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/trending`);
+        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+        if (!baseUrl) {
+          console.log('📈 No base URL configured, skipping trending content');
+          throw new Error('No base URL configured');
+        }
+        
+        const trendingResponse = await axios.get(`${baseUrl}/api/trending`);
         
         console.log('📈 Trending API response status:', trendingResponse.status);
         
