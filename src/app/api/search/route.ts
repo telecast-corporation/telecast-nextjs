@@ -104,10 +104,13 @@ function ensureHttps(url: string | undefined): string | undefined {
 
 async function searchBooks(query: string, maxResults: number = 10) {
   try {
+    // Ensure maxResults doesn't exceed Google Books API limit of 40
+    const safeMaxResults = Math.min(maxResults, 40);
+    
     const response = await axios.get('https://www.googleapis.com/books/v1/volumes', {
       params: {
         q: query,
-        maxResults,
+        maxResults: safeMaxResults,
         key: process.env.GOOGLE_BOOKS_API_KEY,
       },
     });
@@ -255,7 +258,7 @@ export async function POST(request: Request) {
         // For books, search for popular fiction as fallback
         if (types.includes('book')) {
           console.log('📚 Falling back to fiction search for books');
-          const fallbackResults = await searchBooks('fiction', maxResults);
+          const fallbackResults = await searchBooks('fiction', Math.min(maxResults, 40));
           return NextResponse.json({
             results: fallbackResults,
             total: fallbackResults.length,
@@ -278,7 +281,7 @@ export async function POST(request: Request) {
     // If types includes 'all', search all types
     if (types.includes('all')) {
       searchPromises.push(searchYouTube(query, maxResults));
-      searchPromises.push(searchBooks(query, maxResults));
+      searchPromises.push(searchBooks(query, Math.min(maxResults, 40)));
       searchPromises.push(searchPodcasts(query, maxResults));
       searchPromises.push(searchMusic(query, maxResults));
     } else {
@@ -287,7 +290,7 @@ export async function POST(request: Request) {
         searchPromises.push(searchYouTube(query, maxResults));
       }
       if (types.includes('book')) {
-        searchPromises.push(searchBooks(query, maxResults));
+        searchPromises.push(searchBooks(query, Math.min(maxResults, 40)));
       }
       if (types.includes('podcast')) {
         searchPromises.push(searchPodcasts(query, maxResults));
