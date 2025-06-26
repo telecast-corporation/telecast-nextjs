@@ -209,6 +209,13 @@ async function searchAudiobooks(query: string, maxResults: number = 40) {
     // Call the searchAudible function directly
     const books = await searchAudible(query, maxResults);
     
+    console.log('🎧 Raw audiobooks from searchAudible:', books.map(book => ({
+      title: book.title,
+      url: book.url,
+      audibleUrl: book.audibleUrl,
+      id: book.id
+    })));
+    
     const mappedBooks = books.map((item: any) => ({
       type: 'audiobook',
       id: item.id,
@@ -225,7 +232,12 @@ async function searchAudiobooks(query: string, maxResults: number = 40) {
       sourceUrl: item.sourceUrl,
     }));
 
-    console.log('🎧 Mapped audiobooks:', mappedBooks.map(book => ({ title: book.title, url: book.url, audibleUrl: book.audibleUrl })));
+    console.log('🎧 Mapped audiobooks:', mappedBooks.map(book => ({ 
+      title: book.title, 
+      url: book.url, 
+      audibleUrl: book.audibleUrl,
+      id: book.id 
+    })));
     
     return mappedBooks;
   } catch (error: any) {
@@ -397,6 +409,18 @@ export async function POST(request: Request) {
     });
 
     console.log('🔍 Search completed, returning results:', searchResults.length);
+    
+    // Log audiobook data specifically
+    const audiobooks = searchResults.filter(result => result.type === 'audiobook');
+    if (audiobooks.length > 0) {
+      console.log('🎧 Audiobooks being sent to frontend:', audiobooks.map(book => ({
+        title: book.title,
+        url: book.url,
+        audibleUrl: book.audibleUrl,
+        id: book.id
+      })));
+    }
+    
     return NextResponse.json({
       results: searchResults,
       total: searchResults.length,
