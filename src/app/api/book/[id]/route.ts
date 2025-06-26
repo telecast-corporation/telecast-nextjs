@@ -53,6 +53,9 @@ export async function GET(
       })) || [];
 
     // Format the response
+    const previewLink = bookData.volumeInfo.previewLink
+      ? bookData.volumeInfo.previewLink + '&printsec=frontcover#v=onepage&q&f=false'
+      : null;
     const formattedResponse = {
       id: bookData.id,
       title: bookData.volumeInfo.title,
@@ -72,7 +75,7 @@ export async function GET(
       categories: bookData.volumeInfo.categories || [],
       rating: bookData.volumeInfo.averageRating || 0,
       ratingCount: bookData.volumeInfo.ratingsCount || 0,
-      previewLink: bookData.volumeInfo.previewLink || null,
+      previewLink,
       relatedBooks,
     };
 

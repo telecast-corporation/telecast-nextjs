@@ -58,6 +58,7 @@ interface BookDetails {
     thumbnail: string;
     description: string;
   }[];
+  previewLink?: string;
 }
 
 // Helper to ensure HTTPS
@@ -161,6 +162,11 @@ export default function BookPage() {
                 <Button
                   variant="contained"
                   startIcon={<MenuBookIcon />}
+                  component="a"
+                  href={book.previewLink || "#"}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  disabled={!book.previewLink}
                 >
                   Read
                 </Button>
@@ -180,37 +186,38 @@ export default function BookPage() {
             <Typography 
               color="text.secondary" 
               paragraph
+              sx={{ fontSize: '0.95rem', lineHeight: 1.6 }}
               dangerouslySetInnerHTML={{ __html: book.description }}
             />
           </Paper>
         </Grid>
         <Grid item xs={12} md={4}>
           <Paper elevation={3} sx={{ p: 4, borderRadius: 2 }}>
-            <Typography variant="h6" gutterBottom>
+            <Typography variant="h6" gutterBottom sx={{ fontSize: '1.05rem' }}>
               Book Details
             </Typography>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <LibraryIcon color="action" />
-                <Typography color="text.secondary">
+                <Typography color="text.secondary" sx={{ fontSize: '0.95rem' }}>
                   Publisher: {book.details.publisher}
                 </Typography>
               </Box>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <CalendarIcon color="action" />
-                <Typography color="text.secondary">
+                <Typography color="text.secondary" sx={{ fontSize: '0.95rem' }}>
                   Published: {book.details.publishedDate}
                 </Typography>
               </Box>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <MenuBookIcon color="action" />
-                <Typography color="text.secondary">
+                <Typography color="text.secondary" sx={{ fontSize: '0.95rem' }}>
                   Pages: {book.details.pageCount}
                 </Typography>
               </Box>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <LanguageIcon color="action" />
-                <Typography color="text.secondary">
+                <Typography color="text.secondary" sx={{ fontSize: '0.95rem' }}>
                   Language: {book.details.language}
                 </Typography>
               </Box>
@@ -233,6 +240,9 @@ export default function BookPage() {
                   borderRadius: 1,
                   mb: 1,
                   cursor: 'pointer',
+                  minHeight: 64,
+                  py: 1,
+                  px: 1.5,
                   '&:hover': {
                     bgcolor: 'action.hover',
                   },
@@ -244,20 +254,26 @@ export default function BookPage() {
                     src={ensureHttps(relatedBook.thumbnail)}
                     alt={relatedBook.title}
                     variant="rounded"
-                    sx={{ width: 56, height: 80 }}
+                    sx={{ width: 20, height: 28 }}
                   />
                 </ListItemAvatar>
                 <ListItemText
-                  primary={relatedBook.title}
+                  primary={
+                    <Typography variant="subtitle2" sx={{ fontWeight: 600, fontSize: '1rem', lineHeight: 1.2 }}>
+                      {relatedBook.title}
+                    </Typography>
+                  }
                   secondary={
                     <>
-                      <Typography component="span" variant="body2" color="text.primary">
+                      <Typography component="span" variant="caption" color="text.primary" sx={{ fontSize: '0.85rem' }}>
                         {relatedBook.author}
                       </Typography>
                       <br />
-                      {relatedBook.description.length > 150
-                        ? `${relatedBook.description.substring(0, 150)}...`
-                        : relatedBook.description}
+                      <Typography component="span" variant="caption" color="text.secondary" sx={{ fontSize: '0.8rem' }}>
+                        {relatedBook.description.length > 100
+                          ? `${relatedBook.description.substring(0, 100)}...`
+                          : relatedBook.description}
+                      </Typography>
                     </>
                   }
                 />

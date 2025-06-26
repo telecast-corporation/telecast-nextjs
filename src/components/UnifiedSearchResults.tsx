@@ -16,6 +16,7 @@ import {
   CircularProgress,
   useTheme,
   useMediaQuery,
+  Avatar,
 } from '@mui/material';
 import {
   PlayCircleOutline as VideoIcon,
@@ -55,6 +56,7 @@ interface SearchResult {
   // Music specific
   album?: string;
   releaseDate?: string;
+  previewLink?: string;
 }
 
 interface UnifiedSearchResultsProps {
@@ -211,8 +213,8 @@ export default function UnifiedSearchResults({ results, searchType = 'all', load
             sx={{
               objectFit: 'cover',
               width: '100%',
-              height: { xs: 25, sm: 30, md: 35, lg: 40 },
-              maxHeight: { xs: 25, sm: 30, md: 35, lg: 40 },
+              height: 120,
+              maxHeight: 120,
             }}
           />
           {result.type === 'podcast' ? (
@@ -355,7 +357,7 @@ export default function UnifiedSearchResults({ results, searchType = 'all', load
   };
 
   const renderVerticalList = (typeResults: SearchResult[]) => (
-    <List>
+    <List sx={{ gap: 2, display: 'flex', flexDirection: 'column' }}>
       {typeResults.map((result) => {
         const contentUrl = getContentUrl(result);
         const isExternal = result.url && !contentUrl.startsWith('/');
@@ -365,19 +367,27 @@ export default function UnifiedSearchResults({ results, searchType = 'all', load
             sx={{ 
               width: '100%',
               display: 'flex',
+              alignItems: 'stretch',
               '&:hover': {
                 boxShadow: 6,
                 cursor: 'pointer',
               },
             }}
           >
-            <Box sx={{ position: 'relative', width: 120, flexShrink: 0 }}>
+            <Box sx={{ position: 'relative', width: 120, height: 120, flexShrink: 0, p: 0, m: 0 }}>
               <CardMedia
                 component="img"
-                height="120"
                 image={result.thumbnail || '/placeholder.png'}
                 alt={result.title}
-                sx={{ objectFit: 'cover', height: '100%' }}
+                sx={{
+                  objectFit: 'cover',
+                  width: '100%',
+                  height: '100%',
+                  p: 0,
+                  m: 0,
+                  borderRadius: 0,
+                  display: 'block',
+                }}
               />
             </Box>
             <CardContent sx={{ flexGrow: 1, minWidth: 0, width: '100%', p: 1 }}>
@@ -387,7 +397,7 @@ export default function UnifiedSearchResults({ results, searchType = 'all', load
                 component="div"
                 sx={{
                   ...typography.heading,
-                  whiteSpace: 'normal',
+                  whiteSpace: result.type === 'book' ? 'normal' : 'nowrap',
                   wordBreak: 'break-word',
                   overflowWrap: 'break-word',
                   textOverflow: 'unset',
@@ -410,9 +420,8 @@ export default function UnifiedSearchResults({ results, searchType = 'all', load
                     wordBreak: 'break-word',
                     overflowWrap: 'break-word',
                     textOverflow: 'unset',
-                    fontSize: { xs: '2.5vw', sm: '1.1vw', md: '0.8rem' },
                     fontWeight: 400,
-                    mb: 0.3,
+                    mb: 0.1,
                     lineHeight: 1.1,
                   }}
                 >
@@ -426,21 +435,34 @@ export default function UnifiedSearchResults({ results, searchType = 'all', load
                     precision={0.5} 
                     size="small" 
                     readOnly 
-                    sx={{ fontSize: '0.8rem' }}
+                    sx={{ fontSize: '1rem' }}
                   />
-                  <Typography variant="caption" color="text.secondary" sx={{ ml: 0.5, fontSize: '0.7rem' }}>
+                  <Typography variant="caption" color="text.secondary" sx={{ ml: 0.5, fontSize: '0.8rem' }}>
                     ({result.ratingsCount})
                   </Typography>
                 </Box>
               )}
+              {result.type === 'book' && result.categories && (
+                <Stack direction="row" spacing={0.5} sx={{ mt: 0.5, flexWrap: 'wrap', gap: 0.3 }}>
+                  {result.categories.slice(0, 2).map((category) => (
+                    <Chip 
+                      key={category} 
+                      label={category} 
+                      size="small" 
+                      variant="outlined"
+                      sx={{ 
+                        fontSize: '0.8rem', 
+                        height: 'auto', 
+                        '& .MuiChip-label': { px: 0.5, py: 0.2 } 
+                      }}
+                    />
+                  ))}
+                </Stack>
+              )}
               <Typography 
                 variant="caption" 
                 color="text.secondary" 
-                sx={{ 
-                  mt: 0.5, 
-                  display: 'block',
-                  fontSize: { xs: '2vw', sm: '0.9vw', md: '0.7rem' }
-                }}
+                sx={{ mt: 0.5, display: 'block', fontSize: '0.9rem' }}
               >
                 {result.publishedAt || result.publishedDate || result.releaseDate}
               </Typography>
@@ -448,29 +470,24 @@ export default function UnifiedSearchResults({ results, searchType = 'all', load
           </Card>
         );
 
+        if (isExternal) {
+          return (
+            <a 
+              href={contentUrl} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              style={{ textDecoration: 'none', color: 'inherit' }}
+              key={result.id}
+            >
+              {listItemContent}
+            </a>
+          );
+        }
+
         return (
-          <ListItem
-            key={`${result.type}-${result.id}`}
-            sx={{
-              mb: 1,
-              p: 0,
-            }}
-          >
-            {isExternal ? (
-              <a 
-                href={contentUrl} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                style={{ textDecoration: 'none', color: 'inherit', width: '100%' }}
-              >
-                {listItemContent}
-              </a>
-            ) : (
-              <Link href={contentUrl} style={{ textDecoration: 'none', color: 'inherit', width: '100%' }}>
-                {listItemContent}
-              </Link>
-            )}
-          </ListItem>
+          <Link href={contentUrl} style={{ textDecoration: 'none', color: 'inherit' }} key={result.id}>
+            {listItemContent}
+          </Link>
         );
       })}
     </List>
