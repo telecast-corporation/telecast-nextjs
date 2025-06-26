@@ -261,10 +261,20 @@ export async function POST(request: Request) {
       // For other types, try to get trending content
       try {
         // Use axios for server-side request to trending API
-        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+        let baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+        
+        // If no base URL is configured, try to construct one from the request
         if (!baseUrl) {
-          console.log('📈 No base URL configured, skipping trending content');
-          throw new Error('No base URL configured');
+          // In production, we can use the request headers to get the host
+          const host = request.headers.get('host');
+          const protocol = request.headers.get('x-forwarded-proto') || 'https';
+          if (host) {
+            baseUrl = `${protocol}://${host}`;
+            console.log('📈 Constructed base URL from request headers:', baseUrl);
+          } else {
+            console.log('📈 No base URL configured and cannot construct from headers, skipping trending content');
+            throw new Error('No base URL configured');
+          }
         }
         
         const trendingResponse = await axios.get(`${baseUrl}/api/trending`);
