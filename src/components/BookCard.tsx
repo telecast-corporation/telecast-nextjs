@@ -1,6 +1,24 @@
 import React from 'react';
 import Link from 'next/link';
-import { Book } from '@/types/book';
+
+interface Book {
+  id: string;
+  title: string;
+  author?: string;
+  authors?: string[];
+  description?: string;
+  imageUrl?: string;
+  imageLinks?: {
+    thumbnail?: string;
+  };
+  rating?: number;
+  ratingsCount?: number;
+  categories?: string[];
+  duration?: string;
+  narrator?: string;
+  audibleUrl?: string;
+  kindleUrl?: string;
+}
 
 interface BookCardProps {
   book: Book;
@@ -84,7 +102,7 @@ const BookCard: React.FC<BookCardProps> = ({ book }) => {
         {book.categories && book.categories.length > 0 && (
           <div className="mb-4">
             <div className="flex flex-wrap gap-1">
-              {book.categories.slice(0, 3).map((category, index) => (
+              {book.categories.slice(0, 3).map((category: string, index: number) => (
                 <span
                   key={index}
                   className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full"
