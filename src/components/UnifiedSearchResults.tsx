@@ -23,6 +23,7 @@ import {
   MenuBook as BookIcon,
   Headphones as PodcastIcon,
   MusicNote as MusicIcon,
+  VolumeUp as AudiobookIcon,
   KeyboardArrowLeft as ArrowLeftIcon,
   KeyboardArrowRight as ArrowRightIcon,
   PlayArrow,
@@ -35,7 +36,7 @@ import React from 'react';
 import StarIcon from '@mui/icons-material/Star';
 
 interface SearchResult {
-  type: 'video' | 'book' | 'podcast' | 'music';
+  type: 'video' | 'book' | 'audiobook' | 'podcast' | 'music';
   id: string;
   title: string;
   description?: string;
@@ -51,8 +52,11 @@ interface SearchResult {
   categories?: string[];
   rating?: number;
   ratingsCount?: number;
-  // Podcast specific
+  // Audiobook specific
   duration?: string;
+  narrator?: string;
+  audibleUrl?: string;
+  // Podcast specific
   // Music specific
   album?: string;
   releaseDate?: string;
@@ -72,6 +76,7 @@ const TAGLINE_COLORS: Record<string, string> = {
   video: '#f59e42',
   music: '#10b981',
   book: '#a855f7',
+  audiobook: '#f97316',
 };
 
 export default function UnifiedSearchResults({ results, searchType = 'all', loading = false, trending = false }: UnifiedSearchResultsProps) {
@@ -104,6 +109,8 @@ export default function UnifiedSearchResults({ results, searchType = 'all', load
         return <VideoIcon />;
       case 'book':
         return <BookIcon />;
+      case 'audiobook':
+        return <AudiobookIcon />;
       case 'podcast':
         return <PodcastIcon />;
       case 'music':
@@ -119,6 +126,8 @@ export default function UnifiedSearchResults({ results, searchType = 'all', load
         return trending ? 'Trending Videos' : 'Videos';
       case 'book':
         return trending ? 'Trending Books' : 'Books';
+      case 'audiobook':
+        return trending ? 'Trending Audiobooks' : 'Audiobooks';
       case 'podcast':
         return trending ? 'Trending Podcasts' : 'Podcasts';
       case 'music':
@@ -129,7 +138,7 @@ export default function UnifiedSearchResults({ results, searchType = 'all', load
   };
 
   // Define the order of content types
-  const CONTENT_TYPE_ORDER = ['podcast', 'video', 'music', 'book'];
+  const CONTENT_TYPE_ORDER = ['podcast', 'video', 'music', 'book', 'audiobook'];
 
   // Group results by type
   const groupedResults = results.reduce((acc, result) => {
@@ -155,6 +164,8 @@ export default function UnifiedSearchResults({ results, searchType = 'all', load
         return `/video/${result.id}`;
       case 'book':
         return `/book/${result.id}`;
+      case 'audiobook':
+        return result.audibleUrl || `/audiobook/${result.id}`;
       case 'music':
         return `/music/${result.id}`;
       default:
@@ -313,6 +324,51 @@ export default function UnifiedSearchResults({ results, searchType = 'all', load
                     />
                   ))}
                 </Stack>
+              )}
+            </>
+          )}
+          
+          {result.type === 'audiobook' && (
+            <>
+              {result.duration && (
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{
+                    display: 'block',
+                    fontSize: { xs: '0.25rem', sm: '0.3rem', md: '0.35rem', lg: '0.4rem' },
+                    mb: 0.2,
+                  }}
+                >
+                  Duration: {result.duration}
+                </Typography>
+              )}
+              {result.narrator && (
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{
+                    display: 'block',
+                    fontSize: { xs: '0.25rem', sm: '0.3rem', md: '0.35rem', lg: '0.4rem' },
+                    mb: 0.2,
+                  }}
+                >
+                  Narrated by: {result.narrator}
+                </Typography>
+              )}
+              {result.rating && (
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
+                  <Rating 
+                    value={result.rating} 
+                    precision={0.5} 
+                    size="small" 
+                    readOnly 
+                    sx={{ fontSize: '0.7rem' }}
+                  />
+                  <Typography variant="caption" color="text.secondary" sx={{ ml: 0.5, fontSize: '0.3rem' }}>
+                    ({result.ratingsCount})
+                  </Typography>
+                </Box>
               )}
             </>
           )}

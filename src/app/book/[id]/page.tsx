@@ -145,28 +145,24 @@ export default function BookPage() {
                   {book.author.name}
                 </Typography>
               </Box>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Rating value={book.rating} precision={0.5} readOnly />
-                <Typography variant="body2" color="text.secondary">
-                  ({book.ratingCount} ratings)
-                </Typography>
-              </Box>
               {book.categories.length > 0 && (
                 <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
                   {book.categories.map((category) => (
-                    <Chip key={category} label={category} />
+                    <Chip key={category} label={category} sx={{ fontSize: '1.1rem', height: 32 }} />
                   ))}
                 </Box>
               )}
               <Box sx={{ mt: 2 }}>
                 <Button
                   variant="contained"
+                  size="small"
                   startIcon={<MenuBookIcon />}
                   component="a"
                   href={book.previewLink || "#"}
                   target="_blank"
                   rel="noopener noreferrer"
                   disabled={!book.previewLink}
+                  sx={{ fontSize: '0.95rem', px: 2, py: 0.5 }}
                 >
                   Read
                 </Button>
@@ -249,12 +245,12 @@ export default function BookPage() {
                 }}
                 onClick={() => handleBookClick(relatedBook.id)}
               >
-                <ListItemAvatar>
+                <ListItemAvatar sx={{ p: 0, m: 0 }}>
                   <Avatar
                     src={ensureHttps(relatedBook.thumbnail)}
                     alt={relatedBook.title}
                     variant="rounded"
-                    sx={{ width: 20, height: 28 }}
+                    sx={{ width: 40, height: 56, p: 0, m: 0, display: 'block' }}
                   />
                 </ListItemAvatar>
                 <ListItemText

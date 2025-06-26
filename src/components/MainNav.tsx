@@ -356,7 +356,7 @@ const SearchContainer = styled(Box)(({ theme }) => ({
   backgroundColor: theme.palette.background.default,
   borderRadius: theme.shape.borderRadius,
   border: `1px solid ${theme.palette.primary.main}`,
-  marginTop: theme.spacing(1),
+  marginTop: theme.spacing(3),
   marginBottom: theme.spacing(1),
   '& .search-icon': {
     padding: '0 0.5rem',
@@ -379,6 +379,7 @@ const SearchContainer = styled(Box)(({ theme }) => ({
   },
   [theme.breakpoints.down('lg')]: {
     width: '100%',
+    marginTop: theme.spacing(1),
     '& .MuiInputBase-root': {
       height: '50%',
       fontSize: '0.8rem',

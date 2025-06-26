@@ -7,16 +7,19 @@ import { prisma } from '@/lib/prisma';
 import axios from 'axios';
 import { PodcastIndex, Podcast } from '@/lib/podcast-index';
 
+// Import trending functions directly
+// import { getTrendingVideos, getTrendingMusic, getTrendingBooks, getTrendingPodcasts } from '../trending/route';
+
 interface SearchResult {
   id: number | string;
   title: string;
   description: string;
   imageUrl: string;
   author: string;
-  source: 'telecast' | 'spotify';
+  source: 'telecast' | 'spotify' | 'audible';
   category?: string;
   tags?: string[];
-  type: 'podcast' | 'video' | 'music' | 'book';
+  type: 'podcast' | 'video' | 'music' | 'book' | 'audiobook';
 }
 
 const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;
@@ -67,7 +70,7 @@ function truncateText(text: string, maxLength: number): string {
   return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
 }
 
-async function searchYouTube(query: string, maxResults: number = 10) {
+async function searchYouTube(query: string, maxResults: number = 20) {
   try {
     const response = await axios.get('https://www.googleapis.com/youtube/v3/search', {
       params: {
@@ -102,7 +105,7 @@ function ensureHttps(url: string | undefined): string | undefined {
   return url.replace(/^http:/, 'https:');
 }
 
-async function searchBooks(query: string, maxResults: number = 10) {
+async function searchBooks(query: string, maxResults: number = 40) {
   try {
     // Ensure maxResults doesn't exceed Google Books API limit of 40
     const safeMaxResults = Math.min(maxResults, 40);
@@ -136,7 +139,7 @@ async function searchBooks(query: string, maxResults: number = 10) {
   }
 }
 
-async function searchPodcasts(query: string, maxResults: number = 10) {
+async function searchPodcasts(query: string, maxResults: number = 20) {
   try {
     const podcastIndex = new PodcastIndex();
     const results = await podcastIndex.search(query);
@@ -162,7 +165,7 @@ async function searchPodcasts(query: string, maxResults: number = 10) {
   }
 }
 
-async function searchMusic(query: string, maxResults: number = 10) {
+async function searchMusic(query: string, maxResults: number = 20) {
       try {
         const accessToken = await getSpotifyAccessToken();
     if (!accessToken) {
@@ -198,32 +201,72 @@ async function searchMusic(query: string, maxResults: number = 10) {
   }
 }
 
+async function searchAudiobooks(query: string, maxResults: number = 40) {
+  try {
+    console.log('🎧 Searching audiobooks for query:', query);
+    
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+    const response = await axios.get(`${baseUrl}/api/audible/search?q=${encodeURIComponent(query)}&maxResults=${maxResults}`);
+    
+    if (!response.data.items) {
+      console.log('No audiobooks found');
+      return [];
+    }
+
+    return response.data.items.map((item: any) => ({
+      type: 'audiobook',
+      id: item.id,
+      title: truncateText(item.title, 50),
+      description: truncateText(item.description, 100),
+      thumbnail: ensureHttps(item.thumbnail),
+      url: item.url,
+      author: truncateText(item.author, 30),
+      duration: item.duration,
+      narrator: item.narrator,
+      rating: item.rating,
+      audibleUrl: item.audibleUrl,
+      source: 'audible',
+      sourceUrl: item.sourceUrl,
+    }));
+  } catch (error) {
+    console.error('Audiobook search error:', error);
+    return [];
+  }
+}
+
 export async function POST(request: Request) {
   try {
     const body: SearchRequest = await request.json();
-    const { query, types, maxResults = 20, trending = false } = body;
+    const { query, types, maxResults = 50, trending = false } = body;
 
     console.log('🔍 Search API called:', { query, types, maxResults, trending });
 
     // If trending is true and query is 'recommended', fetch trending content
     if (trending && query === 'recommended') {
       console.log('📈 Fetching trending content for types:', types);
-      try {
-        // Use relative URL instead of absolute URL with environment variable
-        const trendingResponse = await fetch('/api/trending', {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+      
+      // For audiobooks, just fall back to regular search since trending doesn't support audiobooks yet
+      if (types.includes('audiobook')) {
+        console.log('🎧 Falling back to regular search for audiobooks');
+        const fallbackResults = await searchAudiobooks('fiction', Math.min(maxResults, 40));
+        return NextResponse.json({
+          results: fallbackResults,
+          total: fallbackResults.length,
         });
+      }
+      
+      // For other types, try to get trending content
+      try {
+        // Use axios for server-side request to trending API
+        const trendingResponse = await axios.get(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/trending`);
         
         console.log('📈 Trending API response status:', trendingResponse.status);
         
-        if (!trendingResponse.ok) {
+        if (trendingResponse.status !== 200) {
           throw new Error(`Trending API returned ${trendingResponse.status}`);
         }
         
-        const trendingData = await trendingResponse.json();
+        const trendingData = trendingResponse.data;
         console.log('📈 Trending data received:', {
           videos: trendingData.videos?.length || 0,
           books: trendingData.books?.length || 0,
@@ -282,6 +325,7 @@ export async function POST(request: Request) {
     if (types.includes('all')) {
       searchPromises.push(searchYouTube(query, maxResults));
       searchPromises.push(searchBooks(query, Math.min(maxResults, 40)));
+      searchPromises.push(searchAudiobooks(query, Math.min(maxResults, 40)));
       searchPromises.push(searchPodcasts(query, maxResults));
       searchPromises.push(searchMusic(query, maxResults));
     } else {
@@ -291,6 +335,9 @@ export async function POST(request: Request) {
       }
       if (types.includes('book')) {
         searchPromises.push(searchBooks(query, Math.min(maxResults, 40)));
+      }
+      if (types.includes('audiobook')) {
+        searchPromises.push(searchAudiobooks(query, Math.min(maxResults, 40)));
       }
       if (types.includes('podcast')) {
         searchPromises.push(searchPodcasts(query, maxResults));
