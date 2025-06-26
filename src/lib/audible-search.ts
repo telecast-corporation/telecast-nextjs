@@ -104,9 +104,10 @@ export async function searchAudible(query: string, maxResults: number = 40) {
         let imageUrl = null;
         
         // Look for images in the search results context
+        const escapedTitle = title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         const imgPatterns = [
-          /<img[^>]+src=["']([^"'>]+)["'][^>]+alt=["'][^"'>]*${title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}[^"'>]*["']/i,
-          /<img[^>]+alt=["'][^"'>]*${title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}[^"'>]*["'][^>]+src=["']([^"'>]+)["']/i,
+          new RegExp(`<img[^>]+src=["']([^"'>]+)["'][^>]+alt=["'][^"'>]*${escapedTitle}[^"'>]*["']`, 'i'),
+          new RegExp(`<img[^>]+alt=["'][^"'>]*${escapedTitle}[^"'>]*["'][^>]+src=["']([^"'>]+)["']`, 'i'),
           /<img[^>]+src=["']([^"'>]+)["'][^>]+class=["'][^"'>]*product-image[^"'>]*["']/i,
         ];
 
