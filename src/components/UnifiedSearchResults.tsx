@@ -165,7 +165,9 @@ export default function UnifiedSearchResults({ results, searchType = 'all', load
       case 'book':
         return `/book/${result.id}`;
       case 'audiobook':
-        return result.audibleUrl || `/audiobook/${result.id}`;
+        const audiobookUrl = result.audibleUrl || `/audiobook/${result.id}`;
+        console.log('🎧 Audiobook URL:', { title: result.title, audibleUrl: result.audibleUrl, finalUrl: audiobookUrl });
+        return audiobookUrl;
       case 'music':
         return `/music/${result.id}`;
       default:

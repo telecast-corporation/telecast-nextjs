@@ -209,7 +209,7 @@ async function searchAudiobooks(query: string, maxResults: number = 40) {
     // Call the searchAudible function directly
     const books = await searchAudible(query, maxResults);
     
-    return books.map((item: any) => ({
+    const mappedBooks = books.map((item: any) => ({
       type: 'audiobook',
       id: item.id,
       title: truncateText(item.title, 50),
@@ -224,6 +224,10 @@ async function searchAudiobooks(query: string, maxResults: number = 40) {
       source: 'audible',
       sourceUrl: item.sourceUrl,
     }));
+
+    console.log('🎧 Mapped audiobooks:', mappedBooks.map(book => ({ title: book.title, url: book.url, audibleUrl: book.audibleUrl })));
+    
+    return mappedBooks;
   } catch (error: any) {
     console.error('🎧 Audiobook search error:', error);
     if (error.response) {
