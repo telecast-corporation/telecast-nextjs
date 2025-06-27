@@ -222,7 +222,8 @@ export default function UnifiedSearchResults({ results, searchType = 'all', load
       contentUrl,
       isExternal,
       resultUrl: result.url,
-      audibleUrl: result.audibleUrl
+      audibleUrl: result.audibleUrl,
+      willUseExternalLink: isExternal && result.type !== 'podcast'
     });
 
     const cardContent = (
@@ -410,10 +411,12 @@ export default function UnifiedSearchResults({ results, searchType = 'all', load
     );
 
     if (result.type === 'podcast') {
+      console.log('🔗 Rendering podcast card (no link)');
       return cardContent;
     }
 
     if (isExternal) {
+      console.log('🔗 Rendering external link for:', result.title, 'URL:', contentUrl);
       return (
         <a 
           href={contentUrl} 
@@ -426,6 +429,7 @@ export default function UnifiedSearchResults({ results, searchType = 'all', load
       );
     }
 
+    console.log('🔗 Rendering internal link for:', result.title, 'URL:', contentUrl);
     return (
       <Link href={contentUrl} style={{ textDecoration: 'none', color: 'inherit' }}>
         {cardContent}
