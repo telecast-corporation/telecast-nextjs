@@ -220,6 +220,9 @@ export async function searchAudible(query: string, maxResults: number = 40) {
         const fullAudibleUrl = `https://www.audible.ca${audibleUrl}`;
         const id = `audible_${Date.now()}_${i}`;
 
+        // Clean up the URL to remove tracking parameters that might cause issues
+        const cleanUrl = fullAudibleUrl.split('?')[0]; // Remove all query parameters
+
         books.push({
           id,
           type: 'audiobook',
@@ -227,13 +230,13 @@ export async function searchAudible(query: string, maxResults: number = 40) {
           author: truncateText(author, 30),
           description: truncateText(`${title} by ${author}`, 100),
           thumbnail: ensureHttps(imageUrl) || 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=300&h=400&fit=crop&crop=center',
-          url: fullAudibleUrl,
+          url: cleanUrl,
           duration: duration,
           narrator: narrator,
           rating: rating,
-          audibleUrl: fullAudibleUrl,
+          audibleUrl: cleanUrl,
           source: 'audible',
-          sourceUrl: fullAudibleUrl,
+          sourceUrl: cleanUrl,
         });
 
       } catch (error) {
