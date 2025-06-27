@@ -167,7 +167,16 @@ export default function UnifiedSearchResults({ results, searchType = 'all', load
       case 'audiobook':
         // Always use the real Audible URL, never fall back to local route
         const audiobookUrl = result.audibleUrl || result.url || `https://www.audible.ca/search?keywords=${encodeURIComponent(result.title)}`;
-        console.log('🎧 Audiobook URL:', { title: result.title, audibleUrl: result.audibleUrl, url: result.url, finalUrl: audiobookUrl });
+        console.log('🎧 Audiobook URL Debug:', { 
+          title: result.title, 
+          audibleUrl: result.audibleUrl, 
+          url: result.url, 
+          finalUrl: audiobookUrl,
+          hasAudibleUrl: !!result.audibleUrl,
+          hasUrl: !!result.url,
+          isExternal: audiobookUrl.startsWith('http'),
+          resultKeys: Object.keys(result)
+        });
         return audiobookUrl;
       case 'music':
         return `/music/${result.id}`;
@@ -205,7 +214,16 @@ export default function UnifiedSearchResults({ results, searchType = 'all', load
 
   const renderCard = (result: SearchResult) => {
     const contentUrl = getContentUrl(result);
-    const isExternal = result.url && !contentUrl.startsWith('/');
+    const isExternal = contentUrl.startsWith('http');
+
+    console.log('🔗 Card URL Debug:', {
+      title: result.title,
+      type: result.type,
+      contentUrl,
+      isExternal,
+      resultUrl: result.url,
+      audibleUrl: result.audibleUrl
+    });
 
     const cardContent = (
       <Card 
@@ -419,7 +437,7 @@ export default function UnifiedSearchResults({ results, searchType = 'all', load
     <List sx={{ gap: 2, display: 'flex', flexDirection: 'column' }}>
       {typeResults.map((result) => {
         const contentUrl = getContentUrl(result);
-        const isExternal = result.url && !contentUrl.startsWith('/');
+        const isExternal = contentUrl.startsWith('http');
 
         const listItemContent = (
           <Card 
