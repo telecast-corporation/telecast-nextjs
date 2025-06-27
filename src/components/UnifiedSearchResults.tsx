@@ -443,6 +443,16 @@ export default function UnifiedSearchResults({ results, searchType = 'all', load
         const contentUrl = getContentUrl(result);
         const isExternal = contentUrl.startsWith('http');
 
+        console.log('🔗 Vertical List URL Debug:', {
+          title: result.title,
+          type: result.type,
+          contentUrl,
+          isExternal,
+          resultUrl: result.url,
+          audibleUrl: result.audibleUrl,
+          willUseExternalLink: isExternal && result.type !== 'podcast'
+        });
+
         const listItemContent = (
           <Card 
             sx={{ 
@@ -552,6 +562,7 @@ export default function UnifiedSearchResults({ results, searchType = 'all', load
         );
 
         if (isExternal) {
+          console.log('🔗 Vertical List: Rendering external link for:', result.title, 'URL:', contentUrl);
           return (
             <a 
               href={contentUrl} 
@@ -565,6 +576,7 @@ export default function UnifiedSearchResults({ results, searchType = 'all', load
           );
         }
 
+        console.log('🔗 Vertical List: Rendering internal link for:', result.title, 'URL:', contentUrl);
         return (
           <Link href={contentUrl} style={{ textDecoration: 'none', color: 'inherit' }} key={result.id}>
             {listItemContent}
