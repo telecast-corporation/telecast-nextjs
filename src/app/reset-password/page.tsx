@@ -14,8 +14,9 @@ import {
 } from '@mui/material';
 import { Lock, Visibility, VisibilityOff } from '@mui/icons-material';
 import { typography, spacing, borderRadius } from '@/styles/typography';
+import SearchParamsWrapper from '@/components/SearchParamsWrapper';
 
-export default function ResetPasswordPage() {
+function ResetPasswordPageContent() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -225,24 +226,31 @@ export default function ResetPasswordPage() {
             ),
           }}
         />
+
         <Button
           type="submit"
-          fullWidth
           variant="contained"
-          size="large"
+          fullWidth
           disabled={isLoading}
           sx={{
             ...typography.button,
             padding: spacing.button,
             borderRadius: borderRadius.medium,
             textTransform: 'none',
-            fontWeight: 600,
             mt: spacing.gap.xs,
           }}
         >
-          {isLoading ? 'Resetting...' : 'Reset Password'}
+          {isLoading ? 'Resetting Password...' : 'Reset Password'}
         </Button>
       </Box>
     </Box>
+  );
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <SearchParamsWrapper>
+      <ResetPasswordPageContent />
+    </SearchParamsWrapper>
   );
 } 

@@ -13,8 +13,9 @@ import {
   Button,
 } from '@mui/material';
 import { CheckCircle, Error } from '@mui/icons-material';
+import SearchParamsWrapper from '@/components/SearchParamsWrapper';
 
-export default function VerifyEmailPage() {
+function VerifyEmailPageContent() {
   const [status, setStatus] = useState<'loading' | 'success' | 'error' | 'logging-in'>('loading');
   const [message, setMessage] = useState('');
   const [userEmail, setUserEmail] = useState('');
@@ -198,23 +199,22 @@ export default function VerifyEmailPage() {
             </Typography>
             <Button
               variant="outlined"
-              size="large"
               onClick={handleLogin}
-              sx={{ borderRadius: 2, px: 4, py: 1.5, mr: 2 }}
+              sx={{ mr: 2 }}
             >
               Go to Login
-            </Button>
-            <Button
-              variant="contained"
-              size="large"
-              onClick={() => router.push('/signup')}
-              sx={{ borderRadius: 2, px: 4, py: 1.5 }}
-            >
-              Sign Up Again
             </Button>
           </Box>
         )}
       </Paper>
     </Container>
+  );
+}
+
+export default function VerifyEmailPage() {
+  return (
+    <SearchParamsWrapper>
+      <VerifyEmailPageContent />
+    </SearchParamsWrapper>
   );
 } 

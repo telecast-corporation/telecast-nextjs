@@ -82,18 +82,20 @@ export async function POST(request: Request) {
     console.error('Email verification error:', error);
     
     // Handle specific error cases
-    if (error.message === 'Invalid verification token') {
-      return NextResponse.json(
-        { error: 'Invalid verification token' },
-        { status: 400 }
-      );
-    }
-    
-    if (error.message === 'Verification token has expired') {
-      return NextResponse.json(
-        { error: 'Verification token has expired' },
-        { status: 400 }
-      );
+    if (error instanceof Error) {
+      if (error.message === 'Invalid verification token') {
+        return NextResponse.json(
+          { error: 'Invalid verification token' },
+          { status: 400 }
+        );
+      }
+      
+      if (error.message === 'Verification token has expired') {
+        return NextResponse.json(
+          { error: 'Verification token has expired' },
+          { status: 400 }
+        );
+      }
     }
 
     return NextResponse.json(

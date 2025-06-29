@@ -19,8 +19,9 @@ import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { typography, spacing, borderRadius } from '@/styles/typography';
 import { signIn } from 'next-auth/react';
+import SearchParamsWrapper from '@/components/SearchParamsWrapper';
 
-export default function SignupPage() {
+function SignupPageContent() {
   const theme = useTheme();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -208,7 +209,7 @@ export default function SignupPage() {
             },
           }}
         >
-          {isLoading ? 'Processing...' : 'Sign up with Google'}
+          {isLoading ? 'Creating Account...' : 'Continue with Google'}
         </Button>
 
         <Divider sx={{ my: 0.5 }}>
@@ -248,7 +249,7 @@ export default function SignupPage() {
               },
             }}
           />
-          
+
           <TextField
             label="Email"
             name="email"
@@ -271,7 +272,7 @@ export default function SignupPage() {
               },
             }}
           />
-          
+
           <TextField
             label="Password"
             name="password"
@@ -309,7 +310,7 @@ export default function SignupPage() {
               mt: spacing.gap.xs,
             }}
           >
-            {isLoading ? 'Creating Account...' : 'Sign Up'}
+            {isLoading ? 'Creating Account...' : 'Create Account'}
           </Button>
         </Box>
 
@@ -321,7 +322,7 @@ export default function SignupPage() {
               href="/login" 
               style={{ 
                 color: theme.palette.primary.main, 
-                textDecoration: 'none', 
+                textDecoration: 'none',
                 fontWeight: 600 
               }}
             >
@@ -376,5 +377,13 @@ export default function SignupPage() {
         </Typography>
       </Box>
     </Box>
+  );
+}
+
+export default function SignupPage() {
+  return (
+    <SearchParamsWrapper>
+      <SignupPageContent />
+    </SearchParamsWrapper>
   );
 } 

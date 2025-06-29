@@ -18,8 +18,9 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { typography, spacing, borderRadius } from '@/styles/typography';
+import SearchParamsWrapper from '@/components/SearchParamsWrapper';
 
-export default function LoginPage() {
+function LoginPageContent() {
   const theme = useTheme();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -198,7 +199,12 @@ export default function LoginPage() {
             )}
             {error.includes('Incorrect password') && (
               <Typography variant="body2" color="text.secondary">
-                Make sure your password is correct and try again
+                Check your password and try again. <Link href="/forgot-password" style={{ color: 'inherit', textDecoration: 'underline' }}>Forgot your password?</Link>
+              </Typography>
+            )}
+            {error.includes('verify your email') && (
+              <Typography variant="body2" color="text.secondary">
+                Check your inbox for a verification link. <Link href="/signup" style={{ color: 'inherit', textDecoration: 'underline' }}>Need to sign up again?</Link>
               </Typography>
             )}
           </Box>
@@ -206,195 +212,144 @@ export default function LoginPage() {
       )}
 
       {success && (
-        <Alert severity="success" sx={{ mb: 2 }}>
+        <Alert 
+          severity="success" 
+          sx={{ mb: 2 }}
+        >
           {success}
         </Alert>
       )}
 
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
-        {/* Google Login Button */}
+      <Button
+        fullWidth
+        variant="outlined"
+        startIcon={<GoogleIcon />}
+        onClick={handleGoogleLogin}
+        disabled={isLoading}
+        sx={{
+          mb: 3,
+          py: 1.5,
+          borderRadius: 2,
+          textTransform: 'none',
+          fontWeight: 600,
+          fontSize: '1rem',
+          borderColor: theme.palette.grey[300],
+          color: theme.palette.text.primary,
+          '&:hover': {
+            borderColor: theme.palette.grey[400],
+            backgroundColor: theme.palette.grey[50],
+          },
+        }}
+      >
+        Continue with Google
+      </Button>
+
+      <Divider sx={{ mb: 3 }}>
+        <Typography variant="body2" color="text.secondary">
+          or
+        </Typography>
+      </Divider>
+
+      <Box component="form" onSubmit={handleEmailLogin}>
+        <TextField
+          fullWidth
+          label="Email"
+          name="email"
+          type="email"
+          value={formData.email}
+          onChange={handleInputChange}
+          required
+          sx={{
+            mb: 2,
+            '& .MuiOutlinedInput-root': {
+              borderRadius: borderRadius.medium,
+              ...typography.input,
+            },
+            '& .MuiInputLabel-root': {
+              ...typography.label,
+            },
+            '& .MuiOutlinedInput-input': {
+              padding: spacing.input,
+            },
+          }}
+        />
+
+        <TextField
+          fullWidth
+          label="Password"
+          name="password"
+          type="password"
+          value={formData.password}
+          onChange={handleInputChange}
+          required
+          sx={{
+            mb: 3,
+            '& .MuiOutlinedInput-root': {
+              borderRadius: borderRadius.medium,
+              ...typography.input,
+            },
+            '& .MuiInputLabel-root': {
+              ...typography.label,
+            },
+            '& .MuiOutlinedInput-input': {
+              padding: spacing.input,
+            },
+          }}
+        />
+
         <Button
           fullWidth
-          variant="outlined"
-          startIcon={<GoogleIcon />}
-          onClick={handleGoogleLogin}
+          type="submit"
+          variant="contained"
+          startIcon={<EmailIcon />}
           disabled={isLoading}
           sx={{
+            py: 1.5,
+            borderRadius: 2,
+            textTransform: 'none',
             ...typography.button,
             padding: spacing.button,
-            borderRadius: borderRadius.medium,
-            textTransform: 'none',
-            borderColor: theme.palette.divider,
-            color: theme.palette.text.primary,
-            '&:hover': {
-              borderColor: 'primary.main',
-              backgroundColor: 'rgba(25, 118, 210, 0.04)',
-            },
-            '&:disabled': {
-              opacity: 0.5,
-            },
           }}
         >
-          {isLoading ? 'Signing in...' : 'Continue with Google'}
+          {isLoading ? 'Signing In...' : 'Sign In'}
         </Button>
+      </Box>
 
-        <Divider sx={{ my: 0.5 }}>
-          <Typography variant="body1" color="text.secondary" sx={{ ...typography.body }}>
-            Or sign in with email
-          </Typography>
-        </Divider>
-
-        {/* Email Login Form */}
-        <Box
-          component="form"
-          onSubmit={handleEmailLogin}
-          sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 1,
-          }}
-        >
-          <TextField
-            label="Email"
-            name="email"
-            type="email"
-            value={formData.email}
-            onChange={handleInputChange}
-            fullWidth
-            required
-            disabled={isLoading}
-            sx={{
-              '& .MuiOutlinedInput-root': {
-                borderRadius: borderRadius.medium,
-                ...typography.input,
-              },
-              '& .MuiInputLabel-root': {
-                ...typography.label,
-              },
-              '& .MuiOutlinedInput-input': {
-                padding: spacing.input,
-              },
-            }}
-          />
-          
-          <TextField
-            label="Password"
-            name="password"
-            type="password"
-            value={formData.password}
-            onChange={handleInputChange}
-            fullWidth
-            required
-            disabled={isLoading}
-            sx={{
-              '& .MuiOutlinedInput-root': {
-                borderRadius: borderRadius.medium,
-                ...typography.input,
-              },
-              '& .MuiInputLabel-root': {
-                ...typography.label,
-              },
-              '& .MuiOutlinedInput-input': {
-                padding: spacing.input,
-              },
-            }}
-          />
-
-          {/* Forgot Password Link */}
-          <Box sx={{ textAlign: 'right', mt: -0.5 }}>
-            <Link 
-              href="/forgot-password" 
-              style={{ 
-                color: theme.palette.primary.main, 
-                textDecoration: 'none', 
-                fontSize: '0.875rem',
-                fontWeight: 500,
-              }}
-            >
-              Forgot password?
-            </Link>
-          </Box>
-
-          <Button
-            type="submit"
-            variant="contained"
-            fullWidth
-            disabled={isLoading}
-            startIcon={<EmailIcon />}
-            sx={{
-              ...typography.button,
-              padding: spacing.button,
-              borderRadius: borderRadius.medium,
-              textTransform: 'none',
-              mt: spacing.gap.xs,
-            }}
-          >
-            {isLoading ? 'Signing in...' : 'Sign In'}
-          </Button>
-        </Box>
-
-        {/* Links */}
-        <Box sx={{ textAlign: 'center', mt: 1 }}>
-          <Typography sx={{ ...typography.body, color: 'text.secondary', mb: 0.5 }}>
-            Don't have an account?{' '}
-            <Link 
-              href="/signup" 
-              style={{ 
-                color: theme.palette.primary.main, 
-                textDecoration: 'none', 
-                fontWeight: 600 
-              }}
-            >
-              Sign Up
-            </Link>
-          </Typography>
-
-          <Typography sx={{ ...typography.body }}>
-            <Link 
-              href="/" 
-              style={{ 
-                color: theme.palette.primary.main, 
-                textDecoration: 'none', 
-                fontWeight: 600 
-              }}
-            >
-              ← Back to Home
-            </Link>
-          </Typography>
-        </Box>
-
-        {/* Terms and Privacy */}
-        <Typography 
-          variant="body2" 
-          align="center"
-          sx={{ 
-            color: 'text.secondary',
-            ...typography.caption,
-            mt: spacing.gap,
-          }}
-        >
-          By continuing, you agree to our{' '}
+      <Box sx={{ mt: 3, textAlign: 'center' }}>
+        <Typography variant="body2" color="text.secondary">
+          Don't have an account?{' '}
           <Link 
-            href="/terms" 
+            href="/signup" 
             style={{ 
               color: theme.palette.primary.main, 
-              textDecoration: 'none' 
+              textDecoration: 'none',
+              fontWeight: 600,
             }}
           >
-            Terms of Service
+            Sign up
           </Link>
-          {' '}and{' '}
+        </Typography>
+        
+        <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
           <Link 
-            href="/privacy" 
+            href="/forgot-password" 
             style={{ 
               color: theme.palette.primary.main, 
-              textDecoration: 'none' 
+              textDecoration: 'none',
             }}
           >
-            Privacy Policy
+            Forgot your password?
           </Link>
         </Typography>
       </Box>
     </Box>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <SearchParamsWrapper>
+      <LoginPageContent />
+    </SearchParamsWrapper>
   );
 } 

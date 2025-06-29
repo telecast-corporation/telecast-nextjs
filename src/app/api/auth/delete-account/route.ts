@@ -20,34 +20,37 @@ export async function DELETE(request: Request) {
       where: { email: session.user.email },
     });
 
-    if (!user) {
+    if (!user || !user.email) {
       return NextResponse.json(
         { error: 'User not found' },
         { status: 404 }
       );
     }
 
+    // At this point, we know user.email is not null
+    const userEmail = user.email;
+
     // Delete user and all related data in a transaction
     await prisma.$transaction(async (tx) => {
       // Delete verification tokens
       await tx.verificationToken.deleteMany({
-        where: { identifier: user.email },
+        where: { identifier: userEmail },
       });
 
       // Delete password reset tokens
       await tx.passwordResetToken.deleteMany({
-        where: { email: user.email },
+        where: { email: userEmail },
       });
 
       // Delete the user
       await tx.user.delete({
-        where: { email: user.email },
+        where: { email: userEmail },
       });
     });
 
     // Send deletion confirmation email
     try {
-      await sendAccountDeletionEmail(user.email, user.name || 'User');
+      await sendAccountDeletionEmail(userEmail, user.name || 'User');
     } catch (emailError) {
       console.error('Failed to send account deletion email:', emailError);
       // Continue with deletion even if email fails

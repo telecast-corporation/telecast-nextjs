@@ -23,6 +23,7 @@ import { Search as SearchIcon, Headphones as HeadphonesIcon, VideoLibrary as Vid
 import Link from 'next/link';
 import Image from 'next/image';
 import StarIcon from '@mui/icons-material/Star';
+import SearchParamsWrapper from '@/components/SearchParamsWrapper';
 
 interface TrendingItem {
     id: string;
@@ -158,7 +159,7 @@ function ContentCarousel({ title, items, onItemClick }: ContentCarouselProps) {
   );
 }
 
-export default function HomePage() {
+function HomePageContent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -321,5 +322,13 @@ export default function HomePage() {
         </Alert>
       </Snackbar>
     </Container>
+  );
+}
+
+export default function HomePage() {
+  return (
+    <SearchParamsWrapper>
+      <HomePageContent />
+    </SearchParamsWrapper>
   );
 }
