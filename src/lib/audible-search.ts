@@ -267,7 +267,11 @@ export async function searchAudible(query: string, maxResults: number = 40) {
         const id = `audible_${Date.now()}_${i}`;
 
         // Clean up the URL to remove tracking parameters that might cause issues
-        const cleanUrl = fullAudibleUrl.split('?')[0]; // Remove all query parameters
+        // Extract just the base product ID from the URL
+        const urlMatch = audibleUrl.match(/\/pd\/([^?]+)/);
+        const cleanUrl = urlMatch 
+          ? `https://www.audible.ca/pd/${urlMatch[1]}`
+          : fullAudibleUrl.split('?')[0]; // Fallback: remove all query parameters
 
         const bookData = {
           id,
