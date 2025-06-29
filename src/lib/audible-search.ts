@@ -19,8 +19,8 @@ export async function searchAudible(query: string, maxResults: number = 40) {
     console.log('🔍 Environment:', process.env.NODE_ENV);
     console.log('🔍 Max results:', maxResults);
 
-    // Use a more consistent search URL with fewer parameters
-    const searchUrl = `https://www.audible.ca/search?keywords=${encodeURIComponent(query)}&ref=a_search_c1_header_0_1_1_1&pf_rd_p=1d79b443-2f1d-43a3-b1dc-31a2cd242566&pf_rd_r=1&pf_rd_s=center-1&pf_rd_t=101&pf_rd_i=audible-search&pf_rd_m=A2ZO8JX97D5MN9&pf_rd_q=1`;
+    // Use a simpler search URL with minimal parameters
+    const searchUrl = `https://www.audible.ca/search?keywords=${encodeURIComponent(query)}`;
 
     console.log('🔍 Search URL:', searchUrl);
 
