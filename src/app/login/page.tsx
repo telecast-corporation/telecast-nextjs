@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -14,19 +14,73 @@ import {
   Google as GoogleIcon,
   Email as EmailIcon,
 } from '@mui/icons-material';
-import { useRouter } from 'next/navigation';
-import { signIn } from 'next-auth/react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { useAuth } from '@/contexts/AuthContext';
 import { typography, spacing, borderRadius } from '@/styles/typography';
 
 export default function LoginPage() {
   const theme = useTheme();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const { login, isAuthenticated, isLoading: authLoading } = useAuth();
+  
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+  });
+
+  // Check for success message from signup
+  useEffect(() => {
+    const message = searchParams.get('message');
+    if (message) {
+      setSuccess(decodeURIComponent(message));
+    }
+  }, [searchParams]);
+
+  // Check for error message from Google OAuth
+  useEffect(() => {
+    const error = searchParams.get('error');
+    const email = searchParams.get('email');
+    
+    if (error === 'no_account' && email) {
+      setError(`No account found with Google email "${email}". Please sign up first.`);
+      // Clear the error from URL
+      router.replace('/login', { scroll: false });
+    }
+  }, [searchParams, router]);
+
+  // Redirect authenticated users to main page
+  useEffect(() => {
+    if (!authLoading && isAuthenticated) {
+      router.push('/');
+    }
+  }, [isAuthenticated, authLoading, router]);
+
+  // Show loading while checking authentication
+  if (authLoading) {
+    return (
+      <Box
+        sx={{
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          bgcolor: 'background.default',
+        }}
+      >
+        <Typography>Loading...</Typography>
+      </Box>
+    );
+  }
+
+  // Don't render login form if user is already authenticated
+  if (isAuthenticated) {
+    return null;
+  }
 
   const handleGoogleLogin = async () => {
     try {
@@ -34,18 +88,10 @@ export default function LoginPage() {
       setError(null);
       setSuccess(null);
       
-      const result = await signIn('google', {
-        callbackUrl: '/',
-        redirect: false,
-      });
-
-      if (result?.error) {
-        setError('Google login failed. Please try again.');
-      } else if (result?.url) {
-        router.push(result.url);
-      }
+      await login('google');
+      // NextAuth will handle the redirect automatically to the main page
     } catch (err) {
-      setError('An unexpected error occurred.');
+      setError(err instanceof Error ? err.message : 'Google login failed. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -58,31 +104,32 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+      await login('credentials', {
+        email: formData.email,
+        password: formData.password,
       });
-
-      const data = await res.json();
-
-      if (res.ok) {
-        setSuccess('Login successful! Redirecting...');
-        setTimeout(() => {
-          router.push('/');
-        }, 1000);
-      } else {
-        setError(data.error || 'Login failed');
-      }
+      // Redirect to main page after successful login
+      router.push('/');
     } catch (err) {
-      setError('An unexpected error occurred.');
+      const errorMessage = err instanceof Error ? err.message : 'Authentication failed';
+      setError(errorMessage);
+      
+      // Clear password field on error for security
+      setFormData(prev => ({ ...prev, password: '' }));
     } finally {
       setIsLoading(false);
     }
   };
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData(prev => ({
+      ...prev,
+      [e.target.name]: e.target.value,
+    }));
+  };
+
   return (
-        <Box
+    <Box
       sx={{
         maxWidth: { xs: '90%', sm: '450px', md: '500px', lg: '550px' },
         mx: 'auto',
@@ -121,8 +168,40 @@ export default function LoginPage() {
       </Typography>
 
       {error && (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {error}
+        <Alert 
+          severity="error" 
+          sx={{ 
+            mb: 2,
+            '& .MuiAlert-message': {
+              width: '100%'
+            }
+          }}
+        >
+          <Box>
+            <Typography variant="body2" sx={{ fontWeight: 500, mb: 0.5 }}>
+              {error}
+            </Typography>
+            {error.includes('No account found') && (
+              <Typography variant="body2" color="text.secondary">
+                Don't have an account? <Link href="/signup" style={{ color: 'inherit', textDecoration: 'underline' }}>Sign up here</Link>
+              </Typography>
+            )}
+            {error.includes('Google email') && (
+              <Typography variant="body2" color="text.secondary">
+                This Google account is not registered. <Link href="/signup" style={{ color: 'inherit', textDecoration: 'underline' }}>Sign up with Google</Link> to create an account.
+              </Typography>
+            )}
+            {error.includes('Google account') && (
+              <Typography variant="body2" color="text.secondary">
+                Try signing in with Google instead
+              </Typography>
+            )}
+            {error.includes('Incorrect password') && (
+              <Typography variant="body2" color="text.secondary">
+                Make sure your password is correct and try again
+              </Typography>
+            )}
+          </Box>
         </Alert>
       )}
 
@@ -177,9 +256,10 @@ export default function LoginPage() {
         >
           <TextField
             label="Email"
+            name="email"
             type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            value={formData.email}
+            onChange={handleInputChange}
             fullWidth
             required
             disabled={isLoading}
@@ -199,9 +279,10 @@ export default function LoginPage() {
           
           <TextField
             label="Password"
+            name="password"
             type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            value={formData.password}
+            onChange={handleInputChange}
             fullWidth
             required
             disabled={isLoading}
@@ -218,6 +299,21 @@ export default function LoginPage() {
               },
             }}
           />
+
+          {/* Forgot Password Link */}
+          <Box sx={{ textAlign: 'right', mt: -0.5 }}>
+            <Link 
+              href="/forgot-password" 
+              style={{ 
+                color: theme.palette.primary.main, 
+                textDecoration: 'none', 
+                fontSize: '0.875rem',
+                fontWeight: 500,
+              }}
+            >
+              Forgot password?
+            </Link>
+          </Box>
 
           <Button
             type="submit"
@@ -249,7 +345,7 @@ export default function LoginPage() {
                 fontWeight: 600 
               }}
             >
-              Sign up
+              Sign Up
             </Link>
           </Typography>
 

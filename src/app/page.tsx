@@ -14,8 +14,9 @@ import {
   IconButton,
   useTheme,
   useMediaQuery,
+  Snackbar,
 } from '@mui/material';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import { Search as SearchIcon, Headphones as HeadphonesIcon, VideoLibrary as VideoIcon, MusicNote as MusicIcon, MenuBook as BookIcon } from '@mui/icons-material';
@@ -160,6 +161,7 @@ function ContentCarousel({ title, items, onItemClick }: ContentCarouselProps) {
 export default function HomePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [trendingContent, setTrendingContent] = useState<{
     videos: TrendingItem[];
     music: TrendingItem[];
@@ -172,6 +174,26 @@ export default function HomePage() {
     podcasts: [],
   });
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Check for success message from signup
+  useEffect(() => {
+    const success = searchParams.get('success');
+    const message = searchParams.get('message');
+    
+    if (success === 'true' || message) {
+      const displayMessage = message || 'Account created successfully! Welcome to Telecast!';
+      setSuccessMessage(displayMessage);
+      
+      // Clear the success parameter from URL
+      router.replace('/', { scroll: false });
+      
+      // Auto-hide success message after 5 seconds
+      setTimeout(() => {
+        setSuccessMessage(null);
+      }, 5000);
+    }
+  }, [searchParams, router]);
 
   useEffect(() => {
     const fetchTrendingContent = async () => {
@@ -282,6 +304,22 @@ export default function HomePage() {
         items={trendingContent.podcasts}
         onItemClick={handleItemClick}
       />
+      
+      {/* Success Message Snackbar */}
+      <Snackbar
+        open={!!successMessage}
+        autoHideDuration={5000}
+        onClose={() => setSuccessMessage(null)}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert 
+          onClose={() => setSuccessMessage(null)} 
+          severity="success" 
+          sx={{ width: '100%' }}
+        >
+          {successMessage}
+        </Alert>
+      </Snackbar>
     </Container>
   );
 }

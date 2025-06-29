@@ -1,78 +1,136 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import {
+  Box,
+  Typography,
+  Button,
+  Divider,
+  TextField,
+  Alert,
+  useTheme,
+} from '@mui/material';
+import {
+  Google as GoogleIcon,
+  Email as EmailIcon,
+} from '@mui/icons-material';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { useAuth } from '@/contexts/AuthContext';
 import { typography, spacing, borderRadius } from '@/styles/typography';
-import { Box, Typography, Button, useTheme, Divider, Alert } from '@mui/material';
-import { Google as GoogleIcon, Email as EmailIcon } from '@mui/icons-material';
 import { signIn } from 'next-auth/react';
 
-export default function SignUp() {
+export default function SignupPage() {
   const theme = useTheme();
-  const [username, setUsername] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { signup, googleSignup, isAuthenticated, isLoading: authLoading } = useAuth();
+  
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    username: '',
+    email: '',
+    password: '',
+  });
+
+  // Redirect authenticated users to main page
+  useEffect(() => {
+    if (!authLoading && isAuthenticated) {
+      router.push('/');
+    }
+  }, [isAuthenticated, authLoading, router]);
+
+  // Check for error message from Google OAuth
+  useEffect(() => {
+    const error = searchParams.get('error');
+    const email = searchParams.get('email');
+    
+    if (error === 'account_exists' && email) {
+      setError(`An account with Google email "${email}" already exists. Please sign in instead.`);
+      // Clear the error from URL
+      router.replace('/signup', { scroll: false });
+    }
+  }, [searchParams, router]);
+
+  // Check for success message from Google OAuth
+  useEffect(() => {
+    const success = searchParams.get('success');
+    if (success === 'true') {
+      setSuccess('Account created successfully! Redirecting to main page...');
+      // Redirect to main page after a brief delay
+      setTimeout(() => {
+        router.push('/');
+      }, 2000);
+    }
+  }, [searchParams, router]);
+
+  // Show loading while checking authentication
+  if (authLoading) {
+    return (
+      <Box
+        sx={{
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          bgcolor: 'background.default',
+        }}
+      >
+        <Typography>Loading...</Typography>
+      </Box>
+    );
+  }
+
+  // Don't render signup form if user is already authenticated
+  if (isAuthenticated) {
+    return null;
+  }
 
   const handleGoogleSignup = async () => {
     try {
-      setLoading(true);
+      setIsLoading(true);
       setError(null);
       setSuccess(null);
       
-      const result = await signIn('google', {
+      // Start Google OAuth flow - it will create account and redirect to main page
+      await signIn('google', { 
         callbackUrl: '/',
-        redirect: false,
       });
-
-      if (result?.error) {
-        setError('Google signup failed. Please try again.');
-      } else if (result?.url) {
-        router.push(result.url);
-      }
     } catch (err) {
-      setError('An unexpected error occurred.');
+      setError(err instanceof Error ? err.message : 'Google signup failed');
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleEmailSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
     setError(null);
     setSuccess(null);
-    
+    setIsLoading(true);
+
     try {
-      const res = await fetch('/api/auth/signup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ username, email, password })
-      });
-      const data = await res.json();
-      
-      if (!res.ok) {
-        throw new Error(data.error || 'Sign up failed');
+      const result = await signup(formData);
+      if (result.success) {
+        setSuccess('Account created successfully. Please check your email to verify your account.');
+        setFormData({ username: '', email: '', password: '' });
+      } else {
+        setError(result.message);
       }
-      
-      // Show success message instead of redirecting
-      setSuccess(data.message || 'Account created successfully! You can now log in.');
-      
-      // Clear form
-      setUsername('');
-      setEmail('');
-      setPassword('');
-      
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Signup failed');
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData(prev => ({
+      ...prev,
+      [e.target.name]: e.target.value,
+    }));
   };
 
   return (
@@ -99,9 +157,9 @@ export default function SignUp() {
           mb: 1,
         }}
       >
-        Create your account
+        Create Account
       </Typography>
-
+      
       <Typography 
         variant="body1" 
         align="center"
@@ -111,14 +169,8 @@ export default function SignUp() {
           mb: 1,
         }}
       >
-        Join us to start your journey
+        Sign up to get started with your account
       </Typography>
-      
-      <style jsx global>{`
-        input::placeholder {
-          font-size: 0.9rem !important;
-        }
-      `}</style>
 
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
@@ -139,7 +191,7 @@ export default function SignUp() {
           variant="outlined"
           startIcon={<GoogleIcon />}
           onClick={handleGoogleSignup}
-          disabled={loading}
+          disabled={isLoading}
           sx={{
             ...typography.button,
             padding: spacing.button,
@@ -156,7 +208,7 @@ export default function SignUp() {
             },
           }}
         >
-          {loading ? 'Signing up...' : 'Continue with Google'}
+          {isLoading ? 'Processing...' : 'Sign up with Google'}
         </Button>
 
         <Divider sx={{ my: 0.5 }}>
@@ -168,104 +220,96 @@ export default function SignUp() {
         {/* Email Signup Form */}
         <Box
           component="form"
-          onSubmit={handleSubmit}
-          sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}
+          onSubmit={handleEmailSignup}
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 1,
+          }}
         >
-        <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-          <Typography component="label" htmlFor="username" sx={{ mb: 0.5, ...typography.subheading, color: 'text.primary' }}>
-            Username
-          </Typography>
-          <input
-            type="text"
-            id="username"
+          <TextField
+            label="Username"
             name="username"
+            value={formData.username}
+            onChange={handleInputChange}
+            fullWidth
             required
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            placeholder="Enter your username"
-            style={{
-              padding: '0.75rem',
-              border: `1px solid ${theme.palette.divider}`,
-              borderRadius: borderRadius.medium,
-              backgroundColor: theme.palette.background.default,
-              color: theme.palette.text.primary,
-              fontSize: typography.input.fontSize.lg || '0.9rem',
-              fontFamily: 'inherit',
-              outline: 'none',
-              transition: 'border-color 0.2s',
+            disabled={isLoading}
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                borderRadius: borderRadius.medium,
+                ...typography.input,
+              },
+              '& .MuiInputLabel-root': {
+                ...typography.label,
+              },
+              '& .MuiOutlinedInput-input': {
+                padding: spacing.input,
+              },
             }}
           />
-        </Box>
-
-        <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-          <Typography component="label" htmlFor="email" sx={{ mb: 0.5, ...typography.subheading, color: 'text.primary' }}>
-            Email
-          </Typography>
-          <input
-            type="email"
-            id="email"
+          
+          <TextField
+            label="Email"
             name="email"
-            autoComplete="email"
+            type="email"
+            value={formData.email}
+            onChange={handleInputChange}
+            fullWidth
             required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="Enter your email"
-            style={{
-              padding: '0.75rem',
-              border: `1px solid ${theme.palette.divider}`,
-              borderRadius: borderRadius.medium,
-              backgroundColor: theme.palette.background.default,
-              color: theme.palette.text.primary,
-              fontSize: typography.input.fontSize.lg || '0.9rem',
-              fontFamily: 'inherit',
-              outline: 'none',
-              transition: 'border-color 0.2s',
+            disabled={isLoading}
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                borderRadius: borderRadius.medium,
+                ...typography.input,
+              },
+              '& .MuiInputLabel-root': {
+                ...typography.label,
+              },
+              '& .MuiOutlinedInput-input': {
+                padding: spacing.input,
+              },
             }}
           />
-        </Box>
-
-        <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-          <Typography component="label" htmlFor="password" sx={{ mb: 0.5, ...typography.subheading, color: 'text.primary' }}>
-            Password
-          </Typography>
-          <input
-            type="password"
-            id="password"
+          
+          <TextField
+            label="Password"
             name="password"
-            autoComplete="new-password"
+            type="password"
+            value={formData.password}
+            onChange={handleInputChange}
+            fullWidth
             required
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Enter your password"
-            style={{
-              padding: '0.75rem',
-              border: `1px solid ${theme.palette.divider}`,
-              borderRadius: borderRadius.medium,
-              backgroundColor: theme.palette.background.default,
-              color: theme.palette.text.primary,
-              fontSize: typography.input.fontSize.lg || '0.9rem',
-              fontFamily: 'inherit',
-              outline: 'none',
-              transition: 'border-color 0.2s',
+            disabled={isLoading}
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                borderRadius: borderRadius.medium,
+                ...typography.input,
+              },
+              '& .MuiInputLabel-root': {
+                ...typography.label,
+              },
+              '& .MuiOutlinedInput-input': {
+                padding: spacing.input,
+              },
             }}
           />
-        </Box>
 
           <Button
             type="submit"
             variant="contained"
             fullWidth
-            disabled={loading}
+            disabled={isLoading}
             startIcon={<EmailIcon />}
             sx={{
               ...typography.button,
               padding: spacing.button,
               borderRadius: borderRadius.medium,
               textTransform: 'none',
-              mt: 1,
+              mt: spacing.gap.xs,
             }}
           >
-            {loading ? 'Creating account...' : 'Sign Up'}
+            {isLoading ? 'Creating Account...' : 'Sign Up'}
           </Button>
         </Box>
 
@@ -281,7 +325,7 @@ export default function SignUp() {
                 fontWeight: 600 
               }}
             >
-              Sign in
+              Sign In
             </Link>
           </Typography>
 
@@ -298,6 +342,38 @@ export default function SignUp() {
             </Link>
           </Typography>
         </Box>
+
+        {/* Terms and Privacy */}
+        <Typography 
+          variant="body2" 
+          align="center"
+          sx={{ 
+            color: 'text.secondary',
+            ...typography.caption,
+            mt: spacing.gap,
+          }}
+        >
+          By continuing, you agree to our{' '}
+          <Link 
+            href="/terms" 
+            style={{ 
+              color: theme.palette.primary.main, 
+              textDecoration: 'none' 
+            }}
+          >
+            Terms of Service
+          </Link>
+          {' '}and{' '}
+          <Link 
+            href="/privacy" 
+            style={{ 
+              color: theme.palette.primary.main, 
+              textDecoration: 'none' 
+            }}
+          >
+            Privacy Policy
+          </Link>
+        </Typography>
       </Box>
     </Box>
   );
