@@ -946,32 +946,30 @@ const MainNav = memo(() => {
     <>
       <GridNav>
         <LogoArea>
-          <Link href="/" passHref>
+          <Link href="/" style={{ textDecoration: 'none' }}>
             <Box
-              component="a"
-      sx={{ 
-                      display: 'flex',
-                      alignItems: 'center',
-                textDecoration: 'none',
-                    }}
-                  >
-                    <Image
-                      src="/telecast-logo.gif"
-                      alt="Telecast Logo"
-                      width={500}
-                      height={500}
-                      style={{
-                        width: '100%',
-                        height: 'auto',
-                        maxWidth: '180px',
-                        maxHeight: '60px',
-                        objectFit: 'contain',
-                      }}
-                      sizes="(max-width: 600px) 120px, (max-width: 900px) 160px, 180px"
-                    />
-                  </Box>
-                </Link>
-      </LogoArea>
+              sx={{ 
+                display: 'flex',
+                alignItems: 'center',
+              }}
+            >
+              <Image
+                src="/telecast-logo.gif"
+                alt="Telecast Logo"
+                width={500}
+                height={500}
+                style={{
+                  width: '100%',
+                  height: 'auto',
+                  maxWidth: '180px',
+                  maxHeight: '60px',
+                  objectFit: 'contain',
+                }}
+                sizes="(max-width: 600px) 120px, (max-width: 900px) 160px, 180px"
+              />
+            </Box>
+          </Link>
+        </LogoArea>
 
           <SearchContainer ref={searchBoxRef}>
             <Box className="search-icon">
@@ -1038,35 +1036,32 @@ const MainNav = memo(() => {
             {isDarkMode ? <LightModeIcon /> : <DarkModeIcon />}
           </IconButton>
 
-          <Link href="/about" passHref>
-            <Button 
-              variant="text"
-              className="nav-button"
-              sx={getNavButtonStyles(theme, pathname, '/about')}
-            >
-              About
-            </Button>
-          </Link>
+          <Button 
+            variant="text"
+            className="nav-button"
+            onClick={() => router.push('/about')}
+            sx={getNavButtonStyles(theme, pathname, '/about')}
+          >
+            About
+          </Button>
 
-          <Link href="/services" passHref>
-            <Button
-              variant="text"
-              className="nav-button"
-              sx={getNavButtonStyles(theme, pathname, '/services')}
-            >
-              Services
-            </Button>
-          </Link>
+          <Button
+            variant="text"
+            className="nav-button"
+            onClick={() => router.push('/services')}
+            sx={getNavButtonStyles(theme, pathname, '/services')}
+          >
+            Services
+          </Button>
 
-          <Link href="/contact" passHref>
-            <Button 
-              variant="text"
-              className="nav-button"
-              sx={getNavButtonStyles(theme, pathname, '/contact')}
-            >
-              Contact
-            </Button>
-          </Link>
+          <Button 
+            variant="text"
+            className="nav-button"
+            onClick={() => router.push('/contact')}
+            sx={getNavButtonStyles(theme, pathname, '/contact')}
+          >
+            Contact
+          </Button>
 
           {isAuthenticated ? (
             <Tooltip title="Profile">
@@ -1100,15 +1095,14 @@ const MainNav = memo(() => {
                       </IconButton>
             </Tooltip>
                   ) : (
-            <Link href="/login" passHref>
             <Button
               variant="text"
-                className="nav-button"
+              className="nav-button"
+              onClick={() => router.push('/login')}
               sx={getNavButtonStyles(theme, pathname, '/login')}
             >
-                Sign In
+              Sign In
             </Button>
-            </Link>
             )}
         </NavGroup>
 

@@ -144,6 +144,47 @@ export default function SearchResults() {
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
+      {/* CTA for podcast recording */}
+      {type === 'podcast' && (
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 4 }}>
+          <a href="/record" style={{ textDecoration: 'none' }}>
+            <Box
+              component="button"
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 2,
+                background: '#ff9800',
+                color: '#fff',
+                px: 7,
+                py: 3,
+                borderRadius: 1,
+                fontWeight: 900,
+                fontSize: { xs: '1.5rem', sm: '1.9rem' },
+                border: 'none',
+                boxShadow: '0 6px 24px 0 rgba(255, 152, 0, 0.18)',
+                cursor: 'pointer',
+                transition: 'background 0.2s, box-shadow 0.2s, transform 0.1s',
+                letterSpacing: 1,
+                mt: 2,
+                mb: 1,
+                '&:hover': {
+                  background: '#fb8c00',
+                  boxShadow: '0 10px 32px 0 rgba(255, 152, 0, 0.28)',
+                  transform: 'translateY(-2px) scale(1.03)',
+                },
+              }}
+            >
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none"><path d="M12 17C14.7614 17 17 14.7614 17 12V7C17 4.23858 14.7614 2 12 2C9.23858 2 7 4.23858 7 7V12C7 14.7614 9.23858 17 12 17Z" fill="white"/><path d="M19 11.9999C19 16.4182 15.4183 19.9999 11 19.9999C6.58172 19.9999 3 16.4182 3 11.9999" stroke="white" strokeWidth="2" strokeLinecap="round"/><path d="M12 22V20" stroke="white" strokeWidth="2" strokeLinecap="round"/></svg>
+              Make Your Own Podcast with Telecast
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" style={{ marginLeft: 8 }}><path d="M5 12h14M13 6l6 6-6 6" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            </Box>
+          </a>
+          <Box sx={{ textAlign: 'center', color: '#ff9800', fontWeight: 700, fontSize: 17, mt: 1, letterSpacing: 0.5, textShadow: '0 1px 8px rgba(255,152,0,0.08)' }}>
+            No experience needed. One click to start!
+          </Box>
+        </Box>
+      )}
       {query && (
         <Typography variant="h4" component="h1" gutterBottom>
           Search Results for "{query}"
