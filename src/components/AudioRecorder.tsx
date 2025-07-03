@@ -87,8 +87,8 @@ export default function AudioRecorder() {
             mr: 2,
             minWidth: 0,
           }}>
-            <InfoOutlinedIcon color="primary" sx={{ mr: 1.5, fontSize: 22, flexShrink: 0 }} />
-            <Typography variant="body2" color="text.secondary" sx={{ fontFamily: 'inherit', fontWeight: 500, fontSize: 15, lineHeight: 1.6, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            <InfoOutlinedIcon color="primary" sx={{ mr: 1.5, fontSize: 24, flexShrink: 0 }} />
+            <Typography variant="body1" color="text.secondary" sx={{ fontFamily: 'inherit', fontWeight: 500, fontSize: 16, lineHeight: 1.6, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               Your audio will be hosted on <b>Telecast</b> and, with our broadcasting service, can be distributed to <b>Spotify</b>, <b>Apple Podcasts</b>, <b>Google Podcasts</b>, and more.
             </Typography>
           </Box>
@@ -102,7 +102,7 @@ export default function AudioRecorder() {
               fontWeight: 600,
               px: 3,
               py: 1,
-              fontSize: 14,
+              fontSize: 16,
               borderWidth: 1.5,
               minWidth: 120,
               '&:hover': {
@@ -130,8 +130,8 @@ export default function AudioRecorder() {
         }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
             <Box sx={{
-              width: 32,
-              height: 32,
+              width: 36,
+              height: 36,
               borderRadius: '50%',
               bgcolor: theme.palette.primary.main,
               color: '#fff',
@@ -139,12 +139,12 @@ export default function AudioRecorder() {
               alignItems: 'center',
               justifyContent: 'center',
               fontWeight: 700,
-              fontSize: 18,
+              fontSize: 20,
               mr: 1,
             }}>
               2
             </Box>
-            <Typography variant="body1" color="text.primary" sx={{ fontFamily: 'inherit', fontWeight: 600, fontSize: 16 }}>
+            <Typography variant="subtitle1" color="text.primary" sx={{ fontFamily: 'inherit', fontWeight: 600, fontSize: 18 }}>
               Ready to share? Go to <b>Broadcast</b> after editing.
             </Typography>
           </Box>
@@ -154,7 +154,7 @@ export default function AudioRecorder() {
             href="/broadcast"
             sx={{
               fontWeight: 700,
-              fontSize: 16,
+              fontSize: 18,
               px: 3,
               py: 1.2,
               borderRadius: 2,
@@ -191,7 +191,7 @@ export default function AudioRecorder() {
               justifyContent: 'center',
             }}>
               <CircularProgress size={48} color="primary" />
-              <Typography variant="body1" color="text.secondary" sx={{ mt: 2, fontWeight: 500 }}>
+              <Typography variant="h6" color="text.secondary" sx={{ mt: 2, fontWeight: 500 }}>
                 Loading professional editor...
               </Typography>
             </Box>
@@ -222,7 +222,7 @@ export default function AudioRecorder() {
           borderTop: `1px solid ${theme.palette.divider}`,
           mt: 1,
         }}>
-          <Typography variant="body2" color="text.secondary" sx={{ fontFamily: 'inherit', fontWeight: 500, fontSize: 16 }}>
+          <Typography variant="body1" color="text.secondary" sx={{ fontFamily: 'inherit', fontWeight: 500, fontSize: 18 }}>
             Powered by AudioMass
           </Typography>
         </Box>
