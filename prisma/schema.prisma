@@ -3,24 +3,26 @@ generator client {
 }
 
 datasource db {
-    provider = "postgresql"
-    url      = env("DATABASE_URL")
-  }
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
 
 model User {
-  id            String    @id @default(cuid())
-  email         String?   @unique
-  name          String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  image         String?
-  password      String?
-  emailVerified Boolean? @default(false)
-  verifyToken   String?   @unique
+  id                 String            @id @default(cuid())
+  email              String?           @unique
+  name               String?
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+  image              String?
+  password           String?
+  emailVerified      Boolean?          @default(false)
+  verifyToken        String?           @unique
   verifyTokenExpires DateTime?
-  accounts      Account[]
-  podcasts      Podcast[]
-  sessions      Session[]
+  accounts           Account[]
+  podcasts           Podcast[]
+  telecastPodcasts   TelecastPodcast[]
+  sessions           Session[]
+  recordings         Recording[]
 }
 
 model Account {
@@ -37,6 +39,7 @@ model Account {
   id_token          String?
   session_state     String?
   user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@unique([provider, providerAccountId])
 }
 
@@ -68,28 +71,28 @@ model PasswordResetToken {
 }
 
 model Podcast {
-  id            String    @id @default(cuid())
-  title         String
-  description   String
-  imageUrl      String
-  userId        String
-  author        String
-  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  episodes      Episode[]
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  published     Boolean   @default(false)
-  tags          String[]
-  category      String
-  views         Int       @default(0)
-  likes         Int       @default(0)
-  language      String    @default("en")
-  explicit      Boolean   @default(false)
-  copyright     String?
-  ownerName     String?
-  ownerEmail    String?
-  website       String?
-  rssFeed       String?
+  id          String    @id @default(cuid())
+  title       String
+  description String?
+  imageUrl    String
+  userId      String
+  author      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  episodes    Episode[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  published   Boolean   @default(false)
+  tags        String[]
+  category    String
+  views       Int       @default(0)
+  likes       Int       @default(0)
+  language    String    @default("en")
+  explicit    Boolean   @default(false)
+  copyright   String?
+  ownerName   String?
+  ownerEmail  String?
+  website     String?
+  rssFeed     String?
 
   @@index([userId])
   @@index([title])
@@ -118,4 +121,52 @@ model Episode {
   @@index([podcastId])
   @@index([title])
   @@index([publishDate])
+}
+
+model TelecastPodcast {
+  id                 String    @id @default(cuid())
+  title              String
+  description        String
+  author             String
+  language           String    @default("en")
+  category           String
+  explicit           Boolean   @default(false)
+  episodeTitle       String
+  episodeDescription String
+  episodeType        String    @default("full")
+  episodeNumber      String?
+  pubDate            DateTime  @default(now())
+  audioFileName      String
+  audioFileSize      Int
+  audioFileType      String
+  audioFileData      String // Base64 encoded audio data
+  userId             String
+  user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  published          Boolean   @default(false)
+  publishedAt        DateTime?
+  views              Int       @default(0)
+  likes              Int       @default(0)
+
+  @@index([userId])
+  @@index([title])
+  @@index([category])
+  @@index([published])
+  @@index([createdAt])
+}
+
+model Recording {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  audioUrl    String
+  duration    Int      @default(0)
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  isPublic    Boolean  @default(false)
+  views       Int      @default(0)
+  tags        String[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }

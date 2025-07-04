@@ -3,7 +3,6 @@
 import { useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import EpisodeUpload from '@/components/EpisodeUpload';
 
 export default function UploadPage() {
   const { status } = useSession();
@@ -12,6 +11,9 @@ export default function UploadPage() {
   useEffect(() => {
     if (status === 'unauthenticated') {
       router.push('/login');
+    } else if (status === 'authenticated') {
+      // Redirect to broadcast page since upload is now integrated there
+      router.push('/broadcast');
     }
   }, [status, router]);
 
@@ -19,5 +21,5 @@ export default function UploadPage() {
     return null;
   }
 
-  return <EpisodeUpload />;
+  return null; // This page will redirect, so no content needed
 } 

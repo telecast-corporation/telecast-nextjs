@@ -4,212 +4,216 @@ import { useState } from 'react';
 import {
   Box,
   Button,
-  TextField,
   Typography,
   Paper,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Chip,
-  Stack,
   CircularProgress,
-  Switch,
-  FormControlLabel,
+  Card,
+  CardContent,
+  Stepper,
+  Step,
+  StepLabel,
 } from '@mui/material';
 import { useRouter } from 'next/navigation';
-import PodcastSelector from './PodcastSelector';
+import { useTheme } from '@mui/material/styles';
+import {
+  CloudUpload as CloudUploadIcon,
+  Mic as MicIcon,
+  Radio as RadioIcon,
+  CheckCircle as CheckCircleIcon,
+} from '@mui/icons-material';
 
 export default function EpisodeUpload() {
+  const theme = useTheme();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [showPodcastSelector, setShowPodcastSelector] = useState(true);
-  const [selectedPodcastId, setSelectedPodcastId] = useState<string | null>(null);
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [episodeNumber, setEpisodeNumber] = useState<number | ''>('');
-  const [seasonNumber, setSeasonNumber] = useState<number | ''>('');
-  const [keywords, setKeywords] = useState<string[]>([]);
-  const [keywordInput, setKeywordInput] = useState('');
   const [audioFile, setAudioFile] = useState<File | null>(null);
-  const [explicit, setExplicit] = useState(false);
   const [error, setError] = useState('');
 
-  const handleKeywordInputKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && keywordInput.trim()) {
-      e.preventDefault();
-      if (!keywords.includes(keywordInput.trim())) {
-        setKeywords([...keywords, keywordInput.trim()]);
-      }
-      setKeywordInput('');
+  const steps = [
+    {
+      label: 'Record',
+      description: 'Create your audio content using our professional editor',
+      icon: <MicIcon />,
+      completed: true,
+    },
+    {
+      label: 'Upload',
+      description: 'Upload your audio file',
+      icon: <CloudUploadIcon />,
+      completed: false,
+    },
+    {
+      label: 'Broadcast',
+      description: 'Add metadata and distribute to podcast platforms',
+      icon: <RadioIcon />,
+      completed: false,
+    },
+  ];
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setAudioFile(file);
+      setError('');
     }
   };
 
-  const handleKeywordDelete = (keywordToDelete: string) => {
-    setKeywords(keywords.filter((keyword) => keyword !== keywordToDelete));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
-
-    if (!selectedPodcastId || !title || !description || !audioFile) {
-      setError('Please fill in all required fields');
-      setLoading(false);
+  const handleContinue = async () => {
+    if (!audioFile) {
+      setError('Please upload an audio file first');
       return;
     }
 
+    setLoading(true);
+    
     try {
-      const formData = new FormData();
-      formData.append('podcastId', selectedPodcastId);
-      formData.append('title', title);
-      formData.append('description', description);
-      formData.append('episodeNumber', episodeNumber.toString());
-      formData.append('seasonNumber', seasonNumber.toString());
-      formData.append('keywords', keywords.join(','));
-      formData.append('audio', audioFile);
-      formData.append('explicit', explicit.toString());
+      const reader = new FileReader();
+      reader.onload = () => {
+        // Store file data in localStorage
+        localStorage.setItem('uploadedAudioData', reader.result as string);
+        localStorage.setItem('uploadedAudioFile', JSON.stringify({
+          name: audioFile.name,
+          size: audioFile.size,
+          type: audioFile.type,
+          lastModified: audioFile.lastModified
+        }));
 
-      const response = await fetch('/api/episodes', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to upload episode');
-      }
-
-      router.push('/dashboard');
-      router.refresh();
-    } catch (err) {
-      setError('Error uploading episode. Please try again.');
-      console.error('Upload error:', err);
-    } finally {
+        // Navigate to broadcast page
+        router.push('/broadcast');
+      };
+      reader.readAsDataURL(audioFile);
+    } catch (error) {
+      setError('Error saving file. Please try again.');
       setLoading(false);
     }
   };
 
   return (
-    <>
-      <PodcastSelector
-        open={showPodcastSelector}
-        onClose={() => setShowPodcastSelector(false)}
-        onSelect={(podcastId) => {
-          setSelectedPodcastId(podcastId);
-          setShowPodcastSelector(false);
-        }}
-        onCreate={(podcast) => {
-          setSelectedPodcastId(podcast.id);
-          setShowPodcastSelector(false);
-        }}
-      />
+    <Box sx={{ maxWidth: 800, mx: 'auto', py: 4, px: 2 }}>
+      {/* Progress Stepper */}
+      <Card sx={{ mb: 4, background: 'rgba(255,255,255,0.05)', backdropFilter: 'blur(10px)' }}>
+        <CardContent>
+          <Typography variant="h4" gutterBottom sx={{ color: theme.palette.primary.main, fontWeight: 700, mb: 3, textAlign: 'center' }}>
+            Upload Your Audio File
+          </Typography>
+          
+          <Stepper orientation="horizontal" sx={{ mb: 3 }}>
+            {steps.map((step, index) => (
+              <Step key={step.label} completed={step.completed}>
+                <StepLabel
+                  icon={step.icon}
+                  sx={{
+                    '& .MuiStepLabel-iconContainer': {
+                      color: step.completed ? theme.palette.primary.main : 'text.secondary',
+                    },
+                  }}
+                >
+                  <Typography variant="subtitle1" fontWeight={600}>
+                    {step.label}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {step.description}
+                  </Typography>
+                </StepLabel>
+              </Step>
+            ))}
+          </Stepper>
+        </CardContent>
+      </Card>
 
-      <Paper sx={{ p: 4, maxWidth: 800, mx: 'auto', mt: 4 }}>
-        <Typography variant="h4" gutterBottom>
-          Upload New Episode
+      <Paper sx={{ p: 4, borderRadius: 3, boxShadow: 2 }}>
+        <Typography variant="h5" gutterBottom sx={{ color: '#ff6b35', fontWeight: 700, mb: 3, textAlign: 'center' }}>
+          Upload Your Audio File
         </Typography>
 
-        <Box component="form" onSubmit={handleSubmit} sx={{ mt: 3 }}>
-          <TextField
-            fullWidth
-            label="Title"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            required
-            sx={{ mb: 2 }}
-          />
-
-          <TextField
-            fullWidth
-            label="Description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            required
-            multiline
-            rows={4}
-            sx={{ mb: 2 }}
-          />
-
-          <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
-            <TextField
-              label="Episode Number"
-              type="number"
-              value={episodeNumber}
-              onChange={(e) => setEpisodeNumber(e.target.value ? parseInt(e.target.value) : '')}
-              sx={{ flex: 1 }}
-            />
-            <TextField
-              label="Season Number"
-              type="number"
-              value={seasonNumber}
-              onChange={(e) => setSeasonNumber(e.target.value ? parseInt(e.target.value) : '')}
-              sx={{ flex: 1 }}
-            />
-          </Box>
-
-          <TextField
-            fullWidth
-            label="Keywords"
-            value={keywordInput}
-            onChange={(e) => setKeywordInput(e.target.value)}
-            onKeyDown={handleKeywordInputKeyDown}
-            placeholder="Press Enter to add keywords"
-            sx={{ mb: 2 }}
-          />
-
-          <Stack direction="row" spacing={1} sx={{ mb: 2, flexWrap: 'wrap', gap: 1 }}>
-            {keywords.map((keyword) => (
-              <Chip
-                key={keyword}
-                label={keyword}
-                onDelete={() => handleKeywordDelete(keyword)}
-                color="primary"
-                variant="outlined"
-              />
-            ))}
-          </Stack>
-
-          <FormControlLabel
-            control={
-              <Switch
-                checked={explicit}
-                onChange={(e) => setExplicit(e.target.checked)}
-              />
-            }
-            label="Explicit Content"
-            sx={{ mb: 2 }}
-          />
-
-          <Box sx={{ mb: 2 }}>
-            <Typography variant="subtitle1" gutterBottom>
-              Audio File
-            </Typography>
-            <input
-              type="file"
-              accept="audio/*"
-              onChange={(e) => setAudioFile(e.target.files?.[0] || null)}
-              required
-            />
-          </Box>
-
-          {error && (
-            <Typography color="error" sx={{ mb: 2 }}>
-              {error}
-            </Typography>
+        <Box sx={{ textAlign: 'center' }}>
+          {!audioFile && (
+            <Box sx={{ mb: 3, p: 3, bgcolor: 'rgba(33, 150, 243, 0.1)', borderRadius: 2, border: '2px dashed rgba(33, 150, 243, 0.3)' }}>
+              <CloudUploadIcon sx={{ fontSize: 48, color: 'primary.main', mb: 2 }} />
+              <Typography variant="h6" color="primary" sx={{ fontWeight: 600, mb: 1 }}>
+                Upload your audio file
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                Please upload the audio file you created in the editor. Supported formats: MP3, WAV, M4A
+              </Typography>
+            </Box>
           )}
 
           <Button
-            type="submit"
-            variant="contained"
-            size="large"
-            disabled={loading}
-            sx={{ mt: 2 }}
+            variant="outlined"
+            component="label"
+            startIcon={<CloudUploadIcon />}
+            sx={{ 
+              py: 3, 
+              px: 4,
+              borderStyle: 'dashed',
+              borderWidth: 2,
+              minWidth: 300,
+              height: 120,
+              '&:hover': {
+                borderColor: theme.palette.primary.main,
+                backgroundColor: 'rgba(0,0,0,0.02)',
+              }
+            }}
           >
-            {loading ? <CircularProgress size={24} /> : 'Upload Episode'}
+            {audioFile ? `Selected: ${audioFile.name}` : 'Click to select audio file'}
+            <input
+              type="file"
+              accept="audio/*"
+              onChange={handleFileUpload}
+              hidden
+            />
           </Button>
+
+          {audioFile && (
+            <Box sx={{ mt: 3, p: 3, bgcolor: 'rgba(76, 175, 80, 0.1)', borderRadius: 2, border: '1px solid rgba(76, 175, 80, 0.3)' }}>
+              <Typography variant="body1" color="success.main" sx={{ fontWeight: 600, mb: 1 }}>
+                ✓ Audio file loaded successfully
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                File: {audioFile.name} ({(audioFile.size / 1024 / 1024).toFixed(2)} MB)
+              </Typography>
+            </Box>
+          )}
+
+          {error && (
+            <Box sx={{ mt: 2, p: 2, bgcolor: 'rgba(244, 67, 54, 0.1)', borderRadius: 1, border: '1px solid rgba(244, 67, 54, 0.3)' }}>
+              <Typography variant="body2" color="error">
+                {error}
+              </Typography>
+            </Box>
+          )}
+
+          <Box sx={{ mt: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Button
+              variant="outlined"
+              onClick={() => router.push('/record')}
+              sx={{ px: 4, py: 1.5 }}
+            >
+              Back to Record
+            </Button>
+            
+            <Button
+              variant="contained"
+              onClick={handleContinue}
+              disabled={!audioFile || loading}
+              startIcon={loading ? <CircularProgress size={20} /> : <CheckCircleIcon />}
+              sx={{ 
+                px: 6, 
+                py: 1.5,
+                fontWeight: 700,
+                fontSize: '1.1rem',
+                background: theme.palette.primary.main,
+                '&:hover': {
+                  background: theme.palette.primary.dark,
+                }
+              }}
+            >
+              {loading ? 'Saving...' : 'Continue to Broadcast'}
+            </Button>
+          </Box>
         </Box>
       </Paper>
-    </>
+    </Box>
   );
 } 

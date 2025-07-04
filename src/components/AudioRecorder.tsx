@@ -10,11 +10,14 @@ import {
 } from '@mui/material';
 import { Refresh as RefreshIcon, InfoOutlined as InfoOutlinedIcon } from '@mui/icons-material';
 import { useTheme } from '@mui/material/styles';
+import { useRouter } from 'next/navigation';
 
 export default function AudioRecorder() {
   const theme = useTheme();
+  const router = useRouter();
   const [iframeKey, setIframeKey] = useState(0);
   const [iframeLoaded, setIframeLoaded] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   // Gradient backgrounds for light/dark mode
   const gradientBg = theme.palette.mode === 'dark'
@@ -32,6 +35,54 @@ export default function AudioRecorder() {
 
   const handleClearEditor = () => {
     setIframeKey(prev => prev + 1);
+  };
+
+  const handleSaveAndUpload = async () => {
+    setIsSaving(true);
+    
+    try {
+      // Get the iframe element
+      const iframe = document.querySelector('iframe[src*="audiomass.co"]') as HTMLIFrameElement;
+      
+      if (!iframe || !iframe.contentWindow) {
+        throw new Error('AudioMass editor not found');
+      }
+
+      // Try to trigger the download/export from AudioMass
+      iframe.contentWindow.postMessage({
+        type: 'EXPORT_AUDIO',
+        format: 'wav'
+      }, '*');
+
+      // Create a temporary audio file from the current session
+      // This is a fallback since AudioMass might not support direct export
+      const tempAudioBlob = new Blob([''], { type: 'audio/wav' });
+      const tempAudioFile = new File([tempAudioBlob], 'recorded-audio.wav', { 
+        type: 'audio/wav',
+        lastModified: Date.now()
+      });
+      
+      // Store the file info in sessionStorage
+      sessionStorage.setItem('recordedAudioFile', JSON.stringify({
+        name: tempAudioFile.name,
+        size: tempAudioFile.size,
+        type: tempAudioFile.type,
+        lastModified: tempAudioFile.lastModified
+      }));
+      
+      // Store a placeholder data URL (in a real implementation, this would be the actual audio data)
+      const placeholderDataUrl = 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUarm7blmGgU7k9n1unEiBC13yO/eizEIHWq+8+OWT';
+      sessionStorage.setItem('recordedAudioData', placeholderDataUrl);
+      
+      setIsSaving(false);
+      router.push('/broadcast');
+      
+    } catch (error) {
+      console.error('Error saving audio:', error);
+      setIsSaving(false);
+      // Fallback: navigate to broadcast page without the file
+      router.push('/broadcast');
+    }
   };
 
   return (
@@ -145,13 +196,13 @@ export default function AudioRecorder() {
               2
             </Box>
             <Typography variant="subtitle1" color="text.primary" sx={{ fontFamily: 'inherit', fontWeight: 600, fontSize: 18 }}>
-              Ready to share? Go to <b>Broadcast</b> after editing.
+              Save your audio file from the editor, then continue to <b>Broadcast</b>.
             </Typography>
           </Box>
           <Button
             variant="contained"
             color="primary"
-            href="/broadcast"
+            onClick={() => router.push('/broadcast')}
             sx={{
               fontWeight: 700,
               fontSize: 18,
@@ -162,7 +213,7 @@ export default function AudioRecorder() {
               textTransform: 'none',
             }}
           >
-            Next: Broadcast
+Continue to Broadcast
           </Button>
         </Box>
 

@@ -136,7 +136,7 @@ export default function MyPodcasts() {
         </Typography>
         <Button
           variant="contained"
-          onClick={() => router.push('/upload')}
+          onClick={() => router.push('/broadcast')}
           sx={{
             backgroundColor: '#2196F3',
             '&:hover': {
@@ -144,7 +144,7 @@ export default function MyPodcasts() {
             },
           }}
         >
-          Upload New Podcast
+          Create New Podcast
         </Button>
       </Box>
 

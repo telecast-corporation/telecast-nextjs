@@ -1,15 +1,14 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useSession } from 'next-auth/react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { Box, CircularProgress, Typography, Alert } from '@mui/material';
 import AudioRecorder from '../../components/AudioRecorder';
 
 export default function RecordPage() {
   const { status, data: session } = useSession();
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [authChecked, setAuthChecked] = useState(false);
 
   useEffect(() => {
@@ -63,6 +62,10 @@ export default function RecordPage() {
     );
   }
 
-  // If authenticated, render the AudioRecorder (now with embedded AudioMass)
-  return <AudioRecorder />;
+  // If authenticated, render the AudioRecorder (with embedded AudioMass)
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <AudioRecorder />
+    </Suspense>
+  );
 } 

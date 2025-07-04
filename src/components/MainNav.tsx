@@ -907,6 +907,21 @@ const MainNav = memo(() => {
           />
         </ListItem>
         
+        {isAuthenticated && (
+          <ListItem button onClick={() => { handleDrawerToggle(); router.push('/my-telecast-podcasts'); }} sx={{ py: 1.5 }}>
+            <ListItemIcon sx={{ minWidth: 40 }}>
+              <PodcastIcon />
+            </ListItemIcon>
+            <ListItemText 
+              primary="My Telecast" 
+              primaryTypographyProps={{ 
+                fontFamily: lexend.style.fontFamily,
+                ...typography.nav
+              }} 
+            />
+          </ListItem>
+        )}
+        
         <Divider sx={{ my: 1 }} />
         
         <ListItem button onClick={toggleDarkMode} sx={{ py: 1.5 }}>
@@ -1062,6 +1077,17 @@ const MainNav = memo(() => {
           >
             Contact
           </Button>
+
+          {isAuthenticated && (
+            <Button 
+              variant="text"
+              className="nav-button"
+              onClick={() => router.push('/my-telecast-podcasts')}
+              sx={getNavButtonStyles(theme, pathname, '/my-telecast-podcasts')}
+            >
+              My Telecast
+            </Button>
+          )}
 
           {isAuthenticated ? (
             <Tooltip title="Profile">

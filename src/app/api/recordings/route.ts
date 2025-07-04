@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
     const recording = await prisma.recording.create({
       data: {
         title,
-        description: description || null,
+        description: description || "",
         audioUrl: `/uploads/recordings/${filename}`,
         duration: 0, // Will be calculated later if needed
         userId: user.id,

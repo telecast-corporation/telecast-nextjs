@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -22,8 +22,9 @@ import {
   CardContent,
   IconButton,
   Tooltip,
+  CircularProgress,
 } from "@mui/material";
-import CloudUploadIcon from "@mui/icons-material/CloudUpload";
+
 import { useTheme } from "@mui/material/styles";
 import {
   Podcasts as PodcastsIcon,
@@ -31,7 +32,9 @@ import {
   MusicNote as MusicNoteIcon,
   Settings as SettingsIcon,
   CheckCircle as CheckCircleIcon,
+  CloudUpload as CloudUploadIcon,
 } from "@mui/icons-material";
+import { useRouter } from "next/navigation";
 
 const LANGUAGES = [
   { code: "en", label: "English" },
@@ -80,7 +83,7 @@ interface PodcastMetadata {
   author: string;
   language: string;
   category: string;
-  artwork: File | null;
+
   explicit: boolean;
   episodeTitle: string;
   episodeDescription: string;
@@ -105,7 +108,7 @@ const DEFAULT_METADATA: PodcastMetadata = {
   author: "",
   language: "en",
   category: "",
-  artwork: null,
+
   explicit: false,
   episodeTitle: "",
   episodeDescription: "",
@@ -135,6 +138,28 @@ export default function BroadcastPage() {
     google: false,
     telecast: true, // always true
   });
+  const [audioFile, setAudioFile] = useState<File | null>(null);
+  const [uploadError, setUploadError] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
+  const router = useRouter();
+
+  // Check for existing uploaded file on component mount
+  useEffect(() => {
+    const existingFileData = localStorage.getItem('uploadedAudioFile');
+    if (existingFileData) {
+      try {
+        const fileInfo = JSON.parse(existingFileData);
+        // Create a mock file object from stored data
+        const mockFile = new File([new ArrayBuffer(fileInfo.size)], fileInfo.name, {
+          type: fileInfo.type,
+          lastModified: fileInfo.lastModified
+        });
+        setAudioFile(mockFile);
+      } catch (error) {
+        console.error('Error parsing stored file data:', error);
+      }
+    }
+  }, []);
 
   // Gradient backgrounds
   const gradientBg = theme.palette.mode === 'dark'
@@ -175,19 +200,126 @@ export default function BroadcastPage() {
     setPlatforms((prev) => ({ ...prev, [platform]: !prev[platform] }));
   };
 
-  // Artwork upload handler
-  const handleArtworkUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setMetadata((prev) => ({ ...prev, artwork: file }));
+      setAudioFile(file);
+      setUploadError('');
     }
   };
 
-  // Form submission handler (stub)
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleFileSave = async () => {
+    if (!audioFile) {
+      setUploadError('Please upload an audio file first');
+      return;
+    }
+
+    setIsUploading(true);
+    
+    try {
+      const reader = new FileReader();
+      reader.onload = () => {
+        // Store file data in localStorage
+        localStorage.setItem('uploadedAudioFile', JSON.stringify({
+          name: audioFile.name,
+          size: audioFile.size,
+          type: audioFile.type,
+          lastModified: audioFile.lastModified
+        }));
+        localStorage.setItem('uploadedAudioFileName', audioFile.name);
+        localStorage.setItem('uploadedAudioFileSize', audioFile.size.toString());
+        localStorage.setItem('uploadedAudioFileType', audioFile.type);
+        localStorage.setItem('uploadedAudioFileData', reader.result as string);
+        
+        setIsUploading(false);
+        setUploadError('');
+      };
+      reader.readAsDataURL(audioFile);
+    } catch (error) {
+      setUploadError('Error saving file. Please try again.');
+      setIsUploading(false);
+    }
+  };
+
+  // Form submission handler
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // TODO: Validate and submit metadata to backend
-    alert("Broadcast submitted! (Stub)");
+    
+    try {
+      // Check if file is uploaded and saved
+      if (!audioFile) {
+        alert('Please upload an audio file first.');
+        return;
+      }
+
+      // Check if file is saved to localStorage
+      const audioFileData = localStorage.getItem('uploadedAudioFileData');
+      const audioFileName = localStorage.getItem('uploadedAudioFileName');
+      const audioFileSize = localStorage.getItem('uploadedAudioFileSize');
+      const audioFileType = localStorage.getItem('uploadedAudioFileType');
+      
+      if (!audioFileData || !audioFileName || !audioFileSize || !audioFileType) {
+        alert('Please save your audio file first by clicking the "Save File" button.');
+        return;
+      }
+
+      // Validate required fields
+      if (!metadata.title || !metadata.description || !metadata.author || 
+          !metadata.episodeTitle || !metadata.episodeDescription) {
+        alert('Please fill in all required fields.');
+        return;
+      }
+
+      // Prepare data for API
+      const broadcastData = {
+        title: metadata.title,
+        description: metadata.description,
+        author: metadata.author,
+        language: metadata.language,
+        category: metadata.category,
+        explicit: metadata.explicit,
+        episodeTitle: metadata.episodeTitle,
+        episodeDescription: metadata.episodeDescription,
+        episodeType: metadata.episodeType,
+        episodeNumber: metadata.episodeNumber,
+        pubDate: metadata.pubDate || new Date().toISOString().split('T')[0],
+        audioFileName,
+        audioFileSize: parseInt(audioFileSize),
+        audioFileType,
+        audioFileData,
+      };
+
+      // Call the API
+      const response = await fetch('/api/telecast-podcasts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(broadcastData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to broadcast podcast');
+      }
+
+      const result = await response.json();
+      
+      // Clear localStorage
+      localStorage.removeItem('uploadedAudioFile');
+      localStorage.removeItem('uploadedAudioFileName');
+      localStorage.removeItem('uploadedAudioFileSize');
+      localStorage.removeItem('uploadedAudioFileType');
+      localStorage.removeItem('uploadedAudioFileData');
+      
+      // Show success message and redirect
+      alert(`Successfully broadcast "${metadata.episodeTitle}" to Telecast!`);
+      router.push('/dashboard');
+      
+    } catch (error) {
+      console.error('Error broadcasting podcast:', error);
+      alert(`Error broadcasting podcast: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   };
 
   const getPlatformIcon = (platform: string) => {
@@ -241,6 +373,108 @@ export default function BroadcastPage() {
       }}
     >
       <Box sx={{ maxWidth: 1200, mx: "auto", position: 'relative', zIndex: 1 }}>
+        {/* Progress Indicator */}
+        <Card sx={{ mb: 4, background: 'rgba(255,255,255,0.05)', backdropFilter: 'blur(10px)' }}>
+          <CardContent>
+            <Typography 
+              variant="h5" 
+              gutterBottom 
+              sx={{ 
+                color: theme.palette.primary.main, 
+                fontWeight: 700, 
+                mb: 3, 
+                textAlign: 'center',
+                fontSize: { xs: '1.25rem', sm: '1.5rem', md: '1.75rem' }
+              }}
+            >
+              Your Podcast Journey
+            </Typography>
+            
+            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: { xs: 1, sm: 2 }, flexWrap: 'wrap' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Box sx={{
+                  width: { xs: 24, sm: 28, md: 32 },
+                  height: { xs: 24, sm: 28, md: 32 },
+                  borderRadius: '50%',
+                  bgcolor: theme.palette.primary.main,
+                  color: '#fff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontWeight: 700,
+                  fontSize: { xs: 10, sm: 12, md: 14 },
+                }}>
+                  ✓
+                </Box>
+                <Typography 
+                  variant="body1" 
+                  fontWeight={600} 
+                  color="text.primary"
+                  sx={{ fontSize: { xs: '0.875rem', sm: '1rem', md: '1.125rem' } }}
+                >
+                  Record
+                </Typography>
+              </Box>
+              
+              <Box sx={{ width: { xs: 20, sm: 30, md: 40 }, height: 2, bgcolor: theme.palette.primary.main }} />
+              
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Box sx={{
+                  width: { xs: 24, sm: 28, md: 32 },
+                  height: { xs: 24, sm: 28, md: 32 },
+                  borderRadius: '50%',
+                  bgcolor: theme.palette.primary.main,
+                  color: '#fff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontWeight: 700,
+                  fontSize: { xs: 10, sm: 12, md: 14 },
+                }}>
+                  ✓
+                </Box>
+                <Typography 
+                  variant="body1" 
+                  fontWeight={600} 
+                  color="text.primary"
+                  sx={{ fontSize: { xs: '0.875rem', sm: '1rem', md: '1.125rem' } }}
+                >
+                  Upload
+                </Typography>
+              </Box>
+              
+              <Box sx={{ width: { xs: 20, sm: 30, md: 40 }, height: 2, bgcolor: theme.palette.primary.main }} />
+              
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Box sx={{
+                  width: { xs: 24, sm: 28, md: 32 },
+                  height: { xs: 24, sm: 28, md: 32 },
+                  borderRadius: '50%',
+                  bgcolor: '#ff6b35',
+                  color: '#fff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontWeight: 700,
+                  fontSize: { xs: 10, sm: 12, md: 14 },
+                }}>
+                  3
+                </Box>
+                <Typography 
+                  variant="body1" 
+                  fontWeight={600} 
+                  sx={{ 
+                    color: '#ff6b35',
+                    fontSize: { xs: '0.875rem', sm: '1rem', md: '1.125rem' }
+                  }}
+                >
+                  Broadcast
+                </Typography>
+              </Box>
+            </Box>
+          </CardContent>
+        </Card>
+
         {/* Header Section */}
         <Box textAlign="center" mb={6}>
           <Typography 
@@ -249,7 +483,8 @@ export default function BroadcastPage() {
             mb={2}
             sx={{
               color: theme.palette.primary.main,
-              fontSize: { xs: '2.5rem', sm: '3.5rem', md: '4rem' }
+              fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem', lg: '3.5rem', xl: '4rem' },
+              lineHeight: { xs: 1.2, sm: 1.3, md: 1.4 }
             }}
           >
             Broadcast Your Podcast
@@ -258,13 +493,19 @@ export default function BroadcastPage() {
             variant="h5" 
             color="text.secondary" 
             mb={3}
-            sx={{ fontWeight: 400, maxWidth: 600, mx: 'auto' }}
+            sx={{ 
+              fontWeight: 400, 
+              maxWidth: 600, 
+              mx: 'auto',
+              fontSize: { xs: '1rem', sm: '1.25rem', md: '1.5rem' },
+              lineHeight: { xs: 1.4, sm: 1.5 }
+            }}
           >
             Share your voice with the world across all major podcast platforms
           </Typography>
           
           {/* Platform Stats */}
-          <Box display="flex" justifyContent="center" gap={3} flexWrap="wrap">
+          <Box display="flex" justifyContent="center" gap={{ xs: 1, sm: 2, md: 3 }} flexWrap="wrap">
             <Chip 
               icon={<CheckCircleIcon />} 
               label="100+ Countries" 
@@ -272,6 +513,8 @@ export default function BroadcastPage() {
                 bgcolor: theme.palette.primary.main,
                 color: 'white',
                 fontWeight: 600,
+                fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                height: { xs: 28, sm: 32 }
               }} 
             />
             <Chip 
@@ -281,6 +524,8 @@ export default function BroadcastPage() {
                 bgcolor: '#ff6b35',
                 color: 'white',
                 fontWeight: 600,
+                fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                height: { xs: 28, sm: 32 }
               }} 
             />
             <Chip 
@@ -290,6 +535,8 @@ export default function BroadcastPage() {
                 bgcolor: theme.palette.primary.main,
                 color: 'white',
                 fontWeight: 600,
+                fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                height: { xs: 28, sm: 32 }
               }} 
             />
           </Box>
@@ -316,13 +563,159 @@ export default function BroadcastPage() {
           }}
         >
           <form onSubmit={handleSubmit}>
+            {/* File Upload Section */}
+            <Card sx={{ mb: 4, background: 'rgba(255,255,255,0.05)', backdropFilter: 'blur(10px)' }}>
+              <CardContent>
+                <Typography 
+                  variant="h5" 
+                  fontWeight={700} 
+                  mb={3} 
+                  sx={{ 
+                    color: '#ff6b35',
+                    fontSize: { xs: '1.25rem', sm: '1.5rem', md: '1.75rem' }
+                  }}
+                >
+                  Upload Audio File
+                </Typography>
+                
+                {!audioFile ? (
+                  <Box sx={{ textAlign: 'center', p: { xs: 2, sm: 3 } }}>
+                    <CloudUploadIcon sx={{ 
+                      fontSize: { xs: 36, sm: 42, md: 48 }, 
+                      color: 'primary.main', 
+                      mb: 2 
+                    }} />
+                    <Typography 
+                      variant="h6" 
+                      color="primary" 
+                      sx={{ 
+                        fontWeight: 600, 
+                        mb: 1,
+                        fontSize: { xs: '1rem', sm: '1.125rem', md: '1.25rem' }
+                      }}
+                    >
+                      Upload your audio file
+                    </Typography>
+                    <Typography 
+                      variant="body2" 
+                      color="text.secondary" 
+                      sx={{ 
+                        mb: 2,
+                        fontSize: { xs: '0.875rem', sm: '1rem' }
+                      }}
+                    >
+                      Please upload the audio file you created in the editor. Supported formats: MP3, WAV, M4A
+                    </Typography>
+                    <input
+                      type="file"
+                      accept="audio/*"
+                      onChange={handleFileUpload}
+                      style={{ display: 'none' }}
+                      id="audio-upload"
+                    />
+                    <label htmlFor="audio-upload">
+                      <Button
+                        variant="outlined"
+                        component="span"
+                        startIcon={<CloudUploadIcon />}
+                        sx={{ 
+                          py: { xs: 1.5, sm: 2 }, 
+                          px: { xs: 3, sm: 4 },
+                          borderStyle: 'dashed',
+                          borderWidth: 2,
+                          minWidth: { xs: 250, sm: 300 },
+                          fontSize: { xs: '0.875rem', sm: '1rem' },
+                          '&:hover': {
+                            borderColor: theme.palette.primary.main,
+                            backgroundColor: 'rgba(0,0,0,0.02)',
+                          }
+                        }}
+                      >
+                        Click to select audio file
+                      </Button>
+                    </label>
+                  </Box>
+                ) : (
+                  <Box sx={{ p: { xs: 2, sm: 3 }, bgcolor: 'rgba(76, 175, 80, 0.1)', borderRadius: 2, border: '1px solid rgba(76, 175, 80, 0.3)' }}>
+                    <Typography 
+                      variant="body1" 
+                      color="success.main" 
+                      sx={{ 
+                        fontWeight: 600, 
+                        mb: 1,
+                        fontSize: { xs: '0.875rem', sm: '1rem' }
+                      }}
+                    >
+                      ✓ Audio file loaded successfully
+                    </Typography>
+                    <Typography 
+                      variant="body2" 
+                      color="text.secondary" 
+                      sx={{ 
+                        mb: 2,
+                        fontSize: { xs: '0.75rem', sm: '0.875rem' }
+                      }}
+                    >
+                      File: {audioFile.name} ({(audioFile.size / 1024 / 1024).toFixed(2)} MB)
+                    </Typography>
+                    <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 1 }}>
+                      <Button
+                        variant="contained"
+                        onClick={handleFileSave}
+                        disabled={isUploading}
+                        startIcon={isUploading ? <CircularProgress size={20} /> : <CheckCircleIcon />}
+                        sx={{ 
+                          fontSize: { xs: '0.875rem', sm: '1rem' },
+                          py: { xs: 1, sm: 1.5 },
+                          px: { xs: 2, sm: 3 }
+                        }}
+                      >
+                        {isUploading ? 'Saving...' : 'Save File'}
+                      </Button>
+                      <Button
+                        variant="outlined"
+                        onClick={() => setAudioFile(null)}
+                        sx={{ 
+                          fontSize: { xs: '0.875rem', sm: '1rem' },
+                          py: { xs: 1, sm: 1.5 },
+                          px: { xs: 2, sm: 3 }
+                        }}
+                      >
+                        Change File
+                      </Button>
+                    </Box>
+                  </Box>
+                )}
+                
+                {uploadError && (
+                  <Box sx={{ mt: 2, p: 2, bgcolor: 'rgba(244, 67, 54, 0.1)', borderRadius: 1, border: '1px solid rgba(244, 67, 54, 0.3)' }}>
+                    <Typography 
+                      variant="body2" 
+                      color="error"
+                      sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
+                    >
+                      {uploadError}
+                    </Typography>
+                  </Box>
+                )}
+              </CardContent>
+            </Card>
+
             {/* Platform Selection */}
             <Card sx={{ mb: 4, background: 'rgba(255,255,255,0.05)', backdropFilter: 'blur(10px)' }}>
               <CardContent>
-                <Typography variant="h5" fontWeight={700} mb={3} sx={{ color: '#ff6b35' }}>
+                <Typography 
+                  variant="h5" 
+                  fontWeight={700} 
+                  mb={3} 
+                  sx={{ 
+                    color: '#ff6b35',
+                    fontSize: { xs: '1.25rem', sm: '1.5rem', md: '1.75rem' }
+                  }}
+                >
                   Select Distribution Platforms
                 </Typography>
-                <Grid container spacing={2}>
+                <Grid container spacing={{ xs: 1, sm: 2 }}>
                   {Object.entries(platforms).map(([platform, enabled]) => (
                     <Grid item xs={12} sm={6} md={3} key={platform}>
                       <Card
@@ -342,20 +735,29 @@ export default function BroadcastPage() {
                         }}
                         onClick={() => platform !== 'telecast' && handlePlatformSelect(platform as keyof Platforms)}
                       >
-                        <CardContent sx={{ textAlign: 'center', py: 3 }}>
+                        <CardContent sx={{ textAlign: 'center', py: { xs: 2, sm: 3 } }}>
                           <Box
                             sx={{
                               color: enabled ? getPlatformColor(platform) : 'text.secondary',
                               mb: 1,
-                              fontSize: '2rem'
+                              fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2rem' }
                             }}
                           >
                             {getPlatformIcon(platform)}
                           </Box>
-                          <Typography variant="h6" fontWeight={600} mb={1}>
+                          <Typography 
+                            variant="h6" 
+                            fontWeight={600} 
+                            mb={1}
+                            sx={{ fontSize: { xs: '1rem', sm: '1.125rem', md: '1.25rem' } }}
+                          >
                             {platform.charAt(0).toUpperCase() + platform.slice(1)}
                           </Typography>
-                          <Typography variant="body2" color="text.secondary">
+                          <Typography 
+                            variant="body2" 
+                            color="text.secondary"
+                            sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
+                          >
                             {platform === 'telecast' ? 'Always included' : enabled ? 'Selected' : 'Click to add'}
                           </Typography>
                           {platform === 'telecast' && (
@@ -363,7 +765,10 @@ export default function BroadcastPage() {
                               label="Required" 
                               size="small" 
                               color="primary" 
-                              sx={{ mt: 1 }}
+                              sx={{ 
+                                mt: 1,
+                                fontSize: { xs: '0.625rem', sm: '0.75rem' }
+                              }}
                             />
                           )}
                         </CardContent>
@@ -379,10 +784,18 @@ export default function BroadcastPage() {
             {/* Main Podcast Metadata */}
             <Card sx={{ mb: 4, background: 'rgba(255,255,255,0.05)', backdropFilter: 'blur(10px)' }}>
               <CardContent>
-                <Typography variant="h5" fontWeight={700} mb={3} sx={{ color: '#ff6b35' }}>
+                <Typography 
+                  variant="h5" 
+                  fontWeight={700} 
+                  mb={3} 
+                  sx={{ 
+                    color: '#ff6b35',
+                    fontSize: { xs: '1.25rem', sm: '1.5rem', md: '1.75rem' }
+                  }}
+                >
                   Main Podcast Information
                 </Typography>
-                <Grid container spacing={3}>
+                <Grid container spacing={{ xs: 2, sm: 3 }}>
                   <Grid item xs={12} sm={6}>
                     <TextField
                       label="Podcast Title"
@@ -401,6 +814,12 @@ export default function BroadcastPage() {
                           '&.Mui-focused fieldset': {
                             borderColor: theme.palette.primary.main,
                           },
+                        },
+                        '& .MuiInputLabel-root': {
+                          fontSize: { xs: '0.875rem', sm: '1rem' },
+                        },
+                        '& .MuiInputBase-input': {
+                          fontSize: { xs: '0.875rem', sm: '1rem' },
                         },
                       }}
                     />
@@ -423,6 +842,12 @@ export default function BroadcastPage() {
                           '&.Mui-focused fieldset': {
                             borderColor: theme.palette.primary.main,
                           },
+                        },
+                        '& .MuiInputLabel-root': {
+                          fontSize: { xs: '0.875rem', sm: '1rem' },
+                        },
+                        '& .MuiInputBase-input': {
+                          fontSize: { xs: '0.875rem', sm: '1rem' },
                         },
                       }}
                     />
@@ -448,12 +873,18 @@ export default function BroadcastPage() {
                             borderColor: theme.palette.primary.main,
                           },
                         },
+                        '& .MuiInputLabel-root': {
+                          fontSize: { xs: '0.875rem', sm: '1rem' },
+                        },
+                        '& .MuiInputBase-input': {
+                          fontSize: { xs: '0.875rem', sm: '1rem' },
+                        },
                       }}
                     />
                   </Grid>
                   <Grid item xs={12} sm={6}>
                     <FormControl fullWidth>
-                      <InputLabel>Language</InputLabel>
+                      <InputLabel sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>Language</InputLabel>
                       <Select
                         value={metadata.language}
                         label="Language"
@@ -468,6 +899,9 @@ export default function BroadcastPage() {
                           '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
                             borderColor: theme.palette.primary.main,
                           },
+                          '& .MuiSelect-select': {
+                            fontSize: { xs: '0.875rem', sm: '1rem' },
+                          },
                         }}
                       >
                         {LANGUAGES.map((lang) => (
@@ -480,7 +914,7 @@ export default function BroadcastPage() {
                   </Grid>
                   <Grid item xs={12} sm={6}>
                     <FormControl fullWidth>
-                      <InputLabel>Category</InputLabel>
+                      <InputLabel sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>Category</InputLabel>
                       <Select
                         value={metadata.category}
                         label="Category"
@@ -495,6 +929,9 @@ export default function BroadcastPage() {
                           '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
                             borderColor: theme.palette.primary.main,
                           },
+                          '& .MuiSelect-select': {
+                            fontSize: { xs: '0.875rem', sm: '1rem' },
+                          },
                         }}
                       >
                         {CATEGORIES.map((cat) => (
@@ -505,37 +942,7 @@ export default function BroadcastPage() {
                       </Select>
                     </FormControl>
                   </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <Button
-                      variant="outlined"
-                      component="label"
-                      startIcon={<CloudUploadIcon />}
-                      fullWidth
-                      sx={{ 
-                        height: 56,
-                        borderColor: 'rgba(255,255,255,0.3)',
-                        color: 'text.primary',
-                        '&:hover': {
-                          borderColor: theme.palette.primary.main,
-                          backgroundColor: 'rgba(255,255,255,0.05)',
-                        }
-                      }}
-                    >
-                      {metadata.artwork ? "Change Artwork" : "Upload Artwork"}
-                      <input type="file" accept="image/png, image/jpeg" hidden onChange={handleArtworkUpload} />
-                    </Button>
-                    {metadata.artwork && (
-                      <Box mt={2} display="flex" alignItems="center" gap={2}>
-                        <Avatar 
-                          src={URL.createObjectURL(metadata.artwork)} 
-                          sx={{ width: 64, height: 64, border: '3px solid rgba(255,255,255,0.2)' }} 
-                        />
-                        <Typography variant="body2" color="text.secondary">
-                          {metadata.artwork.name}
-                        </Typography>
-                      </Box>
-                    )}
-                  </Grid>
+
                   <Grid item xs={12} sm={6}>
                     <FormControlLabel
                       control={
@@ -551,7 +958,11 @@ export default function BroadcastPage() {
                         />
                       }
                       label={
-                        <Typography variant="body1" fontWeight={500}>
+                        <Typography 
+                          variant="body1" 
+                          fontWeight={500}
+                          sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}
+                        >
                           Explicit Content
                         </Typography>
                       }
@@ -844,17 +1255,32 @@ export default function BroadcastPage() {
             )}
 
             {/* Submit Button */}
-            <Box mt={6} display="flex" justifyContent="center">
+            <Box mt={6} display="flex" justifyContent="space-between" alignItems="center" flexDirection={{ xs: 'column', sm: 'row' }} gap={{ xs: 2, sm: 0 }}>
+              <Button 
+                variant="outlined"
+                onClick={() => router.push('/record')}
+                sx={{ 
+                  px: { xs: 3, sm: 4 }, 
+                  py: { xs: 1, sm: 1.5 },
+                  fontWeight: 600,
+                  fontSize: { xs: '0.875rem', sm: '1rem' },
+                  width: { xs: '100%', sm: 'auto' }
+                }}
+              >
+                Back to Record
+              </Button>
+              
               <Button 
                 type="submit" 
                 variant="contained" 
                 size="large" 
+                disabled={!audioFile || !localStorage.getItem('uploadedAudioFileData')}
                 sx={{ 
                   fontWeight: 700, 
-                  px: 6, 
-                  py: 2, 
+                  px: { xs: 4, sm: 6 }, 
+                  py: { xs: 1.5, sm: 2 }, 
                   borderRadius: 3,
-                  fontSize: '1.2rem',
+                  fontSize: { xs: '1rem', sm: '1.1rem', md: '1.2rem' },
                   background: theme.palette.primary.main,
                   boxShadow: '0 8px 25px rgba(0,0,0,0.2)',
                   '&:hover': {
@@ -862,7 +1288,14 @@ export default function BroadcastPage() {
                     transform: 'translateY(-2px)',
                     boxShadow: '0 12px 35px rgba(0,0,0,0.3)',
                   },
+                  '&:disabled': {
+                    background: 'rgba(0,0,0,0.12)',
+                    color: 'rgba(0,0,0,0.38)',
+                    transform: 'none',
+                    boxShadow: 'none',
+                  },
                   transition: 'all 0.3s ease',
+                  width: { xs: '100%', sm: 'auto' }
                 }}
               >
                 Launch Your Podcast
