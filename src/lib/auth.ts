@@ -142,8 +142,8 @@ export const authOptions: NextAuthOptions = {
         await prisma.user.update({
           where: { email: user.email! },
           data: {
-            name: user.name,
-            image: user.image,
+          name: user.name,
+          image: user.image,
             emailVerified: true, // Google accounts are pre-verified
           }
         });

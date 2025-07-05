@@ -45,11 +45,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           email: session.user.email || '',
           image: session.user.image,
         },
-        isLoading: false,
-        isAuthenticated: true,
-      });
-    } else {
-      setAuthState({
+            isLoading: false,
+            isAuthenticated: true,
+        });
+      } else {
+        setAuthState({
         user: null,
         isLoading: false,
         isAuthenticated: false,
@@ -65,9 +65,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           email: credentials.email,
           password: credentials.password,
           redirect: false,
-        });
-        
-        if (result?.error) {
+      });
+      
+      if (result?.error) {
           // Handle specific error messages from the credentials provider
           if (result.error.includes('No account found')) {
             throw new Error('No account found with this email address. Please sign up first.');

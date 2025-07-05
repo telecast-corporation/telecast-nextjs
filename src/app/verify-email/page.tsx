@@ -126,7 +126,7 @@ function VerifyEmailPageContent() {
   };
 
   if (status === 'loading') {
-    return (
+  return (
       <Container maxWidth="sm" sx={{ mt: 8 }}>
         <Paper sx={{ p: 4, textAlign: 'center' }}>
           <CircularProgress size={60} sx={{ mb: 2 }} />
@@ -197,14 +197,14 @@ function VerifyEmailPageContent() {
             <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
               If you're having trouble verifying your email, please try signing up again or contact support.
             </Typography>
-            <Button
-              variant="outlined"
+          <Button
+            variant="outlined"
               onClick={handleLogin}
               sx={{ mr: 2 }}
-            >
+          >
               Go to Login
-            </Button>
-          </Box>
+          </Button>
+        </Box>
         )}
       </Paper>
     </Container>

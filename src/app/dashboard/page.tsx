@@ -86,12 +86,7 @@ export default function Dashboard() {
     keywords: '',
   });
   const [isUploading, setIsUploading] = useState(false);
-  const [episodesDialogOpen, setEpisodesDialogOpen] = useState(false);
-  const [episodes, setEpisodes] = useState<any[]>([]);
-  const [loadingEpisodes, setLoadingEpisodes] = useState(false);
-  const [currentlyPlaying, setCurrentlyPlaying] = useState<string | null>(null);
-  const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(null);
-  const [createEpisodeDialogOpen, setCreateEpisodeDialogOpen] = useState(false);
+
 
   useEffect(() => {
     if (status === 'authenticated' && user?.id) {
@@ -99,15 +94,7 @@ export default function Dashboard() {
     }
   }, [status, user?.id]);
 
-  useEffect(() => {
-    // Cleanup audio element when component unmounts
-    return () => {
-      if (audioElement) {
-        audioElement.pause();
-        audioElement.src = '';
-      }
-    };
-  }, [audioElement]);
+
 
   const fetchPodcasts = async () => {
     try {
@@ -320,19 +307,7 @@ export default function Dashboard() {
   };
 
   const handlePodcastClick = async (podcast: Podcast) => {
-    setSelectedPodcast(podcast);
-    setLoadingEpisodes(true);
-    try {
-      const response = await fetch(`/api/episodes?podcastId=${podcast.id}`);
-      if (!response.ok) throw new Error('Failed to fetch episodes');
-      const data = await response.json();
-      setEpisodes(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch episodes');
-    } finally {
-      setLoadingEpisodes(false);
-    }
-    setEpisodesDialogOpen(true);
+    router.push(`/podcast/${podcast.id}`);
   };
 
   const handlePlayEpisode = (episode: any) => {
@@ -488,47 +463,7 @@ export default function Dashboard() {
         </Grid>
       )}
 
-      {/* Episodes Dialog */}
-      <Dialog
-        open={episodesDialogOpen}
-        onClose={() => setEpisodesDialogOpen(false)}
-        maxWidth="md"
-        fullWidth
-      >
-        <DialogTitle>
-          Episodes for {selectedPodcast?.title}
-        </DialogTitle>
-        <DialogContent>
-          {loadingEpisodes ? (
-            <Box display="flex" justifyContent="center" alignItems="center" minHeight={120}>
-              <CircularProgress />
-            </Box>
-          ) : episodes.length === 0 ? (
-            <Typography color="text.secondary" sx={{ my: 2 }}>
-              No episodes yet. Create your first episode!
-            </Typography>
-          ) : (
-            <List>
-              {episodes.map((ep: any) => (
-                <ListItem key={ep.id} divider>
-                  <ListItemText
-                    primary={ep.title}
-                    secondary={ep.description}
-                  />
-                  <ListItemSecondaryAction>
-                    <Button size="small" onClick={() => handlePlayEpisode(ep)}>
-                      {currentlyPlaying === ep.id ? <PauseIcon /> : <PlayArrowIcon />}
-                    </Button>
-                  </ListItemSecondaryAction>
-                </ListItem>
-              ))}
-            </List>
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setEpisodesDialogOpen(false)}>Close</Button>
-        </DialogActions>
-      </Dialog>
+
 
       {/* Create Podcast Dialog */}
       <Dialog
@@ -614,14 +549,14 @@ export default function Dashboard() {
         </DialogContent>
         <DialogActions>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-            <Button onClick={() => setCreateDialogOpen(false)}>Cancel</Button>
-            <Button
-              onClick={handleCreatePodcast}
-              variant="contained"
-              disabled={!newPodcast.title || !newPodcast.description || !newPodcast.category}
-            >
-              Create Podcast
-            </Button>
+          <Button onClick={() => setCreateDialogOpen(false)}>Cancel</Button>
+          <Button
+            onClick={handleCreatePodcast}
+            variant="contained"
+            disabled={!newPodcast.title || !newPodcast.description || !newPodcast.category}
+          >
+            Create Podcast
+          </Button>
           </Box>
         </DialogActions>
       </Dialog>

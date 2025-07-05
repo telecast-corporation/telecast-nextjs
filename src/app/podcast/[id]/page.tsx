@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
 import {
   Container,
   Typography,
@@ -12,13 +13,16 @@ import {
   Box,
   IconButton,
   Chip,
-  Link,
   List,
   ListItem,
   ListItemText,
   ListItemButton,
   CircularProgress,
   Pagination,
+  Stack,
+  ListItemSecondaryAction,
+  Tooltip,
+  Button,
 } from '@mui/material';
 import {
   PlayArrow,
@@ -26,6 +30,12 @@ import {
   Category,
   Warning,
   Link as LinkIcon,
+  Pause as PauseIcon,
+  Add as AddIcon,
+  Edit as EditIcon,
+  Delete as DeleteIcon,
+  Mic as MicIcon,
+  Upload as UploadIcon,
 } from '@mui/icons-material';
 import { useAudio } from '@/contexts/AudioContext';
 import { Podcast, Episode } from '@/lib/podcast-index';
@@ -42,6 +52,7 @@ export default function PodcastPage() {
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const episodesPerPage = 10;
+  const [currentlyPlaying, setCurrentlyPlaying] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchPodcast = async () => {
@@ -49,7 +60,7 @@ export default function PodcastPage() {
         setLoading(true);
         const podcastId = params.id as string;
         
-        const response = await axios.get(`/api/podcast/${podcastId}`);
+        const response = await axios.get(`/api/podcast/${podcastId}/internal`);
         
         if (response.data) {
           setPodcast(response.data);
@@ -73,14 +84,24 @@ export default function PodcastPage() {
     }
   }, [params.id]);
 
+
+
   const handlePlayEpisode = (episode: Episode) => {
-    if (podcast) {
-      play(podcast, episode);
-      // Update URL without page reload
-      router.push(`/podcast/${params.id}?episode=${episode.id}`, { scroll: false });
+    if (currentlyPlaying === episode.id) {
+      // If clicking the currently playing episode, pause it
+      setCurrentlyPlaying(null);
+    } else {
+      // If clicking a different episode, play new one
+      const audio = new Audio(episode.audioUrl);
+      audio.play();
+      setCurrentlyPlaying(episode.id);
+
+      // Handle audio end
+      audio.onended = () => {
+        setCurrentlyPlaying(null);
+      };
     }
   };
-
 
   // Function to strip HTML tags and decode HTML entities
   const cleanDescription = (html: string) => {
@@ -106,17 +127,28 @@ export default function PodcastPage() {
 
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          minHeight: '100vh',
+        }}
+      >
         <CircularProgress />
       </Box>
     );
   }
 
+
+
   if (error || !podcast) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
-        <Typography color="error">{error || 'Podcast not found'}</Typography>
-      </Box>
+      <Container maxWidth="lg" sx={{ py: 10 }}>
+        <Typography variant="h4" color="error">
+          {error || 'Podcast not found'}
+        </Typography>
+      </Container>
     );
   }
 
@@ -128,7 +160,7 @@ export default function PodcastPage() {
           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', mb: 3 }}>
             <CardMedia
               component="img"
-              image={podcast.image}
+              image={podcast.imageUrl}
               alt={podcast.title}
               sx={{ width: 200, height: 200, borderRadius: 2, mb: 2 }}
             />
@@ -165,19 +197,18 @@ export default function PodcastPage() {
             )}
           </Grid>
 
-          {/* Categories */}
-          {podcast.categories && podcast.categories.length > 0 && (
+          {/* Tags */}
+          {podcast.tags && podcast.tags.length > 0 && (
             <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
               <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                Categories
+                Tags
               </Typography>
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, justifyContent: 'center' }}>
-                {podcast.categories.map((category) => (
+                {podcast.tags.map((tag) => (
                   <Chip
-                    key={category}
-                    label={category}
+                    key={tag}
+                    label={tag}
                     size="small"
-                    icon={<Category />}
                     sx={{ 
                       backgroundColor: 'primary.light',
                       color: 'primary.contrastText',
@@ -195,93 +226,135 @@ export default function PodcastPage() {
 
       {/* Episodes Section */}
       <Box id="episodes-section">
-        <Typography variant="h5" gutterBottom sx={{ textAlign: 'center', mb: 3 }}>
-          Episodes
-        </Typography>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+          <Typography variant="h5" gutterBottom sx={{ textAlign: 'center', mb: 0 }}>
+            Episodes
+          </Typography>
+          <Link href={`/upload/${podcast.id}`} style={{ textDecoration: 'none' }}>
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              sx={{ minWidth: 'auto' }}
+            >
+              Add Episode
+            </Button>
+          </Link>
+        </Box>
         
-        <Card>
-          <List sx={{ width: '100%', bgcolor: 'background.paper' }}>
-            {currentEpisodes.map((episode, index) => (
-              <ListItem
-                key={episode.id}
-                disablePadding
-                divider={index < currentEpisodes.length - 1}
-                sx={{
-                  '&:hover': {
-                    bgcolor: 'action.hover',
-                  },
-                }}
-              >
-                <ListItemButton
-                  onClick={() => handlePlayEpisode(episode)}
+        {episodes.length === 0 ? (
+          <Card>
+            <Box sx={{ p: 4, textAlign: 'center' }}>
+              <Typography variant="h6" color="text.secondary" gutterBottom>
+                No episodes yet
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                Start building your podcast by creating your first episode
+              </Typography>
+              <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center' }}>
+                <Link href={`/upload/${podcast.id}`} style={{ textDecoration: 'none' }}>
+                  <Button
+                    variant="contained"
+                    startIcon={<UploadIcon />}
+                  >
+                    Upload Episode
+                  </Button>
+                </Link>
+                <Link href={`/record/${podcast.id}`} style={{ textDecoration: 'none' }}>
+                  <Button
+                    variant="outlined"
+                    startIcon={<MicIcon />}
+                  >
+                    Record Episode
+                  </Button>
+                </Link>
+              </Box>
+            </Box>
+          </Card>
+        ) : (
+          <Card>
+            <List sx={{ width: '100%', bgcolor: 'background.paper' }}>
+              {currentEpisodes.map((episode, index) => (
+                <ListItem
+                  key={episode.id}
+                  disablePadding
+                  divider={index < currentEpisodes.length - 1}
                   sx={{
-                    py: { xs: 1, sm: 1.5 },
-                    px: { xs: 1, sm: 2 },
+                    '&:hover': {
+                      bgcolor: 'action.hover',
+                    },
                   }}
                 >
-                  <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
-                    <IconButton
-                      size="small"
-                      sx={{
-                        mr: 1,
-                        color: 'primary.main',
-                      }}
-                    >
-                      <PlayArrow fontSize="small" />
-                    </IconButton>
-                    <ListItemText
-                      primary={
-                        <Typography
-                          variant="subtitle1"
-                          sx={{
-                            fontWeight: 500,
-                            color: 'text.primary',
-                            fontSize: { xs: '0.8rem', sm: '0.9rem' },
-                            lineHeight: 1.2,
-                            mb: 0.5
-                          }}
-                        >
-                          {episode.title}
-                        </Typography>
-                      }
-                      secondary={
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0 }}>
-                          <Typography 
-                            variant="body2" 
-                            color="text.secondary"
-                            sx={{ fontSize: { xs: '0.7rem', sm: '0.75rem' } }}
+                  <ListItemButton
+                    onClick={() => handlePlayEpisode(episode)}
+                    sx={{
+                      py: { xs: 1, sm: 1.5 },
+                      px: { xs: 1, sm: 2 },
+                    }}
+                  >
+                    <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+                      <IconButton
+                        size="small"
+                        sx={{
+                          mr: 1,
+                          color: 'primary.main',
+                        }}
+                      >
+                        {currentlyPlaying === episode.id ? <PauseIcon /> : <PlayArrow />}
+                      </IconButton>
+                      <ListItemText
+                        primary={
+                          <Typography
+                            variant="subtitle1"
+                            sx={{
+                              fontWeight: 500,
+                              color: 'text.primary',
+                              fontSize: { xs: '0.8rem', sm: '0.9rem' },
+                              lineHeight: 1.2,
+                              mb: 0.5
+                            }}
                           >
-                            {new Date(Number(episode.publishDate) * 1000).toLocaleDateString('en-US', {
-                              year: 'numeric',
-                              month: 'long',
-                              day: 'numeric'
-                            })}
+                            {episode.title}
                           </Typography>
-                          {episode.duration && (
-                            <>
-                              <Typography 
-                                variant="body2" 
-                                color="text.secondary"
-                                sx={{ fontSize: { xs: '0.7rem', sm: '0.75rem' } }}
-                              >•</Typography>
-                              <Typography 
-                                variant="body2" 
-                                color="text.secondary"
-                                sx={{ fontSize: { xs: '0.7rem', sm: '0.75rem' } }}
-                              >
-                                {formatDuration(episode.duration)}
-                              </Typography>
-                            </>
-                          )}
-                        </Box>
-                      }
-                    />
-                  </Box>
-                </ListItemButton>
-              </ListItem>
-            ))}
-          </List>
-        </Card>
+                        }
+                        secondary={
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0 }}>
+                            <Typography 
+                              variant="body2" 
+                              color="text.secondary"
+                              sx={{ fontSize: { xs: '0.7rem', sm: '0.75rem' } }}
+                            >
+                              {new Date(Number(episode.publishDate) * 1000).toLocaleDateString('en-US', {
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric'
+                              })}
+                            </Typography>
+                            {episode.duration && (
+                              <>
+                                <Typography 
+                                  variant="body2" 
+                                  color="text.secondary"
+                                  sx={{ fontSize: { xs: '0.7rem', sm: '0.75rem' } }}
+                                >•</Typography>
+                                <Typography 
+                                  variant="body2" 
+                                  color="text.secondary"
+                                  sx={{ fontSize: { xs: '0.7rem', sm: '0.75rem' } }}
+                                >
+                                  {formatDuration(episode.duration)}
+                                </Typography>
+                              </>
+                            )}
+                          </Box>
+                        }
+                      />
+                    </Box>
+                  </ListItemButton>
+                </ListItem>
+              ))}
+            </List>
+          </Card>
+        )}
 
         {/* Pagination */}
         {totalPages > 1 && (
@@ -296,6 +369,8 @@ export default function PodcastPage() {
           </Box>
         )}
       </Box>
+
+
     </Container>
   );
 } 

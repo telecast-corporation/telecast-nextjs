@@ -242,22 +242,22 @@ export default function ProfilePage() {
               Change Password
             </Button>
 
-            <Button
-              variant="outlined"
-              color="error"
+          <Button
+            variant="outlined"
+            color="error"
               startIcon={<DeleteIcon />}
               onClick={() => setDeleteDialogOpen(true)}
-              sx={{
-                borderRadius: 2,
-                px: 3,
-                py: 1.5,
-                textTransform: 'none',
-                fontWeight: 600,
-                '&:hover': {
-                  backgroundColor: 'error.main',
-                  color: 'white',
-                  borderColor: 'error.main',
-                },
+            sx={{
+              borderRadius: 2,
+              px: 3,
+              py: 1.5,
+              textTransform: 'none',
+              fontWeight: 600,
+              '&:hover': {
+                backgroundColor: 'error.main',
+                color: 'white',
+                borderColor: 'error.main',
+              },
               }}
             >
               Delete Account

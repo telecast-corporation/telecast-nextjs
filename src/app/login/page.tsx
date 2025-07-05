@@ -110,7 +110,7 @@ function LoginPageContent() {
         password: formData.password,
       });
       // Redirect to main page after successful login
-      router.push('/');
+          router.push('/');
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Authentication failed';
       setError(errorMessage);
@@ -130,7 +130,7 @@ function LoginPageContent() {
   };
 
   return (
-    <Box
+        <Box
       sx={{
         maxWidth: { xs: '90%', sm: '450px', md: '500px', lg: '550px' },
         mx: 'auto',
@@ -180,7 +180,7 @@ function LoginPageContent() {
         >
           <Box>
             <Typography variant="body2" sx={{ fontWeight: 500, mb: 0.5 }}>
-              {error}
+          {error}
             </Typography>
             {error.includes('No account found') && (
               <Typography variant="body2" color="text.secondary">
@@ -220,116 +220,116 @@ function LoginPageContent() {
         </Alert>
       )}
 
-      <Button
-        fullWidth
-        variant="outlined"
-        startIcon={<GoogleIcon />}
-        onClick={handleGoogleLogin}
-        disabled={isLoading}
-        sx={{
+        <Button
+          fullWidth
+          variant="outlined"
+          startIcon={<GoogleIcon />}
+          onClick={handleGoogleLogin}
+          disabled={isLoading}
+          sx={{
           mb: 3,
           py: 1.5,
           borderRadius: 2,
-          textTransform: 'none',
+            textTransform: 'none',
           fontWeight: 600,
           fontSize: '1rem',
           borderColor: theme.palette.grey[300],
-          color: theme.palette.text.primary,
-          '&:hover': {
+            color: theme.palette.text.primary,
+            '&:hover': {
             borderColor: theme.palette.grey[400],
             backgroundColor: theme.palette.grey[50],
-          },
-        }}
-      >
+            },
+          }}
+        >
         Continue with Google
-      </Button>
+        </Button>
 
       <Divider sx={{ mb: 3 }}>
         <Typography variant="body2" color="text.secondary">
           or
-        </Typography>
-      </Divider>
+          </Typography>
+        </Divider>
 
       <Box component="form" onSubmit={handleEmailLogin}>
-        <TextField
+          <TextField
           fullWidth
-          label="Email"
+            label="Email"
           name="email"
-          type="email"
+            type="email"
           value={formData.email}
           onChange={handleInputChange}
-          required
-          sx={{
+            required
+            sx={{
             mb: 2,
-            '& .MuiOutlinedInput-root': {
-              borderRadius: borderRadius.medium,
-              ...typography.input,
-            },
-            '& .MuiInputLabel-root': {
-              ...typography.label,
-            },
-            '& .MuiOutlinedInput-input': {
-              padding: spacing.input,
-            },
-          }}
-        />
-
-        <TextField
+              '& .MuiOutlinedInput-root': {
+                borderRadius: borderRadius.medium,
+                ...typography.input,
+              },
+              '& .MuiInputLabel-root': {
+                ...typography.label,
+              },
+              '& .MuiOutlinedInput-input': {
+                padding: spacing.input,
+              },
+            }}
+          />
+          
+          <TextField
           fullWidth
-          label="Password"
+            label="Password"
           name="password"
-          type="password"
+            type="password"
           value={formData.password}
           onChange={handleInputChange}
-          required
-          sx={{
+            required
+            sx={{
             mb: 3,
-            '& .MuiOutlinedInput-root': {
-              borderRadius: borderRadius.medium,
-              ...typography.input,
-            },
-            '& .MuiInputLabel-root': {
-              ...typography.label,
-            },
-            '& .MuiOutlinedInput-input': {
-              padding: spacing.input,
-            },
-          }}
-        />
+              '& .MuiOutlinedInput-root': {
+                borderRadius: borderRadius.medium,
+                ...typography.input,
+              },
+              '& .MuiInputLabel-root': {
+                ...typography.label,
+              },
+              '& .MuiOutlinedInput-input': {
+                padding: spacing.input,
+              },
+            }}
+          />
 
-        <Button
+          <Button
           fullWidth
-          type="submit"
-          variant="contained"
+            type="submit"
+            variant="contained"
           startIcon={<EmailIcon />}
-          disabled={isLoading}
-          sx={{
+            disabled={isLoading}
+            sx={{
             py: 1.5,
             borderRadius: 2,
             textTransform: 'none',
-            ...typography.button,
-            padding: spacing.button,
-          }}
-        >
+              ...typography.button,
+              padding: spacing.button,
+            }}
+          >
           {isLoading ? 'Signing In...' : 'Sign In'}
-        </Button>
-      </Box>
+          </Button>
+        </Box>
 
       <Box sx={{ mt: 3, textAlign: 'center' }}>
         <Typography variant="body2" color="text.secondary">
-          Don't have an account?{' '}
-          <Link 
-            href="/signup" 
-            style={{ 
-              color: theme.palette.primary.main, 
-              textDecoration: 'none',
+            Don't have an account?{' '}
+            <Link 
+              href="/signup" 
+              style={{ 
+                color: theme.palette.primary.main, 
+                textDecoration: 'none', 
               fontWeight: 600,
-            }}
-          >
-            Sign up
-          </Link>
-        </Typography>
-        
+              }}
+            >
+              Sign up
+            </Link>
+          </Typography>
+
         <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
           <Link 
             href="/forgot-password" 

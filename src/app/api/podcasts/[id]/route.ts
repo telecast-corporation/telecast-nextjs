@@ -4,6 +4,34 @@ import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { uploadPodcastFile } from '@/lib/storage';
 
+export async function GET(
+  req: Request,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const podcast = await prisma.podcast.findUnique({
+      where: { id: params.id },
+    });
+
+    if (!podcast) {
+      return NextResponse.json({ error: 'Podcast not found' }, { status: 404 });
+    }
+
+    return NextResponse.json(podcast);
+  } catch (error) {
+    console.error('Error fetching podcast:', error);
+    return NextResponse.json(
+      { error: 'Error fetching podcast' },
+      { status: 500 }
+    );
+  }
+}
+
 export async function PUT(
   req: Request,
   { params }: { params: { id: string } }
@@ -117,7 +145,7 @@ export async function DELETE(
       where: { id: params.id },
     });
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ message: 'Podcast deleted successfully' });
   } catch (error) {
     console.error('Error deleting podcast:', error);
     return NextResponse.json(

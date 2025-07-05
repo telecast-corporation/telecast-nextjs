@@ -9,49 +9,98 @@ interface Episode {
   id: string;
   title: string;
   description: string;
-  duration: string;
+  duration: number;
   publishDate: string;
   audioUrl: string;
-}
-
-interface Podcast {
+  episodeNumber?: number;
+  seasonNumber?: number;
+  views: number;
+  likes: number;
+  keywords: string[];
+  podcast: {
   id: string;
   title: string;
   author: string;
   description: string;
-  coverImage: string;
+    imageUrl: string;
+    tags: string[];
+    category: string;
+  };
 }
 
 export default function EpisodePage() {
   const params = useParams();
   const audioRef = useRef<HTMLAudioElement>(null);
   const [episode, setEpisode] = useState<Episode | null>(null);
-  const [podcast, setPodcast] = useState<Podcast | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(1);
   const [playbackRate, setPlaybackRate] = useState(1);
   const [showComments, setShowComments] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Fetch episode and podcast data
-    // This is mock data for now
+    const fetchEpisodeData = async () => {
+      try {
+        setLoading(true);
+        const episodeId = params.id as string;
+        
+        // We need to find which podcast contains this episode
+        // For now, we'll need to search through podcasts or have a different approach
+        // Let me implement a simple search approach
+        
+        // First, let's try to get all podcasts and find the one with this episode
+        const response = await fetch('/api/podcasts');
+        if (!response.ok) {
+          throw new Error('Failed to fetch podcasts');
+        }
+        const podcasts = await response.json();
+        
+        // Find the podcast that contains this episode
+        let foundEpisode = null;
+        let foundPodcast = null;
+        
+        for (const podcast of podcasts) {
+          const podcastResponse = await fetch(`/api/podcast/${podcast.id}/internal`);
+          if (podcastResponse.ok) {
+            const podcastData = await podcastResponse.json();
+            const episode = podcastData.episodes.find((ep: any) => ep.id === episodeId);
+            if (episode) {
+              foundEpisode = episode;
+              foundPodcast = podcastData;
+              break;
+            }
+          }
+        }
+        
+        if (!foundEpisode || !foundPodcast) {
+          throw new Error('Episode not found');
+        }
+        
     setEpisode({
-      id: params.id as string,
-      title: "Episode 1: The Future of AI",
-      description: "Exploring the latest developments in artificial intelligence",
-      duration: "45:30",
-      publishDate: "2024-03-20",
-      audioUrl: "/episode1.mp3"
-    });
-    setPodcast({
-      id: "1",
-      title: "Tech Talk Podcast",
-      author: "John Doe",
-      description: "A weekly podcast about technology and innovation",
-      coverImage: "/podcast-cover.jpg"
-    });
+          ...foundEpisode,
+          podcast: {
+            id: foundPodcast.id,
+            title: foundPodcast.title,
+            author: foundPodcast.author,
+            description: foundPodcast.description || '',
+            imageUrl: foundPodcast.imageUrl,
+            tags: foundPodcast.tags || [],
+            category: foundPodcast.category,
+          }
+        });
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load episode');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (params.id) {
+      fetchEpisodeData();
+    }
   }, [params.id]);
 
   const handlePlayPause = () => {
@@ -100,7 +149,9 @@ export default function EpisodePage() {
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
 
-  if (!episode || !podcast) return <div>Loading...</div>;
+  if (loading) return <div>Loading...</div>;
+  
+  if (error || !episode) return <div>Error: {error || 'Episode not found'}</div>;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -110,22 +161,49 @@ export default function EpisodePage() {
           <div className="flex items-start space-x-6">
             <div className="relative w-48 h-48 rounded-lg overflow-hidden">
               <Image
-                src={podcast.coverImage}
-                alt={podcast.title}
+                src={episode.podcast.imageUrl}
+                alt={episode.podcast.title}
                 fill
                 className="object-cover"
               />
             </div>
             <div className="flex-1">
               <Link
-                href={`/podcast/${podcast.id}`}
+                href={`/podcast/${episode.podcast.id}`}
                 className="text-sm text-blue-600 hover:text-blue-700"
               >
-                {podcast.title}
+                {episode.podcast.title}
               </Link>
               <h1 className="text-3xl font-bold text-gray-900 mt-2">{episode.title}</h1>
-              <p className="text-gray-500 mt-2">{episode.publishDate}</p>
+              <p className="text-gray-500 mt-2">{episode.podcast.author}</p>
+              <p className="text-gray-500 mt-1">
+                {new Date(episode.publishDate).toLocaleDateString()} • {formatTime(episode.duration)}
+                {episode.episodeNumber && ` • Episode ${episode.episodeNumber}`}
+                {episode.seasonNumber && ` • Season ${episode.seasonNumber}`}
+              </p>
               <p className="text-gray-600 mt-4">{episode.description}</p>
+              
+              {/* Episode Stats */}
+              <div className="mt-4 flex items-center space-x-4 text-sm text-gray-500">
+                <span>👁️ {episode.views} views</span>
+                <span>❤️ {episode.likes} likes</span>
+              </div>
+              
+              {/* Tags */}
+              {episode.podcast.tags && episode.podcast.tags.length > 0 && (
+                <div className="mt-4">
+                  <div className="flex flex-wrap gap-2">
+                    {episode.podcast.tags.map((tag, index) => (
+                      <span
+                        key={index}
+                        className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

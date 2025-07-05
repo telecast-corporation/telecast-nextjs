@@ -31,47 +31,47 @@ export async function POST(request: Request) {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Generate verification token
+      // Generate verification token
     const verificationToken = crypto.randomBytes(32).toString('hex');
-    const expires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+      const expires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
 
     console.log('🔍 Generated verification token:', `${verificationToken.substring(0, 8)}...`);
     console.log('🔍 Token expires:', expires);
 
-    // Create new user and verification token in a transaction
+      // Create new user and verification token in a transaction
     const result = await prisma.$transaction(async (tx) => {
-      // Create user (not verified)
-      const user = await tx.user.create({
-        data: {
-          name: username,
-          email,
-          password: hashedPassword,
+        // Create user (not verified)
+        const user = await tx.user.create({
+          data: {
+            name: username,
+            email,
+            password: hashedPassword,
           emailVerified: false,
-        },
-      });
+          },
+        });
 
-      // Create verification token
-      await tx.verificationToken.create({
-        data: {
-          identifier: email,
-          token: verificationToken,
-          expires,
-        },
-      });
+        // Create verification token
+        await tx.verificationToken.create({
+          data: {
+            identifier: email,
+            token: verificationToken,
+            expires,
+          },
+        });
 
       console.log('🔍 Stored verification token in database for:', email);
 
-      return user;
-    });
+        return user;
+      });
 
     // Send verification email
-    try {
+      try {
       console.log('🔍 Sending verification email with token:', `${verificationToken.substring(0, 8)}...`);
-      await sendVerificationEmail(email, verificationToken);
-    } catch (emailError) {
-      console.error('Failed to send verification email:', emailError);
-      // Continue with signup process even if email fails
-    }
+        await sendVerificationEmail(email, verificationToken);
+      } catch (emailError) {
+        console.error('Failed to send verification email:', emailError);
+        // Continue with signup process even if email fails
+      }
 
     return NextResponse.json({
       message: 'Account created successfully. Please check your email to verify your account.',
