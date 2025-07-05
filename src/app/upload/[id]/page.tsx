@@ -1,15 +1,15 @@
 "use client";
 
 import React, { useRef, useState, useEffect } from "react";
-import dynamic from "next/dynamic";
 import { Box, Button, Typography, Paper, CircularProgress } from "@mui/material";
-
-// Dynamically import wavesurfer.js to avoid SSR issues
-const WaveSurfer = dynamic(() => import("wavesurfer.js"), { ssr: false });
+import { useRouter, useParams } from "next/navigation";
 
 export default function UploadPodcastPage() {
+  const router = useRouter();
+  const params = useParams();
   const [audioFile, setAudioFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
   const [waveSurfer, setWaveSurfer] = useState<any>(null);
   const waveformRef = useRef<HTMLDivElement>(null);
@@ -25,7 +25,8 @@ export default function UploadPodcastPage() {
       }
       // Dynamically import and create wavesurfer instance
       import("wavesurfer.js").then((WaveSurferModule) => {
-        const ws = WaveSurferModule.default.create({
+        const WaveSurfer = WaveSurferModule.default;
+        const ws = WaveSurfer.create({
           container: waveformRef.current!,
           waveColor: "#2196f3",
           progressColor: "#1565c0",
@@ -46,6 +47,10 @@ export default function UploadPodcastPage() {
           setError("Failed to render waveform");
           setLoading(false);
         });
+      }).catch((err) => {
+        console.error("Failed to load wavesurfer:", err);
+        setError("Failed to load waveform library");
+        setLoading(false);
       });
     }
     // Cleanup on unmount
@@ -62,6 +67,39 @@ export default function UploadPodcastPage() {
     if (file) {
       setAudioFile(file);
       setError("");
+    }
+  };
+
+  const handleUpload = async () => {
+    if (!audioFile) return;
+    
+    setUploading(true);
+    setError("");
+    
+    try {
+      const formData = new FormData();
+      formData.append("file", audioFile);
+      formData.append("podcastId", params.id);
+
+      const response = await fetch("/api/upload/podcast", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Upload failed");
+      }
+
+      const result = await response.json();
+      console.log("Upload successful:", result);
+      
+      // Navigate to edit page after successful upload
+      router.push("/edit");
+    } catch (err) {
+      console.error("Upload error:", err);
+      setError(err instanceof Error ? err.message : "Failed to upload audio file");
+      setUploading(false);
     }
   };
 
@@ -98,9 +136,23 @@ export default function UploadPodcastPage() {
               {waveReady && (
                 <audio controls src={URL.createObjectURL(audioFile)} style={{ width: "100%", marginTop: 16 }} />
               )}
-              <Button variant="outlined" sx={{ mt: 2 }} onClick={() => setAudioFile(null)}>
-                Choose another file
-              </Button>
+              <Box sx={{ mt: 2, display: "flex", gap: 2, justifyContent: "center" }}>
+                <Button 
+                  variant="contained" 
+                  onClick={handleUpload}
+                  disabled={uploading}
+                  sx={{ 
+                    bgcolor: "#2196f3", 
+                    "&:hover": { bgcolor: "#1565c0" },
+                    minWidth: 120
+                  }}
+                >
+                  {uploading ? <CircularProgress size={20} color="inherit" /> : "Proceed to Edit"}
+                </Button>
+                <Button variant="outlined" onClick={() => setAudioFile(null)}>
+                  Choose another file
+                </Button>
+              </Box>
             </>
           )}
 
