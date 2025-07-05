@@ -47,8 +47,7 @@ export async function POST(req: Request) {
         userId: session.user.id,
         author: session.user.name || 'Anonymous',
         published: false,
-        views: 0,
-        likes: 0,
+
         language: 'en',
         explicit: false
       },

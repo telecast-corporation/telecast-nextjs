@@ -303,7 +303,7 @@ export default function BroadcastPage() {
       };
 
       // Call the API
-      const response = await fetch('/api/telecast-podcasts', {
+      const response = await fetch('/api/broadcast', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -327,7 +327,7 @@ export default function BroadcastPage() {
       
       // Show success message and redirect
       alert(`Successfully broadcast "${metadata.episodeTitle}" to Telecast!`);
-      router.push('/my-telecast-podcasts');
+      router.push('/dashboard');
       
     } catch (error) {
       console.error('Error broadcasting podcast:', error);
