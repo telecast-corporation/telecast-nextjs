@@ -49,6 +49,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
+    // Check for duplicate: same user, episodeTitle, and audioFileName
+    const existingPodcast = await prisma.telecastPodcast.findFirst({
+      where: {
+        userId: user.id,
+        episodeTitle,
+        audioFileName,
+      },
+    });
+    if (existingPodcast) {
+      return NextResponse.json({ error: 'Podcast already exists' }, { status: 409 });
+    }
+
     // Create Telecast podcast
     const telecastPodcast = await prisma.telecastPodcast.create({
       data: {
@@ -93,47 +105,56 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET(request: NextRequest) {
-  try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+  const { searchParams } = new URL(request.url);
+  const title = searchParams.get('title');
 
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
-    });
-
-    if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
-    }
-
-    // Get user's Telecast podcasts
-    const telecastPodcasts = await prisma.telecastPodcast.findMany({
-      where: { userId: user.id },
-      orderBy: { createdAt: 'desc' },
-      select: {
-        id: true,
-        title: true,
-        episodeTitle: true,
-        published: true,
-        publishedAt: true,
-        views: true,
-        likes: true,
-        createdAt: true,
-        audioFileData: true,
-        audioFileName: true,
-        audioFileType: true,
-      },
-    });
-
-    return NextResponse.json({ telecastPodcasts });
-
-  } catch (error) {
-    console.error('Error fetching Telecast podcasts:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.email) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
+  const user = await prisma.user.findUnique({ where: { email: session.user.email } });
+  if (!user) {
+    return NextResponse.json({ error: 'User not found' }, { status: 404 });
+  }
+
+  // If ?title= is provided, check for existence
+  if (title) {
+    const existing = await prisma.telecastPodcast.findFirst({
+      where: { userId: user.id, title },
+      select: { description: true },
+    });
+    if (existing) {
+      return NextResponse.json({ exists: true, description: existing.description });
+    } else {
+      return NextResponse.json({ exists: false });
+    }
+  }
+
+  // Get user's Telecast podcasts
+  const telecastPodcasts = await prisma.telecastPodcast.findMany({
+    where: { userId: user.id },
+    orderBy: { createdAt: 'desc' },
+    select: {
+      id: true,
+      title: true,
+      description: true,
+      author: true,
+      language: true,
+      category: true,
+      explicit: true,
+      episodeTitle: true,
+      episodeDescription: true,
+      episodeType: true,
+      episodeNumber: true,
+      pubDate: true,
+      published: true,
+      publishedAt: true,
+      createdAt: true,
+      audioFileData: true,
+      audioFileName: true,
+      audioFileType: true,
+      audioFileSize: true,
+    },
+  });
+  return NextResponse.json({ telecastPodcasts });
 } 

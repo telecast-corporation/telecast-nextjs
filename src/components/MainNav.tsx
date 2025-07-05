@@ -169,14 +169,18 @@ const FilterButton = styled(Button)(({ theme }) => ({
 const getNavButtonStyles = (theme: any, pathname: string, targetPath: string, isAuthenticated?: boolean) => ({
   fontFamily: lexend.style.fontFamily,
   color: pathname === targetPath ? theme.palette.primary.main : theme.palette.text.primary,
-  ...typography.nav, // Use shared navigation typography
+  ...typography.nav,
   textTransform: 'none',
   borderRadius: 2,
-  px: 2,
-  py: 1,
+  px: { xs: 1, sm: 1.5 },
+  py: 0.5,
+  minWidth: 0,
+  fontSize: { xs: '0.92rem', sm: '1rem' },
   backgroundColor: pathname === targetPath ? alpha(theme.palette.primary.main, 0.1) : 'transparent',
   border: pathname === targetPath ? `1px solid ${theme.palette.primary.main}` : '1px solid transparent',
   transition: 'all 0.2s ease-in-out',
+  marginLeft: { xs: 0.5, sm: 1 },
+  marginRight: { xs: 0.5, sm: 1 },
   '&:hover': {
     backgroundColor: alpha(theme.palette.primary.main, 0.1),
     color: theme.palette.primary.main,
@@ -351,6 +355,8 @@ const SearchContainer = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
   width: '100%',
+  maxWidth: 320,
+  margin: '0 auto',
   height: '100%',
   overflow: 'hidden',
   backgroundColor: theme.palette.background.default,
@@ -379,6 +385,7 @@ const SearchContainer = styled(Box)(({ theme }) => ({
   },
   [theme.breakpoints.down('lg')]: {
     width: '100%',
+    maxWidth: '100%',
     marginTop: theme.spacing(1),
     '& .MuiInputBase-root': {
       height: '50%',
@@ -492,49 +499,51 @@ const NavGroup = styled(Box)(({ theme }) => ({
   gridArea: 'navgroup',
   display: 'flex',
   alignItems: 'center',
-  justifyContent: 'flex-start', // Align buttons to start instead of space-between
+  justifyContent: 'flex-start',
   height: '100%',
   width: '100%',
-  gap: '5%', // Reduced gap between buttons
-  padding: '0 1%', // Small padding on sides
+  gap: 8,
+  padding: '0 0.5%',
   '& .nav-button': {
-    flex: '0 0 auto', // Don't grow/shrink, size based on content
+    flex: '0 0 auto',
     minHeight: 'auto',
-    height: '3rem', // Same height as theme button
-    fontSize: typography.nav.fontSize,
-    fontWeight: typography.nav.fontWeight,
-    padding: '0.125rem 0.25rem', // Reduced padding for smaller inner space
-    minWidth: 'auto',
+    height: '2.2rem',
+    fontSize: '0.95rem',
+    fontWeight: 500,
+    padding: '0.1rem 0.5rem',
+    minWidth: 60,
     maxWidth: 'none',
-    whiteSpace: 'nowrap', // Prevent text wrapping
-    borderRadius: '0.5rem', // Rounded corners for highlight box
-    border: 'none', // Remove border
+    whiteSpace: 'nowrap',
+    borderRadius: '0.5rem',
+    border: 'none',
+    marginLeft: 2,
+    marginRight: 2,
     '&:hover': {
-      backgroundColor: 'rgba(0, 0, 0, 0.04)', // Light hover background
-      border: 'none', // Ensure no border on hover
+      backgroundColor: 'rgba(0, 0, 0, 0.04)',
+      border: 'none',
     },
   },
   '& .theme-button': {
-    flex: '0 0 auto', // Theme button doesn't grow
-    width: '3rem', // Fixed width for perfect circle
-    height: '3rem', // Fixed height for perfect circle
-    padding: '0.25rem', // Reduced padding for smaller inner space
-    minWidth: '3rem', // Minimum width for touch targets
-    maxWidth: '3rem', // Maximum width to prevent stretching
-    borderRadius: '50%', // Ensure circular shape
-    border: 'none', // Remove border
+    flex: '0 0 auto',
+    width: '2.2rem',
+    height: '2.2rem',
+    padding: '0.1rem',
+    minWidth: '2.2rem',
+    maxWidth: '2.2rem',
+    borderRadius: '50%',
+    border: 'none',
     '&:hover': {
-      backgroundColor: 'rgba(0, 0, 0, 0.04)', // Same hover background as nav buttons
-      border: 'none', // Ensure no border on hover
+      backgroundColor: 'rgba(0, 0, 0, 0.04)',
+      border: 'none',
     },
     '& .MuiSvgIcon-root': {
-      fontSize: typography.heading.fontSize,
+      fontSize: '1.2rem',
     },
   },
   '& .MuiAvatar-root': {
-    width: '60%',
-    height: '60%',
-    fontSize: typography.caption.fontSize,
+    width: 28,
+    height: 28,
+    fontSize: '1rem',
   },
   [theme.breakpoints.down('lg')]: {
     display: 'none',
@@ -1043,7 +1052,7 @@ const MainNav = memo(() => {
                       </Button>
       </FiltersArea>
 
-        <NavGroup>
+        <NavGroup sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.5, sm: 1 } }}>
             <IconButton
               onClick={toggleDarkMode}
             className="theme-button"
@@ -1108,12 +1117,13 @@ const MainNav = memo(() => {
                   src={user?.image || undefined}
                   alt={user?.name || 'Profile'}
                   sx={{
-                    width: '3rem',
-                    height: '3rem',
+                    width: 28,
+                    height: 28,
                     bgcolor: theme.palette.primary.main,
                     color: theme.palette.primary.contrastText,
-                    fontSize: '1.25rem',
+                    fontSize: '1rem',
                     fontWeight: 600,
+                    ml: 0.5,
                   }}
                 >
                   {!user?.image && user?.name ? user.name.charAt(0).toUpperCase() : <AccountCircleIcon />}
@@ -1149,8 +1159,8 @@ const MainNav = memo(() => {
               src={user?.image || undefined}
               alt={user?.name || 'Profile'}
               sx={{
-                width: 32,
-                height: 32,
+                width: 28,
+                height: 28,
                 bgcolor: theme.palette.primary.main,
                 color: theme.palette.primary.contrastText,
                 fontSize: '1rem',

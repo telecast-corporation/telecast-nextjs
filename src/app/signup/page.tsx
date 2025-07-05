@@ -186,37 +186,7 @@ function SignupPageContent() {
       )}
 
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
-        {/* Google Signup Button */}
-        <Button
-          fullWidth
-          variant="outlined"
-          startIcon={<GoogleIcon />}
-          onClick={handleGoogleSignup}
-          disabled={isLoading}
-          sx={{
-            ...typography.button,
-            padding: spacing.button,
-            borderRadius: borderRadius.medium,
-            textTransform: 'none',
-            borderColor: theme.palette.divider,
-            color: theme.palette.text.primary,
-            '&:hover': {
-              borderColor: 'primary.main',
-              backgroundColor: 'rgba(25, 118, 210, 0.04)',
-            },
-            '&:disabled': {
-              opacity: 0.5,
-            },
-          }}
-        >
-          {isLoading ? 'Creating Account...' : 'Continue with Google'}
-        </Button>
-
-        <Divider sx={{ my: 0.5 }}>
-          <Typography variant="body1" color="text.secondary" sx={{ ...typography.body }}>
-            Or sign up with email
-          </Typography>
-        </Divider>
+        {/* Google Signup Button removed */}
 
         {/* Email Signup Form */}
         <Box

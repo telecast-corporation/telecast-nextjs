@@ -142,6 +142,8 @@ export default function BroadcastPage() {
   const [uploadError, setUploadError] = useState('');
   const [isUploading, setIsUploading] = useState(false);
   const router = useRouter();
+  const [descDisabled, setDescDisabled] = useState(false);
+  const [descHelper, setDescHelper] = useState<string | undefined>(undefined);
 
   // Check for existing uploaded file on component mount
   useEffect(() => {
@@ -160,6 +162,32 @@ export default function BroadcastPage() {
       }
     }
   }, []);
+
+  // Check if podcast title exists and autofill/disable description
+  useEffect(() => {
+    if (!metadata.title) {
+      setDescDisabled(false);
+      setDescHelper(undefined);
+      return;
+    }
+    let ignore = false;
+    (async () => {
+      const res = await fetch(`/api/telecast-podcasts?title=${encodeURIComponent(metadata.title)}`);
+      if (!ignore && res.ok) {
+        const data = await res.json();
+        if (data.exists) {
+          setMetadata((prev) => ({ ...prev, description: data.description || "" }));
+          setDescDisabled(true);
+          setDescHelper("Podcast description already set for this title.");
+        } else {
+          setDescDisabled(false);
+          setDescHelper(undefined);
+        }
+      }
+    })();
+    return () => { ignore = true; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [metadata.title]);
 
   // Gradient backgrounds
   const gradientBg = theme.palette.mode === 'dark'
@@ -205,39 +233,24 @@ export default function BroadcastPage() {
     if (file) {
       setAudioFile(file);
       setUploadError('');
-    }
-  };
-
-  const handleFileSave = async () => {
-    if (!audioFile) {
-      setUploadError('Please upload an audio file first');
-      return;
-    }
-
-    setIsUploading(true);
-    
-    try {
+      // Immediately save file data to localStorage
       const reader = new FileReader();
       reader.onload = () => {
-        // Store file data in localStorage
         localStorage.setItem('uploadedAudioFile', JSON.stringify({
-          name: audioFile.name,
-          size: audioFile.size,
-          type: audioFile.type,
-          lastModified: audioFile.lastModified
+          name: file.name,
+          size: file.size,
+          type: file.type,
+          lastModified: file.lastModified
         }));
-        localStorage.setItem('uploadedAudioFileName', audioFile.name);
-        localStorage.setItem('uploadedAudioFileSize', audioFile.size.toString());
-        localStorage.setItem('uploadedAudioFileType', audioFile.type);
+        localStorage.setItem('uploadedAudioFileName', file.name);
+        localStorage.setItem('uploadedAudioFileSize', file.size.toString());
+        localStorage.setItem('uploadedAudioFileType', file.type);
         localStorage.setItem('uploadedAudioFileData', reader.result as string);
-        
         setIsUploading(false);
         setUploadError('');
       };
-      reader.readAsDataURL(audioFile);
-    } catch (error) {
-      setUploadError('Error saving file. Please try again.');
-      setIsUploading(false);
+      setIsUploading(true);
+      reader.readAsDataURL(file);
     }
   };
 
@@ -314,7 +327,7 @@ export default function BroadcastPage() {
       
       // Show success message and redirect
       alert(`Successfully broadcast "${metadata.episodeTitle}" to Telecast!`);
-      router.push('/dashboard');
+      router.push('/my-telecast-podcasts');
       
     } catch (error) {
       console.error('Error broadcasting podcast:', error);
@@ -660,19 +673,6 @@ export default function BroadcastPage() {
                     </Typography>
                     <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 1 }}>
                       <Button
-                        variant="contained"
-                        onClick={handleFileSave}
-                        disabled={isUploading}
-                        startIcon={isUploading ? <CircularProgress size={20} /> : <CheckCircleIcon />}
-                        sx={{ 
-                          fontSize: { xs: '0.875rem', sm: '1rem' },
-                          py: { xs: 1, sm: 1.5 },
-                          px: { xs: 2, sm: 3 }
-                        }}
-                      >
-                        {isUploading ? 'Saving...' : 'Save File'}
-                      </Button>
-                      <Button
                         variant="outlined"
                         onClick={() => setAudioFile(null)}
                         sx={{ 
@@ -861,6 +861,8 @@ export default function BroadcastPage() {
                       multiline
                       minRows={4}
                       required
+                      disabled={descDisabled}
+                      helperText={descHelper}
                       sx={{
                         '& .MuiOutlinedInput-root': {
                           '& fieldset': {
