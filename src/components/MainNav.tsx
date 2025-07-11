@@ -1117,17 +1117,12 @@ const MainNav = memo(() => {
                   src={user?.image || undefined}
                   alt={user?.name || 'Profile'}
                   sx={{
-<<<<<<< Updated upstream
-                    width: 28,
-                    height: 28,
-=======
                     width: '3rem',
                     height: '3rem',
                     minWidth: '3rem',
                     minHeight: '3rem',
                     maxWidth: '3rem',
                     maxHeight: '3rem',
->>>>>>> Stashed changes
                     bgcolor: theme.palette.primary.main,
                     color: theme.palette.primary.contrastText,
                     fontSize: '1rem',
@@ -1168,17 +1163,12 @@ const MainNav = memo(() => {
               src={user?.image || undefined}
               alt={user?.name || 'Profile'}
               sx={{
-<<<<<<< Updated upstream
-                width: 28,
-                height: 28,
-=======
                 width: 32,
                 height: 32,
                 minWidth: 32,
                 minHeight: 32,
                 maxWidth: 32,
                 maxHeight: 32,
->>>>>>> Stashed changes
                 bgcolor: theme.palette.primary.main,
                 color: theme.palette.primary.contrastText,
                 fontSize: '1rem',

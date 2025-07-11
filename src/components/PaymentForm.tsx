@@ -121,7 +121,7 @@ const PaymentFormContent: React.FC<PaymentFormProps> = ({
   const cardElementOptions = {
     style: {
       base: {
-        fontSize: '16px',
+        fontSize: '14px',
         color: '#424770',
         '::placeholder': {
           color: '#aab7c4',
@@ -135,18 +135,18 @@ const PaymentFormContent: React.FC<PaymentFormProps> = ({
 
   return (
     <Container maxWidth="sm">
-      <Paper elevation={3} sx={{ p: 4, mt: 4 }}>
-        <Typography variant="h4" component="h1" gutterBottom align="center">
+      <Paper elevation={3} sx={{ p: 3, mt: 2 }}>
+        <Typography variant="h5" component="h1" gutterBottom align="center" sx={{ fontSize: { xs: 18, sm: 20 } }}>
           Payment
         </Typography>
         
         {description && (
-          <Typography variant="body1" color="text.secondary" align="center" sx={{ mb: 3 }}>
+          <Typography variant="body2" color="text.secondary" align="center" sx={{ mb: 2, fontSize: 13 }}>
             {description}
           </Typography>
         )}
 
-        <Typography variant="h6" component="h2" gutterBottom>
+        <Typography variant="body1" component="h2" gutterBottom sx={{ fontSize: 14, fontWeight: 600 }}>
           Amount: ${amount.toFixed(2)} {currency.toUpperCase()}
         </Typography>
 
@@ -158,18 +158,19 @@ const PaymentFormContent: React.FC<PaymentFormProps> = ({
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            sx={{ mb: 3 }}
+            sx={{ mb: 2 }}
+            size="small"
           />
 
-          <Box sx={{ mb: 3 }}>
-            <Typography variant="subtitle1" gutterBottom>
+          <Box sx={{ mb: 2 }}>
+            <Typography variant="body2" gutterBottom sx={{ fontSize: 13, fontWeight: 500 }}>
               Card Details
             </Typography>
             <Box
               sx={{
                 border: '1px solid #e0e0e0',
                 borderRadius: 1,
-                p: 2,
+                p: 1.5,
                 backgroundColor: '#fafafa',
               }}
             >
@@ -178,7 +179,7 @@ const PaymentFormContent: React.FC<PaymentFormProps> = ({
           </Box>
 
           {error && (
-            <Alert severity="error" sx={{ mb: 2 }}>
+            <Alert severity="error" sx={{ mb: 2, fontSize: 12 }}>
               {error}
             </Alert>
           )}
@@ -187,12 +188,12 @@ const PaymentFormContent: React.FC<PaymentFormProps> = ({
             type="submit"
             variant="contained"
             fullWidth
-            size="large"
+            size="medium"
             disabled={!stripe || loading}
-            sx={{ mt: 2 }}
+            sx={{ mt: 2, fontSize: 14 }}
           >
             {loading ? (
-              <CircularProgress size={24} color="inherit" />
+              <CircularProgress size={20} color="inherit" />
             ) : (
               `Pay $${amount.toFixed(2)}`
             )}
@@ -208,21 +209,21 @@ const PaymentForm: React.FC<PaymentFormProps> = (props) => {
   if (!process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY) {
     return (
       <Container maxWidth="sm">
-        <Paper elevation={3} sx={{ p: 4, mt: 4 }}>
-          <Alert severity="warning" sx={{ mb: 2 }}>
+        <Paper elevation={3} sx={{ p: 3, mt: 2 }}>
+          <Alert severity="warning" sx={{ mb: 2, fontSize: 12 }}>
             Stripe is not configured. Please add NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY to your environment variables.
           </Alert>
-          <Typography variant="h4" component="h1" gutterBottom align="center">
+          <Typography variant="h5" component="h1" gutterBottom align="center" sx={{ fontSize: { xs: 18, sm: 20 } }}>
             Payment Form Preview
           </Typography>
-          <Typography variant="body1" color="text.secondary" align="center" sx={{ mb: 3 }}>
+          <Typography variant="body2" color="text.secondary" align="center" sx={{ mb: 2, fontSize: 13 }}>
             This is a preview of the payment form. Configure Stripe to enable actual payments.
           </Typography>
-          <Typography variant="h6" component="h2" gutterBottom>
+          <Typography variant="body1" component="h2" gutterBottom sx={{ fontSize: 14, fontWeight: 600 }}>
             Amount: ${props.amount.toFixed(2)} {props.currency?.toUpperCase()}
           </Typography>
-          <Box sx={{ mt: 3, textAlign: 'center' }}>
-            <Button variant="contained" disabled>
+          <Box sx={{ mt: 2, textAlign: 'center' }}>
+            <Button variant="contained" disabled size="medium" sx={{ fontSize: 14 }}>
               Configure Stripe to Enable Payments
             </Button>
           </Box>

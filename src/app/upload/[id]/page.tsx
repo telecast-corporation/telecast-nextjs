@@ -31,7 +31,6 @@ export default function UploadPodcastPage() {
           waveColor: "#2196f3",
           progressColor: "#1565c0",
           height: 80,
-          responsive: true,
         });
         setWaveSurfer(ws);
         const reader = new FileReader();
@@ -79,7 +78,7 @@ export default function UploadPodcastPage() {
     try {
       const formData = new FormData();
       formData.append("file", audioFile);
-      formData.append("podcastId", params.id);
+      formData.append("podcastId", params.id as string);
 
       const response = await fetch("/api/upload/podcast", {
         method: "POST",

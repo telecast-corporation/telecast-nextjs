@@ -52,7 +52,7 @@ export default function PodcastPage() {
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const episodesPerPage = 10;
-  const [currentlyPlaying, setCurrentlyPlaying] = useState<string | null>(null);
+  const [currentlyPlaying, setCurrentlyPlaying] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchPodcast = async () => {
@@ -160,7 +160,7 @@ export default function PodcastPage() {
           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', mb: 3 }}>
             <CardMedia
               component="img"
-              image={podcast.imageUrl}
+              image={podcast.image}
               alt={podcast.title}
               sx={{ width: 200, height: 200, borderRadius: 2, mb: 2 }}
             />
@@ -198,17 +198,17 @@ export default function PodcastPage() {
             )}
           </Grid>
 
-          {/* Tags */}
-          {podcast.tags && podcast.tags.length > 0 && (
+          {/* Categories */}
+          {podcast.categories && podcast.categories.length > 0 && (
             <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
               <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                Tags
+                Categories
               </Typography>
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, justifyContent: 'center' }}>
-                {podcast.tags.map((tag) => (
+                {podcast.categories.map((category) => (
                   <Chip
-                    key={tag}
-                    label={tag}
+                    key={category}
+                    label={category}
                     size="small"
                     sx={{ 
                       backgroundColor: 'primary.light',
