@@ -19,10 +19,13 @@ model User {
   verifyToken        String?           @unique
   verifyTokenExpires DateTime?
   rssFeed            String?
+  isPremium          Boolean           @default(false)
+  premiumExpiresAt   DateTime?
   accounts           Account[]
   podcasts           Podcast[]
   sessions           Session[]
   recordings         Recording[]
+  usedFreeTrial      Boolean           @default(false)
 }
 
 model Account {

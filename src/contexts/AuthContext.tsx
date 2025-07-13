@@ -9,6 +9,9 @@ interface User {
   name: string;
   email: string;
   image?: string;
+  isPremium?: boolean;
+  premiumExpiresAt?: Date;
+  usedFreeTrial?: boolean;
 }
 
 interface AuthState {
@@ -44,6 +47,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           name: session.user.name || '',
           email: session.user.email || '',
           image: session.user.image,
+          isPremium: session.user.isPremium,
+          premiumExpiresAt: session.user.premiumExpiresAt,
+          usedFreeTrial: session.user.usedFreeTrial,
         },
             isLoading: false,
             isAuthenticated: true,
