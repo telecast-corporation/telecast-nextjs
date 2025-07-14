@@ -77,4 +77,37 @@ export const deletePodcastFile = async (filename: string): Promise<void> => {
 // Delete file from profile bucket
 export const deleteProfileFile = async (filename: string): Promise<void> => {
   await profileBucket.file(filename).delete();
+};
+
+// Move file from temp to final location
+export const moveFile = async (
+  sourcePath: string,
+  destinationPath: string
+): Promise<{ success: boolean; url: string }> => {
+  try {
+    const sourceFile = podcastBucket.file(sourcePath);
+    const destinationFile = podcastBucket.file(destinationPath);
+
+    // Copy file to new location
+    await sourceFile.copy(destinationFile);
+    
+    // Delete original file
+    await sourceFile.delete();
+
+    // Get signed URL for the new file
+    const [url] = await destinationFile.getSignedUrl({
+      action: 'read',
+      expires: '03-01-2500',
+    });
+
+    return { success: true, url };
+  } catch (error) {
+    console.error('Error moving file:', error);
+    return { success: false, url: '' };
+  }
+};
+
+// Delete file from podcast bucket (generic function)
+export const deleteFile = async (filename: string): Promise<void> => {
+  await podcastBucket.file(filename).delete();
 }; 

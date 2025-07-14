@@ -36,31 +36,6 @@ import {
 } from "@mui/icons-material";
 import { useRouter } from "next/navigation";
 
-const LANGUAGES = [
-  { code: "en", label: "English" },
-  { code: "es", label: "Spanish" },
-  { code: "fr", label: "French" },
-  { code: "de", label: "German" },
-  { code: "zh", label: "Chinese" },
-  // ... add more as needed
-];
-
-const CATEGORIES = [
-  "Arts",
-  "Business",
-  "Comedy",
-  "Education",
-  "Health & Fitness",
-  "Music",
-  "News",
-  "Religion & Spirituality",
-  "Science",
-  "Sports",
-  "Technology",
-  "TV & Film",
-  // ... add more as needed
-];
-
 interface AppleMetadata {
   subtitle: string;
   summary: string;
@@ -78,18 +53,16 @@ interface GoogleMetadata {
 }
 
 interface PodcastMetadata {
-  title: string;
-  description: string;
-  author: string;
-  language: string;
-  category: string;
-
-  explicit: boolean;
+  // Episode-specific fields matching the schema exactly
   episodeTitle: string;
   episodeDescription: string;
-  episodeType: string;
   episodeNumber: string;
-  pubDate: string;
+  seasonNumber: string;
+  keywords: string;
+  explicit: boolean;
+  publishDate: string; // Changed from pubDate to publishDate to match schema
+  
+  // Platform-specific metadata (these will be stored elsewhere)
   apple: AppleMetadata;
   spotify: SpotifyMetadata;
   google: GoogleMetadata;
@@ -103,18 +76,15 @@ interface Platforms {
 }
 
 const DEFAULT_METADATA: PodcastMetadata = {
-  title: "",
-  description: "",
-  author: "",
-  language: "en",
-  category: "",
-
-  explicit: false,
+  // Episode-specific fields
   episodeTitle: "",
   episodeDescription: "",
-  episodeType: "full",
   episodeNumber: "",
-  pubDate: "",
+  seasonNumber: "",
+  keywords: "",
+  explicit: false,
+  publishDate: "",
+  
   // Platform-specific
   apple: {
     subtitle: "",
@@ -142,52 +112,26 @@ export default function BroadcastPage() {
   const [uploadError, setUploadError] = useState('');
   const [isUploading, setIsUploading] = useState(false);
   const router = useRouter();
-  const [descDisabled, setDescDisabled] = useState(false);
-  const [descHelper, setDescHelper] = useState<string | undefined>(undefined);
 
   // Check for existing uploaded file on component mount
   useEffect(() => {
-    const existingFileData = localStorage.getItem('uploadedAudioFile');
-    if (existingFileData) {
+    const broadcastReference = sessionStorage.getItem('broadcastReference');
+    if (broadcastReference) {
       try {
-        const fileInfo = JSON.parse(existingFileData);
-        // Create a mock file object from stored data
-        const mockFile = new File([new ArrayBuffer(fileInfo.size)], fileInfo.name, {
-          type: fileInfo.type,
-          lastModified: fileInfo.lastModified
-        });
-        setAudioFile(mockFile);
+        const referenceData = JSON.parse(broadcastReference);
+        console.log('Found broadcast reference:', referenceData);
+        
+        // Set the audio file info from the reference
+        setAudioFile({
+          name: referenceData.originalFileName || 'edited-audio.wav',
+          size: 0, // We don't have the actual size, but it's not needed
+          type: 'audio/wav',
+        } as File);
       } catch (error) {
-        console.error('Error parsing stored file data:', error);
+        console.error('Error parsing broadcast reference:', error);
       }
     }
   }, []);
-
-  // Check if podcast title exists and autofill/disable description
-  useEffect(() => {
-    if (!metadata.title) {
-      setDescDisabled(false);
-      setDescHelper(undefined);
-      return;
-    }
-    let ignore = false;
-    (async () => {
-      const res = await fetch(`/api/telecast-podcasts?title=${encodeURIComponent(metadata.title)}`);
-      if (!ignore && res.ok) {
-        const data = await res.json();
-        if (data.exists) {
-          setMetadata((prev) => ({ ...prev, description: data.description || "" }));
-          setDescDisabled(true);
-          setDescHelper("Podcast description already set for this title.");
-        } else {
-          setDescDisabled(false);
-          setDescHelper(undefined);
-        }
-      }
-    })();
-    return () => { ignore = true; };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [metadata.title]);
 
   // Gradient backgrounds
   const gradientBg = theme.palette.mode === 'dark'
@@ -203,11 +147,11 @@ export default function BroadcastPage() {
     setMetadata((prev) => {
       const next = { ...prev, [field]: value };
       // Autofill platform fields if they are empty
-      if (field === "title") {
+      if (field === "episodeTitle") {
         if (!prev.apple.subtitle) next.apple.subtitle = value as string;
         if (!prev.apple.summary) next.apple.summary = value as string;
       }
-      if (field === "description") {
+      if (field === "episodeDescription") {
         if (!prev.apple.summary) next.apple.summary = value as string;
       }
       return next;
@@ -259,79 +203,67 @@ export default function BroadcastPage() {
     e.preventDefault();
     
     try {
-      // Check if file is uploaded and saved
-      if (!audioFile) {
-        alert('Please upload an audio file first.');
+      // Check if we have a broadcast reference
+      const broadcastReference = sessionStorage.getItem('broadcastReference');
+      if (!broadcastReference) {
+        alert('No audio file found. Please record or upload an audio file first.');
         return;
       }
 
-      // Check if file is saved to localStorage
-      const audioFileData = localStorage.getItem('uploadedAudioFileData');
-      const audioFileName = localStorage.getItem('uploadedAudioFileName');
-      const audioFileSize = localStorage.getItem('uploadedAudioFileSize');
-      const audioFileType = localStorage.getItem('uploadedAudioFileType');
-      
-      if (!audioFileData || !audioFileName || !audioFileSize || !audioFileType) {
-        alert('Please save your audio file first by clicking the "Save File" button.');
-        return;
-      }
+      const referenceData = JSON.parse(broadcastReference);
 
       // Validate required fields
-      if (!metadata.title || !metadata.description || !metadata.author || 
-          !metadata.episodeTitle || !metadata.episodeDescription) {
-        alert('Please fill in all required fields.');
+      if (!metadata.episodeTitle || !metadata.episodeDescription) {
+        alert('Please fill in all required episode fields.');
         return;
       }
 
-      // Prepare data for API
-      const broadcastData = {
-        title: metadata.title,
-        description: metadata.description,
-        author: metadata.author,
-        language: metadata.language,
-        category: metadata.category,
-        explicit: metadata.explicit,
-        episodeTitle: metadata.episodeTitle,
-        episodeDescription: metadata.episodeDescription,
-        episodeType: metadata.episodeType,
-        episodeNumber: metadata.episodeNumber,
-        pubDate: metadata.pubDate || new Date().toISOString().split('T')[0],
-        audioFileName,
-        audioFileSize: parseInt(audioFileSize),
-        audioFileType,
-        audioFileData,
+      // Prepare data for finalize API
+      const finalizeData = {
+        referenceId: referenceData.referenceId,
+        tempPath: referenceData.tempPath,
+        podcastId: referenceData.podcastId,
+        metadata: {
+          episodeTitle: metadata.episodeTitle,
+          episodeDescription: metadata.episodeDescription,
+          episodeType: metadata.episodeType,
+          episodeNumber: metadata.episodeNumber,
+          seasonNumber: metadata.seasonNumber,
+          keywords: metadata.keywords,
+          explicit: metadata.explicit,
+          publishDate: metadata.publishDate || new Date().toISOString().split('T')[0],
+          apple: metadata.apple,
+          spotify: metadata.spotify,
+          google: metadata.google,
+        }
       };
 
-      // Call the API
-      const response = await fetch('/api/broadcast', {
+      // Call the finalize API
+      const response = await fetch('/api/podcast/finalize', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(broadcastData),
+        body: JSON.stringify(finalizeData),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to broadcast podcast');
+        throw new Error(errorData.error || 'Failed to finalize podcast');
       }
 
       const result = await response.json();
       
-      // Clear localStorage
-      localStorage.removeItem('uploadedAudioFile');
-      localStorage.removeItem('uploadedAudioFileName');
-      localStorage.removeItem('uploadedAudioFileSize');
-      localStorage.removeItem('uploadedAudioFileType');
-      localStorage.removeItem('uploadedAudioFileData');
+      // Clear sessionStorage
+      sessionStorage.removeItem('broadcastReference');
       
       // Show success message and redirect
-      alert(`Successfully broadcast "${metadata.episodeTitle}" to Telecast!`);
+      alert(`Successfully launched "${metadata.episodeTitle}" to Telecast!`);
       router.push('/dashboard');
       
     } catch (error) {
-      console.error('Error broadcasting podcast:', error);
-      alert(`Error broadcasting podcast: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      console.error('Error finalizing podcast:', error);
+      alert(`Error finalizing podcast: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
@@ -781,7 +713,7 @@ export default function BroadcastPage() {
 
             <Divider sx={{ my: 4, borderColor: 'rgba(255,255,255,0.1)' }} />
 
-            {/* Main Podcast Metadata */}
+            {/* Episode Information */}
             <Card sx={{ mb: 4, background: 'rgba(255,255,255,0.05)', backdropFilter: 'blur(10px)' }}>
               <CardContent>
                 <Typography 
@@ -793,42 +725,14 @@ export default function BroadcastPage() {
                     fontSize: { xs: '1.25rem', sm: '1.5rem', md: '1.75rem' }
                   }}
                 >
-                  Main Podcast Information
+                  Episode Information
                 </Typography>
                 <Grid container spacing={{ xs: 2, sm: 3 }}>
-                  <Grid item xs={12} sm={6}>
+                  <Grid item xs={12}>
                     <TextField
-                      label="Podcast Title"
-                      value={metadata.title}
-                      onChange={(e) => handleMainChange("title", e.target.value)}
-                      fullWidth
-                      required
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          '& fieldset': {
-                            borderColor: 'rgba(255,255,255,0.2)',
-                          },
-                          '&:hover fieldset': {
-                            borderColor: 'rgba(255,255,255,0.3)',
-                          },
-                          '&.Mui-focused fieldset': {
-                            borderColor: theme.palette.primary.main,
-                          },
-                        },
-                        '& .MuiInputLabel-root': {
-                          fontSize: { xs: '0.875rem', sm: '1rem' },
-                        },
-                        '& .MuiInputBase-input': {
-                          fontSize: { xs: '0.875rem', sm: '1rem' },
-                        },
-                      }}
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      label="Author"
-                      value={metadata.author}
-                      onChange={(e) => handleMainChange("author", e.target.value)}
+                      label="Episode Title"
+                      value={metadata.episodeTitle}
+                      onChange={(e) => handleMainChange("episodeTitle", e.target.value)}
                       fullWidth
                       required
                       sx={{
@@ -854,15 +758,13 @@ export default function BroadcastPage() {
                   </Grid>
                   <Grid item xs={12}>
                     <TextField
-                      label="Podcast Description"
-                      value={metadata.description}
-                      onChange={(e) => handleMainChange("description", e.target.value)}
+                      label="Episode Description"
+                      value={metadata.episodeDescription}
+                      onChange={(e) => handleMainChange("episodeDescription", e.target.value)}
                       fullWidth
                       multiline
                       minRows={4}
                       required
-                      disabled={descDisabled}
-                      helperText={descHelper}
                       sx={{
                         '& .MuiOutlinedInput-root': {
                           '& fieldset': {
@@ -885,66 +787,117 @@ export default function BroadcastPage() {
                     />
                   </Grid>
                   <Grid item xs={12} sm={6}>
-                    <FormControl fullWidth>
-                      <InputLabel sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>Language</InputLabel>
-                      <Select
-                        value={metadata.language}
-                        label="Language"
-                        onChange={(e) => handleMainChange("language", e.target.value)}
-                        sx={{
-                          '& .MuiOutlinedInput-notchedOutline': {
+                    <TextField
+                      label="Episode Number"
+                      value={metadata.episodeNumber}
+                      onChange={(e) => handleMainChange("episodeNumber", e.target.value)}
+                      fullWidth
+                      type="number"
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          '& fieldset': {
                             borderColor: 'rgba(255,255,255,0.2)',
                           },
-                          '&:hover .MuiOutlinedInput-notchedOutline': {
+                          '&:hover fieldset': {
                             borderColor: 'rgba(255,255,255,0.3)',
                           },
-                          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                          '&.Mui-focused fieldset': {
                             borderColor: theme.palette.primary.main,
                           },
-                          '& .MuiSelect-select': {
-                            fontSize: { xs: '0.875rem', sm: '1rem' },
-                          },
-                        }}
-                      >
-                        {LANGUAGES.map((lang) => (
-                          <MenuItem key={lang.code} value={lang.code}>
-                            {lang.label}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
+                        },
+                        '& .MuiInputLabel-root': {
+                          fontSize: { xs: '0.875rem', sm: '1rem' },
+                        },
+                        '& .MuiInputBase-input': {
+                          fontSize: { xs: '0.875rem', sm: '1rem' },
+                        },
+                      }}
+                    />
                   </Grid>
                   <Grid item xs={12} sm={6}>
-                    <FormControl fullWidth>
-                      <InputLabel sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>Category</InputLabel>
-                      <Select
-                        value={metadata.category}
-                        label="Category"
-                        onChange={(e) => handleMainChange("category", e.target.value)}
-                        sx={{
-                          '& .MuiOutlinedInput-notchedOutline': {
+                    <TextField
+                      label="Season Number"
+                      value={metadata.seasonNumber}
+                      onChange={(e) => handleMainChange("seasonNumber", e.target.value)}
+                      fullWidth
+                      type="number"
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          '& fieldset': {
                             borderColor: 'rgba(255,255,255,0.2)',
                           },
-                          '&:hover .MuiOutlinedInput-notchedOutline': {
+                          '&:hover fieldset': {
                             borderColor: 'rgba(255,255,255,0.3)',
                           },
-                          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                          '&.Mui-focused fieldset': {
                             borderColor: theme.palette.primary.main,
                           },
-                          '& .MuiSelect-select': {
-                            fontSize: { xs: '0.875rem', sm: '1rem' },
-                          },
-                        }}
-                      >
-                        {CATEGORIES.map((cat) => (
-                          <MenuItem key={cat} value={cat}>
-                            {cat}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
+                        },
+                        '& .MuiInputLabel-root': {
+                          fontSize: { xs: '0.875rem', sm: '1rem' },
+                        },
+                        '& .MuiInputBase-input': {
+                          fontSize: { xs: '0.875rem', sm: '1rem' },
+                        },
+                      }}
+                    />
                   </Grid>
-
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      label="Keywords (comma-separated)"
+                      value={metadata.keywords}
+                      onChange={(e) => handleMainChange("keywords", e.target.value)}
+                      fullWidth
+                      placeholder="podcast, audio, interview, etc."
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          '& fieldset': {
+                            borderColor: 'rgba(255,255,255,0.2)',
+                          },
+                          '&:hover fieldset': {
+                            borderColor: 'rgba(255,255,255,0.3)',
+                          },
+                          '&.Mui-focused fieldset': {
+                            borderColor: theme.palette.primary.main,
+                          },
+                        },
+                        '& .MuiInputLabel-root': {
+                          fontSize: { xs: '0.875rem', sm: '1rem' },
+                        },
+                        '& .MuiInputBase-input': {
+                          fontSize: { xs: '0.875rem', sm: '1rem' },
+                        },
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      label="Publication Date"
+                      value={metadata.publishDate}
+                      onChange={(e) => handleMainChange("publishDate", e.target.value)}
+                      fullWidth
+                      type="date"
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          '& fieldset': {
+                            borderColor: 'rgba(255,255,255,0.2)',
+                          },
+                          '&:hover fieldset': {
+                            borderColor: 'rgba(255,255,255,0.3)',
+                          },
+                          '&.Mui-focused fieldset': {
+                            borderColor: theme.palette.primary.main,
+                          },
+                        },
+                        '& .MuiInputLabel-root': {
+                          fontSize: { xs: '0.875rem', sm: '1rem' },
+                        },
+                        '& .MuiInputBase-input': {
+                          fontSize: { xs: '0.875rem', sm: '1rem' },
+                        },
+                      }}
+                    />
+                  </Grid>
                   <Grid item xs={12} sm={6}>
                     <FormControlLabel
                       control={
@@ -959,142 +912,10 @@ export default function BroadcastPage() {
                           }}
                         />
                       }
-                      label={
-                        <Typography 
-                          variant="body1" 
-                          fontWeight={500}
-                          sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}
-                        >
-                          Explicit Content
-                        </Typography>
-                      }
-                    />
-                  </Grid>
-                </Grid>
-              </CardContent>
-            </Card>
-
-            <Divider sx={{ my: 4, borderColor: 'rgba(255,255,255,0.1)' }} />
-
-            {/* Episode Metadata */}
-            <Card sx={{ mb: 4, background: 'rgba(255,255,255,0.05)', backdropFilter: 'blur(10px)' }}>
-              <CardContent>
-                <Typography variant="h5" fontWeight={700} mb={3} sx={{ color: '#ff6b35' }}>
-                  Episode Details
-                </Typography>
-                <Grid container spacing={3}>
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      label="Episode Title"
-                      value={metadata.episodeTitle}
-                      onChange={(e) => setMetadata((prev) => ({ ...prev, episodeTitle: e.target.value }))}
-                      fullWidth
-                      required
+                      label="Explicit Content"
                       sx={{
-                        '& .MuiOutlinedInput-root': {
-                          '& fieldset': {
-                            borderColor: 'rgba(255,255,255,0.2)',
-                          },
-                          '&:hover fieldset': {
-                            borderColor: 'rgba(255,255,255,0.3)',
-                          },
-                          '&.Mui-focused fieldset': {
-                            borderColor: theme.palette.primary.main,
-                          },
-                        },
-                      }}
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      label="Episode Number"
-                      value={metadata.episodeNumber}
-                      onChange={(e) => setMetadata((prev) => ({ ...prev, episodeNumber: e.target.value }))}
-                      fullWidth
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          '& fieldset': {
-                            borderColor: 'rgba(255,255,255,0.2)',
-                          },
-                          '&:hover fieldset': {
-                            borderColor: 'rgba(255,255,255,0.3)',
-                          },
-                          '&.Mui-focused fieldset': {
-                            borderColor: theme.palette.primary.main,
-                          },
-                        },
-                      }}
-                    />
-                  </Grid>
-                  <Grid item xs={12}>
-                    <TextField
-                      label="Episode Description"
-                      value={metadata.episodeDescription}
-                      onChange={(e) => setMetadata((prev) => ({ ...prev, episodeDescription: e.target.value }))}
-                      fullWidth
-                      multiline
-                      minRows={4}
-                      required
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          '& fieldset': {
-                            borderColor: 'rgba(255,255,255,0.2)',
-                          },
-                          '&:hover fieldset': {
-                            borderColor: 'rgba(255,255,255,0.3)',
-                          },
-                          '&.Mui-focused fieldset': {
-                            borderColor: theme.palette.primary.main,
-                          },
-                        },
-                      }}
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      label="Episode Type"
-                      value={metadata.episodeType}
-                      onChange={(e) => setMetadata((prev) => ({ ...prev, episodeType: e.target.value }))}
-                      fullWidth
-                      select
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          '& fieldset': {
-                            borderColor: 'rgba(255,255,255,0.2)',
-                          },
-                          '&:hover fieldset': {
-                            borderColor: 'rgba(255,255,255,0.3)',
-                          },
-                          '&.Mui-focused fieldset': {
-                            borderColor: theme.palette.primary.main,
-                          },
-                        },
-                      }}
-                    >
-                      <MenuItem value="full">Full Episode</MenuItem>
-                      <MenuItem value="trailer">Trailer</MenuItem>
-                      <MenuItem value="bonus">Bonus Content</MenuItem>
-                    </TextField>
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      label="Publication Date"
-                      type="date"
-                      value={metadata.pubDate}
-                      onChange={(e) => setMetadata((prev) => ({ ...prev, pubDate: e.target.value }))}
-                      fullWidth
-                      InputLabelProps={{ shrink: true }}
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          '& fieldset': {
-                            borderColor: 'rgba(255,255,255,0.2)',
-                          },
-                          '&:hover fieldset': {
-                            borderColor: 'rgba(255,255,255,0.3)',
-                          },
-                          '&.Mui-focused fieldset': {
-                            borderColor: theme.palette.primary.main,
-                          },
+                        '& .MuiFormControlLabel-label': {
+                          fontSize: { xs: '0.875rem', sm: '1rem' },
                         },
                       }}
                     />

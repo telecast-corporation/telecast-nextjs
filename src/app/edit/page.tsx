@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Box, CircularProgress, Typography, Alert } from '@mui/material';
 import AudioRecorder from '../../components/AudioRecorder';
 
-export default function RecordPage() {
+export default function EditPage() {
   const { status, data: session } = useSession();
   const router = useRouter();
   const [authChecked, setAuthChecked] = useState(false);
@@ -15,7 +15,7 @@ export default function RecordPage() {
     // Only redirect if we're certain the user is unauthenticated
     if (status === 'unauthenticated' && authChecked) {
       // Store the current page as the callback URL
-      const callbackUrl = encodeURIComponent('/record');
+      const callbackUrl = encodeURIComponent('/edit');
       router.push(`/login?callbackUrl=${callbackUrl}`);
     }
   }, [status, authChecked, router]);
@@ -69,3 +69,4 @@ export default function RecordPage() {
     </Suspense>
   );
 } 
+ 

@@ -23,6 +23,7 @@ model User {
   podcasts           Podcast[]
   sessions           Session[]
   recordings         Recording[]
+  fileReferences     FileReference[]
 }
 
 model Account {
@@ -31,12 +32,12 @@ model Account {
   type              String
   provider          String
   providerAccountId String
-  refresh_token     String?
-  access_token      String?
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
   expires_at        Int?
   token_type        String?
   scope             String?
-  id_token          String?
+  id_token          String? @db.Text
   session_state     String?
   user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -88,6 +89,10 @@ model Podcast {
   explicit    Boolean   @default(false)
   copyright   String?
   website     String?
+  coverImage  String?
+  rssFeed     String?
+  isPublic    Boolean   @default(false)
+  fileReferences FileReference[]
 
   @@index([userId])
   @@index([title])
@@ -114,6 +119,7 @@ model Episode {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   podcast       Podcast  @relation(fields: [podcastId], references: [id], onDelete: Cascade)
+  referenceId   String?  // Link to file reference
 
   @@index([podcastId])
   @@index([title])
@@ -134,3 +140,20 @@ model Recording {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
+model FileReference {
+  id          String   @id @default(cuid())
+  referenceId String   @unique
+  podcastId   String
+  userId      String
+  status      String   @default("temp") // temp, final, deleted
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  podcast     Podcast  @relation(fields: [podcastId], references: [id], onDelete: Cascade)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([referenceId])
+  @@index([userId])
+  @@index([podcastId])
+}
+

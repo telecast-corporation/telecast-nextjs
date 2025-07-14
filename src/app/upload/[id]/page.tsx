@@ -77,11 +77,30 @@ export default function UploadPodcastPage() {
     setError("");
     
     try {
+      // Generate reference ID for this upload
+      const referenceResponse = await fetch("/api/podcast/reference", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          podcastId: params.id,
+        }),
+      });
+
+      if (!referenceResponse.ok) {
+        throw new Error("Failed to generate reference ID");
+      }
+
+      const referenceData = await referenceResponse.json();
+      const referenceId = referenceData.referenceId;
+      
       const formData = new FormData();
       formData.append("file", audioFile);
       formData.append("podcastId", params.id);
+      formData.append("referenceId", referenceId);
 
-      const response = await fetch("/api/upload/podcast", {
+      const response = await fetch("/api/podcast/upload/temp", {
         method: "POST",
         body: formData,
       });
@@ -92,9 +111,20 @@ export default function UploadPodcastPage() {
       }
 
       const result = await response.json();
-      console.log("Upload successful:", result);
+      console.log("Temporary upload successful:", result);
+      
+      // Store reference info for the edit page
+      sessionStorage.setItem("editSession", JSON.stringify({
+        referenceId: referenceId,
+        tempFileName: result.tempFileName,
+        tempUrl: result.tempUrl,
+        tempPath: result.tempPath,
+        podcastId: params.id,
+        originalFileName: audioFile.name,
+      }));
       
       // Navigate to edit page after successful upload
+      setUploading(false);
       router.push("/edit");
     } catch (err) {
       console.error("Upload error:", err);
