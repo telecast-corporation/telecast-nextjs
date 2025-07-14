@@ -11,10 +11,14 @@ const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
 export async function POST(request: NextRequest) {
   console.log("=== WEBHOOK CALLED ===");
   console.log("Time:", new Date().toISOString());
+  console.log("URL:", request.url);
+  console.log("Method:", request.method);
+  
   const body = await request.text();
   const sig = request.headers.get('stripe-signature');
   console.log("Signature present:", !!sig);
   console.log("Body length:", body.length);
+  console.log("Body preview:", body.substring(0, 200) + "...");
 
   let event: Stripe.Event;
 
@@ -49,9 +53,9 @@ export async function POST(request: NextRequest) {
       try {
         const email = paymentIntent.receipt_email;
         if (email) {
-          // Set premium for 30 days from now
+          // Set premium for 90 days from now
           const premiumExpiresAt = new Date();
-          premiumExpiresAt.setDate(premiumExpiresAt.getDate() + 30);
+          premiumExpiresAt.setDate(premiumExpiresAt.getDate() + 90);
           
           await prisma.user.updateMany({
             where: { email },

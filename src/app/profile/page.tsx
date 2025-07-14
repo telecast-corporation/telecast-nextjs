@@ -1,5 +1,6 @@
 'use client';
 
+import { Suspense } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { 
   Box, 
@@ -26,14 +27,24 @@ import {
   Star as StarIcon,
   Diamond as DiamondIcon,
   CheckCircle as CheckCircleIcon,
+  Refresh as RefreshIcon,
 } from '@mui/icons-material';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { typography, spacing, borderRadius } from '@/styles/typography';
 
-export default function ProfilePage() {
+export default function ProfilePageWrapper() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <ProfilePage />
+    </Suspense>
+  );
+}
+
+function ProfilePage() {
   const { user, isAuthenticated, isLoading, logout } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteConfirmation, setDeleteConfirmation] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
@@ -55,12 +66,47 @@ export default function ProfilePage() {
     severity: 'success' | 'error';
   }>({ open: false, message: '', severity: 'success' });
   const [isStartingTrial, setIsStartingTrial] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
       router.push('/login');
     }
   }, [isLoading, isAuthenticated, router]);
+
+  // Handle checkout success
+  useEffect(() => {
+    const checkout = searchParams.get('checkout');
+    if (checkout === 'success') {
+      setSnackbar({
+        open: true,
+        message: 'Payment successful! Your premium subscription has been activated.',
+        severity: 'success',
+      });
+      // Refresh the page to update the user's premium status
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
+    }
+  }, [searchParams]);
+
+  const handleRefreshSession = async () => {
+    setIsRefreshing(true);
+    try {
+      // Force a session refresh by calling the session endpoint
+      await fetch('/api/auth/session', { method: 'GET' });
+      // Reload the page to get updated user data
+      window.location.reload();
+    } catch (error) {
+      setSnackbar({
+        open: true,
+        message: 'Failed to refresh session',
+        severity: 'error',
+      });
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   const validatePasswordForm = () => {
     const errors = {
@@ -303,6 +349,32 @@ export default function ProfilePage() {
                   <Typography variant="caption" sx={{ color: '#10B981', fontSize: '0.75rem', fontWeight: 600 }}>
                     ✓ Premium Active
                   </Typography>
+                )}
+                {!user?.isPremium && (
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Typography variant="caption" sx={{ color: '#EF4444', fontSize: '0.75rem', fontWeight: 600 }}>
+                      ⚠️ Premium Inactive
+                    </Typography>
+                    <Button
+                      size="small"
+                      startIcon={<RefreshIcon />}
+                      onClick={handleRefreshSession}
+                      disabled={isRefreshing}
+                      sx={{
+                        minWidth: 'auto',
+                        px: 1,
+                        py: 0.5,
+                        fontSize: '0.7rem',
+                        color: '#EF4444',
+                        borderColor: '#EF4444',
+                        '&:hover': {
+                          backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                        },
+                      }}
+                    >
+                      {isRefreshing ? 'Refreshing...' : 'Refresh'}
+                    </Button>
+                  </Box>
                 )}
               </Box>
             </Box>
