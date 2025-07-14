@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
 import {
   Box,
   Typography,
@@ -34,6 +35,161 @@ export default function PaymentPage() {
   const router = useRouter();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const { user, isAuthenticated, isLoading } = useAuth();
+  const [showPremiumMessage, setShowPremiumMessage] = useState(false);
+
+  useEffect(() => {
+    // Redirect to login if not authenticated
+    if (!isLoading && !isAuthenticated) {
+      router.push('/login');
+      return;
+    }
+    
+    // Show premium message if user is premium
+    if (!isLoading && isAuthenticated && user?.isPremium) {
+      setShowPremiumMessage(true);
+    }
+  }, [isLoading, isAuthenticated, user, router]);
+
+  // Show loading while checking user status
+  if (isLoading) {
+    return (
+      <Container maxWidth="lg" sx={{ py: 4 }}>
+        <Paper
+          elevation={3}
+          sx={{
+            p: 4,
+            borderRadius: 3,
+            textAlign: 'center',
+          }}
+        >
+          <Typography variant="h6">Loading...</Typography>
+        </Paper>
+      </Container>
+    );
+  }
+
+  // Redirect if not authenticated
+  if (!isAuthenticated) {
+    return null; // Will redirect in useEffect
+  }
+
+  // If user is premium, show premium message instead of payment form
+  if (showPremiumMessage) {
+    return (
+      <Container maxWidth="md" sx={{ py: 6 }}>
+        <Paper
+          elevation={0}
+          sx={{
+            p: 6,
+            borderRadius: 4,
+            background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+            color: 'white',
+            textAlign: 'center',
+            position: 'relative',
+            overflow: 'hidden',
+            boxShadow: '0 20px 40px rgba(16, 185, 129, 0.15)',
+          }}
+        >
+          {/* Decorative background elements */}
+          <Box
+            sx={{
+              position: 'absolute',
+              top: -40,
+              right: -40,
+              width: 120,
+              height: 120,
+              borderRadius: '50%',
+              background: 'rgba(255,255,255,0.1)',
+            }}
+          />
+          <Box
+            sx={{
+              position: 'absolute',
+              bottom: -30,
+              left: -30,
+              width: 80,
+              height: 80,
+              borderRadius: '50%',
+              background: 'rgba(255,255,255,0.08)',
+            }}
+          />
+          
+          <Box sx={{ position: 'relative', zIndex: 1 }}>
+            <CheckCircleIcon sx={{ 
+              fontSize: 48, 
+              mb: 3, 
+              color: '#FCD34D',
+              filter: 'drop-shadow(0 4px 8px rgba(252, 211, 77, 0.3))'
+            }} />
+            
+            <Typography variant="h5" fontWeight={700} sx={{ 
+              mb: 2, 
+              fontSize: '1.75rem',
+              letterSpacing: '-0.025em'
+            }}>
+              You're Already Premium! 🎉
+            </Typography>
+            
+            <Typography variant="body1" sx={{ 
+              mb: 4, 
+              opacity: 0.9,
+              fontSize: '0.95rem',
+              lineHeight: 1.6
+            }}>
+              Your premium subscription is active and you have access to all features
+            </Typography>
+            
+            {user?.premiumExpiresAt && (
+              <Box sx={{ 
+                mb: 4, 
+                p: 2, 
+                background: 'rgba(255,255,255,0.1)', 
+                borderRadius: 2,
+                border: '1px solid rgba(255,255,255,0.2)'
+              }}>
+                <Typography variant="body2" sx={{ 
+                  opacity: 0.9,
+                  fontSize: '0.875rem',
+                  fontWeight: 500
+                }}>
+                  Premium until: {new Date(user.premiumExpiresAt).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                  })}
+                </Typography>
+              </Box>
+            )}
+            
+            <Button
+              variant="contained"
+              onClick={() => router.push('/profile')}
+              sx={{
+                background: 'white',
+                color: '#10B981',
+                fontWeight: 600,
+                px: 4,
+                py: 1.25,
+                borderRadius: 3,
+                textTransform: 'none',
+                fontSize: '0.875rem',
+                boxShadow: '0 4px 12px rgba(255,255,255,0.3)',
+                '&:hover': {
+                  background: '#F8FAFC',
+                  transform: 'translateY(-1px)',
+                  boxShadow: '0 6px 16px rgba(255,255,255,0.4)',
+                },
+                transition: 'all 0.2s ease',
+              }}
+            >
+              Go to Profile
+            </Button>
+          </Box>
+        </Paper>
+      </Container>
+    );
+  }
 
 
 

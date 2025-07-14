@@ -1,15 +1,24 @@
 import React, { useState } from 'react';
 import { Button, TextField, Box, Typography, Alert } from '@mui/material';
+import { useAuth } from '@/contexts/AuthContext';
 
 const SubscriptionForm: React.FC = () => {
   const [email, setEmail] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const { user, isAuthenticated } = useAuth();
 
   const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
+
+    // Check if user is already premium
+    if (isAuthenticated && user?.isPremium) {
+      setError('You are already a premium user!');
+      setLoading(false);
+      return;
+    }
 
     const res = await fetch('/api/payment/create-checkout-session', {
       method: 'POST',

@@ -5,7 +5,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
   apiVersion: '2025-06-30.basil',
 });
 
-const PRICE_ID = 'price_1RkTNOL1gjoL2pfGwdM0Nujg'; // USD $9.99/month
+const PRICE_ID = 'price_1RkoI5L1gjoL2pfG31JiL1Ut'; // CAD $9.99/month
 
 export async function POST(request: NextRequest) {
   try {

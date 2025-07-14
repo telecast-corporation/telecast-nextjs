@@ -66,13 +66,7 @@ export const authOptions: NextAuthOptions = {
         verificationToken: { label: 'Verification Token', type: 'text' }
       },
       async authorize(credentials) {
-        console.log('🔍 Verification provider called with:', {
-          email: credentials?.email,
-          token: credentials?.verificationToken ? `${credentials.verificationToken.substring(0, 8)}...` : 'null'
-        });
-
         if (!credentials?.email || !credentials?.verificationToken) {
-          console.log('🔍 Missing email or token');
           return null;
         }
 
@@ -81,20 +75,11 @@ export const authOptions: NextAuthOptions = {
           where: { token: credentials.verificationToken },
         });
 
-        console.log('🔍 Found verification token:', verificationToken ? 'yes' : 'no');
-        if (verificationToken) {
-          console.log('🔍 Token identifier:', verificationToken.identifier);
-          console.log('🔍 Token expires:', verificationToken.expires);
-          console.log('🔍 Is expired:', verificationToken.expires < new Date());
-        }
-
         if (!verificationToken || verificationToken.identifier !== credentials.email) {
-          console.log('🔍 Token not found or email mismatch');
           return null;
         }
 
         if (verificationToken.expires < new Date()) {
-          console.log('🔍 Token expired');
           return null;
         }
 
@@ -103,17 +88,9 @@ export const authOptions: NextAuthOptions = {
           where: { email: credentials.email }
         });
 
-        console.log('🔍 Found user:', user ? 'yes' : 'no');
-        if (user) {
-          console.log('🔍 User email verified:', user.emailVerified);
-        }
-
         if (!user || !user.emailVerified) {
-          console.log('🔍 User not found or not verified');
           return null;
         }
-
-        console.log('🔍 Verification successful, returning user');
         return {
           id: user.id,
           email: user.email,
@@ -165,6 +142,26 @@ export const authOptions: NextAuthOptions = {
         session.user.email = token.email as string;
         session.user.name = token.name as string;
         session.user.image = token.image as string;
+        
+        // Load the latest user data from database including premium status
+        try {
+          const user = await prisma.user.findUnique({
+            where: { email: token.email as string },
+            select: {
+              isPremium: true,
+              premiumExpiresAt: true,
+              usedFreeTrial: true,
+            }
+          });
+          
+          if (user) {
+            session.user.isPremium = user.isPremium;
+            session.user.premiumExpiresAt = user.premiumExpiresAt || undefined;
+            session.user.usedFreeTrial = user.usedFreeTrial;
+          }
+        } catch (error) {
+          // Error loading user premium status
+        }
       }
       return session;
     },

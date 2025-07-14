@@ -83,9 +83,21 @@ function ProfilePage() {
         message: 'Payment successful! Your premium subscription has been activated.',
         severity: 'success',
       });
-      // Refresh the page to update the user's premium status
-      setTimeout(() => {
-        window.location.reload();
+      
+      // Clear the URL parameter to prevent infinite reload
+      const url = new URL(window.location.href);
+      url.searchParams.delete('checkout');
+      window.history.replaceState({}, '', url.toString());
+      
+      // Refresh session data instead of reloading the page
+      setTimeout(async () => {
+        try {
+          await fetch('/api/auth/session', { method: 'GET' });
+          // Force a re-render by updating a state
+          setSnackbar(prev => ({ ...prev }));
+        } catch (error) {
+          // Failed to refresh session
+        }
       }, 2000);
     }
   }, [searchParams]);

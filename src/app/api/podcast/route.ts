@@ -11,8 +11,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    console.log('Session user:', session.user);
-    console.log('User ID:', session.user.id);
+
 
     // Check if user exists in database
     const user = await prisma.user.findUnique({
@@ -20,7 +19,6 @@ export async function POST(req: Request) {
     });
 
     if (!user) {
-      console.log('User not found in database');
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
@@ -67,7 +65,6 @@ export async function POST(req: Request) {
 
     return NextResponse.json(podcast);
   } catch (error) {
-    console.error('Error creating podcast:', error);
     return NextResponse.json(
       { error: 'Error creating podcast' },
       { status: 500 }
@@ -113,7 +110,6 @@ export async function GET(req: Request) {
 
     return NextResponse.json(podcasts);
   } catch (error) {
-    console.error('Error fetching podcasts:', error);
     return NextResponse.json(
       { error: 'Error fetching podcasts' },
       { status: 500 }

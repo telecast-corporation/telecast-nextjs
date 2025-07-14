@@ -19,9 +19,9 @@ if (process.env.ENABLE_EMAIL_VERIFICATION === 'true') {
   // Verify SMTP connection configuration
   transporter.verify(function (error, success) {
     if (error) {
-      console.error('SMTP Configuration Error:', error);
+      // SMTP Configuration Error
     } else {
-      console.log('SMTP Server is ready to take our messages');
+      // SMTP Server is ready to take our messages
     }
   });
 }
@@ -29,17 +29,14 @@ if (process.env.ENABLE_EMAIL_VERIFICATION === 'true') {
 export async function sendVerificationEmail(email: string, token: string) {
   // Check if email verification is enabled
   if (process.env.ENABLE_EMAIL_VERIFICATION !== 'true') {
-    console.log('Email verification is disabled. Skipping email send.');
     return { messageId: 'skipped-verification-disabled' };
   }
 
   if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
-    console.warn('SMTP configuration is missing. Skipping email verification.');
     return { messageId: 'skipped-no-smtp-config' };
   }
 
   if (!transporter) {
-    console.error('SMTP transporter not initialized. Email verification may be disabled.');
     return { messageId: 'skipped-no-transporter' };
   }
 
@@ -51,8 +48,6 @@ export async function sendVerificationEmail(email: string, token: string) {
                     : 'http://localhost:3000');
   
   const verifyUrl = `${baseUrl}/verify-email?token=${token}`;
-
-  console.log('🔍 Sending verification email with URL:', verifyUrl);
 
   try {
     const info = await transporter.sendMail({
@@ -67,10 +62,8 @@ export async function sendVerificationEmail(email: string, token: string) {
       `,
     });
 
-    console.log('Verification email sent:', info.messageId);
     return info;
   } catch (error) {
-    console.error('Error sending verification email:', error);
     throw error;
   }
 }
@@ -78,17 +71,14 @@ export async function sendVerificationEmail(email: string, token: string) {
 export async function sendPasswordResetEmail(email: string, token: string) {
   // Check if email verification is enabled
   if (process.env.ENABLE_EMAIL_VERIFICATION !== 'true') {
-    console.log('Email verification is disabled. Skipping password reset email send.');
     return { messageId: 'skipped-verification-disabled' };
   }
 
   if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
-    console.warn('SMTP configuration is missing. Skipping password reset email.');
     return { messageId: 'skipped-no-smtp-config' };
   }
 
   if (!transporter) {
-    console.error('SMTP transporter not initialized. Password reset email may be disabled.');
     return { messageId: 'skipped-no-transporter' };
   }
 
@@ -100,8 +90,6 @@ export async function sendPasswordResetEmail(email: string, token: string) {
                     : 'http://localhost:3000');
   
   const resetUrl = `${baseUrl}/reset-password?token=${token}`;
-
-  console.log('🔍 Sending password reset email with URL:', resetUrl);
 
   try {
     const info = await transporter.sendMail({
@@ -117,10 +105,8 @@ export async function sendPasswordResetEmail(email: string, token: string) {
       `,
     });
 
-    console.log('Password reset email sent:', info.messageId);
     return info;
   } catch (error) {
-    console.error('Error sending password reset email:', error);
     throw error;
   }
 }
@@ -128,17 +114,14 @@ export async function sendPasswordResetEmail(email: string, token: string) {
 export async function sendAccountDeletionEmail(email: string, name: string) {
   // Check if email verification is enabled
   if (process.env.ENABLE_EMAIL_VERIFICATION !== 'true') {
-    console.log('Email verification is disabled. Skipping account deletion email send.');
     return { messageId: 'skipped-verification-disabled' };
   }
 
   if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
-    console.warn('SMTP configuration is missing. Skipping account deletion email.');
     return { messageId: 'skipped-no-smtp-config' };
   }
 
   if (!transporter) {
-    console.error('SMTP transporter not initialized. Account deletion email may be disabled.');
     return { messageId: 'skipped-no-transporter' };
   }
 
@@ -157,10 +140,8 @@ export async function sendAccountDeletionEmail(email: string, name: string) {
       `,
     });
 
-    console.log('Account deletion email sent:', info.messageId);
     return info;
   } catch (error) {
-    console.error('Error sending account deletion email:', error);
     throw error;
   }
 } 
