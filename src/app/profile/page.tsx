@@ -1,5 +1,6 @@
 'use client';
 
+import { Suspense } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { 
   Box, 
@@ -23,14 +24,27 @@ import {
   DeleteForever as DeleteIcon,
   Warning as WarningIcon,
   Lock as LockIcon,
+  Star as StarIcon,
+  Diamond as DiamondIcon,
+  CheckCircle as CheckCircleIcon,
+  Refresh as RefreshIcon,
 } from '@mui/icons-material';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { typography, spacing, borderRadius } from '@/styles/typography';
 
-export default function ProfilePage() {
+export default function ProfilePageWrapper() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <ProfilePage />
+    </Suspense>
+  );
+}
+
+function ProfilePage() {
   const { user, isAuthenticated, isLoading, logout } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteConfirmation, setDeleteConfirmation] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
@@ -51,12 +65,48 @@ export default function ProfilePage() {
     message: string;
     severity: 'success' | 'error';
   }>({ open: false, message: '', severity: 'success' });
+  const [isStartingTrial, setIsStartingTrial] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
       router.push('/login');
     }
   }, [isLoading, isAuthenticated, router]);
+
+  // Handle checkout success
+  useEffect(() => {
+    const checkout = searchParams.get('checkout');
+    if (checkout === 'success') {
+      setSnackbar({
+        open: true,
+        message: 'Payment successful! Your premium subscription has been activated.',
+        severity: 'success',
+      });
+      // Refresh the page to update the user's premium status
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
+    }
+  }, [searchParams]);
+
+  const handleRefreshSession = async () => {
+    setIsRefreshing(true);
+    try {
+      // Force a session refresh by calling the session endpoint
+      await fetch('/api/auth/session', { method: 'GET' });
+      // Reload the page to get updated user data
+      window.location.reload();
+    } catch (error) {
+      setSnackbar({
+        open: true,
+        message: 'Failed to refresh session',
+        severity: 'error',
+      });
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   const validatePasswordForm = () => {
     const errors = {
@@ -139,6 +189,30 @@ export default function ProfilePage() {
       setIsChangingPassword(false);
     }
   };
+  const handleStartFreeTrial = async () => {
+    setIsStartingTrial(true);
+    try {
+      const response = await fetch('/api/auth/start-free-trial', {
+        method: 'POST',
+      });
+      
+      if (response.redirected) {
+        window.location.href = response.url;
+      } else {
+        // Fallback if redirect doesn't work
+        const data = await response.json();
+        if (response.ok) {
+          setSnackbar({ open: true, message: data.message, severity: 'success' });
+        } else {
+          setSnackbar({ open: true, message: data.error, severity: 'error' });
+        }
+      }
+    } catch (err) {
+      setSnackbar({ open: true, message: 'An error occurred while starting your free trial', severity: 'error' });
+    } finally {
+      setIsStartingTrial(false);
+    }
+  };
 
   const handleDeleteAccount = async () => {
     if (deleteConfirmation !== 'DELETE') {
@@ -206,22 +280,220 @@ export default function ProfilePage() {
             />
           </Grid>
           <Grid item xs={12} md={8}>
-            <Typography variant="h4" gutterBottom>
+            <Typography variant="h5" gutterBottom sx={{ fontSize: '1.5rem' }}>
               {user?.name}
             </Typography>
-            <Typography variant="body1" color="text.secondary" gutterBottom>
+            <Typography variant="body2" color="text.secondary" gutterBottom sx={{ fontSize: '0.875rem' }}>
               {user?.email}
             </Typography>
             <Box sx={{ mt: 4 }}>
-              <Typography variant="h6" gutterBottom>
+              <Typography variant="h6" gutterBottom sx={{ fontSize: '1.1rem' }}>
                 Account Information
               </Typography>
-              <Typography variant="body2" color="text.secondary">
+              <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.8rem' }}>
                 Member since: {new Date().toLocaleDateString()}
               </Typography>
             </Box>
           </Grid>
         </Grid>
+        
+        <Divider sx={{ my: 4 }} />
+        
+        {/* Premium Upgrade Section */}
+        <Paper 
+          sx={{ 
+            mt: 4, 
+            p: 3, 
+            background: '#2563EB',
+            color: 'white',
+            position: 'relative',
+            overflow: 'hidden',
+            borderRadius: 3,
+          }}
+        >
+          {/* Decorative background elements */}
+          <Box
+            sx={{
+              position: 'absolute',
+              top: -20,
+              right: -20,
+              width: 100,
+              height: 100,
+              borderRadius: '50%',
+              background: 'rgba(255,255,255,0.08)',
+            }}
+          />
+          <Box
+            sx={{
+              position: 'absolute',
+              bottom: -30,
+              left: -30,
+              width: 80,
+              height: 80,
+              borderRadius: '50%',
+              background: 'rgba(255,255,255,0.04)',
+            }}
+          />
+          
+          <Box sx={{ position: 'relative', zIndex: 1 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+              <DiamondIcon sx={{ fontSize: 24, color: '#FCD34D' }} />
+              <Box>
+                <Typography variant="h6" fontWeight={600} sx={{ mb: 0.5, fontSize: '1.1rem' }}>
+                  Upgrade to Premium
+                </Typography>
+                <Typography variant="body2" sx={{ opacity: 0.9, fontSize: '0.875rem' }}>
+                  Unlock unlimited features and enhance your podcasting experience
+                </Typography>
+                {user?.isPremium && (
+                  <Typography variant="caption" sx={{ color: '#10B981', fontSize: '0.75rem', fontWeight: 600 }}>
+                    ✓ Premium Active
+                  </Typography>
+                )}
+                {!user?.isPremium && (
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Typography variant="caption" sx={{ color: '#EF4444', fontSize: '0.75rem', fontWeight: 600 }}>
+                      ⚠️ Premium Inactive
+                    </Typography>
+                    <Button
+                      size="small"
+                      startIcon={<RefreshIcon />}
+                      onClick={handleRefreshSession}
+                      disabled={isRefreshing}
+                      sx={{
+                        minWidth: 'auto',
+                        px: 1,
+                        py: 0.5,
+                        fontSize: '0.7rem',
+                        color: '#EF4444',
+                        borderColor: '#EF4444',
+                        '&:hover': {
+                          backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                        },
+                      }}
+                    >
+                      {isRefreshing ? 'Refreshing...' : 'Refresh'}
+                    </Button>
+                  </Box>
+                )}
+              </Box>
+            </Box>
+            
+            <Grid container spacing={2} sx={{ mb: 3 }}>
+              <Grid item xs={12} sm={4}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                  <CheckCircleIcon sx={{ fontSize: 16, color: '#10B981' }} />
+                  <Typography variant="body2" sx={{ fontWeight: 500, fontSize: '0.8rem' }}>
+                    Unlimited podcast uploads
+                  </Typography>
+                </Box>
+              </Grid>
+              <Grid item xs={12} sm={4}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                  <CheckCircleIcon sx={{ fontSize: 16, color: '#10B981' }} />
+                  <Typography variant="body2" sx={{ fontWeight: 500, fontSize: '0.8rem' }}>
+                    Broadcast to all podcast platforms
+                  </Typography>
+                </Box>
+              </Grid>
+              <Grid item xs={12} sm={4}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                  <CheckCircleIcon sx={{ fontSize: 16, color: '#10B981' }} />
+                  <Typography variant="body2" sx={{ fontWeight: 500, fontSize: '0.8rem' }}>
+                    Unlimited editing tools
+                  </Typography>
+                </Box>
+              </Grid>
+            </Grid>
+            
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
+                <Box>
+                  <Typography variant="h6" fontWeight={600} sx={{ color: '#FCD34D', fontSize: '1rem' }}>
+                    Just $9.99/month
+                  </Typography>
+                  <Typography variant="caption" sx={{ opacity: 0.8, fontSize: '0.75rem' }}>
+                    Cancel anytime • No setup fees
+                  </Typography>
+                </Box>
+                <Button
+                  variant="contained"
+                  startIcon={<StarIcon />}
+                  onClick={() => router.push('/payment')}
+                  sx={{
+                    background: '#F59E0B',
+                    color: 'white',
+                    fontWeight: 600,
+                    px: 3,
+                    py: 1,
+                    borderRadius: 2,
+                    textTransform: 'none',
+                    fontSize: '0.875rem',
+                    boxShadow: '0 2px 8px rgba(245, 158, 11, 0.3)',
+                    '&:hover': {
+                      background: '#D97706',
+                      boxShadow: '0 4px 12px rgba(245, 158, 11, 0.4)',
+                      transform: 'translateY(-1px)',
+                    },
+                    transition: 'all 0.2s ease',
+                  }}
+                >
+                  Upgrade Now
+                </Button>
+                {user?.usedFreeTrial ? (
+                  <Button
+                    variant="outlined"
+                    disabled
+                    startIcon={<CheckCircleIcon />}
+                    sx={{
+                      color: '#10B981',
+                      borderColor: '#10B981',
+                      backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                      fontWeight: 600,
+                      px: 3,
+                      py: 1,
+                      borderRadius: 2,
+                      textTransform: 'none',
+                      fontSize: '0.875rem',
+                      cursor: 'not-allowed',
+                      boxShadow: '0 2px 8px rgba(16, 185, 129, 0.2)',
+                      '&:disabled': {
+                        color: '#10B981',
+                        borderColor: '#10B981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                      },
+                      '& .MuiButton-startIcon': {
+                        color: '#10B981',
+                      },
+                    }}
+                  >
+                    Free Trial Used ✓
+                  </Button>
+                ) : (
+                  <Button
+                    variant="outlined"
+                    onClick={handleStartFreeTrial}
+                    disabled={isStartingTrial}
+                    sx={{
+                      color: 'white',
+                      borderColor: 'rgba(255,255,255,0.3)',
+                      fontWeight: 500,
+                      px: 3,
+                      py: 1,
+                      borderRadius: 2,
+                      textTransform: 'none',
+                      fontSize: '0.875rem',
+                      '&:hover': {
+                        borderColor: 'white',
+                        backgroundColor: 'rgba(255,255,255,0.1)',
+                      },
+                    }}
+                  >
+                    {isStartingTrial ? 'Starting Trial...' : 'Start Free Trial (90 Days)'}
+                  </Button>
+                )}
+              </Box>
+          </Box>
+        </Paper>
         
         <Divider sx={{ my: 4 }} />
         
@@ -237,6 +509,7 @@ export default function ProfilePage() {
                 py: 1.5,
                 textTransform: 'none',
                 fontWeight: 600,
+                fontSize: '0.875rem',
               }}
             >
               Change Password
@@ -253,6 +526,7 @@ export default function ProfilePage() {
               py: 1.5,
               textTransform: 'none',
               fontWeight: 600,
+              fontSize: '0.875rem',
               '&:hover': {
                 backgroundColor: 'error.main',
                 color: 'white',
@@ -274,6 +548,7 @@ export default function ProfilePage() {
               py: 1.5,
               textTransform: 'none',
               fontWeight: 600,
+              fontSize: '0.875rem',
             }}
           >
             Sign Out
@@ -288,12 +563,12 @@ export default function ProfilePage() {
         maxWidth="sm"
         fullWidth
       >
-        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1, ...typography.title, fontWeight: 700 }}>
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1, ...typography.title, fontWeight: 700, fontSize: '1.1rem' }}>
           <LockIcon />
           Change Password
         </DialogTitle>
         <DialogContent>
-          <Typography variant="body1" sx={{ mb: 3, ...typography.body }}>
+          <Typography variant="body2" sx={{ mb: 3, ...typography.body, fontSize: '0.875rem' }}>
             Enter your current password and choose a new password.
           </Typography>
           
@@ -404,7 +679,7 @@ export default function ProfilePage() {
         maxWidth="sm"
         fullWidth
       >
-        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1, ...typography.title, color: 'error.main', fontWeight: 700 }}>
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1, ...typography.title, color: 'error.main', fontWeight: 700, fontSize: '1.1rem' }}>
           <WarningIcon color="error" />
           Delete Account
         </DialogTitle>
@@ -412,7 +687,7 @@ export default function ProfilePage() {
           <Alert severity="warning" sx={{ mb: 2 }}>
             This action cannot be undone. All your data will be permanently deleted.
           </Alert>
-          <Typography variant="body1" sx={{ mb: 2, ...typography.body }}>
+          <Typography variant="body2" sx={{ mb: 2, ...typography.body, fontSize: '0.875rem' }}>
             To confirm deletion, please type <strong>DELETE</strong> in the field below:
           </Typography>
           <TextField
@@ -489,6 +764,8 @@ export default function ProfilePage() {
           {snackbar.message}
         </Alert>
       </Snackbar>
+
+
     </Container>
   );
 } 

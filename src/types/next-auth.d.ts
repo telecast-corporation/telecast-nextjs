@@ -7,6 +7,9 @@ declare module 'next-auth' {
       name: string;
       email: string;
       image?: string;
+      isPremium?: boolean;
+      premiumExpiresAt?: Date;
+      usedFreeTrial?: boolean;
     };
   }
 }
@@ -14,5 +17,8 @@ declare module 'next-auth' {
 declare module 'next-auth/jwt' {
   interface JWT {
     id: string;
+    isPremium?: boolean;
+    premiumExpiresAt?: Date;
+    usedFreeTrial?: boolean;
   }
 } 

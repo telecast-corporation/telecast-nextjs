@@ -31,7 +31,6 @@ export default function UploadPodcastPage() {
           waveColor: "#2196f3",
           progressColor: "#1565c0",
           height: 80,
-          responsive: true,
         });
         setWaveSurfer(ws);
         const reader = new FileReader();

@@ -1,5 +1,6 @@
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "darwin-arm64"]
 }
 
 datasource db {
@@ -19,11 +20,15 @@ model User {
   verifyToken        String?           @unique
   verifyTokenExpires DateTime?
   rssFeed            String?
+  isPremium          Boolean           @default(false)
+  premiumExpiresAt   DateTime?
   accounts           Account[]
   podcasts           Podcast[]
   sessions           Session[]
   recordings         Recording[]
+  usedFreeTrial      Boolean           @default(false)
   fileReferences     FileReference[]
+
 }
 
 model Account {

@@ -86,6 +86,8 @@ export default function Dashboard() {
     keywords: '',
   });
   const [isUploading, setIsUploading] = useState(false);
+  const [currentlyPlaying, setCurrentlyPlaying] = useState<string | null>(null);
+  const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(null);
 
 
   useEffect(() => {
