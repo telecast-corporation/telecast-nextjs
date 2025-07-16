@@ -21,7 +21,7 @@ interface Podcast {
   id: string;
   title: string;
   description: string;
-  imageUrl: string;
+  coverImage: string;
 }
 
 interface PodcastSelectorProps {

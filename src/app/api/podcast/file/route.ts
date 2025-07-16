@@ -34,13 +34,13 @@ export async function GET(request: NextRequest) {
     }
     // Get temp files for this podcast from Google Cloud Storage
     const bucket = storage.bucket(bucketName);
-    const [files] = await bucket.getFiles({ prefix: `temp/${podcastId}/`, maxResults: 100 });
+    const [files] = await bucket.getFiles({ prefix: `podcasts/temp/${podcastId}/`, maxResults: 100 });
     const tempFiles = files
-      .filter(file => file.name.includes(`temp/${podcastId}/`))
+      .filter(file => file.name.includes(`podcasts/temp/${podcastId}/`))
       .map(file => {
         const url = `https://storage.googleapis.com/${bucketName}/${file.name}`;
         const fileNameParts = file.name.split('/');
-        const referenceId = fileNameParts[2];
+        const referenceId = fileNameParts[3]; // podcasts/temp/podcastId/referenceId/filename
         return {
           fileName: file.name,
           url,
@@ -93,10 +93,10 @@ export async function POST(request: NextRequest) {
     // Generate temporary filename
     const timestamp = Date.now();
     const fileExtension = file.name.split(".").pop();
-    const tempFileName = `temp/${podcastId}/${referenceId}/${timestamp}.${fileExtension}`;
+    const tempFileName = `podcasts/temp/${podcastId}/${referenceId}/${timestamp}.${fileExtension}`;
     // Upload to temporary location in Google Cloud Storage
-    const { uploadPodcastFile } = await import("@/lib/storage");
-    const result = await uploadPodcastFile(buffer, tempFileName, file.type, false);
+    const { uploadPodcastTempFile } = await import("@/lib/storage");
+    const result = await uploadPodcastTempFile(buffer, tempFileName, file.type);
     return NextResponse.json({
       success: true,
       tempUrl: result.url,

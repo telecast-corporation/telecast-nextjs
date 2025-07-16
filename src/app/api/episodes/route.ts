@@ -18,7 +18,7 @@ export async function POST(req: Request) {
     const audioFile = formData.get('audioFile') as File;
     const episodeNumber = formData.get('episodeNumber') as string;
     const seasonNumber = formData.get('seasonNumber') as string;
-    const keywords = (formData.get('keywords') as string)?.split(',').map(k => k.trim()) || [];
+    const keywords = (formData.get('keywords') as string)?.split(',').map((k: string) => k.trim()) || [];
 
     if (!title || !description || !podcastId || !audioFile) {
       return NextResponse.json(
@@ -113,7 +113,7 @@ export async function GET(req: Request) {
         podcast: {
           select: {
             title: true,
-            imageUrl: true,
+            coverImage: true,
           },
         },
       },

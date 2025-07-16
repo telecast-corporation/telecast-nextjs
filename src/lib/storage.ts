@@ -28,8 +28,18 @@ export const uploadPodcastFile = async (
   contentType: string,
   isImage: boolean = false
 ): Promise<{ url: string; filename: string }> => {
-  const prefix = isImage ? 'podcast-cover' : 'podcasts';
-  const filename = generateUniqueFilename(originalName, prefix);
+  let filename: string;
+  
+  // Check if this is a temp path update (contains 'podcasts/temp/' prefix)
+  if (originalName.startsWith('podcasts/temp/')) {
+    // Use the provided temp path directly
+    filename = originalName;
+  } else {
+    // Generate a new unique filename
+    const prefix = isImage ? 'podcast-cover' : 'podcasts';
+    filename = generateUniqueFilename(originalName, prefix);
+  }
+  
   const fileUpload = podcastBucket.file(filename);
 
   await fileUpload.save(file, {
@@ -37,6 +47,50 @@ export const uploadPodcastFile = async (
       contentType,
     },
   });
+
+  const [url] = await fileUpload.getSignedUrl({
+    action: 'read',
+    expires: '03-01-2500', // Long expiration for podcast files
+  });
+
+  return { url, filename };
+};
+
+// Upload file to temp location in podcast bucket
+export const uploadPodcastTempFile = async (
+  file: Buffer,
+  originalName: string,
+  contentType: string
+): Promise<{ url: string; filename: string }> => {
+  let filename: string;
+  
+  // Check if this is a temp path update (contains 'podcasts/temp/' prefix)
+  if (originalName.startsWith('podcasts/temp/')) {
+    // Use the provided temp path directly
+    filename = originalName;
+    console.log('Overwriting existing temp file:', filename);
+  } else {
+    // Generate a new unique filename in temp location
+    const prefix = 'podcasts/temp';
+    filename = generateUniqueFilename(originalName, prefix);
+    console.log('Creating new temp file:', filename);
+  }
+  
+  const fileUpload = podcastBucket.file(filename);
+
+  // Check if file exists before overwriting
+  const [exists] = await fileUpload.exists();
+  console.log(`File ${filename} exists:`, exists);
+
+  await fileUpload.save(file, {
+    metadata: {
+      contentType,
+    },
+  });
+
+  // Verify file was saved
+  const [savedExists] = await fileUpload.exists();
+  console.log(`File ${filename} exists after save:`, savedExists);
 
   const [url] = await fileUpload.getSignedUrl({
     action: 'read',
@@ -87,6 +141,13 @@ export const moveFile = async (
   try {
     const sourceFile = podcastBucket.file(sourcePath);
     const destinationFile = podcastBucket.file(destinationPath);
+
+    // Check if source file exists
+    const [sourceExists] = await sourceFile.exists();
+    if (!sourceExists) {
+      console.error('Source file does not exist:', sourcePath);
+      return { success: false, url: '' };
+    }
 
     // Copy file to new location
     await sourceFile.copy(destinationFile);

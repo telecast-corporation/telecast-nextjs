@@ -55,7 +55,7 @@ export async function POST(req: Request) {
         description,
         category,
         tags: [], // Will be populated from episode keywords
-        imageUrl: '', // Will be set to a default image or uploaded separately
+        coverImage: '', // Will be set to a default image or uploaded separately
         userId: session.user.id,
         author,
         published: true,

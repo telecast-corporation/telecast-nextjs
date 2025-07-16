@@ -30,7 +30,7 @@ interface Podcast {
   id: string;
   title: string;
   description: string;
-  imageUrl: string;
+  coverImage: string;
   audioUrl: string;
   createdAt: string;
 }
@@ -168,7 +168,7 @@ export default function MyPodcasts() {
               <CardMedia
                 component="img"
                 height="200"
-                image={podcast.imageUrl}
+                image={podcast.coverImage}
                 alt={podcast.title}
               />
               <CardContent sx={{ flexGrow: 1 }}>

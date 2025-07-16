@@ -45,7 +45,7 @@ interface Podcast {
   id: string;
   title: string;
   description: string;
-  imageUrl: string;
+  coverImage: string;
   category: string;
   tags: string[];
   createdAt: string;
@@ -420,7 +420,7 @@ export default function Dashboard() {
                 <CardMedia
                   component="img"
                   height="140"
-                  image={podcast.imageUrl}
+                  image={podcast.coverImage}
                   alt={podcast.title}
                 />
                 <CardContent>

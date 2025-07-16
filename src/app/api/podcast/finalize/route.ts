@@ -14,6 +14,8 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { referenceId, tempPath, podcastId, metadata } = body;
 
+    console.log('Finalize request data:', { referenceId, tempPath, podcastId });
+
     if (!referenceId || !tempPath || !podcastId || !metadata) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
@@ -21,10 +23,13 @@ export async function POST(request: NextRequest) {
     // Generate final file path
     const timestamp = Date.now();
     const fileExtension = tempPath.split('.').pop() || 'wav';
-    const finalFileName = `episodes/${podcastId}/${referenceId}/${timestamp}.${fileExtension}`;
+    const finalFileName = `podcasts/${podcastId}/${referenceId}/${timestamp}.${fileExtension}`;
 
+    console.log('Attempting to move file from:', tempPath, 'to:', finalFileName);
+    
     // Move file from temp to final location
     const moveResult = await moveFile(tempPath, finalFileName);
+    
     if (!moveResult.success) {
       throw new Error('Failed to move file to final location');
     }
@@ -40,9 +45,8 @@ export async function POST(request: NextRequest) {
         audioUrl: moveResult.url,
         publishDate: new Date(metadata.publishDate),
         podcastId: podcastId,
-        authorId: session.user.id,
         explicit: metadata.explicit,
-        keywords: metadata.keywords ? metadata.keywords.split(',').map(k => k.trim()) : [],
+        keywords: metadata.keywords ? metadata.keywords.split(',').map((k: string) => k.trim()) : [],
         referenceId: referenceId,
       },
     });

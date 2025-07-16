@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { uploadPodcastFile } from "@/lib/storage";
+import { uploadPodcastTempFile } from "@/lib/storage";
 
 export async function POST(request: NextRequest) {
   try {
@@ -23,12 +23,11 @@ export async function POST(request: NextRequest) {
     // Convert file to buffer
     const buffer = Buffer.from(await file.arrayBuffer());
 
-    // Upload to Google Cloud Storage using existing storage utility
-    const result = await uploadPodcastFile(
+    // Upload to Google Cloud Storage temp location
+    const result = await uploadPodcastTempFile(
       buffer,
       file.name,
-      file.type,
-      false // not an image
+      file.type
     );
 
     return NextResponse.json({

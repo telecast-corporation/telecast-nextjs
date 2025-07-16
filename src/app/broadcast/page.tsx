@@ -108,12 +108,20 @@ export default function BroadcastPage() {
     google: false,
     telecast: true, // always true
   });
+  const [platformStatus, setPlatformStatus] = useState<Platforms>({
+    spotify: false,
+    apple: false,
+    google: false,
+    telecast: true,
+  });
+  const [isConnecting, setIsConnecting] = useState<string | null>(null);
+  const [connectionHistory, setConnectionHistory] = useState<Record<string, boolean>>({});
   const [audioFile, setAudioFile] = useState<File | null>(null);
   const [uploadError, setUploadError] = useState('');
   const [isUploading, setIsUploading] = useState(false);
   const router = useRouter();
 
-  // Check for existing uploaded file on component mount
+  // Check for existing uploaded file and platform status on component mount
   useEffect(() => {
     const broadcastReference = sessionStorage.getItem('broadcastReference');
     if (broadcastReference) {
@@ -122,14 +130,48 @@ export default function BroadcastPage() {
         console.log('Found broadcast reference:', referenceData);
         
         // Set the audio file info from the reference
-        setAudioFile({
+        const audioFileInfo = {
           name: referenceData.originalFileName || 'edited-audio.wav',
           size: 0, // We don't have the actual size, but it's not needed
           type: 'audio/wav',
-        } as File);
+        } as File;
+        
+        setAudioFile(audioFileInfo);
+        
+        // Set the required localStorage data to enable the button
+        localStorage.setItem('uploadedAudioFile', JSON.stringify({
+          name: audioFileInfo.name,
+          size: audioFileInfo.size,
+          type: audioFileInfo.type,
+          lastModified: Date.now()
+        }));
+        localStorage.setItem('uploadedAudioFileName', audioFileInfo.name);
+        localStorage.setItem('uploadedAudioFileSize', audioFileInfo.size.toString());
+        localStorage.setItem('uploadedAudioFileType', audioFileInfo.type);
+        // Set a placeholder for uploadedAudioFileData since we don't have the actual file data
+        localStorage.setItem('uploadedAudioFileData', 'data:audio/wav;base64,placeholder');
+        
       } catch (error) {
         console.error('Error parsing broadcast reference:', error);
       }
+    }
+
+    // Check platform connection status
+    checkPlatformStatus();
+  }, []);
+
+  // Check URL parameters for OAuth results
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const success = urlParams.get('success');
+    const error = urlParams.get('error');
+    const message = urlParams.get('message');
+
+    if (success) {
+      alert(`Successfully connected to ${success.replace('_connected', '')}!`);
+      checkPlatformStatus();
+    } else if (error) {
+      alert(`Connection failed: ${message || error}`);
     }
   }, []);
 
@@ -170,6 +212,56 @@ export default function BroadcastPage() {
 
   const handlePlatformSelect = (platform: keyof Platforms) => {
     setPlatforms((prev) => ({ ...prev, [platform]: !prev[platform] }));
+  };
+
+  // Platform authentication functions
+  const checkPlatformStatus = async () => {
+    try {
+      const response = await fetch('/api/auth/podcast-platforms/status');
+      if (response.ok) {
+        const status = await response.json();
+        setPlatformStatus(status);
+        
+        // Update connection history
+        setConnectionHistory(prev => ({
+          ...prev,
+          ...status
+        }));
+      }
+    } catch (error) {
+      console.error('Error checking platform status:', error);
+    }
+  };
+
+  const connectPlatform = async (platform: string) => {
+    try {
+      setIsConnecting(platform);
+      
+      // Store connection attempt in history
+      setConnectionHistory(prev => ({
+        ...prev,
+        [platform]: false
+      }));
+      
+      window.location.href = `/api/auth/podcast-platforms/${platform}`;
+    } catch (error) {
+      console.error(`Error connecting to ${platform}:`, error);
+      setIsConnecting(null);
+    }
+  };
+
+  const disconnectPlatform = async (platform: string) => {
+    try {
+      const response = await fetch(`/api/auth/podcast-platforms/${platform}/disconnect`, {
+        method: 'DELETE',
+      });
+      if (response.ok) {
+        setPlatformStatus(prev => ({ ...prev, [platform]: false }));
+        setPlatforms(prev => ({ ...prev, [platform]: false }));
+      }
+    } catch (error) {
+      console.error(`Error disconnecting from ${platform}:`, error);
+    }
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -226,7 +318,6 @@ export default function BroadcastPage() {
         metadata: {
           episodeTitle: metadata.episodeTitle,
           episodeDescription: metadata.episodeDescription,
-          episodeType: metadata.episodeType,
           episodeNumber: metadata.episodeNumber,
           seasonNumber: metadata.seasonNumber,
           keywords: metadata.keywords,
@@ -254,12 +345,63 @@ export default function BroadcastPage() {
 
       const result = await response.json();
       
+      // Broadcast to selected platforms
+      const selectedPlatforms = Object.entries(platforms)
+        .filter(([platform, enabled]) => enabled && platform !== 'telecast')
+        .map(([platform]) => platform);
+
+      if (selectedPlatforms.length > 0) {
+        try {
+          const broadcastResponse = await fetch('/api/broadcast/platforms', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              episodeId: result.episodeId,
+              platforms: selectedPlatforms,
+              metadata: {
+                episodeTitle: metadata.episodeTitle,
+                episodeDescription: metadata.episodeDescription,
+                episodeNumber: metadata.episodeNumber,
+                seasonNumber: metadata.seasonNumber,
+                keywords: metadata.keywords,
+                explicit: metadata.explicit,
+                publishDate: metadata.publishDate || new Date().toISOString().split('T')[0],
+                apple: metadata.apple,
+                spotify: metadata.spotify,
+                google: metadata.google,
+              }
+            }),
+          });
+
+          if (broadcastResponse.ok) {
+            const broadcastResult = await broadcastResponse.json();
+            console.log('Platform broadcast results:', broadcastResult);
+            
+            // Show platform-specific results
+            const platformResults = Object.entries(broadcastResult.results)
+              .filter(([platform, result]) => result && selectedPlatforms.includes(platform))
+              .map(([platform, result]) => `${platform}: ${(result as any).success ? 'Success' : 'Failed'}`)
+              .join(', ');
+            
+            alert(`Successfully launched "${metadata.episodeTitle}" to Telecast and ${platformResults}!`);
+          } else {
+            alert(`Successfully launched "${metadata.episodeTitle}" to Telecast! Platform broadcasting failed.`);
+          }
+        } catch (broadcastError) {
+          console.error('Platform broadcasting error:', broadcastError);
+          alert(`Successfully launched "${metadata.episodeTitle}" to Telecast! Platform broadcasting failed.`);
+        }
+      } else {
+        alert(`Successfully launched "${metadata.episodeTitle}" to Telecast!`);
+      }
+      
       // Clear sessionStorage
       sessionStorage.removeItem('broadcastReference');
       
-      // Show success message and redirect
-      alert(`Successfully launched "${metadata.episodeTitle}" to Telecast!`);
-      router.push('/dashboard');
+      // Redirect to the specific podcast page
+      router.push(`/podcast/${referenceData.podcastId}`);
       
     } catch (error) {
       console.error('Error finalizing podcast:', error);
@@ -652,7 +794,7 @@ export default function BroadcastPage() {
                     <Grid item xs={12} sm={6} md={3} key={platform}>
                       <Card
                         sx={{
-                          cursor: 'pointer',
+                          cursor: platform === 'telecast' ? 'default' : 'pointer',
                           transition: 'all 0.3s ease',
                           background: enabled 
                             ? `linear-gradient(135deg, ${getPlatformColor(platform)}15, ${getPlatformAccentColor(platform)}10)`
@@ -661,8 +803,8 @@ export default function BroadcastPage() {
                             ? `2px solid ${getPlatformColor(platform)}` 
                             : '2px solid rgba(0,0,0,0.1)',
                           '&:hover': {
-                            transform: 'translateY(-2px)',
-                            boxShadow: '0 8px 25px rgba(0,0,0,0.15)',
+                            transform: platform === 'telecast' ? 'none' : 'translateY(-2px)',
+                            boxShadow: platform === 'telecast' ? 'none' : '0 8px 25px rgba(0,0,0,0.15)',
                           }
                         }}
                         onClick={() => platform !== 'telecast' && handlePlatformSelect(platform as keyof Platforms)}
@@ -692,7 +834,8 @@ export default function BroadcastPage() {
                           >
                             {platform === 'telecast' ? 'Always included' : enabled ? 'Selected' : 'Click to add'}
                           </Typography>
-                          {platform === 'telecast' && (
+                          
+                          {platform === 'telecast' ? (
                             <Chip 
                               label="Required" 
                               size="small" 
@@ -702,6 +845,57 @@ export default function BroadcastPage() {
                                 fontSize: { xs: '0.625rem', sm: '0.75rem' }
                               }}
                             />
+                          ) : (
+                            <Box sx={{ mt: 2 }}>
+                              {platformStatus[platform as keyof Platforms] ? (
+                                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                                  <Chip 
+                                    label="Connected" 
+                                    size="small" 
+                                    color="success" 
+                                    sx={{ 
+                                      fontSize: { xs: '0.625rem', sm: '0.75rem' }
+                                    }}
+                                  />
+                                  <Button
+                                    variant="outlined"
+                                    size="small"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      disconnectPlatform(platform);
+                                    }}
+                                    sx={{ 
+                                      fontSize: { xs: '0.625rem', sm: '0.75rem' },
+                                      py: 0.5,
+                                      px: 1
+                                    }}
+                                  >
+                                    Disconnect
+                                  </Button>
+                                </Box>
+                              ) : (
+                                <Button
+                                  variant="contained"
+                                  size="small"
+                                  disabled={isConnecting === platform}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    connectPlatform(platform);
+                                  }}
+                                  sx={{ 
+                                    fontSize: { xs: '0.625rem', sm: '0.75rem' },
+                                    py: 0.5,
+                                    px: 1,
+                                    bgcolor: getPlatformColor(platform),
+                                    '&:hover': {
+                                      bgcolor: getPlatformAccentColor(platform),
+                                    }
+                                  }}
+                                >
+                                  {isConnecting === platform ? 'Connecting...' : 'Connect'}
+                                </Button>
+                              )}
+                            </Box>
                           )}
                         </CardContent>
                       </Card>

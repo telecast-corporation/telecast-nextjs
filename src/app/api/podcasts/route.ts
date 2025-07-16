@@ -42,7 +42,7 @@ export async function POST(req: Request) {
     const imageBuffer = Buffer.from(await imageFile.arrayBuffer());
 
     // Upload image to bucket
-    const { url: imageUrl } = await uploadPodcastFile(
+    const { url: coverImage } = await uploadPodcastFile(
       imageBuffer,
       imageFile.name,
       imageFile.type,
@@ -56,7 +56,7 @@ export async function POST(req: Request) {
         description,
         category,
         tags,
-        imageUrl,
+        coverImage,
         userId: session.user.id,
         author: session.user.name || 'Anonymous',
         published: false,

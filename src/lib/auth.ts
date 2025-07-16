@@ -105,38 +105,86 @@ export const authOptions: NextAuthOptions = {
   },
   callbacks: {
     async signIn({ user, account, profile }) {
+      console.log('signIn callback triggered:', { user: user.email, provider: account?.provider });
+      
       if (account?.provider === 'google') {
-        const existingUser = await prisma.user.findUnique({
-          where: { email: user.email! }
-        });
+        try {
+          const existingUser = await prisma.user.findUnique({
+            where: { email: user.email! }
+          });
 
-        if (!existingUser) {
-          // Redirect to signup page for new Google users
-          return '/signup?error=Please sign up first before using Google login';
-        }
-
-        // Update user info if needed
-        await prisma.user.update({
-          where: { email: user.email! },
-          data: {
-          name: user.name,
-          image: user.image,
-            emailVerified: true, // Google accounts are pre-verified
+                  if (!existingUser) {
+          console.log('Creating new Google user:', user.email);
+          // Create new user account for Google OAuth
+          try {
+            const newUser = await prisma.user.create({
+              data: {
+                email: user.email!,
+                name: user.name,
+                image: user.image,
+                emailVerified: true, // Google accounts are pre-verified
+              }
+            });
+            console.log('New user created successfully:', { id: newUser.id, email: newUser.email });
+          } catch (createError) {
+            console.error('Error creating user in database:', createError);
+            throw createError;
           }
-        });
+        } else {
+            console.log('Updating existing Google user:', user.email);
+            // Update existing user info if needed
+            await prisma.user.update({
+              where: { email: user.email! },
+              data: {
+                name: user.name,
+                image: user.image,
+                emailVerified: true, // Google accounts are pre-verified
+              }
+            });
+          }
+        } catch (error) {
+          console.error('Error in Google signIn callback:', error);
+          return false;
+        }
       }
       return true;
     },
     async jwt({ token, user, account }) {
+      console.log('jwt callback triggered:', { userEmail: user?.email, tokenEmail: token.email, accountProvider: account?.provider });
+      
       if (user) {
-        token.id = user.id;
+        // For Google OAuth, we need to get the database user ID
+        if (account?.provider === 'google') {
+          try {
+            const dbUser = await prisma.user.findUnique({
+              where: { email: user.email! }
+            });
+            
+            if (dbUser) {
+              token.id = dbUser.id; // Use database user ID instead of OAuth provider ID
+              console.log('Using database user ID for JWT:', dbUser.id);
+            } else {
+              console.error('Database user not found for email:', user.email);
+              return token;
+            }
+          } catch (error) {
+            console.error('Error finding database user:', error);
+            return token;
+          }
+        } else {
+          token.id = user.id;
+        }
+        
         token.email = user.email;
         token.name = user.name;
         token.image = user.image;
+        console.log('JWT token updated with user data:', { id: token.id, email: user.email });
       }
       return token;
     },
     async session({ session, token }) {
+      console.log('session callback triggered:', { tokenEmail: token.email, sessionUser: session.user?.email });
+      
       if (token) {
         session.user.id = token.id as string;
         session.user.email = token.email as string;
@@ -160,9 +208,10 @@ export const authOptions: NextAuthOptions = {
             session.user.usedFreeTrial = user.usedFreeTrial;
           }
         } catch (error) {
-          // Error loading user premium status
+          console.error('Error loading user premium status:', error);
         }
       }
+      console.log('Final session:', session);
       return session;
     },
   },

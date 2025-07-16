@@ -35,6 +35,12 @@ export async function GET(
       return NextResponse.json({ error: 'Podcast not found' }, { status: 404 });
     }
 
+    console.log('Podcast data being returned:', {
+      id: podcast.id,
+      title: podcast.title,
+      coverImage: podcast.coverImage
+    });
+
     return NextResponse.json(podcast);
   } catch (error) {
     console.error('Error fetching podcast:', error);

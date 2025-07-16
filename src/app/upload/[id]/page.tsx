@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useRef, useState, useEffect } from "react";
-import { Box, Button, Typography, Paper, CircularProgress } from "@mui/material";
+import { Box, Button, Typography, Paper, CircularProgress, IconButton } from "@mui/material";
+import { PlayArrow, Pause } from "@mui/icons-material";
 import { useRouter, useParams } from "next/navigation";
 
 export default function UploadPodcastPage() {
@@ -14,6 +15,7 @@ export default function UploadPodcastPage() {
   const [waveSurfer, setWaveSurfer] = useState<any>(null);
   const waveformRef = useRef<HTMLDivElement>(null);
   const [waveReady, setWaveReady] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
 
   useEffect(() => {
     if (audioFile && waveformRef.current) {
@@ -31,6 +33,10 @@ export default function UploadPodcastPage() {
           waveColor: "#2196f3",
           progressColor: "#1565c0",
           height: 80,
+          cursorColor: "#1565c0",
+          barWidth: 2,
+          barGap: 1,
+          interact: true,
         });
         setWaveSurfer(ws);
         const reader = new FileReader();
@@ -41,6 +47,15 @@ export default function UploadPodcastPage() {
         ws.on("ready", () => {
           setWaveReady(true);
           setLoading(false);
+        });
+        ws.on("play", () => {
+          setIsPlaying(true);
+        });
+        ws.on("pause", () => {
+          setIsPlaying(false);
+        });
+        ws.on("finish", () => {
+          setIsPlaying(false);
         });
         ws.on("error", (err: any) => {
           setError("Failed to render waveform");
@@ -96,7 +111,7 @@ export default function UploadPodcastPage() {
       
       const formData = new FormData();
       formData.append("file", audioFile);
-      formData.append("podcastId", params.id);
+      formData.append("podcastId", params.id as string);
       formData.append("referenceId", referenceId);
 
       const response = await fetch("/api/podcast/upload/temp", {
@@ -160,10 +175,41 @@ export default function UploadPodcastPage() {
               <Typography variant="body1" color="success.main" sx={{ fontWeight: 600, mb: 1 }}>
                 ✓ Audio file loaded: {audioFile.name}
               </Typography>
-              <Box ref={waveformRef} sx={{ width: "100%", minHeight: 90, mb: 2, borderRadius: 2, bgcolor: "rgba(33,150,243,0.05)", border: "1px solid #2196f3" }} />
+              <Box 
+                ref={waveformRef} 
+                sx={{ 
+                  width: "100%", 
+                  minHeight: 90, 
+                  mb: 2, 
+                  borderRadius: 2, 
+                  bgcolor: "rgba(33,150,243,0.05)", 
+                  border: "1px solid #2196f3", 
+                  cursor: "pointer",
+                  "&:hover": {
+                    bgcolor: "rgba(33,150,243,0.08)"
+                  }
+                }} 
+              />
               {loading && <CircularProgress sx={{ mt: 2 }} />}
               {waveReady && (
-                <audio controls src={URL.createObjectURL(audioFile)} style={{ width: "100%", marginTop: 16 }} />
+                <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
+                  <IconButton
+                    onClick={() => waveSurfer.isPlaying() ? waveSurfer.pause() : waveSurfer.play()}
+                    sx={{ 
+                      border: "2px solid #2196f3",
+                      color: "#2196f3",
+                      width: 56,
+                      height: 56,
+                      "&:hover": { 
+                        borderColor: "#1565c0", 
+                        color: "#1565c0",
+                        bgcolor: "rgba(33,150,243,0.08)"
+                      }
+                    }}
+                  >
+                    {isPlaying ? <Pause fontSize="large" /> : <PlayArrow fontSize="large" />}
+                  </IconButton>
+                </Box>
               )}
               <Box sx={{ mt: 2, display: "flex", gap: 2, justifyContent: "center" }}>
                 <Button 

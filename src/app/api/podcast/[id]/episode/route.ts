@@ -106,7 +106,7 @@ export async function POST(
       }
     });
 
-    const nextEpisodeNumber = latestEpisode ? latestEpisode.episodeNumber + 1 : 1;
+    const nextEpisodeNumber = latestEpisode && latestEpisode.episodeNumber ? latestEpisode.episodeNumber + 1 : 1;
 
     // Create the episode
     const episode = await prisma.episode.create({
@@ -119,7 +119,6 @@ export async function POST(
         duration: 0, // Will be updated after processing
         audioUrl: "", // Will be updated after finalization
         referenceId: referenceId, // Link to the reference ID
-        isPublished: false,
       },
       include: {
         podcast: {

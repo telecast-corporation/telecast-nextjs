@@ -8,390 +8,400 @@ import {
   Typography,
   CircularProgress,
   Alert,
-  Link,
   Slider,
   IconButton,
   Stack,
   Chip,
 } from '@mui/material';
 import { 
-  Refresh as RefreshIcon, 
-  InfoOutlined as InfoOutlinedIcon, 
-  Download as DownloadIcon,
   PlayArrow as PlayIcon,
   Pause as PauseIcon,
   Stop as StopIcon,
-  VolumeUp as VolumeIcon,
   ContentCut as CutIcon,
   Undo as UndoIcon,
+  CloudUpload as CloudUploadIcon,
 } from '@mui/icons-material';
 import { useTheme } from '@mui/material/styles';
 import { useRouter } from 'next/navigation';
+
+interface SessionData {
+  referenceId: string;
+  tempFileName: string;
+  tempUrl: string;
+  tempPath: string;
+  podcastId: string;
+  originalFileName: string;
+}
 
 export default function AudioRecorder() {
   const theme = useTheme();
   const router = useRouter();
   const [isSaving, setIsSaving] = useState(false);
-  const [sessionData, setSessionData] = useState(null);
-  const [audioUrl, setAudioUrl] = useState(null);
+  const [sessionData, setSessionData] = useState<SessionData | null>(null);
+  const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
-  const [volume, setVolume] = useState(1);
-  const [trimStart, setTrimStart] = useState(0);
-  const [trimEnd, setTrimEnd] = useState(100);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [audioBuffer, setAudioBuffer] = useState(null);
+  const [error, setError] = useState<string | null>(null);
+  const [audioBuffer, setAudioBuffer] = useState<AudioBuffer | null>(null);
   const [isTrimMode, setIsTrimMode] = useState(false);
-  const [selectedRegion, setSelectedRegion] = useState(null);
-  const [isPlayingSelection, setIsPlayingSelection] = useState(false);
+  const [trimStartTime, setTrimStartTime] = useState<number | null>(null);
+  const [trimEndTime, setTrimEndTime] = useState<number | null>(null);
   const [isSettingStart, setIsSettingStart] = useState(true);
   const [selectionComplete, setSelectionComplete] = useState(false);
+  const [isPreviewingTrim, setIsPreviewingTrim] = useState(false);
 
-  const wavesurferRef = useRef(null);
-  const audioContextRef = useRef(null);
-  const gainNodeRef = useRef(null);
+  const wavesurferRef = useRef<any>(null);
+  const wavesurferInstanceRef = useRef<any>(null);
+  const regionsPluginRef = useRef<any>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const gainNodeRef = useRef<GainNode | null>(null);
   const isTrimModeRef = useRef(false);
   const isSettingStartRef = useRef(true);
-  const selectedRegionRef = useRef(null);
+  const selectedRegionRef = useRef<any>(null);
+  const isApplyingTrimRef = useRef(false);
 
-  // Gradient backgrounds for light/dark mode
+  // Gradient backgrounds
   const gradientBg = theme.palette.mode === 'dark'
-    ? 'linear-gradient(135deg, #232526 0%, #414345 100%)'
-    : 'linear-gradient(135deg, #e0eafc 0%, #cfdef3 100%)';
+    ? 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)'
+    : 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #cbd5e1 100%)';
+  
   const glassBg = theme.palette.mode === 'dark'
-    ? 'rgba(40, 44, 52, 0.85)'
-    : 'rgba(255, 255, 255, 0.85)';
+    ? 'rgba(255,255,255,0.05)'
+    : 'rgba(255,255,255,0.9)';
+  
   const glassBorder = theme.palette.mode === 'dark'
-    ? '1.5px solid rgba(255,255,255,0.08)'
-    : '1.5px solid rgba(200,200,200,0.18)';
+    ? '1px solid rgba(255,255,255,0.1)'
+    : '1px solid rgba(0,0,0,0.1)';
 
   useEffect(() => {
-    // Load session data when component mounts
+    // Load session data on component mount
     const editSession = sessionStorage.getItem('editSession');
+    console.log('Edit session found:', !!editSession);
+    
     if (editSession) {
-      const data = JSON.parse(editSession);
-      setSessionData(data);
-      console.log('Edit session data:', data);
-      
-      if (data.tempUrl) {
-        setAudioUrl(data.tempUrl);
-        console.log('Attempting to load audio from tempUrl:', data.tempUrl);
-        loadAudio(data.tempUrl);
-      } else {
-        console.log('No tempUrl found in sessionData');
-      }
-    } else {
-      console.log('No editSession found in sessionStorage');
-    }
-  }, []);
-
-  // Initialize wavesurfer when audioUrl is available and component is mounted
-  useEffect(() => {
-    if (!audioUrl || typeof window === 'undefined') return;
-
-    const initializeWaveSurfer = async () => {
       try {
-        const WaveSurfer = require('wavesurfer.js');
+        const sessionData = JSON.parse(editSession);
+        console.log('Parsed session data:', sessionData);
+        setSessionData(sessionData);
         
-        // Wait for the container to exist and DOM to be ready
-        setTimeout(() => {
-          const container = document.getElementById('waveform');
-          if (!container) {
-            console.error('Waveform container not found');
-            setError('Failed to initialize audio editor');
-            setIsLoading(false);
-            return;
-          }
+        // Load audio from the temp URL
+        if (sessionData.tempUrl) {
+          console.log('Loading audio from temp URL:', sessionData.tempUrl);
           
-          if (wavesurferRef.current) {
-            wavesurferRef.current.destroy();
-          }
-          
-          try {
-            wavesurferRef.current = WaveSurfer.create({
-              container: '#waveform',
-              waveColor: theme.palette.primary.main,
-              progressColor: theme.palette.secondary.main,
-              cursorColor: theme.palette.text.primary,
-              barWidth: 2,
-              barRadius: 3,
-              cursorWidth: 1,
-              height: 100,
-              barGap: 1,
-              responsive: true,
-            });
-
-            wavesurferRef.current.load(audioUrl);
-            
-            wavesurferRef.current.on('ready', () => {
-              setIsLoading(false);
-              setDuration(wavesurferRef.current.getDuration());
-              setTrimEnd(wavesurferRef.current.getDuration());
-              console.log('WaveSurfer ready, duration:', wavesurferRef.current.getDuration());
-            });
-
-            wavesurferRef.current.on('audioprocess', (currentTime) => {
-              setCurrentTime(currentTime);
-            });
-
-            wavesurferRef.current.on('play', () => {
-              setIsPlaying(true);
-            });
-
-            wavesurferRef.current.on('pause', () => {
-              setIsPlaying(false);
-            });
-
-            wavesurferRef.current.on('finish', () => {
-              setIsPlaying(false);
-              setIsPlayingSelection(false);
-              setCurrentTime(0);
-            });
-
-            wavesurferRef.current.on('error', (error) => {
-              console.error('WaveSurfer error:', error);
-              setError('Failed to load waveform');
-              setIsLoading(false);
-            });
-
-            // Handle waveform clicks for trim selection
-            wavesurferRef.current.on('click', (position) => {
-              console.log('Waveform clicked at position:', position, 'isTrimMode:', isTrimModeRef.current, 'isSettingStart:', isSettingStartRef.current, 'selectionComplete:', selectionComplete);
-              if (isTrimModeRef.current && !selectionComplete) {
-                const time = position * wavesurferRef.current.getDuration();
-                console.log('Calculated time:', time, 'current selectedRegion:', selectedRegionRef.current);
-                
-                if (isSettingStartRef.current) {
-                  // First click - set start point
-                  const newSelection = { start: time, end: time };
-                  setTrimStart(time);
-                  setSelectedRegion(newSelection);
-                  selectedRegionRef.current = newSelection;
-                  setIsSettingStart(false);
-                  isSettingStartRef.current = false;
-                  console.log('Set start point:', time, 'new selection:', newSelection);
-                } else {
-                  // Second click - set end point
-                  const currentRegion = selectedRegionRef.current;
-                  if (!currentRegion) {
-                    console.error('No current region found, resetting to start');
-                    const newSelection = { start: time, end: time };
-                    setTrimStart(time);
-                    setSelectedRegion(newSelection);
-                    selectedRegionRef.current = newSelection;
-                    setIsSettingStart(false);
-                    isSettingStartRef.current = false;
-                    return;
-                  }
-                  
-                  const startTime = currentRegion.start;
-                  const endTime = Math.max(startTime, time);
-                  const newSelection = { start: startTime, end: endTime };
-                  setTrimStart(startTime);
-                  setTrimEnd(endTime);
-                  setSelectedRegion(newSelection);
-                  selectedRegionRef.current = newSelection;
-                  setSelectionComplete(true);
-                  console.log('Set end point:', endTime, 'final selection:', newSelection, 'selection locked');
-                }
-              } else if (isTrimModeRef.current && selectionComplete) {
-                console.log('Selection complete - click "Clear Selection" to start over or "Apply Trim" to proceed');
-              } else {
-                console.log('Trim mode is OFF - click "Enter Trim Mode" first');
-              }
-            });
-          } catch (err) {
-            console.error('Error creating WaveSurfer:', err);
-            setError('Failed to initialize audio editor');
+                    // Add a timeout to prevent infinite loading
+          const timeoutId = setTimeout(() => {
+            console.error('Audio loading timeout');
+            setError('Audio loading timed out. Please try again.');
             setIsLoading(false);
+          }, 30000); // 30 second timeout
+          
+          if (sessionData.tempUrl) {
+            loadAudio(sessionData.tempUrl).finally(() => {
+              clearTimeout(timeoutId);
+            });
           }
-        }, 100); // Small delay to ensure DOM is ready
-      } catch (err) {
-        console.error('Error loading WaveSurfer:', err);
-        setError('Failed to load audio editor');
+        } else {
+          console.error('No tempUrl in session data');
+          setError('No audio file found in session');
+          setIsLoading(false);
+        }
+      } catch (error) {
+        console.error('Error parsing edit session:', error);
+        setError('Invalid session data');
         setIsLoading(false);
       }
+    } else {
+      console.error('No edit session found in sessionStorage');
+      setError('No edit session found. Please record or upload an audio file first.');
+      setIsLoading(false);
+    }
+    
+    // Cleanup function to revoke object URLs on unmount
+    return () => {
+      if (audioUrl && audioUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(audioUrl);
+      }
     };
+  }, []);
 
-    initializeWaveSurfer();
-  }, [audioUrl, theme.palette.primary.main, theme.palette.secondary.main, theme.palette.text.primary]);
+  // Watch for audioUrl changes and initialize WaveSurfer when available
+  useEffect(() => {
+    console.log('=== AUDIO URL EFFECT DEBUG ===');
+    console.log('audioUrl:', audioUrl);
+    console.log('isLoading:', isLoading);
+    console.log('isApplyingTrim:', isApplyingTrimRef.current);
+    console.log('Effect triggered');
+    
+    // Skip initialization if we're currently applying trim
+    if (isApplyingTrimRef.current) {
+      console.log('⏸️ Skipping WaveSurfer initialization - trim in progress');
+      return;
+    }
+    
+    if (audioUrl && !isLoading) {
+      console.log('✅ Conditions met, initializing WaveSurfer');
+      initializeWaveSurfer();
+    } else {
+      console.log('❌ Conditions not met:');
+      console.log('  - audioUrl exists:', !!audioUrl);
+      console.log('  - isLoading is false:', !isLoading);
+    }
+  }, [audioUrl, isLoading]);
 
-  const loadAudio = async (url) => {
+
+
+  const initializeWaveSurfer = async () => {
+    console.log('=== WAVESURFER INITIALIZATION DEBUG ===');
+    console.log('audioUrl:', audioUrl);
+    console.log('wavesurferRef.current:', wavesurferRef.current);
+    console.log('isLoading:', isLoading);
+    
+    if (!audioUrl) {
+      console.error('❌ No audioUrl provided to initializeWaveSurfer');
+      return;
+    }
+
+    if (!wavesurferRef.current) {
+      console.error('❌ wavesurferRef.current is null');
+      return;
+    }
+
     try {
-      setIsLoading(true);
-      setError(null);
-      console.log('Fetching audio from URL:', url);
+      console.log('📦 Loading WaveSurfer library and plugins...');
+      const WaveSurfer = (await import('wavesurfer.js')).default;
+      
+      // Try different ways to import the Regions plugin
+      let RegionsPlugin;
+      try {
+        RegionsPlugin = (await import('wavesurfer.js/dist/plugins/regions')).default;
+        console.log('✅ Regions plugin loaded via dist path');
+      } catch (error) {
+        try {
+          RegionsPlugin = (await import('wavesurfer.js/plugins/regions')).default;
+          console.log('✅ Regions plugin loaded via plugins path');
+        } catch (error2) {
+          console.error('❌ Failed to load Regions plugin:', error2);
+          throw new Error('Regions plugin not available');
+        }
+      }
+      
+      console.log('✅ WaveSurfer library and plugins loaded successfully');
+      console.log('📦 WaveSurfer library loaded successfully');
+      console.log('🔌 Regions plugin:', RegionsPlugin);
+      
+      if (wavesurferInstanceRef.current) {
+        console.log('🗑️ Destroying existing wavesurfer instance');
+        wavesurferInstanceRef.current.destroy();
+        wavesurferInstanceRef.current = null;
+      }
 
-      // Create audio context
-      audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
-      gainNodeRef.current = audioContextRef.current.createGain();
-      gainNodeRef.current.connect(audioContextRef.current.destination);
+      console.log('🏗️ Creating new wavesurfer instance with Regions plugin...');
+      console.log('Container element:', wavesurferRef.current);
+      
+      const regionsPlugin = RegionsPlugin.create();
+      console.log('🔌 Regions plugin created:', regionsPlugin);
+      
+      // Store the regions plugin reference
+      regionsPluginRef.current = regionsPlugin;
+      console.log('🔌 Regions plugin stored in ref:', regionsPluginRef.current);
+      
+      const wavesurferOptions = {
+        container: wavesurferRef.current,
+        waveColor: theme.palette.primary.main,
+        progressColor: isTrimMode ? 'transparent' : theme.palette.secondary.main, // Hide progress in trim mode
+        cursorColor: theme.palette.text.primary,
+        barWidth: 2,
+        barGap: 1,
+        height: 100,
+        plugins: [regionsPlugin],
+        interact: !isTrimMode, // Disable default interactions in trim mode
+        hideScrollbar: true,
+        normalize: true
+      };
+      
+      console.log('WaveSurfer options:', wavesurferOptions);
+      
+      const wavesurfer = WaveSurfer.create(wavesurferOptions);
 
-      // Fetch audio data
+      console.log('✅ WaveSurfer instance created');
+      console.log('🎵 Loading audio into wavesurfer:', audioUrl);
+      
+      // Test if the audio URL is accessible
+      try {
+        const testResponse = await fetch(audioUrl);
+        console.log('🔍 Audio URL test response:', testResponse.status, testResponse.statusText);
+        if (!testResponse.ok) {
+          throw new Error(`Audio URL test failed: ${testResponse.status} ${testResponse.statusText}`);
+        }
+        const testBlob = await testResponse.blob();
+        console.log('✅ Audio URL is accessible, blob size:', testBlob.size, 'bytes');
+      } catch (urlError) {
+        console.error('❌ Audio URL test failed:', urlError);
+        throw urlError;
+      }
+
+      wavesurfer.load(audioUrl);
+
+      // Add timeout for WaveSurfer loading
+      const timeoutId = setTimeout(() => {
+        console.error('⏰ WaveSurfer loading timeout after 15 seconds');
+        setError('WaveSurfer failed to load audio within 15 seconds');
+        setIsLoading(false);
+      }, 15000);
+
+      wavesurfer.on('ready', () => {
+        console.log('🎉 WaveSurfer ready event fired');
+        console.log('Duration:', wavesurfer.getDuration());
+        clearTimeout(timeoutId);
+        setDuration(wavesurfer.getDuration());
+        setIsLoading(false);
+        
+        // Ensure regions plugin is properly initialized after WaveSurfer is ready
+        if (regionsPluginRef.current) {
+          console.log('🔌 Regions plugin ready for use');
+        }
+      });
+
+      wavesurfer.on('audioprocess', (currentTime) => {
+        setCurrentTime(currentTime);
+      });
+
+      wavesurfer.on('play', () => {
+        console.log('▶️ WaveSurfer play event');
+        setIsPlaying(true);
+      });
+
+      wavesurfer.on('pause', () => {
+        console.log('⏸️ WaveSurfer pause event');
+        setIsPlaying(false);
+      });
+
+      wavesurfer.on('finish', () => {
+        console.log('🏁 WaveSurfer finish event');
+        setIsPlaying(false);
+      });
+
+      // Note: Using direct DOM click handler instead of WaveSurfer click event
+
+      wavesurfer.on('error', (error: any) => {
+        console.error('❌ WaveSurfer error event:', error);
+        clearTimeout(timeoutId);
+        setError(`WaveSurfer error: ${error?.message || 'Unknown error'}`);
+        setIsLoading(false);
+      });
+
+      // Monitor region events and prevent automatic region creation
+      // Note: region-created event is not available in this version of WaveSurfer
+
+      // Store the wavesurfer instance
+      wavesurferInstanceRef.current = wavesurfer;
+      console.log('✅ WaveSurfer initialization complete');
+
+    } catch (error: any) {
+      console.error('❌ Failed to initialize WaveSurfer:', error);
+      console.error('Error details:', {
+        name: error?.name,
+        message: error?.message,
+        stack: error?.stack
+      });
+      setError(`WaveSurfer initialization failed: ${error?.message || 'Unknown error'}`);
+      setIsLoading(false);
+    }
+  };
+
+  const loadAudio = async (url: string) => {
+    try {
+      console.log('Loading audio from URL:', url);
       const response = await fetch(url);
-      console.log('Audio fetch response:', response);
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch audio: ${response.status} ${response.statusText}`);
+      }
+      
       const arrayBuffer = await response.arrayBuffer();
-      const decodedBuffer = await audioContextRef.current.decodeAudioData(arrayBuffer);
-      setAudioBuffer(decodedBuffer);
-      console.log('Audio decoded successfully');
+      console.log('Audio array buffer size:', arrayBuffer.byteLength);
       
-      // Set up audio event listeners for wavesurfer
-      // The wavesurfer instance will handle all audio playback
+      const audioContext = new AudioContext();
+      const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+      console.log('Audio buffer decoded successfully');
       
-    } catch (err) {
-      console.error('Error loading audio:', err);
-      setError('Failed to load audio file');
+      setAudioBuffer(audioBuffer);
+      console.log('🎯 Setting audioUrl to:', url);
+      setAudioUrl(url);
+      console.log('✅ setAudioUrl called');
+      console.log('✅ Audio loaded successfully, setting isLoading to false');
+      setIsLoading(false);
+      
+    } catch (error) {
+      console.error('Error loading audio:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      setError(`Failed to load audio file: ${errorMessage}`);
       setIsLoading(false);
     }
   };
 
   const togglePlayPause = () => {
-    if (!wavesurferRef.current) return;
-
-    if (isPlaying) {
-      wavesurferRef.current.pause();
-    } else {
-      wavesurferRef.current.play();
+    if (wavesurferInstanceRef.current) {
+      if (isPlaying) {
+        wavesurferInstanceRef.current.pause();
+      } else {
+        wavesurferInstanceRef.current.play();
+      }
     }
-    setIsPlaying(!isPlaying);
   };
 
   const stopAudio = () => {
-    if (wavesurferRef.current) {
-      wavesurferRef.current.stop();
-    }
-    setIsPlaying(false);
-    setIsPlayingSelection(false);
-    setCurrentTime(0);
-  };
-
-  const handleVolumeChange = (event, newValue) => {
-    const newVolume = newValue / 100;
-    setVolume(newVolume);
-    
-    if (gainNodeRef.current) {
-      gainNodeRef.current.gain.value = newVolume;
+    if (wavesurferInstanceRef.current) {
+      wavesurferInstanceRef.current.pause();
+      wavesurferInstanceRef.current.setTime(0);
     }
   };
 
-  const handleTrimStart = (event, newValue) => {
-    setTrimStart(newValue);
-  };
-
-  const handleTrimEnd = (event, newValue) => {
-    setTrimEnd(newValue);
-  };
-
-  const applyTrim = async () => {
-    if (!audioBuffer || !audioContextRef.current || !selectedRegion) return;
-    try {
-      // Use the selected region from waveform clicks, not slider values
-      const startTime = selectedRegion.start;
-      const endTime = selectedRegion.end;
-      
-      // Calculate sample frames for trim
-      const sampleRate = audioBuffer.sampleRate;
-      const startSample = Math.floor(startTime * sampleRate);
-      const endSample = Math.floor(endTime * sampleRate);
-      const numChannels = audioBuffer.numberOfChannels;
-      
-      // Create new buffer that excludes the selected region
-      // We'll keep: 0 to startSample, and endSample to end
-      const beforeLength = startSample;
-      const afterLength = audioBuffer.length - endSample;
-      const totalLength = beforeLength + afterLength;
-      
-      if (totalLength <= 0) return;
-
-      const trimmedBuffer = audioContextRef.current.createBuffer(
-        numChannels,
-        totalLength,
-        sampleRate
-      );
-      
-      for (let channel = 0; channel < numChannels; channel++) {
-        const channelData = audioBuffer.getChannelData(channel);
-        const newChannelData = new Float32Array(totalLength);
-        
-        // Copy the part before the selection
-        if (beforeLength > 0) {
-          newChannelData.set(channelData.slice(0, startSample), 0);
-        }
-        
-        // Copy the part after the selection
-        if (afterLength > 0) {
-          newChannelData.set(channelData.slice(endSample), beforeLength);
-        }
-        
-        trimmedBuffer.copyToChannel(newChannelData, channel, 0);
-      }
-
-      // Export trimmed buffer to WAV Blob
-      const wavBlob = bufferToWavBlob(trimmedBuffer);
-      const trimmedUrl = URL.createObjectURL(wavBlob);
-
-      // Update audio element and waveform
-      setAudioUrl(trimmedUrl);
-      setAudioBuffer(trimmedBuffer);
-      if (wavesurferRef.current) {
-        wavesurferRef.current.load(trimmedUrl);
-      }
-      setTrimStart(0);
-      setTrimEnd(trimmedBuffer.duration);
-      setDuration(trimmedBuffer.duration);
-      setCurrentTime(0);
-      setIsPlaying(false);
-      
-      // Clear the selection after trimming
-      setSelectedRegion(null);
-      selectedRegionRef.current = null;
-      setSelectionComplete(false);
-      setIsSettingStart(true);
-      isSettingStartRef.current = true;
-      
-      console.log('Removed selected region:', startTime, 'to', endTime, 'kept rest of audio');
-    } catch (err) {
-      console.error('Error applying trim:', err);
-      setError('Failed to trim audio');
+  const stopPreview = () => {
+    if (wavesurferInstanceRef.current && isPreviewingTrim) {
+      console.log('⏹️ Stopping preview manually');
+      wavesurferInstanceRef.current.pause();
+      setIsPreviewingTrim(false);
     }
   };
 
-  // Helper: Convert AudioBuffer to WAV Blob
-  function bufferToWavBlob(buffer) {
-    // Adapted from https://github.com/Jam3/audiobuffer-to-wav
+
+
+  function bufferToWavBlob(buffer: AudioBuffer) {
     const numChannels = buffer.numberOfChannels;
     const sampleRate = buffer.sampleRate;
-    const format = 1; // PCM
-    const bitDepth = 16;
     const numFrames = buffer.length;
-    const bytesPerSample = bitDepth / 8;
-    const blockAlign = numChannels * bytesPerSample;
-    const byteRate = sampleRate * blockAlign;
-    const dataLength = numFrames * blockAlign;
-    const bufferLength = 44 + dataLength;
-    const arrayBuffer = new ArrayBuffer(bufferLength);
+    
+    // WAV file header
+    const dataLength = numFrames * numChannels * 2;
+    const arrayBuffer = new ArrayBuffer(44 + dataLength);
     const view = new DataView(arrayBuffer);
     let offset = 0;
-    function writeString(s) {
+    
+    // Write WAV header
+    const writeString = (s: string) => {
       for (let i = 0; i < s.length; i++) {
-        view.setUint8(offset++, s.charCodeAt(i));
+        view.setUint8(offset + i, s.charCodeAt(i));
       }
-    }
+      offset += s.length;
+    };
+    
     writeString('RIFF');
     view.setUint32(offset, 36 + dataLength, true); offset += 4;
     writeString('WAVE');
     writeString('fmt ');
     view.setUint32(offset, 16, true); offset += 4;
-    view.setUint16(offset, format, true); offset += 2;
+    view.setUint16(offset, 1, true); offset += 2;
     view.setUint16(offset, numChannels, true); offset += 2;
     view.setUint32(offset, sampleRate, true); offset += 4;
-    view.setUint32(offset, byteRate, true); offset += 4;
-    view.setUint16(offset, blockAlign, true); offset += 2;
-    view.setUint16(offset, bitDepth, true); offset += 2;
+    view.setUint32(offset, sampleRate * numChannels * 2, true); offset += 4;
+    view.setUint16(offset, numChannels * 2, true); offset += 2;
+    view.setUint16(offset, 16, true); offset += 2;
     writeString('data');
     view.setUint32(offset, dataLength, true); offset += 4;
+    
     // Write interleaved PCM samples
     for (let i = 0; i < numFrames; i++) {
       for (let channel = 0; channel < numChannels; channel++) {
@@ -404,7 +414,7 @@ export default function AudioRecorder() {
     return new Blob([arrayBuffer], { type: 'audio/wav' });
   }
 
-  const formatTime = (seconds) => {
+  const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
     return `${mins}:${secs.toString().padStart(2, '0')}`;
@@ -445,14 +455,14 @@ export default function AudioRecorder() {
       }
       
       const result = await response.json();
-      console.log('Edited audio uploaded to temp path:', result.tempUrl);
+      console.log('Edited audio uploaded to temp path:', result.tempPath);
       
       // Store the updated reference data for the broadcast page
       sessionStorage.setItem("broadcastReference", JSON.stringify({
         referenceId: sessionData.referenceId,
-        tempFileName: sessionData.tempFileName,
+        tempFileName: result.tempFileName,
         tempUrl: result.tempUrl,
-        tempPath: sessionData.tempPath,
+        tempPath: result.tempPath, // Use the actual uploaded file path
         podcastId: sessionData.podcastId,
         originalFileName: sessionData.originalFileName,
       }));
@@ -476,61 +486,447 @@ export default function AudioRecorder() {
     isTrimModeRef.current = newTrimMode;
     
     if (newTrimMode) {
-      // Enter trim mode - clear any existing selection and play cursor
-      setSelectedRegion(null);
-      selectedRegionRef.current = null;
-      setTrimStart(0);
-      setTrimEnd(duration);
-      setIsSettingStart(true);
-      isSettingStartRef.current = true;
-      setSelectionComplete(false);
+      // Enter trim mode - enable click selection
+      console.log('✂️ Entering trim mode');
+      console.log('Click to set start point, then click again to set end point');
       
-      // Stop any playing audio and clear cursor
-      if (wavesurferRef.current) {
-        wavesurferRef.current.pause();
-        wavesurferRef.current.setTime(0);
-        // Change colors to unplayed state for trim mode
-        wavesurferRef.current.setOptions({
-          waveColor: theme.palette.primary.main,
-          progressColor: theme.palette.primary.main, // Same as wave color = no progress shown
-          cursorColor: theme.palette.text.primary,
-        });
+      // Clear all previous state
+      setSelectionComplete(false);
+      setTrimStartTime(null);
+      setTrimEndTime(null);
+      setIsSettingStart(true);
+      setIsPreviewingTrim(false);
+      
+      // Clear any existing visual elements
+      console.log('🗑️ Clearing any existing visual elements');
+      
+      // Clear all existing regions
+      if (regionsPluginRef.current) {
+        try {
+          console.log('🔍 Regions plugin available for clearing');
+          const regions = regionsPluginRef.current.getRegions();
+          console.log('🔍 Current regions before clearing:', Object.keys(regions));
+          Object.keys(regions).forEach(id => {
+            console.log('🗑️ Removing region:', id);
+            regions[id].remove();
+          });
+          console.log('✅ All regions cleared');
+          
+                // Set up a periodic check to remove any automatic regions and ensure our region is visible
+      const intervalId = setInterval(() => {
+        if (regionsPluginRef.current) {
+          const currentRegions = regionsPluginRef.current.getRegions();
+          Object.keys(currentRegions).forEach(id => {
+            if (id !== 'trim-selection') {
+              console.log('🗑️ Removing automatic region during trim mode:', id);
+              currentRegions[id].remove();
+            }
+          });
+          
+          // Force our trim-selection region to be visible
+          const trimRegion = currentRegions['trim-selection'];
+          if (trimRegion) {
+            try {
+              // Ensure the region element has proper styling
+              const regionElement = trimRegion.element;
+              if (regionElement) {
+                regionElement.style.backgroundColor = 'rgba(255, 0, 0, 0.5)';
+                regionElement.style.border = '2px solid rgba(255, 0, 0, 1)';
+                regionElement.style.zIndex = '1000';
+              }
+            } catch (error) {
+              console.log('⚠️ Could not update region styling:', error);
+            }
+          }
+        }
+      }, 100); // Check every 100ms
+      
+      // Clear the interval when exiting trim mode
+      setTimeout(() => {
+        clearInterval(intervalId);
+      }, 30000); // Stop after 30 seconds
+          
+        } catch (error: any) {
+          console.log('Error clearing regions:', error);
+        }
+      } else {
+        console.log('❌ Regions plugin not available for clearing');
+      }
+      
+      // Reset WaveSurfer to default state (clear any custom styling)
+      if (wavesurferInstanceRef.current) {
+        try {
+          // Ensure WaveSurfer is in a clean state
+          wavesurferInstanceRef.current.setTime(0);
+          console.log('🔄 Reset WaveSurfer to clean state');
+        } catch (error: any) {
+          console.log('Error resetting WaveSurfer:', error);
+        }
       }
     } else {
-      // Exit trim mode - restore original colors
-      if (wavesurferRef.current) {
-        wavesurferRef.current.setOptions({
-          waveColor: theme.palette.primary.main,
-          progressColor: theme.palette.secondary.main,
-          cursorColor: theme.palette.text.primary,
-        });
-      }
-      clearSelection();
+      // Exit trim mode
+      console.log('🚪 Exiting trim mode');
+      
+      // Clear all state
+      setSelectionComplete(false);
+      setTrimStartTime(null);
+      setTrimEndTime(null);
       setIsSettingStart(true);
-      isSettingStartRef.current = true;
+      setIsPreviewingTrim(false);
+      
+      // Clear any existing visual elements
+      console.log('🗑️ Clearing any existing visual elements');
     }
   };
 
-  const clearSelection = () => {
-    setSelectedRegion(null);
-    selectedRegionRef.current = null;
-    setTrimStart(0);
-    setTrimEnd(duration);
-    setIsSettingStart(true);
-    isSettingStartRef.current = true;
-    setSelectionComplete(false);
+  const handleWaveformClick = (event: any) => {
+    if (!isTrimMode || !wavesurferInstanceRef.current) return;
     
-    // Reset cursor position
-    if (wavesurferRef.current) {
-      wavesurferRef.current.setTime(0);
+    // Prevent default behavior to avoid automatic region creation
+    event.preventDefault();
+    event.stopPropagation();
+    
+    console.log('🎯 Waveform click event received:', event);
+    
+    // Get the waveform container element
+    const waveformElement = wavesurferRef.current;
+    if (!waveformElement) {
+      console.error('❌ No waveform element found');
+      return;
+    }
+    
+    const rect = waveformElement.getBoundingClientRect();
+    const clickX = event.clientX - rect.left;
+    const clickTime = (clickX / rect.width) * duration;
+    
+    console.log('🎯 Waveform clicked at time:', clickTime, 'seconds');
+    console.log('📊 Click details:', {
+      clientX: event.clientX,
+      rectLeft: rect.left,
+      rectWidth: rect.width,
+      clickX,
+      duration,
+      clickTime
+    });
+    
+    if (isSettingStart) {
+      // Setting start point - don't create any region yet
+      setTrimStartTime(clickTime);
+      setIsSettingStart(false);
+      console.log('📍 Start point set at:', formatTime(clickTime));
+      console.log('⏳ Waiting for end point selection...');
+      console.log('🔍 Current state - isSettingStart:', isSettingStart, 'trimStartTime:', trimStartTime);
+      
+      // Clear any previous selection state
+      console.log('🗑️ Clearing previous selection state');
+    } else {
+      // Setting end point
+      console.log('🎯 End point selection - trimStartTime:', trimStartTime, 'clickTime:', clickTime);
+      if (trimStartTime && clickTime > trimStartTime) {
+        setTrimEndTime(clickTime);
+        setSelectionComplete(true);
+        console.log('📍 End point set at:', formatTime(clickTime));
+        console.log('✅ Selection complete:', formatTime(trimStartTime), 'to', formatTime(clickTime));
+        console.log('📊 Selection duration:', formatTime(clickTime - trimStartTime));
+        
+        // Create visual region to highlight the selection
+        try {
+          console.log('🎨 Attempting to create visual region...');
+          console.log('📊 Region details:', {
+            start: trimStartTime,
+            end: clickTime,
+            duration: clickTime - trimStartTime,
+            regionsPlugin: !!regionsPluginRef.current,
+            wavesurferReady: !!wavesurferInstanceRef.current
+          });
+          
+          // Check if regions plugin and wavesurfer are available
+          if (!regionsPluginRef.current) {
+            console.error('❌ Regions plugin is not available');
+            return;
+          }
+          
+          if (!wavesurferInstanceRef.current) {
+            console.error('❌ WaveSurfer instance is not available');
+            return;
+          }
+          
+          // Access regions through the plugin
+          const regions = regionsPluginRef.current.getRegions();
+          console.log('🔍 Available regions:', regions);
+          console.log('🔍 Regions object type:', typeof regions);
+          console.log('🔍 Regions object keys:', Object.keys(regions));
+          console.log('🔍 Regions object methods:', Object.getOwnPropertyNames(regions));
+          
+          // Clear any existing regions first
+          try {
+            const existingRegions = regionsPluginRef.current.getRegions();
+            Object.keys(existingRegions).forEach(id => {
+              existingRegions[id].remove();
+            });
+            console.log('🗑️ Cleared existing regions');
+          } catch (clearError) {
+            console.log('⚠️ Could not clear existing regions:', clearError);
+          }
+          
+          // Create the region using the correct method
+          let region: any;
+          try {
+            // Use the regions plugin's addRegion method
+            region = regionsPluginRef.current.addRegion({
+              start: trimStartTime,
+              end: clickTime,
+              color: 'rgba(255, 0, 0, 0.5)', // More visible red highlight
+              borderColor: 'rgba(255, 0, 0, 1)', // Solid red border
+              borderWidth: 2, // Thicker border
+              drag: false, // Disable dragging
+              resize: false, // Disable resizing
+              id: 'trim-selection'
+            });
+            
+            console.log('✅ Visual region created successfully:', region);
+            
+            // Force the region to be visible by updating its styling after a short delay
+            setTimeout(() => {
+              try {
+                const regionElement = region.element;
+                if (regionElement) {
+                  regionElement.style.backgroundColor = 'rgba(255, 0, 0, 0.5)';
+                  regionElement.style.border = '2px solid rgba(255, 0, 0, 1)';
+                  regionElement.style.zIndex = '1000';
+                  console.log('🎨 Forced region styling update');
+                }
+              } catch (error) {
+                console.log('⚠️ Could not force region styling:', error);
+              }
+            }, 50);
+            
+          } catch (regionError) {
+            console.error('❌ Error creating region:', regionError);
+            console.log('🔍 Trying alternative region creation method...');
+            
+            // Fallback: Try using the wavesurfer instance directly
+            try {
+              region = wavesurferInstanceRef.current.addRegion({
+                start: trimStartTime,
+                end: clickTime,
+                color: 'rgba(255, 0, 0, 0.5)', // More visible red highlight
+                borderColor: 'rgba(255, 0, 0, 1)', // Solid red border
+                borderWidth: 2, // Thicker border
+                drag: false,
+                resize: false,
+                id: 'trim-selection'
+              });
+              console.log('✅ Region created with wavesurfer instance:', region);
+              
+              // Force the region to be visible
+              setTimeout(() => {
+                try {
+                  const regionElement = region.element;
+                  if (regionElement) {
+                    regionElement.style.backgroundColor = 'rgba(255, 0, 0, 0.5)';
+                    regionElement.style.border = '2px solid rgba(255, 0, 0, 1)';
+                    regionElement.style.zIndex = '1000';
+                    console.log('🎨 Forced region styling update (fallback)');
+                  }
+                } catch (error) {
+                  console.log('⚠️ Could not force region styling (fallback):', error);
+                }
+              }, 50);
+              
+            } catch (createError) {
+              console.error('❌ All region creation methods failed:', createError);
+              return;
+            }
+          }
+          console.log('🔍 Region properties:', {
+            id: region.id,
+            start: region.start,
+            end: region.end,
+            color: region.color,
+            duration: region.end - region.start
+          });
+          
+          // Verify the region is visible
+          console.log('👁️ Region should be visible from', formatTime(region.start), 'to', formatTime(region.end));
+        } catch (error: any) {
+          console.error('❌ Error creating visual region:', error);
+          console.error('Error details:', {
+            name: error?.name,
+            message: error?.message,
+            stack: error?.stack
+          });
+        }
+      } else {
+        // Invalid end point (before start point), reset
+        setTrimStartTime(clickTime);
+        setIsSettingStart(false);
+        console.log('🔄 Invalid end point, resetting to start point at:', formatTime(clickTime));
+        
+        // Clear any previous selection state
+        console.log('🗑️ Clearing previous selection state');
+      }
     }
   };
 
-  const playSelectedRegion = () => {
-    if (!wavesurferRef.current || !selectedRegion) return;
+  const previewTrimRegion = () => {
+    if (!trimStartTime || !trimEndTime || !wavesurferInstanceRef.current) return;
     
-    setIsPlayingSelection(true);
-    wavesurferRef.current.play(selectedRegion.start, selectedRegion.end);
+    console.log('👁️ Previewing trim region:', formatTime(trimStartTime), 'to', formatTime(trimEndTime));
+    setIsPreviewingTrim(true);
+    
+    // Play only the selected region
+    try {
+      const wavesurfer = wavesurferInstanceRef.current;
+      
+      // Set up a timer to stop playback at the end time
+      const previewDuration = (trimEndTime - trimStartTime) * 1000; // Convert to milliseconds
+      const stopTimer = setTimeout(() => {
+        console.log('⏹️ Preview finished, stopping playback');
+        wavesurfer.pause();
+        setIsPreviewingTrim(false);
+      }, previewDuration);
+      
+      // Start playback from the start time
+      wavesurfer.play(trimStartTime, trimEndTime);
+      
+      // Also listen for the finish event as a backup
+      const handleFinish = () => {
+        console.log('🏁 Preview finished via finish event');
+        clearTimeout(stopTimer);
+        setIsPreviewingTrim(false);
+        // Remove the event listener to prevent memory leaks
+        wavesurfer.un('finish', handleFinish);
+      };
+      
+      wavesurfer.on('finish', handleFinish);
+      
+      // Listen for pause event in case user manually stops
+      const handlePause = () => {
+        console.log('⏸️ Preview paused manually');
+        clearTimeout(stopTimer);
+        setIsPreviewingTrim(false);
+        // Remove the event listener to prevent memory leaks
+        wavesurfer.un('pause', handlePause);
+        wavesurfer.un('finish', handleFinish);
+      };
+      
+      wavesurfer.on('pause', handlePause);
+      
+    } catch (error) {
+      console.error('Error playing region:', error);
+      setIsPreviewingTrim(false);
+    }
+  };
+
+  const applyTrim = async () => {
+    if (!trimStartTime || !trimEndTime || !audioBuffer) {
+      console.error('❌ No trim points selected or no audio buffer');
+      return;
+    }
+
+    try {
+      console.log('✂️ Applying trim from', formatTime(trimStartTime), 'to', formatTime(trimEndTime));
+      setIsLoading(true);
+      isApplyingTrimRef.current = true;
+      
+      const startTime = trimStartTime;
+      const endTime = trimEndTime;
+      
+      // Create a new audio context
+      const audioContext = new AudioContext();
+      const sampleRate = audioBuffer.sampleRate;
+      
+      // Calculate the sample ranges for the parts we want to keep
+      const startSample = Math.floor(startTime * sampleRate);
+      const endSample = Math.floor(endTime * sampleRate);
+      const beforeLength = startSample; // Length of audio before the selection
+      const afterLength = audioBuffer.length - endSample; // Length of audio after the selection
+      const totalLength = beforeLength + afterLength; // Total length of the result
+      
+      // Create a new buffer for the trimmed audio (excluding the selected region)
+      const trimmedBuffer = audioContext.createBuffer(
+        audioBuffer.numberOfChannels,
+        totalLength,
+        sampleRate
+      );
+      
+      // Copy the audio before the selection
+      for (let channel = 0; channel < audioBuffer.numberOfChannels; channel++) {
+        const channelData = audioBuffer.getChannelData(channel);
+        const trimmedData = trimmedBuffer.getChannelData(channel);
+        
+        // Copy the part before the selection
+        for (let i = 0; i < beforeLength; i++) {
+          trimmedData[i] = channelData[i];
+        }
+        
+        // Copy the part after the selection
+        for (let i = 0; i < afterLength; i++) {
+          trimmedData[beforeLength + i] = channelData[endSample + i];
+        }
+      }
+      
+      setAudioBuffer(trimmedBuffer);
+      setDuration((beforeLength + afterLength) / sampleRate);
+      
+      // Update the waveform
+      const blob = bufferToWavBlob(trimmedBuffer);
+      const newUrl = URL.createObjectURL(blob);
+      
+      // Clean up the previous object URL to prevent memory leaks
+      if (audioUrl && audioUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(audioUrl);
+      }
+      
+      // Reload WaveSurfer with the trimmed audio directly without triggering useEffect
+      if (wavesurferInstanceRef.current) {
+        try {
+          // Clear any existing audio to prevent conflicts
+          wavesurferInstanceRef.current.empty();
+          
+          // Load the new audio
+          wavesurferInstanceRef.current.loadBlob(blob);
+          
+          // Update the URL after successful load to avoid triggering useEffect
+          setAudioUrl(newUrl);
+        } catch (loadError) {
+          console.error('Error loading trimmed audio into WaveSurfer:', loadError);
+          // Fallback: set the URL and let useEffect handle it
+          setAudioUrl(newUrl);
+        }
+      } else {
+        // Fallback: set the URL and let useEffect handle it
+        setAudioUrl(newUrl);
+      }
+      
+      // Exit trim mode
+      setIsTrimMode(false);
+      setSelectionComplete(false);
+      setIsPreviewingTrim(false);
+      
+      // Clear any existing regions
+      if (regionsPluginRef.current) {
+        try {
+          const regions = regionsPluginRef.current.getRegions();
+          Object.keys(regions).forEach(id => {
+            regions[id].remove();
+          });
+        } catch (error) {
+          console.log('No regions to clear');
+        }
+      }
+      
+      setIsLoading(false);
+      isApplyingTrimRef.current = false;
+      console.log('✅ Trim applied successfully');
+      
+    } catch (error) {
+      console.error('❌ Error applying trim:', error);
+      setError(`Failed to apply trim: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      setIsLoading(false);
+      isApplyingTrimRef.current = false;
+    }
   };
 
   return (
@@ -550,7 +946,7 @@ export default function AudioRecorder() {
         elevation={1}
         sx={{
           p: { xs: 1, sm: 2 },
-          maxWidth: 1600,
+          maxWidth: 1200,
           width: '100%',
           borderRadius: 2,
           background: glassBg,
@@ -570,28 +966,11 @@ export default function AudioRecorder() {
           <Alert 
             severity="info" 
             sx={{ mb: 2 }}
-            action={
-              <Button
-                color="inherit"
-                size="small"
-                startIcon={<DownloadIcon />}
-                onClick={() => {
-                  if (sessionData.tempUrl) {
-                    const link = document.createElement('a');
-                    link.href = sessionData.tempUrl;
-                    link.download = sessionData.originalFileName || 'audio-file';
-                    link.click();
-                  }
-                }}
-              >
-                Download Audio
-              </Button>
-            }
           >
             <Typography variant="body2">
               <strong>Audio file loaded:</strong> {sessionData.originalFileName || 'Unknown file'}
               {sessionData.tempUrl && (
-                <span> • <Link href={sessionData.tempUrl} target="_blank" rel="noopener">View file</Link></span>
+                <span> • <a href={sessionData.tempUrl} target="_blank" rel="noopener">View original file</a></span>
               )}
             </Typography>
           </Alert>
@@ -604,14 +983,7 @@ export default function AudioRecorder() {
           </Alert>
         )}
 
-        {/* Info Banner and Clear Editor Button on the same line */}
-        <Box sx={{
-          mb: 2,
-          width: '100%',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-        }}>
+        {/* Info Banner */}
           <Box sx={{
             display: 'flex',
             alignItems: 'center',
@@ -621,15 +993,11 @@ export default function AudioRecorder() {
             px: 2.5,
             py: 1.2,
             boxShadow: '0 1px 6px rgba(33,150,243,0.04)',
-            flex: 1,
-            mr: 2,
-            minWidth: 0,
+          mb: 2,
           }}>
-            <InfoOutlinedIcon color="primary" sx={{ mr: 1.5, fontSize: 24, flexShrink: 0 }} />
-            <Typography variant="body1" color="text.secondary" sx={{ fontFamily: 'inherit', fontWeight: 500, fontSize: 16, lineHeight: 1.6, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              Edit your audio with our professional editor. Trim, adjust volume, and preview your changes.
+          <Typography variant="body1" color="text.secondary" sx={{ fontFamily: 'inherit', fontWeight: 500, fontSize: 16, lineHeight: 1.6 }}>
+            Edit your audio with our professional editor. Trim, adjust volume, and preview your changes.
             </Typography>
-          </Box>
         </Box>
 
         {/* Top Next Step: Broadcast Step Bar */}
@@ -657,7 +1025,7 @@ export default function AudioRecorder() {
               fontSize: 20,
               mr: 1,
             }}>
-              3
+              2
             </Box>
             <Typography variant="subtitle1" color="text.primary" sx={{ fontFamily: 'inherit', fontWeight: 600, fontSize: 18 }}>
               Edit your audio file, then continue to <b>Broadcast</b>.
@@ -682,269 +1050,149 @@ export default function AudioRecorder() {
           </Button>
         </Box>
 
-        {/* Custom Audio Editor */}
-        <Box sx={{
-          flex: 1,
-          minHeight: { xs: '75vh', sm: '82vh' },
-          borderRadius: 1,
-          overflow: 'hidden',
-          border: `1px solid ${theme.palette.divider}`,
-          boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-          position: 'relative',
-          bgcolor: theme.palette.background.paper,
-          p: 2,
-        }}>
-          {/* Always render the waveform container */}
-          <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', gap: 2 }}>
-            {/* Waveform - always rendered */}
-            <Box sx={{ flex: 1, minHeight: 200, position: 'relative' }}>
-              <div id="waveform" style={{ width: '100%', height: '100%' }} />
-              
-              {/* Visual markers for start/end points */}
-              {selectedRegion && (
-                <>
-                  {/* Start point marker */}
-                  <Box sx={{
-                    position: 'absolute',
-                    left: `${(selectedRegion.start / duration) * 100}%`,
-                    top: 0,
-                    bottom: 0,
-                    width: '2px',
-                    bgcolor: 'green',
-                    zIndex: 4,
-                    pointerEvents: 'none',
-                  }} />
-                  
-                  {/* End point marker */}
-                  {!isSettingStart && (
-                    <Box sx={{
-                      position: 'absolute',
-                      left: `${(selectedRegion.end / duration) * 100}%`,
-                      top: 0,
-                      bottom: 0,
-                      width: '2px',
-                      bgcolor: 'red',
-                      zIndex: 4,
-                      pointerEvents: 'none',
-                    }} />
-                  )}
-                  
-                  {/* Selection area highlight */}
-                  {!isSettingStart && (
-                    <Box sx={{
-                      position: 'absolute',
-                      left: `${(selectedRegion.start / duration) * 100}%`,
-                      top: 0,
-                      bottom: 0,
-                      width: `${((selectedRegion.end - selectedRegion.start) / duration) * 100}%`,
-                      bgcolor: 'rgba(255, 0, 0, 0.1)',
-                      zIndex: 3,
-                      pointerEvents: 'none',
-                    }} />
-                  )}
-                </>
-              )}
-              
-              {/* Trim mode indicator */}
-              {isTrimModeRef.current && (
-                <Box sx={{
-                  position: 'absolute',
-                  top: 10,
-                  right: 10,
-                  bgcolor: 'rgba(255, 0, 0, 0.8)',
-                  color: 'white',
-                  px: 2,
-                  py: 1,
-                  borderRadius: 1,
-                  fontSize: '12px',
-                  fontWeight: 'bold',
-                  zIndex: 3,
-                }}>
-                  TRIM MODE
-                </Box>
-              )}
-              
-              {/* Loading overlay */}
-              {isLoading && (
-            <Box sx={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              width: '100%',
-              height: '100%',
-              bgcolor: theme.palette.mode === 'dark' ? 'rgba(30,32,38,0.85)' : 'rgba(255,255,255,0.85)',
-              zIndex: 2,
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}>
-              <CircularProgress size={48} color="primary" />
-              <Typography variant="h6" color="text.secondary" sx={{ mt: 2, fontWeight: 500 }}>
-                    Loading audio editor...
-                  </Typography>
-                </Box>
-              )}
-            </Box>
-
-            {/* Playback Controls */}
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, p: 2, border: `1px solid ${theme.palette.divider}`, borderRadius: 1 }}>
-              <IconButton onClick={togglePlayPause} color="primary" size="large">
-                {isPlaying ? <PauseIcon /> : <PlayIcon />}
-              </IconButton>
-              <IconButton onClick={stopAudio} color="secondary" size="large">
-                <StopIcon />
-              </IconButton>
-              <Typography variant="body2" color="text.secondary" sx={{ minWidth: 100 }}>
-                {formatTime(currentTime)} / {formatTime(duration)}
+                {/* Audio Waveform */}
+        {isLoading ? (
+          <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', minHeight: 200, gap: 2 }}>
+            <CircularProgress />
+            <Typography variant="body2" color="text.secondary">
+              Loading WaveSurfer waveform...
+            </Typography>
+            {error && (
+              <Typography variant="body2" color="error">
+                {error}
               </Typography>
-            </Box>
-
-            {/* Volume Control */}
-            <Box sx={{ p: 2, border: `1px solid ${theme.palette.divider}`, borderRadius: 1 }}>
-              <Typography variant="subtitle2" gutterBottom>
-                Volume Control
-              </Typography>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <VolumeIcon color="action" />
-                <Slider
-                  value={volume * 100}
-                  onChange={handleVolumeChange}
-                  aria-label="Volume"
-                  min={0}
-                  max={100}
-                  sx={{ flex: 1 }}
-                />
-                <Typography variant="body2" color="text.secondary" sx={{ minWidth: 40 }}>
-                  {Math.round(volume * 100)}%
-                </Typography>
-              </Box>
-            </Box>
-
-            {/* Trim Controls */}
-            <Box sx={{ p: 2, border: `1px solid ${theme.palette.divider}`, borderRadius: 1 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                <CutIcon color="action" />
-                <Typography variant="subtitle2">
-                  Trim Audio
-                </Typography>
-                <Button
-                  variant={isTrimModeRef.current ? "contained" : "outlined"}
-                  size="small"
-                  onClick={toggleTrimMode}
-                  sx={{ ml: 'auto' }}
-                >
-                  {isTrimModeRef.current ? "Exit Trim Mode" : "Enter Trim Mode"}
-                </Button>
-              </Box>
-              
-              {isTrimModeRef.current && (
-                <Alert severity="info" sx={{ mb: 2 }}>
-                  <Typography variant="body2">
-                    {isSettingStartRef.current ? (
-                      <><strong>Step 1:</strong> Click on the waveform to set the START point</>
-                    ) : selectionComplete ? (
-                      <>
-                        <strong>Selection Complete!</strong> Click "Apply Trim" to trim the audio
-                        {selectedRegion && (
-                          <>
-                            <br />
-                            <strong>Selected:</strong> {formatTime(selectedRegion.start)} to {formatTime(selectedRegion.end)}
-                          </>
-                        )}
-                      </>
-                    ) : (
-                      <>
-                        <strong>Step 2:</strong> Click on the waveform to set the END point
-                        {selectedRegion && (
-                          <>
-                            <br />
-                            <strong>Current selection:</strong> {formatTime(selectedRegion.start)} to {formatTime(selectedRegion.end)}
-                          </>
-                        )}
-                      </>
-                    )}
-                  </Typography>
-                </Alert>
-              )}
-
-              <Stack spacing={2}>
-                <Box>
-                  <Typography variant="body2" gutterBottom>
-                    Start Time: {formatTime(trimStart)}
-                  </Typography>
-                  <Slider
-                    value={trimStart}
-                    onChange={handleTrimStart}
-                    min={0}
-                    max={duration}
-                    step={0.1}
-                    sx={{ flex: 1 }}
-                  />
-                </Box>
-                <Box>
-                  <Typography variant="body2" gutterBottom>
-                    End Time: {formatTime(trimEnd)}
-                  </Typography>
-                  <Slider
-                    value={trimEnd}
-                    onChange={handleTrimEnd}
-                    min={trimStart}
-                    max={duration}
-                    step={0.1}
-                    sx={{ flex: 1 }}
-                  />
-                </Box>
-                
-                <Box sx={{ display: 'flex', gap: 1 }}>
-                  <Button
-                    variant="contained"
-                    startIcon={<CutIcon />}
-                    onClick={applyTrim}
-                    disabled={!selectedRegion || !selectionComplete}
-                    sx={{ flex: 1 }}
-                  >
-                    Apply Trim
-                  </Button>
-                  <Button
-                    variant="outlined"
-                    color="secondary"
-                    onClick={clearSelection}
-                    sx={{ flex: 1 }}
-                  >
-                    Clear Selection
-                  </Button>
-                </Box>
-
-                {selectedRegion && !isSettingStartRef.current && (
-                  <Box sx={{ display: 'flex', gap: 1 }}>
-                    <Button
-                      variant="contained"
-                      onClick={playSelectedRegion}
-                      disabled={isPlayingSelection}
-                      sx={{ flex: 1 }}
-                    >
-                      {isPlayingSelection ? "Playing Selection..." : "Preview Selection"}
-                    </Button>
-                  </Box>
-                )}
-              </Stack>
-            </Box>
+            )}
           </Box>
+        ) : error ? (
+          <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', minHeight: 200, gap: 2 }}>
+            <Typography variant="body2" color="error" gutterBottom>
+              {error}
+            </Typography>
+            <Button 
+              variant="contained" 
+              onClick={() => {
+                setError(null);
+                setIsLoading(true);
+                if (audioUrl) {
+                  initializeWaveSurfer();
+                }
+              }}
+            >
+              Retry WaveSurfer
+            </Button>
+          </Box>
+        ) : (
+          <Box sx={{ flex: 1, minHeight: 200 }}>
+            <div 
+              ref={wavesurferRef} 
+              style={{ width: '100%', height: '100%' }}
+              onClick={isTrimMode ? handleWaveformClick : undefined}
+            />
+            </Box>
+          )}
+
+        {/* Audio Controls */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+          <IconButton onClick={togglePlayPause} disabled={isLoading}>
+            {isPlaying ? <PauseIcon /> : <PlayIcon />}
+          </IconButton>
+          
+          <IconButton onClick={stopAudio} disabled={isLoading}>
+            <StopIcon />
+          </IconButton>
+          
+          <Typography variant="body2" color="text.secondary">
+            {formatTime(currentTime)} / {formatTime(duration)}
+          </Typography>
         </Box>
 
-        {/* Minimal Footer */}
+                {/* Trim Controls */}
+        <Box sx={{ mb: 2 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
+            <Button
+              variant={isTrimMode ? "contained" : "outlined"}
+              startIcon={<CutIcon />}
+              onClick={toggleTrimMode}
+              size="small"
+            >
+              {isTrimMode ? 'Exit Trim' : 'Trim'}
+            </Button>
+            
+            {isTrimMode && (
+              <Typography variant="body2" color="text.secondary">
+                {isSettingStart 
+                  ? 'Click on the waveform to set start point' 
+                  : 'Click on the waveform to set end point'
+                }
+                <br />
+                <Typography variant="caption" color="text.secondary">
+                  The selected region will be removed, everything else will be kept
+                </Typography>
+              </Typography>
+            )}
+          </Box>
+          
+          {isTrimMode && (
         <Box sx={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          p: 1,
-          borderTop: `1px solid ${theme.palette.divider}`,
-          mt: 1,
-        }}>
-          <Typography variant="body1" color="text.secondary" sx={{ fontFamily: 'inherit', fontWeight: 500, fontSize: 18 }}>
-            Professional Audio Editor
-          </Typography>
+              p: 2, 
+              bgcolor: 'rgba(33, 150, 243, 0.1)', 
+              borderRadius: 1, 
+              border: '1px solid rgba(33, 150, 243, 0.3)',
+              mb: 2
+            }}>
+              <Typography variant="subtitle2" gutterBottom>
+                {trimStartTime 
+                  ? `Start: ${formatTime(trimStartTime)}` 
+                  : 'Start: Not set'
+                }
+                {trimEndTime && ` • End: ${formatTime(trimEndTime)}`}
+              </Typography>
+              
+              {trimStartTime && trimEndTime && (
+                <Typography variant="body2" color="text.secondary" gutterBottom>
+                  Duration: {formatTime(trimEndTime - trimStartTime)}
+                </Typography>
+              )}
+              
+              {selectionComplete && (
+                <Typography variant="body2" color="text.primary" sx={{ fontWeight: 500, mb: 1 }}>
+                  ✅ Selected region will be removed, rest will be kept
+                </Typography>
+              )}
+              
+              {selectionComplete && (
+                <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
+                  {isPreviewingTrim ? (
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      onClick={stopPreview}
+                      color="error"
+                    >
+                      Stop Preview
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      onClick={previewTrimRegion}
+                    >
+                      Preview
+                    </Button>
+                  )}
+                  
+                  <Button
+                    variant="contained"
+                    size="small"
+                    onClick={applyTrim}
+                    disabled={isLoading}
+                  >
+                    {isLoading ? 'Applying...' : 'Remove Selection'}
+                  </Button>
+                </Box>
+              )}
+            </Box>
+          )}
         </Box>
       </Paper>
     </Box>

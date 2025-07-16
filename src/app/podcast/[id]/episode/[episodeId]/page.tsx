@@ -49,7 +49,7 @@ interface Podcast {
   title: string;
   description: string;
   author: string;
-  imageUrl: string;
+  coverImage: string;
   episodes: Episode[];
 }
 
@@ -166,7 +166,7 @@ export default function EpisodePage() {
           <Paper sx={{ p: 3, mb: 3 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
               <img
-                src={podcast.imageUrl}
+                src={podcast.coverImage}
                 alt={podcast.title}
                 style={{
                   width: 120,

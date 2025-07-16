@@ -9,7 +9,7 @@ interface InternalSearchResult {
   id: string;
   title: string;
   description: string;
-  imageUrl: string;
+  coverImage: string;
   author: string;
   source: 'internal';
   type: 'podcast' | 'episode';
@@ -63,7 +63,7 @@ export async function GET(request: Request) {
         id: podcast.id,
         title: podcast.title,
         description: podcast.description || '',
-        imageUrl: podcast.imageUrl,
+        coverImage: podcast.coverImage || '',
         author: podcast.author,
         source: 'internal' as const,
         type: 'podcast' as const,
@@ -90,7 +90,7 @@ export async function GET(request: Request) {
             select: {
               id: true,
               title: true,
-              imageUrl: true,
+              coverImage: true,
             },
           },
         },
@@ -102,7 +102,7 @@ export async function GET(request: Request) {
         id: episode.id,
         title: episode.title,
         description: episode.description,
-        imageUrl: episode.podcast.imageUrl,
+        coverImage: episode.podcast.coverImage || '',
         author: episode.podcast.title, // Use podcast title as author for episodes
         source: 'internal' as const,
         type: 'episode' as const,

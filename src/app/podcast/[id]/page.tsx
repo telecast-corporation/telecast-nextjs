@@ -36,9 +36,49 @@ import {
   Delete as DeleteIcon,
   Mic as MicIcon,
   Upload as UploadIcon,
+  Radio as RadioIcon,
 } from '@mui/icons-material';
 import { useAudio } from '@/contexts/AudioContext';
-import { Podcast, Episode } from '@/lib/podcast-index';
+
+// Define the database episode type
+interface DatabaseEpisode {
+  id: string;
+  title: string;
+  description: string;
+  audioUrl: string;
+  duration: number;
+  publishDate: Date;
+  episodeNumber?: number;
+  seasonNumber?: number;
+  explicit: boolean;
+  keywords: string[];
+  views: number;
+  likes: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// Define the database podcast type
+interface DatabasePodcast {
+  id: string;
+  title: string;
+  description: string | null;
+  coverImage: string | null;
+  userId: string;
+  author: string;
+  createdAt: Date;
+  updatedAt: Date;
+  published: boolean;
+  tags: string[];
+  category: string;
+  language: string;
+  explicit: boolean;
+  copyright: string | null;
+  website: string | null;
+  rssFeed: string | null;
+  isPublic: boolean;
+  episodes: DatabaseEpisode[];
+}
 import { formatDuration, formatDate } from '@/lib/utils';
 import axios from 'axios';
 
@@ -46,13 +86,14 @@ export default function PodcastPage() {
   const params = useParams();
   const router = useRouter();
   const { play } = useAudio();
-  const [podcast, setPodcast] = useState<Podcast | null>(null);
-  const [episodes, setEpisodes] = useState<Episode[]>([]);
+  const [podcast, setPodcast] = useState<DatabasePodcast | null>(null);
+  const [episodes, setEpisodes] = useState<DatabaseEpisode[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const episodesPerPage = 10;
-  const [currentlyPlaying, setCurrentlyPlaying] = useState<number | null>(null);
+  const [currentlyPlaying, setCurrentlyPlaying] = useState<string | null>(null);
+  const [isQuickBroadcasting, setIsQuickBroadcasting] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchPodcast = async () => {
@@ -63,6 +104,11 @@ export default function PodcastPage() {
         const response = await axios.get(`/api/podcast/${podcastId}/internal`);
         
         if (response.data) {
+          console.log('Podcast data received:', {
+            id: response.data.id,
+            title: response.data.title,
+            coverImage: response.data.coverImage
+          });
           setPodcast(response.data);
           setEpisodes(response.data.episodes || []);
         } else {
@@ -86,7 +132,7 @@ export default function PodcastPage() {
 
 
 
-  const handlePlayEpisode = (episode: Episode) => {
+  const handlePlayEpisode = (episode: DatabaseEpisode) => {
     if (currentlyPlaying === episode.id) {
       // If clicking the currently playing episode, pause it
       setCurrentlyPlaying(null);
@@ -125,6 +171,46 @@ export default function PodcastPage() {
     }
   };
 
+  const handleQuickBroadcast = async (episodeId: string) => {
+    try {
+      setIsQuickBroadcasting(episodeId);
+      
+      const response = await fetch('/api/broadcast/quick', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          episodeId,
+          useRememberedPlatforms: true,
+        }),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        
+        // Show success message with platform results
+        const successfulPlatforms = Object.entries(result.results)
+          .filter(([platform, res]) => res && (res as any).success)
+          .map(([platform]) => platform);
+        
+        if (successfulPlatforms.length > 0) {
+          alert(`Successfully broadcast to: ${successfulPlatforms.join(', ')}`);
+        } else {
+          alert('Broadcast completed but no platforms were successfully updated.');
+        }
+      } else {
+        const error = await response.json();
+        alert(`Broadcast failed: ${error.error}`);
+      }
+    } catch (error) {
+      console.error('Quick broadcast error:', error);
+      alert('Failed to perform quick broadcast');
+    } finally {
+      setIsQuickBroadcasting(null);
+    }
+  };
+
   if (loading) {
     return (
       <Box
@@ -160,7 +246,7 @@ export default function PodcastPage() {
           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', mb: 3 }}>
             <CardMedia
               component="img"
-              image={podcast.image}
+              image={podcast.coverImage || 'https://via.placeholder.com/200x200?text=No+Cover+Image'}
               alt={podcast.title}
               sx={{ width: 200, height: 200, borderRadius: 2, mb: 2 }}
             />
@@ -182,7 +268,7 @@ export default function PodcastPage() {
                 color: 'text.secondary'
               }}
             >
-              {cleanDescription(podcast.description)}
+              {cleanDescription(podcast.description || '')}
             </Typography>
           </Box>
 
@@ -198,23 +284,47 @@ export default function PodcastPage() {
             )}
           </Grid>
 
-          {/* Categories */}
-          {podcast.categories && podcast.categories.length > 0 && (
+          {/* Category */}
+          {podcast.category && (
             <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
               <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                Categories
+                Category
               </Typography>
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, justifyContent: 'center' }}>
-                {podcast.categories.map((category) => (
+                <Chip
+                  label={podcast.category}
+                  size="small"
+                  sx={{ 
+                    backgroundColor: 'primary.light',
+                    color: 'primary.contrastText',
+                    '&:hover': {
+                      backgroundColor: 'primary.main',
+                    }
+                  }}
+                />
+              </Box>
+            </Box>
+          )}
+
+          {/* Tags */}
+          {podcast.tags && podcast.tags.length > 0 && (
+            <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                Tags
+              </Typography>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, justifyContent: 'center' }}>
+                {podcast.tags.map((tag) => (
                   <Chip
-                    key={category}
-                    label={category}
+                    key={tag}
+                    label={tag}
                     size="small"
+                    variant="outlined"
                     sx={{ 
-                      backgroundColor: 'primary.light',
-                      color: 'primary.contrastText',
+                      borderColor: 'secondary.main',
+                      color: 'secondary.main',
                       '&:hover': {
-                        backgroundColor: 'primary.main',
+                        backgroundColor: 'secondary.light',
+                        color: 'secondary.contrastText',
                       }
                     }}
                   />
@@ -318,37 +428,75 @@ export default function PodcastPage() {
                           </Typography>
                         }
                         secondary={
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0 }}>
+                          <Box>
                             <Typography 
                               variant="body2" 
                               color="text.secondary"
                               sx={{ fontSize: { xs: '0.7rem', sm: '0.75rem' } }}
                             >
-                              {new Date(Number(episode.publishDate) * 1000).toLocaleDateString('en-US', {
+                              {new Date(episode.publishDate).toLocaleDateString('en-US', {
                                 year: 'numeric',
                                 month: 'long',
                                 day: 'numeric'
                               })}
                             </Typography>
-                            {episode.duration && (
-                              <>
-                                <Typography 
-                                  variant="body2" 
-                                  color="text.secondary"
-                                  sx={{ fontSize: { xs: '0.7rem', sm: '0.75rem' } }}
-                                >•</Typography>
-                                <Typography 
-                                  variant="body2" 
-                                  color="text.secondary"
-                                  sx={{ fontSize: { xs: '0.7rem', sm: '0.75rem' } }}
-                                >
-                                  {formatDuration(episode.duration)}
-                                </Typography>
-                              </>
+                            {episode.keywords && episode.keywords.length > 0 && (
+                              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 0.5 }}>
+                                {episode.keywords.slice(0, 3).map((keyword) => (
+                                  <Chip
+                                    key={keyword}
+                                    label={keyword}
+                                    size="small"
+                                    variant="outlined"
+                                    sx={{ 
+                                      height: '16px',
+                                      fontSize: '0.6rem',
+                                      borderColor: 'grey.300',
+                                      color: 'text.secondary',
+                                      '& .MuiChip-label': {
+                                        px: 0.5,
+                                      }
+                                    }}
+                                  />
+                                ))}
+                                {episode.keywords.length > 3 && (
+                                  <Typography 
+                                    variant="caption" 
+                                    color="text.secondary"
+                                    sx={{ fontSize: '0.6rem', alignSelf: 'center' }}
+                                  >
+                                    +{episode.keywords.length - 3} more
+                                  </Typography>
+                                )}
+                              </Box>
                             )}
                           </Box>
                         }
                       />
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Tooltip title="Quick Broadcast to Connected Platforms">
+                          <IconButton
+                            size="small"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleQuickBroadcast(episode.id);
+                            }}
+                            disabled={isQuickBroadcasting === episode.id}
+                            sx={{
+                              color: 'primary.main',
+                              '&:hover': {
+                                backgroundColor: 'primary.light',
+                              }
+                            }}
+                          >
+                            {isQuickBroadcasting === episode.id ? (
+                              <CircularProgress size={16} />
+                            ) : (
+                              <RadioIcon fontSize="small" />
+                            )}
+                          </IconButton>
+                        </Tooltip>
+                      </Box>
                     </Box>
                   </ListItemButton>
                 </ListItem>

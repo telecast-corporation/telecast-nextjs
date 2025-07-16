@@ -43,7 +43,6 @@ export async function POST(request: NextRequest) {
         seasonNumber: 1,
         duration: 0, // Will be updated after processing
         audioUrl: "", // Will be updated after finalization
-        isPublished: false,
       },
       include: {
         podcast: {

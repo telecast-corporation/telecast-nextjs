@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { uploadPodcastFile } from "@/lib/storage";
+import { uploadPodcastTempFile } from "@/lib/storage";
 
 export async function POST(request: NextRequest) {
   try {
@@ -26,7 +26,6 @@ export async function POST(request: NextRequest) {
     if (tempPath) {
       // Update existing temp file
       tempFileName = tempPath;
-      console.log('Updating existing temp file:', tempFileName);
     } else {
       // Create new temp file
       if (!podcastId) {
@@ -40,16 +39,15 @@ export async function POST(request: NextRequest) {
       // Generate temporary filename
       const timestamp = Date.now();
       const fileExtension = file.name.split(".").pop();
-      tempFileName = `temp/${podcastId}/${referenceId}/${timestamp}.${fileExtension}`;
+      tempFileName = `podcasts/temp/${podcastId}/${referenceId}/${timestamp}.${fileExtension}`;
       console.log('Creating new temp file:', tempFileName);
     }
 
     // Upload to temporary location in Google Cloud Storage
-    const result = await uploadPodcastFile(
+    const result = await uploadPodcastTempFile(
       buffer,
       tempFileName,
-      file.type,
-      false // not an image
+      file.type
     );
 
     return NextResponse.json({

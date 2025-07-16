@@ -64,9 +64,11 @@ export default function EditPage() {
 
   // If authenticated, render the AudioRecorder (with custom audio editor)
   return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <AudioRecorder />
-    </Suspense>
+    <Box>
+      <Suspense fallback={<div>Loading...</div>}>
+        <AudioRecorder />
+      </Suspense>
+    </Box>
   );
 } 
  

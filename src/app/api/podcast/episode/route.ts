@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
       where: { podcastId },
       orderBy: { episodeNumber: 'desc' }
     });
-    const nextEpisodeNumber = latestEpisode ? latestEpisode.episodeNumber + 1 : 1;
+    const nextEpisodeNumber = latestEpisode && latestEpisode.episodeNumber ? latestEpisode.episodeNumber + 1 : 1;
     // Create the episode
     const episode = await prisma.episode.create({
       data: {
@@ -76,7 +76,6 @@ export async function POST(request: NextRequest) {
         duration: 0,
         audioUrl: "",
         referenceId,
-        isPublished: false,
       },
       include: {
         podcast: { select: { id: true, title: true, userId: true } }

@@ -61,7 +61,6 @@ export default function RecordPodcastPage() {
             waveColor: "#2196f3",
             progressColor: "#1565c0",
             height: 80,
-            responsive: true,
             normalize: true,
             cursorWidth: 0,
           });
@@ -258,7 +257,7 @@ export default function RecordPodcastPage() {
         
         const formData = new FormData();
         formData.append("file", audioFile);
-        formData.append("podcastId", params.id);
+        formData.append("podcastId", params.id as string);
         formData.append("referenceId", referenceId);
 
         const response = await fetch("/api/podcast/upload/temp", {

@@ -86,13 +86,13 @@ export async function PUT(
     // If new image is provided, upload it
     if (imageFile) {
       const imageBuffer = Buffer.from(await imageFile.arrayBuffer());
-      const { url: imageUrl } = await uploadPodcastFile(
+      const { url: coverImage } = await uploadPodcastFile(
         imageBuffer,
         imageFile.name,
         imageFile.type,
         true // Set isImage to true for podcast cover images
       );
-      updateData.imageUrl = imageUrl;
+      updateData.coverImage = coverImage;
     }
 
     // Update podcast

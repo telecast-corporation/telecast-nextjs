@@ -22,7 +22,7 @@ interface Episode {
   title: string;
   author: string;
   description: string;
-    imageUrl: string;
+    coverImage: string;
     tags: string[];
     category: string;
   };
@@ -86,7 +86,7 @@ export default function EpisodePage() {
             title: foundPodcast.title,
             author: foundPodcast.author,
             description: foundPodcast.description || '',
-            imageUrl: foundPodcast.imageUrl,
+            coverImage: foundPodcast.coverImage,
             tags: foundPodcast.tags || [],
             category: foundPodcast.category,
           }
@@ -161,7 +161,7 @@ export default function EpisodePage() {
           <div className="flex items-start space-x-6">
             <div className="relative w-48 h-48 rounded-lg overflow-hidden">
               <Image
-                src={episode.podcast.imageUrl}
+                src={episode.podcast.coverImage}
                 alt={episode.podcast.title}
                 fill
                 className="object-cover"

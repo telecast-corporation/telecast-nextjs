@@ -80,7 +80,6 @@ model Podcast {
   id          String    @id @default(cuid())
   title       String
   description String?
-  imageUrl    String
   userId      String
   author      String
   user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
