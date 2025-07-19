@@ -15,6 +15,8 @@ import {
   IconButton,
   Snackbar,
   Alert,
+  useMediaQuery,
+  useTheme as useMuiTheme,
 } from '@mui/material';
 import { 
   ArrowBack as ArrowBackIcon,
@@ -38,6 +40,8 @@ function SettingsPage() {
   const { user, isAuthenticated, isLoading } = useAuth();
   const { isDarkMode, toggleDarkMode } = useTheme();
   const router = useRouter();
+  const muiTheme = useMuiTheme();
+  const isMobile = useMediaQuery(muiTheme.breakpoints.down('sm'));
   const [isCancelingPremium, setIsCancelingPremium] = useState(false);
   const [hasCancelledInCurrentPeriod, setHasCancelledInCurrentPeriod] = useState(false);
   const [snackbar, setSnackbar] = useState<{
@@ -120,7 +124,7 @@ function SettingsPage() {
 
   if (isLoading) {
     return (
-      <Container maxWidth="md" sx={{ py: 4 }}>
+      <Container maxWidth="lg" sx={{ py: isMobile ? 2 : 4, px: isMobile ? 2 : 3 }}>
         <Typography>Loading...</Typography>
       </Container>
     );
@@ -131,9 +135,9 @@ function SettingsPage() {
   }
 
   return (
-    <Container maxWidth="md" sx={{ py: 4 }}>
+    <Container maxWidth="lg" sx={{ py: isMobile ? 2 : 4, px: isMobile ? 2 : 3 }}>
       {/* Header */}
-      <Box sx={{ display: 'flex', alignItems: 'center', mb: 4 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', mb: isMobile ? 3 : 4 }}>
         <IconButton 
           onClick={handleBack}
           sx={{ 
@@ -147,7 +151,7 @@ function SettingsPage() {
           <ArrowBackIcon />
         </IconButton>
         <Typography 
-          variant="h4" 
+          variant={isMobile ? "h5" : "h4"}
           component="h1"
           sx={{ 
             ...typography.heading,
@@ -163,13 +167,13 @@ function SettingsPage() {
       <Paper 
         elevation={2}
         sx={{ 
-          p: 4,
+          p: isMobile ? 3 : 4,
           borderRadius: borderRadius.large,
           background: 'background.paper',
         }}
       >
         {/* Theme Settings */}
-        <Box sx={{ mb: 4 }}>
+        <Box sx={{ mb: isMobile ? 3 : 4 }}>
           <Typography 
             variant="h6" 
             component="h2"
@@ -178,22 +182,25 @@ function SettingsPage() {
               color: 'text.primary',
               fontWeight: 600,
               mb: 2,
+              fontSize: isMobile ? '1.1rem' : '1.25rem',
             }}
           >
             Appearance
           </Typography>
           
-                     <Box sx={{ 
-             display: 'flex', 
-             alignItems: 'center', 
-             justifyContent: 'space-between',
-             p: 2,
-             borderRadius: borderRadius.medium,
-             border: '1px solid',
-             borderColor: 'divider',
-             backgroundColor: 'background.default',
-           }}>
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <Box sx={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'space-between',
+            p: isMobile ? 2 : 3,
+            borderRadius: borderRadius.medium,
+            border: '1px solid',
+            borderColor: 'divider',
+            backgroundColor: 'background.default',
+            flexDirection: isMobile ? 'column' : 'row',
+            gap: isMobile ? 2 : 0,
+          }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', width: isMobile ? '100%' : 'auto' }}>
               <Box sx={{ 
                 display: 'flex', 
                 alignItems: 'center', 
@@ -202,26 +209,28 @@ function SettingsPage() {
               }}>
                 {isDarkMode ? <DarkModeIcon /> : <LightModeIcon />}
               </Box>
-              <Box>
-                                 <Typography 
-                   variant="body1"
-                   sx={{ 
-                     ...typography.body,
-                     color: 'text.primary',
-                     fontWeight: 500,
-                   }}
-                 >
-                   Dark Mode
-                 </Typography>
-                 <Typography 
-                   variant="body2"
-                   sx={{ 
-                     ...typography.body,
-                     color: 'text.secondary',
-                   }}
-                 >
-                   Switch between light and dark themes
-                 </Typography>
+              <Box sx={{ flex: 1 }}>
+                <Typography 
+                  variant="body1"
+                  sx={{ 
+                    ...typography.body,
+                    color: 'text.primary',
+                    fontWeight: 500,
+                    fontSize: isMobile ? '0.95rem' : '1rem',
+                  }}
+                >
+                  Dark Mode
+                </Typography>
+                <Typography 
+                  variant="body2"
+                  sx={{ 
+                    ...typography.body,
+                    color: 'text.secondary',
+                    fontSize: isMobile ? '0.85rem' : '0.875rem',
+                  }}
+                >
+                  Switch between light and dark themes
+                </Typography>
               </Box>
             </Box>
             
@@ -250,7 +259,7 @@ function SettingsPage() {
         </Box>
 
         {/* Premium Subscription Settings */}
-        <Box sx={{ mb: 4 }}>
+        <Box sx={{ mb: isMobile ? 3 : 4 }}>
           <Typography 
             variant="h6" 
             component="h2"
@@ -259,6 +268,7 @@ function SettingsPage() {
               color: 'text.primary',
               fontWeight: 600,
               mb: 2,
+              fontSize: isMobile ? '1.1rem' : '1.25rem',
             }}
           >
             Subscription
@@ -268,13 +278,15 @@ function SettingsPage() {
             display: 'flex', 
             alignItems: 'center', 
             justifyContent: 'space-between',
-            p: 2,
+            p: isMobile ? 2 : 3,
             borderRadius: borderRadius.medium,
             border: '1px solid',
             borderColor: 'divider',
             backgroundColor: 'background.default',
+            flexDirection: isMobile ? 'column' : 'row',
+            gap: isMobile ? 2 : 0,
           }}>
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', width: isMobile ? '100%' : 'auto' }}>
               <Box sx={{ 
                 display: 'flex', 
                 alignItems: 'center', 
@@ -283,13 +295,14 @@ function SettingsPage() {
               }}>
                 <StarIcon />
               </Box>
-              <Box>
+              <Box sx={{ flex: 1 }}>
                 <Typography 
                   variant="body1"
                   sx={{ 
                     ...typography.body,
                     color: 'text.primary',
                     fontWeight: 500,
+                    fontSize: isMobile ? '0.95rem' : '1rem',
                   }}
                 >
                   Premium Subscription
@@ -299,6 +312,7 @@ function SettingsPage() {
                   sx={{ 
                     ...typography.body,
                     color: 'text.secondary',
+                    fontSize: isMobile ? '0.85rem' : '0.875rem',
                   }}
                 >
                   {user?.isPremium 
@@ -314,15 +328,16 @@ function SettingsPage() {
                 variant="outlined"
                 onClick={handleCancelPremium}
                 disabled={isCancelingPremium}
+                fullWidth={isMobile}
                 sx={{
                   color: '#EF4444',
                   borderColor: '#EF4444',
                   fontWeight: 600,
-                  px: 3,
-                  py: 1.5,
+                  px: isMobile ? 2 : 3,
+                  py: isMobile ? 1 : 1.5,
                   borderRadius: borderRadius.medium,
                   textTransform: 'none',
-                  fontSize: '0.875rem',
+                  fontSize: isMobile ? '0.8rem' : '0.875rem',
                   '&:hover': {
                     backgroundColor: '#EF4444',
                     color: 'white',
@@ -344,8 +359,10 @@ function SettingsPage() {
                 sx={{ 
                   color: '#10B981', 
                   fontWeight: 500,
-                  fontSize: '0.875rem',
-                  fontStyle: 'italic'
+                  fontSize: isMobile ? '0.8rem' : '0.875rem',
+                  fontStyle: 'italic',
+                  textAlign: isMobile ? 'center' : 'left',
+                  width: isMobile ? '100%' : 'auto',
                 }}
               >
                 Subscription cancelled for this period
@@ -354,33 +371,36 @@ function SettingsPage() {
           </Box>
         </Box>
 
-        <Divider sx={{ my: 3 }} />
+        <Divider sx={{ my: isMobile ? 2 : 3 }} />
 
         {/* Action Buttons */}
         <Box sx={{ 
           display: 'flex', 
           justifyContent: 'flex-end',
           gap: 2,
+          flexDirection: isMobile ? 'column' : 'row',
         }}>
           <Button
             variant="outlined"
             onClick={handleCancel}
+            fullWidth={isMobile}
             sx={{
               ...typography.button,
-              px: 3,
-              py: 1.5,
+              px: isMobile ? 2 : 3,
+              py: isMobile ? 1 : 1.5,
               borderRadius: borderRadius.medium,
               borderColor: 'primary.main',
               color: 'primary.main',
+              fontSize: isMobile ? '0.9rem' : '1rem',
               '&:hover': {
                 backgroundColor: 'primary.main',
                 color: 'primary.contrastText',
                 borderColor: 'primary.main',
               },
             }}
-                           >
-                   Back
-                 </Button>
+          >
+            Back
+          </Button>
         </Box>
       </Paper>
 
@@ -405,14 +425,14 @@ function SettingsPage() {
           sx={{
             width: '100%',
             fontFamily: "'Open Sans', Arial, sans-serif",
-            fontSize: '0.95rem',
+            fontSize: isMobile ? '0.9rem' : '0.95rem',
             fontWeight: 500,
             borderRadius: borderRadius.large,
             boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
             border: '1px solid',
             borderColor: 'divider',
             '& .MuiAlert-icon': {
-              fontSize: '1.25rem',
+              fontSize: isMobile ? '1.1rem' : '1.25rem',
             },
             '& .MuiAlert-message': {
               padding: '8px 0',
