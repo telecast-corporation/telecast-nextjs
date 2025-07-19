@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
-import { Button, TextField, Box, Typography, Alert } from '@mui/material';
+import { Button, Box, Typography, Alert } from '@mui/material';
 import { useAuth } from '@/contexts/AuthContext';
 import { typography, spacing, borderRadius } from '@/styles/typography';
 
 const SubscriptionForm: React.FC = () => {
-  const [email, setEmail] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const { user, isAuthenticated } = useAuth();
@@ -24,7 +23,7 @@ const SubscriptionForm: React.FC = () => {
     const res = await fetch('/api/payment/create-checkout-session', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email }),
+      body: JSON.stringify({}),
     });
     const data = await res.json();
     if (data.url) {
@@ -50,47 +49,7 @@ const SubscriptionForm: React.FC = () => {
       >
         Subscribe to Premium
       </Typography>
-      <TextField
-        fullWidth
-        label="Email"
-        type="email"
-        value={email}
-        onChange={e => setEmail(e.target.value)}
-        required
-        sx={{
-          mb: 3,
-          '& .MuiOutlinedInput-root': {
-            borderRadius: borderRadius.medium,
-            height: '48px',
-            ...typography.input,
-            '&:hover .MuiOutlinedInput-notchedOutline': {
-              borderColor: '#2563EB',
-              borderWidth: '2px',
-            },
-            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-              borderColor: '#2563EB',
-              borderWidth: '2px',
-            },
-          },
-          '& .MuiInputLabel-root': {
-            color: '#6B7280',
-            ...typography.label,
-            '&.Mui-focused': {
-              color: '#2563EB',
-              fontWeight: 600,
-            },
-          },
-          '& .MuiOutlinedInput-input': {
-            padding: '12px 16px',
-            fontSize: '0.875rem',
-            color: '#374151',
-            '&::placeholder': {
-              color: '#9CA3AF',
-              opacity: 1,
-            },
-          },
-        }}
-      />
+      
       {error && (
         <Alert 
           severity="error" 

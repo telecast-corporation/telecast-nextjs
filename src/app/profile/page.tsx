@@ -50,6 +50,7 @@ function ProfilePage() {
   const [deleteConfirmation, setDeleteConfirmation] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
   const [changePasswordDialogOpen, setChangePasswordDialogOpen] = useState(false);
+  const [subscriptionDialogOpen, setSubscriptionDialogOpen] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: '',
@@ -433,7 +434,7 @@ function ProfilePage() {
                 <Button
                   variant="contained"
                   startIcon={<StarIcon />}
-                  onClick={() => router.push(user?.isPremium ? '/settings' : '/payment')}
+                  onClick={() => user?.isPremium ? setSubscriptionDialogOpen(true) : router.push('/payment')}
                   sx={{
                     background: user?.isPremium ? '#10B981' : '#F59E0B',
                     color: 'white',
@@ -703,6 +704,134 @@ function ProfilePage() {
             }}
           >
             {isChangingPassword ? 'Changing...' : 'Change Password'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Subscription Dialog */}
+      <Dialog 
+        open={subscriptionDialogOpen} 
+        onClose={() => setSubscriptionDialogOpen(false)}
+        maxWidth="xs"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            background: '#ffffff',
+            boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
+            border: '1px solid #e5e7eb',
+          }
+        }}
+      >
+        <DialogContent sx={{ p: 4, textAlign: 'center' }}>
+          <Box sx={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: 48,
+            height: 48,
+            borderRadius: '50%',
+            background: '#10B981',
+            mb: 2,
+          }}>
+            <DiamondIcon sx={{ fontSize: 24, color: 'white' }} />
+          </Box>
+          
+          <Typography variant="h6" sx={{ 
+            mb: 2, 
+            color: '#1F2937', 
+            fontWeight: 600,
+            fontSize: '1.1rem'
+          }}>
+            Premium Subscription
+          </Typography>
+          
+          {user?.premiumExpiresAt && (
+            <Box sx={{ 
+              p: 3, 
+              background: '#FEF3C7',
+              borderRadius: 2,
+              border: '1px solid #F59E0B',
+              mb: 3
+            }}>
+              <Typography variant="body2" sx={{ 
+                mb: 1, 
+                fontWeight: 600, 
+                color: '#92400E',
+                fontSize: '0.875rem'
+              }}>
+                Subscription ends
+              </Typography>
+              <Typography variant="h6" sx={{ 
+                fontWeight: 700, 
+                color: '#92400E',
+                fontSize: '1.1rem'
+              }}>
+                {new Date(user.premiumExpiresAt).toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric'
+                })}
+              </Typography>
+            </Box>
+          )}
+          
+          <Typography variant="body2" sx={{ 
+            color: '#6B7280', 
+            fontSize: '0.875rem', 
+            mb: 3,
+            lineHeight: 1.5
+          }}>
+            Your subscription will automatically renew unless canceled.
+          </Typography>
+        </DialogContent>
+        
+        <DialogActions sx={{ 
+          px: 4, 
+          pb: 3, 
+          gap: 2,
+          justifyContent: 'center'
+        }}>
+          <Button 
+            onClick={() => setSubscriptionDialogOpen(false)}
+            variant="outlined"
+            sx={{
+              px: 3,
+              py: 1,
+              borderRadius: 2,
+              textTransform: 'none',
+              fontWeight: 600,
+              fontSize: '0.875rem',
+              borderColor: '#D1D5DB',
+              color: '#6B7280',
+              '&:hover': {
+                borderColor: '#9CA3AF',
+                backgroundColor: 'rgba(156, 163, 175, 0.04)',
+              },
+            }}
+          >
+            Close
+          </Button>
+          <Button
+            onClick={() => {
+              setSubscriptionDialogOpen(false);
+              router.push('/settings');
+            }}
+            variant="contained"
+            sx={{
+              px: 3,
+              py: 1,
+              borderRadius: 2,
+              textTransform: 'none',
+              fontWeight: 600,
+              fontSize: '0.875rem',
+              background: '#10B981',
+              '&:hover': {
+                background: '#059669',
+              },
+            }}
+          >
+            Manage
           </Button>
         </DialogActions>
       </Dialog>
