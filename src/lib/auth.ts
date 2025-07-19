@@ -203,9 +203,27 @@ export const authOptions: NextAuthOptions = {
           });
           
           if (user) {
-            session.user.isPremium = user.isPremium;
-            session.user.premiumExpiresAt = user.premiumExpiresAt || undefined;
-            session.user.usedFreeTrial = user.usedFreeTrial;
+            // Check if premium has expired
+            const now = new Date();
+            const isExpired = user.premiumExpiresAt && new Date(user.premiumExpiresAt) < now;
+            
+            // If premium has expired, update the database and session
+            if (isExpired && user.isPremium) {
+              await prisma.user.update({
+                where: { email: token.email as string },
+                data: {
+                  isPremium: false,
+                }
+              });
+              
+              session.user.isPremium = false;
+              session.user.premiumExpiresAt = user.premiumExpiresAt || undefined;
+              session.user.usedFreeTrial = user.usedFreeTrial;
+            } else {
+              session.user.isPremium = user.isPremium;
+              session.user.premiumExpiresAt = user.premiumExpiresAt || undefined;
+              session.user.usedFreeTrial = user.usedFreeTrial;
+            }
           }
         } catch (error) {
           console.error('Error loading user premium status:', error);
