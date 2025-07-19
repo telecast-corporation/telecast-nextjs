@@ -226,40 +226,36 @@ export async function POST(request: NextRequest) {
       const deletedSubscription = event.data.object as Stripe.Subscription;
       
       // Handle subscription cancellation
+      // This event fires when a subscription is canceled (either immediately or at period end)
       try {
         // Get the customer to find the email
         const customer = await stripe.customers.retrieve(deletedSubscription.customer as string);
         const email = (customer as any).email;
         
         if (email) {
-          // First, try to find the user
-          let user = await prisma.user.findUnique({
-            where: { email },
-          });
+          // Check if this is a cancellation at period end or immediate cancellation
+          const isCancelAtPeriodEnd = deletedSubscription.cancel_at_period_end;
+          const currentPeriodEnd = (deletedSubscription as any).current_period_end;
           
-          // If user doesn't exist, create them (unlikely for deletion, but safe)
-          if (!user) {
-            user = await prisma.user.create({
-              data: {
-                email,
-                name: email.split('@')[0],
-                isPremium: false,
-                premiumExpiresAt: null,
-              },
-            });
+          if (isCancelAtPeriodEnd && currentPeriodEnd) {
+            // Subscription was canceled but user keeps access until period end
+            // Don't update isPremium or premiumExpiresAt - let them expire naturally
+            // The premiumExpiresAt field will handle access control
+            console.log(`Subscription canceled for ${email}, but access continues until ${new Date(currentPeriodEnd * 1000)}`);
           } else {
-            // Update existing user
-            await prisma.user.update({
+            // Immediate cancellation - remove premium access now
+            await prisma.user.updateMany({
               where: { email },
               data: {
                 isPremium: false,
-                premiumExpiresAt: null,
+                premiumExpiresAt: new Date(), // Set to current date to expire immediately
               },
             });
+            console.log(`Subscription immediately canceled for ${email}`);
           }
         }
       } catch (error) {
-        // Error handling subscription deletion
+        console.error('Error handling subscription deletion:', error);
       }
       
       break;

@@ -52,8 +52,7 @@ import {
   Close as CloseIcon,
   Headphones as HeadphonesIcon,
   ArrowBack as ArrowBackIcon,
-  DarkMode as DarkModeIcon,
-  LightMode as LightModeIcon,
+  Build as BuildIcon,
   AccountCircle as AccountCircleIcon,
   Email as EmailIcon,
 } from '@mui/icons-material';
@@ -63,7 +62,6 @@ import { useRouter, usePathname } from 'next/navigation';
 import useDebounce from '@/hooks/useDebounce';
 import { useAutocomplete } from '@/hooks/useAutocomplete';
 import { useAuth } from '@/contexts/AuthContext';
-import { useTheme as useAppTheme } from '@/contexts/ThemeContext';
 import { typography, spacing, borderRadius, navbarSizing } from '@/styles/typography';
 import { Lexend } from 'next/font/google';
 import { Search } from 'lucide-react';
@@ -565,7 +563,7 @@ const MainNav = memo(() => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('all');
-  const { isDarkMode, toggleDarkMode } = useAppTheme();
+
 
   // Convert filter to API type
   const getApiType = (filter: string) => {
@@ -892,7 +890,7 @@ const MainNav = memo(() => {
         
         <ListItem button onClick={() => { handleDrawerToggle(); router.push('/services'); }} sx={{ py: 1.5 }}>
           <ListItemIcon sx={{ minWidth: 40 }}>
-            <SettingsIcon />
+            <BuildIcon />
           </ListItemIcon>
           <ListItemText 
             primary="Services" 
@@ -930,21 +928,25 @@ const MainNav = memo(() => {
               />
             </ListItem>
           )}
+          
+          {isAuthenticated && (
+            <ListItem button onClick={() => { handleDrawerToggle(); router.push('/settings'); }} sx={{ py: 1.5 }}>
+              <ListItemIcon sx={{ minWidth: 40 }}>
+                <SettingsIcon />
+              </ListItemIcon>
+              <ListItemText 
+                primary="Settings" 
+                primaryTypographyProps={{ 
+                  fontFamily: lexend.style.fontFamily,
+                  ...typography.nav
+                }} 
+              />
+            </ListItem>
+          )}
         
         <Divider sx={{ my: 1 }} />
         
-        <ListItem button onClick={toggleDarkMode} sx={{ py: 1.5 }}>
-          <ListItemIcon sx={{ minWidth: 40 }}>
-            {isDarkMode ? <LightModeIcon /> : <DarkModeIcon />}
-          </ListItemIcon>
-          <ListItemText 
-            primary={isDarkMode ? 'Light Mode' : 'Dark Mode'} 
-            primaryTypographyProps={{ 
-              fontFamily: lexend.style.fontFamily,
-              ...typography.nav
-            }} 
-          />
-        </ListItem>
+
       </List>
     </Box>
   );
@@ -1053,12 +1055,6 @@ const MainNav = memo(() => {
       </FiltersArea>
 
         <NavGroup sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.5, sm: 1 } }}>
-            <IconButton
-              onClick={toggleDarkMode}
-            className="theme-button"
-            >
-            {isDarkMode ? <LightModeIcon /> : <DarkModeIcon />}
-          </IconButton>
 
           <Button 
             variant="text"

@@ -28,6 +28,7 @@ import {
   Diamond as DiamondIcon,
   CheckCircle as CheckCircleIcon,
   Refresh as RefreshIcon,
+  Settings as SettingsIcon,
 } from '@mui/icons-material';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -225,6 +226,8 @@ function ProfilePage() {
       setIsStartingTrial(false);
     }
   };
+
+
 
   const handleDeleteAccount = async () => {
     if (deleteConfirmation !== 'DELETE') {
@@ -430,9 +433,9 @@ function ProfilePage() {
                 <Button
                   variant="contained"
                   startIcon={<StarIcon />}
-                  onClick={() => router.push('/payment')}
+                  onClick={() => router.push(user?.isPremium ? '/settings' : '/payment')}
                   sx={{
-                    background: '#F59E0B',
+                    background: user?.isPremium ? '#10B981' : '#F59E0B',
                     color: 'white',
                     fontWeight: 600,
                     px: 3,
@@ -440,16 +443,20 @@ function ProfilePage() {
                     borderRadius: 2,
                     textTransform: 'none',
                     fontSize: '0.875rem',
-                    boxShadow: '0 2px 8px rgba(245, 158, 11, 0.3)',
+                    boxShadow: user?.isPremium 
+                      ? '0 2px 8px rgba(16, 185, 129, 0.3)' 
+                      : '0 2px 8px rgba(245, 158, 11, 0.3)',
                     '&:hover': {
-                      background: '#D97706',
-                      boxShadow: '0 4px 12px rgba(245, 158, 11, 0.4)',
+                      background: user?.isPremium ? '#059669' : '#D97706',
+                      boxShadow: user?.isPremium 
+                        ? '0 4px 12px rgba(16, 185, 129, 0.4)' 
+                        : '0 4px 12px rgba(245, 158, 11, 0.4)',
                       transform: 'translateY(-1px)',
                     },
                     transition: 'all 0.2s ease',
                   }}
                 >
-                  Upgrade Now
+                  {user?.isPremium ? 'My Subscription' : 'Upgrade Now'}
                 </Button>
                 {user?.usedFreeTrial ? (
                   <Button
@@ -511,6 +518,22 @@ function ProfilePage() {
         
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
           <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+            <Button
+              variant="outlined"
+              startIcon={<SettingsIcon />}
+              onClick={() => router.push('/settings')}
+              sx={{
+                borderRadius: 2,
+                px: 3,
+                py: 1.5,
+                textTransform: 'none',
+                fontWeight: 600,
+                fontSize: '0.875rem',
+              }}
+            >
+              Settings
+            </Button>
+
             <Button
               variant="outlined"
               startIcon={<LockIcon />}
@@ -767,11 +790,51 @@ function ProfilePage() {
         open={snackbar.open}
         autoHideDuration={6000}
         onClose={() => setSnackbar({ ...snackbar, open: false })}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        sx={{
+          '& .MuiSnackbarContent-root': {
+            borderRadius: borderRadius.large,
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)',
+            border: '1px solid',
+            borderColor: 'divider',
+          },
+        }}
       >
         <Alert
           onClose={() => setSnackbar({ ...snackbar, open: false })}
           severity={snackbar.severity}
-          sx={{ width: '100%' }}
+          sx={{
+            width: '100%',
+            fontFamily: "'Open Sans', Arial, sans-serif",
+            fontSize: '0.95rem',
+            fontWeight: 500,
+            borderRadius: borderRadius.large,
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
+            border: '1px solid',
+            borderColor: 'divider',
+            '& .MuiAlert-icon': {
+              fontSize: '1.25rem',
+            },
+            '& .MuiAlert-message': {
+              padding: '8px 0',
+            },
+            '&.MuiAlert-standardSuccess': {
+              backgroundColor: '#f0fdf4',
+              color: '#166534',
+              borderColor: '#bbf7d0',
+              '& .MuiAlert-icon': {
+                color: '#16a34a',
+              },
+            },
+            '&.MuiAlert-standardError': {
+              backgroundColor: '#fef2f2',
+              color: '#991b1b',
+              borderColor: '#fecaca',
+              '& .MuiAlert-icon': {
+                color: '#dc2626',
+              },
+            },
+          }}
         >
           {snackbar.message}
         </Alert>

@@ -312,11 +312,42 @@ function HomePageContent() {
         autoHideDuration={5000}
         onClose={() => setSuccessMessage(null)}
         anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        sx={{
+          '& .MuiSnackbarContent-root': {
+            borderRadius: '1rem',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)',
+            border: '1px solid',
+            borderColor: 'divider',
+          },
+        }}
       >
         <Alert 
           onClose={() => setSuccessMessage(null)} 
           severity="success" 
-          sx={{ width: '100%' }}
+          sx={{
+            width: '100%',
+            fontFamily: "'Open Sans', Arial, sans-serif",
+            fontSize: '0.95rem',
+            fontWeight: 500,
+            borderRadius: '1rem',
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
+            border: '1px solid',
+            borderColor: 'divider',
+            '& .MuiAlert-icon': {
+              fontSize: '1.25rem',
+            },
+            '& .MuiAlert-message': {
+              padding: '8px 0',
+            },
+            '&.MuiAlert-standardSuccess': {
+              backgroundColor: '#f0fdf4',
+              color: '#166534',
+              borderColor: '#bbf7d0',
+              '& .MuiAlert-icon': {
+                color: '#16a34a',
+              },
+            },
+          }}
         >
           {successMessage}
         </Alert>
