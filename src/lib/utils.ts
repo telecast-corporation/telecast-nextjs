@@ -16,4 +16,19 @@ export function formatDate(dateString: string | number): string {
     month: 'short',
     day: 'numeric'
   });
+}
+
+/**
+ * Check if a user has cancelled their premium subscription in the current billing period
+ * @param premiumExpiresAt - The date when premium expires
+ * @returns boolean indicating if the user has cancelled in current period
+ */
+export function hasCancelledInCurrentPeriod(premiumExpiresAt: Date | null): boolean {
+  if (!premiumExpiresAt) return false;
+  
+  const now = new Date();
+  const expiryDate = new Date(premiumExpiresAt);
+  
+  // If premium expires within 24 hours, consider it as cancelled in current period
+  return expiryDate < new Date(now.getTime() + 24 * 60 * 60 * 1000);
 } 

@@ -39,6 +39,7 @@ function SettingsPage() {
   const { isDarkMode, toggleDarkMode } = useTheme();
   const router = useRouter();
   const [isCancelingPremium, setIsCancelingPremium] = useState(false);
+  const [hasCancelledInCurrentPeriod, setHasCancelledInCurrentPeriod] = useState(false);
   const [snackbar, setSnackbar] = useState<{
     open: boolean;
     message: string;
@@ -50,6 +51,17 @@ function SettingsPage() {
       router.push('/login');
     }
   }, [isLoading, isAuthenticated, router]);
+
+  // Check if user has already cancelled in current period
+  useEffect(() => {
+    if (user?.isPremium && user?.premiumExpiresAt) {
+      const now = new Date();
+      const expiryDate = new Date(user.premiumExpiresAt);
+      // If premium expires within 24 hours, consider it as cancelled in current period
+      const cancelled = expiryDate < new Date(now.getTime() + 24 * 60 * 60 * 1000);
+      setHasCancelledInCurrentPeriod(cancelled);
+    }
+  }, [user]);
 
   const handleBack = () => {
     router.push('/profile');
@@ -75,6 +87,9 @@ function SettingsPage() {
           message: data.message, 
           severity: 'success' 
         });
+        
+        // Update local state to reflect cancellation
+        setHasCancelledInCurrentPeriod(true);
         
         // Refresh session to get updated user data
         setTimeout(async () => {
@@ -294,7 +309,7 @@ function SettingsPage() {
               </Box>
             </Box>
             
-            {user?.isPremium && (
+            {user?.isPremium && !hasCancelledInCurrentPeriod && (
               <Button
                 variant="outlined"
                 onClick={handleCancelPremium}
@@ -322,6 +337,19 @@ function SettingsPage() {
               >
                 {isCancelingPremium ? 'Canceling...' : 'Cancel Premium'}
               </Button>
+            )}
+            {user?.isPremium && hasCancelledInCurrentPeriod && (
+              <Typography 
+                variant="body2" 
+                sx={{ 
+                  color: '#10B981', 
+                  fontWeight: 500,
+                  fontSize: '0.875rem',
+                  fontStyle: 'italic'
+                }}
+              >
+                Subscription cancelled for this period
+              </Typography>
             )}
           </Box>
         </Box>
