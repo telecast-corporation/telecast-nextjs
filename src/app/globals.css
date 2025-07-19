@@ -9,22 +9,6 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  
-  /* Mobile-first responsive font scaling */
-  font-size: 16px; /* Base font size for mobile */
-}
-
-/* Responsive font scaling */
-@media (min-width: 768px) {
-  :root {
-    font-size: 18px; /* Slightly larger for tablets */
-  }
-}
-
-@media (min-width: 1024px) {
-  :root {
-    font-size: 20px; /* Larger for desktop */
-  }
 }
 
 a {
@@ -36,96 +20,27 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
-  /* Ensure minimum font size for accessibility */
-  font-size: 1rem;
-  line-height: 1.6;
 }
 
 h1 {
-  font-size: 2rem;
-  line-height: 1.2;
-  margin-bottom: 1rem;
-}
-
-h2 {
-  font-size: 1.75rem;
-  line-height: 1.3;
-  margin-bottom: 0.875rem;
-}
-
-h3 {
-  font-size: 1.5rem;
-  line-height: 1.4;
-  margin-bottom: 0.75rem;
-}
-
-h4 {
-  font-size: 1.25rem;
-  line-height: 1.4;
-  margin-bottom: 0.625rem;
-}
-
-h5 {
-  font-size: 1.125rem;
-  line-height: 1.4;
-  margin-bottom: 0.5625rem;
-}
-
-h6 {
-  font-size: 1rem;
-  line-height: 1.4;
-  margin-bottom: 0.5rem;
+  font-size: 3.2em;
+  line-height: 1.1;
 }
 
 button {
   border-radius: 8px;
   border: 1px solid transparent;
-  padding: 0.75rem 1.5rem; /* Increased for better touch targets */
-  font-size: 1rem;
+  padding: 0.6em 1.2em;
+  font-size: 1em;
   font-weight: 500;
   font-family: inherit;
   cursor: pointer;
   transition: border-color 0.25s;
-  /* Ensure minimum touch target size */
-  min-height: 44px;
-  min-width: 44px;
 }
 
 button:focus,
 button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
-}
-
-/* Mobile-specific improvements */
-@media (max-width: 768px) {
-  /* Increase touch targets on mobile */
-  button, 
-  .MuiButton-root,
-  .MuiIconButton-root {
-    min-height: 48px;
-    min-width: 48px;
-  }
-  
-  /* Improve text readability on mobile */
-  p, span, div {
-    line-height: 1.6;
-  }
-  
-  /* Ensure proper spacing on mobile */
-  .MuiContainer-root {
-    padding-left: 1rem;
-    padding-right: 1rem;
-  }
-  
-  /* Improve card spacing on mobile */
-  .MuiCard-root {
-    margin-bottom: 1rem;
-  }
-  
-  /* Better form field spacing on mobile */
-  .MuiTextField-root {
-    margin-bottom: 1rem;
-  }
 }
 
 /* Global Lexend font override for ALL text elements */
@@ -170,51 +85,4 @@ h1, h2, h3, h4, h5, h6 {
 /* Ensure paragraphs and spans use Lexend */
 p, span, div, label {
   font-family: 'Lexend', system-ui, Avenir, Helvetica, Arial, sans-serif !important;
-}
-
-/* Improve Material-UI component responsiveness */
-.MuiButton-root {
-  text-transform: none !important;
-  font-weight: 600 !important;
-}
-
-.MuiTextField-root {
-  width: 100%;
-}
-
-.MuiCard-root {
-  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-}
-
-.MuiCard-root:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-/* Improve navigation responsiveness */
-.MuiAppBar-root {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.MuiToolbar-root {
-  min-height: 64px !important;
-}
-
-/* Improve form responsiveness */
-.MuiFormControl-root {
-  margin-bottom: 1rem;
-}
-
-/* Improve dialog responsiveness */
-.MuiDialog-paper {
-  margin: 1rem;
-  max-width: calc(100vw - 2rem) !important;
-  max-height: calc(100vh - 2rem) !important;
-}
-
-/* Improve snackbar positioning */
-.MuiSnackbar-root {
-  bottom: 1rem !important;
-  left: 1rem !important;
-  right: 1rem !important;
 }

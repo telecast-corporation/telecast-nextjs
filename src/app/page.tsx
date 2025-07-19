@@ -122,7 +122,7 @@ function ContentCarousel({ title, items, onItemClick }: ContentCarouselProps) {
                     wordBreak: 'break-word',
                     overflowWrap: 'break-word',
                     textOverflow: 'unset',
-                    fontSize: { xs: '1rem', sm: '1.1rem', md: '1.2rem' },
+                    fontSize: { xs: '0.95rem', sm: '1.8vw', md: '1.1rem' },
                     fontWeight: 700,
                     mb: 0.5,
                     lineHeight: 1.2
@@ -131,22 +131,22 @@ function ContentCarousel({ title, items, onItemClick }: ContentCarouselProps) {
                   {item.title}
                 </Typography>
                 {item.type === 'video' && item.views && (
-                  <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.9rem', sm: '0.95rem', md: '1rem' }, fontWeight: 400 }}>
+                  <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.9rem', sm: '1.4vw', md: '1.1rem' }, fontWeight: 400 }}>
                     {parseInt(item.views).toLocaleString()} views
                   </Typography>
                 )}
                 {item.type === 'music' && item.artist && (
-                  <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.875rem', sm: '0.9rem', md: '0.95rem' }, fontWeight: 400 }}>
+                  <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.85rem', sm: '1.2vw', md: '0.9rem' }, fontWeight: 400 }}>
                     {item.artist} • {item.album}
                   </Typography>
                 )}
                 {item.type === 'book' && item.author && (
-                  <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.875rem', sm: '0.9rem', md: '0.95rem' }, fontWeight: 400 }}>
+                  <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.85rem', sm: '1.2vw', md: '0.9rem' }, fontWeight: 400 }}>
                     {item.author} • {item.rating ? `${item.rating.toFixed(1)} ★` : 'No rating'}
                   </Typography>
                 )}
                 {item.type === 'podcast' && item.author && (
-                  <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.875rem', sm: '0.9rem', md: '0.95rem' }, fontWeight: 400 }}>
+                  <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.85rem', sm: '1.2vw', md: '0.9rem' }, fontWeight: 400 }}>
                     {item.author} • {item.episodeCount} episodes
                   </Typography>
                 )}

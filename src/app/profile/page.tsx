@@ -285,35 +285,21 @@ function ProfilePage() {
   }
 
   return (
-    <Container maxWidth="md" sx={{ 
-      mt: { xs: 2, sm: 3, md: 4 },
-      px: { xs: 1.5, sm: 2, md: 3 }
-    }}>
-      <Paper sx={{ 
-        p: { xs: 2, sm: 3, md: 4 },
-        borderRadius: { xs: 2, sm: 3 }
-      }}>
+    <Container maxWidth="md" sx={{ mt: 4 }}>
+      <Paper sx={{ p: 4 }}>
         <Grid container spacing={4}>
           <Grid item xs={12} md={4} sx={{ display: 'flex', justifyContent: 'center' }}>
             <Avatar
               src={user?.image}
               alt={user?.name}
-              sx={{ 
-                width: { xs: 120, sm: 160, md: 200 }, 
-                height: { xs: 120, sm: 160, md: 200 } 
-              }}
+              sx={{ width: 200, height: 200 }}
             />
           </Grid>
           <Grid item xs={12} md={8}>
-            <Typography variant="h5" gutterBottom sx={{ 
-              fontSize: { xs: '1.25rem', sm: '1.4rem', md: '1.5rem' },
-              fontWeight: 600
-            }}>
+            <Typography variant="h5" gutterBottom sx={{ fontSize: '1.5rem' }}>
               {user?.name}
             </Typography>
-            <Typography variant="body2" color="text.secondary" gutterBottom sx={{ 
-              fontSize: { xs: '0.9rem', sm: '0.95rem', md: '1rem' }
-            }}>
+            <Typography variant="body2" color="text.secondary" gutterBottom sx={{ fontSize: '0.875rem' }}>
               {user?.email}
             </Typography>
             <Box sx={{ mt: 4 }}>
@@ -332,13 +318,13 @@ function ProfilePage() {
         {/* Premium Upgrade Section */}
         <Paper 
           sx={{ 
-            mt: { xs: 3, sm: 4 }, 
-            p: { xs: 2, sm: 3 }, 
+            mt: 4, 
+            p: 3, 
             background: '#2563EB',
             color: 'white',
             position: 'relative',
             overflow: 'hidden',
-            borderRadius: { xs: 2, sm: 3 },
+            borderRadius: 3,
           }}
         >
           {/* Decorative background elements */}

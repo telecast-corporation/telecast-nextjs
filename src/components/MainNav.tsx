@@ -104,21 +104,12 @@ const SearchIconWrapper = styled('div')(({ theme }) => ({
 const StyledInputBase = styled(InputBase)(({ theme }) => ({
   color: theme.palette.primary.main,
   '& .MuiInputBase-input': {
-    padding: theme.spacing(0.75, 1, 0.75, 0),
-    paddingLeft: `calc(1em + ${theme.spacing(2)})`,
-    fontSize: '0.95rem',
+    padding: theme.spacing(1, 1, 1, 0),
+    paddingLeft: `calc(1em + ${theme.spacing(3)})`, // Reduced to match icon wrapper padding
     transition: theme.transitions.create('width'),
     width: '100%',
-    minHeight: '44px',
-    [theme.breakpoints.up('sm')]: {
-      padding: theme.spacing(1, 1, 1, 0),
-      paddingLeft: `calc(1em + ${theme.spacing(3)})`,
-      fontSize: '1rem',
-      minHeight: '48px',
-    },
     [theme.breakpoints.up('md')]: {
       width: '20ch',
-      fontSize: '1.05rem',
     },
   },
 }));
@@ -126,11 +117,11 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
 const NavButton = styled(Button)(({ theme }) => ({
   fontFamily: lexend.style.fontFamily,
   color: theme.palette.primary.main,
-  fontSize: '0.95rem',
+  fontSize: '1.1vw',
   fontWeight: 700,
   letterSpacing: '0.04em',
-  height: '48px',
-  minWidth: '80px',
+  height: '60px',
+  minWidth: '100px',
   borderRadius: '14px',
   display: 'flex',
   alignItems: 'center',
@@ -139,31 +130,12 @@ const NavButton = styled(Button)(({ theme }) => ({
   boxShadow: 'none',
   textTransform: 'none',
   transition: 'background 0.2s, color 0.2s',
-  marginLeft: theme.spacing(1),
-  padding: theme.spacing(0, 1.5),
   '&:hover': {
     backgroundColor: theme.palette.action.hover,
     color: theme.palette.primary.dark,
   },
-  [theme.breakpoints.up('sm')]: {
-    fontSize: '1rem',
-    height: '52px',
-    minWidth: '90px',
-    marginLeft: theme.spacing(1.5),
-    padding: theme.spacing(0, 2),
-  },
-  [theme.breakpoints.up('md')]: {
-    fontSize: '1.05rem',
-    height: '56px',
-    minWidth: '100px',
-    marginLeft: theme.spacing(2),
-    padding: theme.spacing(0, 2.5),
-  },
-  [theme.breakpoints.up('lg')]: {
-    fontSize: '1.1rem',
-    height: '60px',
-    minWidth: '110px',
-  },
+  marginLeft: theme.spacing(2),
+  padding: theme.spacing(0, 2.5),
 }));
 
 const FilterButton = styled(Button)(({ theme }) => ({
