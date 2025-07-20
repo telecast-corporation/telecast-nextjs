@@ -4,31 +4,30 @@ generator client {
 }
 
 datasource db {
-    provider = "postgresql"
-    url      = env("DATABASE_URL")
-  }
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
 
 model User {
-  id                 String            @id @default(cuid())
-  email              String?           @unique
+  id                 String          @id @default(cuid())
+  email              String?         @unique
   name               String?
-  createdAt          DateTime          @default(now())
-  updatedAt          DateTime          @updatedAt
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
   image              String?
   password           String?
-  emailVerified      Boolean?          @default(false)
-  verifyToken        String?           @unique
+  verifyToken        String?         @unique
   verifyTokenExpires DateTime?
+  emailVerified      Boolean?        @default(false)
   rssFeed            String?
-  isPremium          Boolean           @default(false)
+  isPremium          Boolean         @default(false)
   premiumExpiresAt   DateTime?
+  usedFreeTrial      Boolean         @default(false)
   accounts           Account[]
-  podcasts           Podcast[]
-  sessions           Session[]
-  recordings         Recording[]
-  usedFreeTrial      Boolean           @default(false)
   fileReferences     FileReference[]
-
+  podcasts           Podcast[]
+  recordings         Recording[]
+  sessions           Session[]
 }
 
 model Account {
@@ -37,12 +36,12 @@ model Account {
   type              String
   provider          String
   providerAccountId String
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
+  refresh_token     String?
+  access_token      String?
   expires_at        Int?
   token_type        String?
   scope             String?
-  id_token          String? @db.Text
+  id_token          String?
   session_state     String?
   user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -77,34 +76,32 @@ model PasswordResetToken {
 }
 
 model Podcast {
-  id          String    @id @default(cuid())
-  title       String
-  description String?
-  userId      String
-  author      String
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  episodes    Episode[]
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  published   Boolean   @default(false)
-  tags        String[]
-  category    String
-  language    String    @default("en")
-  explicit    Boolean   @default(false)
-  copyright   String?
-  website     String?
-  coverImage  String?
-  rssFeed     String?
-  isPublic    Boolean   @default(false)
+  id             String          @id @default(cuid())
+  title          String
+  description    String?
+  userId         String
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  published      Boolean         @default(false)
+  tags           String[]
+  category       String
+  language       String          @default("en")
+  explicit       Boolean         @default(false)
+  copyright      String?
+  website        String?
+  author         String
+  coverImage     String?
+  isPublic       Boolean         @default(false)
+  rssFeed        String?
+  episodes       Episode[]
   fileReferences FileReference[]
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([title])
   @@index([category])
   @@index([tags])
 }
-
-// podcast -> episodes[] -> episodes.url (uploaded or recorded)
 
 model Episode {
   id            String   @id @default(cuid())
@@ -122,8 +119,8 @@ model Episode {
   likes         Int      @default(0)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+  referenceId   String?
   podcast       Podcast  @relation(fields: [podcastId], references: [id], onDelete: Cascade)
-  referenceId   String?  // Link to file reference
 
   @@index([podcastId])
   @@index([title])
@@ -133,31 +130,30 @@ model Episode {
 model Recording {
   id          String   @id @default(cuid())
   title       String
-  description String
-  audioUrl    String
-  duration    Int      @default(0)
-  userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  isPublic    Boolean  @default(false)
-  views       Int      @default(0)
-  tags        String[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  userId      String
+  isPublic    Boolean  @default(false)
+  views       Int      @default(0)
+  description String
+  tags        String[]
+  audioUrl    String
+  duration    Int      @default(0)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
+
 model FileReference {
   id          String   @id @default(cuid())
   referenceId String   @unique
   podcastId   String
   userId      String
-  status      String   @default("temp") // temp, final, deleted
+  status      String   @default("temp")
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  
   podcast     Podcast  @relation(fields: [podcastId], references: [id], onDelete: Cascade)
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+
   @@index([referenceId])
   @@index([userId])
   @@index([podcastId])
 }
-
