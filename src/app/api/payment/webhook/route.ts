@@ -161,19 +161,18 @@ export async function POST(request: NextRequest) {
         let email = null;
         
         // First try to get customer details
-                  try {
-            const customer = await stripe.customers.retrieve(updatedSubscription.customer as string);
-            email = (customer as any).email;
-          } catch (customerError) {
-            
-            // For test events, try to extract email from subscription metadata or use a test email
-            if (updatedSubscription.metadata && updatedSubscription.metadata.email) {
-              email = updatedSubscription.metadata.email;
-            } else {
-              // For test events, use a test email
-              email = 'test@example.com';
-            }
+        try {
+          const customer = await stripe.customers.retrieve(updatedSubscription.customer as string);
+          email = (customer as any).email;
+        } catch (customerError) {
+          // For test events, try to extract email from subscription metadata or use a test email
+          if (updatedSubscription.metadata && updatedSubscription.metadata.email) {
+            email = updatedSubscription.metadata.email;
+          } else {
+            // For test events, use a test email
+            email = 'test@example.com';
           }
+        }
         
         if (email) {
           // Check if user has used free trial
@@ -196,29 +195,49 @@ export async function POST(request: NextRequest) {
             // Invalid date from subscription update, using default
           }
           
-                      // If we couldn't get a valid date, set it to 30 days if free trial used, 120 days if not
-            if (!premiumExpiresAt) {
-              premiumExpiresAt = new Date();
-              const daysToAdd = existingUser?.usedFreeTrial ? 30 : 120;
-              premiumExpiresAt.setDate(premiumExpiresAt.getDate() + daysToAdd);
-            }
+          // If we couldn't get a valid date, set it to 30 days if free trial used, 120 days if not
+          if (!premiumExpiresAt) {
+            premiumExpiresAt = new Date();
+            const daysToAdd = existingUser?.usedFreeTrial ? 30 : 120;
+            premiumExpiresAt.setDate(premiumExpiresAt.getDate() + daysToAdd);
+          }
           
-          await prisma.user.upsert({
-            where: { email },
-            update: {
-              isPremium: updatedSubscription.status === 'active',
-              premiumExpiresAt,
-            },
-            create: {
-              email,
-              name: email.split('@')[0],
-              isPremium: updatedSubscription.status === 'active',
-              premiumExpiresAt,
-            },
-          });
+          // Handle cancellation at period end
+          if (updatedSubscription.cancel_at_period_end) {
+            // Subscription is cancelled but user keeps access until period end
+            await prisma.user.upsert({
+              where: { email },
+              update: {
+                isPremium: true, // Keep premium until period end
+                premiumExpiresAt,
+              },
+              create: {
+                email,
+                name: email.split('@')[0],
+                isPremium: true,
+                premiumExpiresAt,
+              },
+            });
+            console.log(`Subscription cancelled at period end for ${email}, access until ${premiumExpiresAt}`);
+          } else {
+            // Normal subscription update
+            await prisma.user.upsert({
+              where: { email },
+              update: {
+                isPremium: updatedSubscription.status === 'active',
+                premiumExpiresAt,
+              },
+              create: {
+                email,
+                name: email.split('@')[0],
+                isPremium: updatedSubscription.status === 'active',
+                premiumExpiresAt,
+              },
+            });
+          }
         }
       } catch (error) {
-        // Error handling subscription update
+        console.error('Error handling subscription update:', error);
       }
       break;
       
@@ -229,8 +248,16 @@ export async function POST(request: NextRequest) {
       // This event fires when a subscription is canceled (either immediately or at period end)
       try {
         // Get the customer to find the email
-        const customer = await stripe.customers.retrieve(deletedSubscription.customer as string);
-        const email = (customer as any).email;
+        let email = null;
+        try {
+          const customer = await stripe.customers.retrieve(deletedSubscription.customer as string);
+          email = (customer as any).email;
+        } catch (customerError) {
+          // Try to get email from metadata
+          if (deletedSubscription.metadata && deletedSubscription.metadata.email) {
+            email = deletedSubscription.metadata.email;
+          }
+        }
         
         if (email) {
           // Check if this is a cancellation at period end or immediate cancellation
