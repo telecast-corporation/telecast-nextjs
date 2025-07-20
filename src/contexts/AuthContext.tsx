@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState, useMemo, useCallback } from 'react';
-import { useSession, signIn, signOut } from 'next-auth/react';
+import { useUser } from '@auth0/nextjs-auth0';
 import { useRouter } from 'next/navigation';
 
 interface User {
@@ -30,7 +30,7 @@ interface AuthContextType extends AuthState {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const { data: session, status } = useSession();
+  const { user: auth0User, error, isLoading: auth0Loading } = useUser();
   const [authState, setAuthState] = useState<AuthState>({
     user: null,
     isLoading: true,
@@ -38,18 +38,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   });
 
   useEffect(() => {
-    if (status === 'loading') {
+    if (auth0Loading) {
       setAuthState(prev => ({ ...prev, isLoading: true }));
-    } else if (session?.user) {
+    } else if (auth0User) {
       setAuthState({
         user: {
-          id: session.user.id,
-          name: session.user.name || '',
-          email: session.user.email || '',
-          image: session.user.image,
-          isPremium: session.user.isPremium,
-          premiumExpiresAt: session.user.premiumExpiresAt,
-          usedFreeTrial: session.user.usedFreeTrial,
+          id: auth0User.sub || '',
+          name: auth0User.name || '',
+          email: auth0User.email || '',
+          image: auth0User.picture,
+          isPremium: auth0User['https://telecast.com/premium'] || false,
+          premiumExpiresAt: auth0User['https://telecast.com/premium_expires_at'] ? new Date(auth0User['https://telecast.com/premium_expires_at']) : undefined,
+          usedFreeTrial: auth0User['https://telecast.com/used_free_trial'] || false,
         },
             isLoading: false,
             isAuthenticated: true,
@@ -61,37 +61,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isAuthenticated: false,
       });
     }
-  }, [session, status]);
+  }, [auth0User, auth0Loading]);
 
   // Memoize functions to prevent unnecessary re-renders
   const login = useCallback(async (provider: 'google' | 'credentials' = 'google', credentials?: { email: string; password: string }) => {
     try {
+      // For Auth0, we redirect to the login endpoint
       if (provider === 'credentials' && credentials) {
-        const result = await signIn('credentials', {
-          email: credentials.email,
-          password: credentials.password,
-          redirect: false,
-      });
-      
-      if (result?.error) {
-          // Handle specific error messages from the credentials provider
-          if (result.error.includes('No account found')) {
-            throw new Error('No account found with this email address. Please sign up first.');
-          } else if (result.error.includes('Google account')) {
-            throw new Error('This email is associated with a Google account. Please use "Continue with Google" to sign in.');
-          } else if (result.error.includes('Incorrect password')) {
-            throw new Error('Incorrect password. Please try again.');
-          } else if (result.error.includes('Email and password are required')) {
-            throw new Error('Please enter both email and password.');
-          } else {
-            throw new Error(result.error);
-          }
-        }
+        // Redirect to Auth0 login page
+        window.location.href = '/auth/login';
       } else {
-        // For Google OAuth, let NextAuth handle the redirect
-        await signIn('google', { 
-          callbackUrl: '/', // Redirect to main page after successful login
-        });
+        // Redirect to Auth0 with Google connection
+        window.location.href = '/auth/login?connection=google-oauth2';
       }
     } catch (error) {
       console.error('Login error:', error);
@@ -101,12 +82,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = useCallback(async () => {
     try {
-      await signOut({ callbackUrl: '/' });
-      setAuthState({
-        user: null,
-        isLoading: false,
-        isAuthenticated: false,
-      });
+      // Redirect to Auth0 logout endpoint
+      // Let Auth0 handle the session cleanup and state update
+      window.location.href = '/auth/logout';
     } catch (error) {
       console.error('Logout error:', error);
     }
@@ -114,21 +92,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signup = useCallback(async (userData: { username: string; email: string; password: string }) => {
     try {
-      const response = await fetch('/api/auth/signup', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(userData),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Signup failed');
-      }
-
-      return { success: true, message: data.message };
+      // Use Auth0's built-in signup flow with redirect
+      window.location.href = '/auth/login?screen_hint=signup&returnTo=%2F';
+      return { success: true, message: 'Redirecting to signup...' };
     } catch (error) {
       console.error('Signup error:', error);
       return { 
@@ -140,21 +106,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const googleSignup = useCallback(async (userData: { email: string; name: string; image?: string }) => {
     try {
-      const response = await fetch('/api/auth/google-signup', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(userData),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Google signup failed');
-      }
-
-      return { success: true, message: data.message };
+      // Use Auth0's built-in Google signup flow with redirect
+      window.location.href = '/auth/login?connection=google-oauth2&screen_hint=signup&returnTo=%2F';
+      return { success: true, message: 'Redirecting to Google signup...' };
     } catch (error) {
       console.error('Google signup error:', error);
       return { 

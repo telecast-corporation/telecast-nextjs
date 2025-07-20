@@ -1,33 +1,33 @@
 'use client';
 
 import { useEffect, useState, Suspense } from 'react';
-import { useSession } from 'next-auth/react';
+import { useUser } from '@auth0/nextjs-auth0';
 import { useRouter } from 'next/navigation';
 import { Box, CircularProgress, Typography, Alert } from '@mui/material';
 import AudioRecorder from '../../components/AudioRecorder';
 
 export default function RecordPage() {
-  const { status, data: session } = useSession();
+  const { user, isLoading } = useUser();
   const router = useRouter();
   const [authChecked, setAuthChecked] = useState(false);
 
   useEffect(() => {
     // Only redirect if we're certain the user is unauthenticated
-    if (status === 'unauthenticated' && authChecked) {
+    if (!isLoading && !user && authChecked) {
       // Store the current page as the callback URL
       const callbackUrl = encodeURIComponent('/record');
-      router.push(`/login?callbackUrl=${callbackUrl}`);
+      router.push(`/auth/login?callbackUrl=${callbackUrl}`);
     }
-  }, [status, authChecked, router]);
+  }, [isLoading, user, authChecked, router]);
 
   useEffect(() => {
-    if (status !== 'loading') {
+    if (!isLoading) {
       setAuthChecked(true);
     }
-  }, [status]);
+  }, [isLoading]);
 
   // Show loading state while session is loading or we're checking auth
-  if (status === 'loading' || !authChecked) {
+  if (isLoading || !authChecked) {
     return (
       <Box 
         display="flex" 
@@ -46,7 +46,7 @@ export default function RecordPage() {
   }
 
   // Show error if authentication failed
-  if (status === 'unauthenticated') {
+  if (!user) {
     return (
       <Box 
         display="flex" 

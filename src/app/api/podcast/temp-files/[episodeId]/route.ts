@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { getUserFromRequest } from '@/lib/auth0-user';
+// authOptions removed - using Auth0
 import { prisma } from "@/lib/prisma";
 import { Storage } from "@google-cloud/storage";
 
@@ -19,9 +19,9 @@ export async function GET(
   { params }: { params: { episodeId: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions);
+    const user = await getUserFromRequest(request as any);
     
-    if (!session?.user?.email) {
+    if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -32,7 +32,7 @@ export async function GET(
       where: {
         id: episodeId,
         podcast: {
-          userId: session.user.id
+          userId: user.id
         }
       },
       include: {
@@ -50,7 +50,7 @@ export async function GET(
     }
 
     // Check if the episode belongs to the current user
-    if (episode.podcast.userId !== session.user.id) {
+    if (episode.podcast.userId !== user.id) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 

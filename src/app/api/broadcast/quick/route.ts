@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { getUserFromRequest } from '@/lib/auth0-user';
+// authOptions removed - using Auth0
 import { prisma } from '@/lib/prisma';
 import { 
   SpotifyPodcastAPI, 
@@ -14,7 +14,7 @@ import {
 
 export async function POST(request: Request) {
   try {
-    const session = await getServerSession(authOptions);
+    const user = await getUserFromRequest(request as any);
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -47,7 +47,7 @@ export async function POST(request: Request) {
     }
 
     // Verify user owns the episode
-    if (episode.podcast.userId !== session.user.id) {
+    if (episode.podcast.userId !== user.id) {
       return NextResponse.json(
         { error: 'Access denied' },
         { status: 403 }
@@ -61,7 +61,7 @@ export async function POST(request: Request) {
       // Get user's previously connected platforms
       const accounts = await prisma.account.findMany({
         where: {
-          userId: session.user.id,
+          userId: user.id,
           provider: {
             in: ['spotify', 'apple', 'google_podcast'],
           },
@@ -111,7 +111,7 @@ export async function POST(request: Request) {
     // Broadcast to each platform
     for (const platform of platformsToBroadcast as Platform[]) {
       // Get valid access token (with automatic refresh if needed)
-      const accessToken = await getValidAccessToken(session.user.id, platform);
+      const accessToken = await getValidAccessToken(user.id, platform);
 
       if (!accessToken) {
         results[platform] = {
@@ -164,7 +164,7 @@ export async function POST(request: Request) {
           case 'google':
             const googleApi = new GooglePodcastAPI(accessToken);
             const googleMetadata: GoogleMetadata = {
-              email: session.user.email || '',
+              email: user.email || '',
               episodeTitle: metadata.episodeTitle,
               episodeDescription: metadata.episodeDescription,
               episodeNumber: metadata.episodeNumber || undefined,

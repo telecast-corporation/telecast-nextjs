@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { getUserFromRequest } from '@/lib/auth0-user';
+// authOptions removed - using Auth0
 import { prisma } from "@/lib/prisma";
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const user = await getUserFromRequest(request as any);
     
-    if (!session?.user?.email) {
+    if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
     const podcast = await prisma.podcast.findFirst({
       where: {
         id: podcastId,
-        userId: session.user.id
+        userId: user.id
       }
     });
 
@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
       data: {
         referenceId: referenceId,
         podcastId: podcastId,
-        userId: session.user.id,
+        userId: user.id,
         status: 'temp', // temp, final, deleted
         createdAt: new Date(),
       }

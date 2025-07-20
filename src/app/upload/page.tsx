@@ -1,23 +1,25 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useSession } from 'next-auth/react';
+import { useUser } from '@auth0/nextjs-auth0';
 import { useRouter } from 'next/navigation';
 
 export default function UploadPage() {
-  const { status } = useSession();
+  const { user, isLoading } = useUser();
   const router = useRouter();
 
   useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push('/login');
-    } else if (status === 'authenticated') {
+    if (!isLoading) {
+      if (!user) {
+        router.push('/auth/login');
+      } else {
       // Redirect to broadcast page since upload is now integrated there
       router.push('/broadcast');
     }
-  }, [status, router]);
+    }
+  }, [user, isLoading, router]);
 
-  if (status === 'loading') {
+  if (isLoading) {
     return null;
   }
 

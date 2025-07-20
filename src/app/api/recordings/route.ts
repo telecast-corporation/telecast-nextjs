@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { getAuth0User } from '@/lib/auth0-session';
 import { PrismaClient } from '@prisma/client';
 import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
@@ -10,9 +9,9 @@ const prisma = new PrismaClient();
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const user = await getAuth0User(request);
     
-    if (!session?.user?.email) {
+    if (!user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -27,11 +26,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Get user from database
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email }
+    const dbUser = await prisma.user.findUnique({
+      where: { email: user.email }
     });
 
-    if (!user) {
+    if (!dbUser) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
@@ -43,7 +42,7 @@ export async function POST(request: NextRequest) {
 
     // Generate unique filename
     const timestamp = Date.now();
-    const filename = `${user.id}_${timestamp}_${title.replace(/[^a-zA-Z0-9]/g, '_')}.webm`;
+    const filename = `${dbUser.id}_${timestamp}_${title.replace(/[^a-zA-Z0-9]/g, '_')}.webm`;
     const filePath = join(uploadsDir, filename);
 
     // Convert File to Buffer and save
@@ -61,7 +60,7 @@ export async function POST(request: NextRequest) {
         description: description || "",
         audioUrl: `/uploads/recordings/${filename}`,
         duration: 0, // Will be calculated later if needed
-        userId: user.id,
+        userId: dbUser.id,
         tags: tagArray,
         isPublic: false,
       },
@@ -88,9 +87,9 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const user = await getAuth0User(request);
     
-    if (!session?.user?.email) {
+    if (!user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -103,11 +102,11 @@ export async function GET(request: NextRequest) {
     const skip = (page - 1) * limit;
 
     // Get user from database
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email }
+    const dbUser = await prisma.user.findUnique({
+      where: { email: user.email }
     });
 
-    if (!user) {
+    if (!dbUser) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
@@ -120,7 +119,7 @@ export async function GET(request: NextRequest) {
       where.userId = userId;
     } else {
       // Default: get user's own recordings
-      where.userId = user.id;
+      where.userId = dbUser.id;
     }
 
     // Get recordings with pagination

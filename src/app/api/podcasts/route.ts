@@ -1,25 +1,24 @@
 import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { getAuth0User } from '@/lib/auth0-session';
 import { prisma } from '@/lib/prisma';
 import { uploadPodcastFile } from '@/lib/storage';
 
 export async function POST(req: Request) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
+    const user = await getAuth0User(req as any);
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    console.log('Session user:', session.user);
-    console.log('User ID:', session.user.id);
+    console.log('Auth0 user:', user);
+    console.log('User ID:', user.sub);
 
     // Check if user exists in database
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id }
+    const dbUser = await prisma.user.findUnique({
+      where: { email: user.email }
     });
 
-    if (!user) {
+    if (!dbUser) {
       console.log('User not found in database');
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
@@ -57,8 +56,8 @@ export async function POST(req: Request) {
         category,
         tags,
         coverImage,
-        userId: session.user.id,
-        author: session.user.name || 'Anonymous',
+        userId: dbUser.id,
+        author: user.name || 'Anonymous',
         published: false,
         language: 'en',
         explicit: false
@@ -77,8 +76,8 @@ export async function POST(req: Request) {
 
 export async function GET(req: Request) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
+    const user = await getAuth0User(req as any);
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

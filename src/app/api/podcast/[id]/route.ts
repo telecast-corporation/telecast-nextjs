@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { getAuth0User } from '@/lib/auth0-session';
 import { prisma } from '@/lib/prisma';
 import { uploadPodcastFile } from '@/lib/storage';
 
@@ -9,8 +8,8 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
+    const user = await getAuth0User(req as any);
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -37,8 +36,8 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
+    const user = await getAuth0User(req as any);
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -56,6 +55,15 @@ export async function PUT(
       );
     }
 
+    // Get user from database
+    const dbUser = await prisma.user.findUnique({
+      where: { email: user.email }
+    });
+
+    if (!dbUser) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
     // Check if podcast exists and belongs to user
     const existingPodcast = await prisma.podcast.findUnique({
       where: { id: params.id },
@@ -68,7 +76,7 @@ export async function PUT(
       );
     }
 
-    if (existingPodcast.userId !== session.user.id) {
+    if (existingPodcast.userId !== dbUser.id) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -116,9 +124,18 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
+    const user = await getAuth0User(req as any);
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Get user from database
+    const dbUser = await prisma.user.findUnique({
+      where: { email: user.email }
+    });
+
+    if (!dbUser) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
     // Check if podcast exists and belongs to user
@@ -133,7 +150,7 @@ export async function DELETE(
       );
     }
 
-    if (existingPodcast.userId !== session.user.id) {
+    if (existingPodcast.userId !== dbUser.id) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }

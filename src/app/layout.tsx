@@ -30,13 +30,13 @@ export default function RootLayout({
         
         {/* Optimized prefetch strategy - only prefetch most critical pages */}
         <link rel="prefetch" href="/dashboard" />
-        <link rel="prefetch" href="/login" />
+        <link rel="prefetch" href="/auth/login" />
         
         {/* Defer less critical pages */}
         <link rel="prefetch" href="/about" as="document" />
         <link rel="prefetch" href="/services" as="document" />
         <link rel="prefetch" href="/contact" as="document" />
-        <link rel="prefetch" href="/signup" as="document" />
+        <link rel="prefetch" href="/auth/login" as="document" />
       </head>
       <body className={lexend.className}>
         <CustomThemeProvider>

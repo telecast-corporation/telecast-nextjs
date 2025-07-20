@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { getAuth0User } from '@/lib/auth0-session';
 import Stripe from 'stripe';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
@@ -12,13 +11,13 @@ const PRICE_ID = 'price_1RkoI5L1gjoL2pfG31JiL1Ut'; // CAD $9.99/month
 export async function POST(request: NextRequest) {
   try {
     // Get the user session
-    const session = await getServerSession(authOptions);
+    const user = await getAuth0User(request);
     
-    if (!session?.user?.email) {
+    if (!user?.email) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
 
-    const email = session.user.email;
+    const email = user.email;
     console.log('Creating checkout session for email:', email);
 
     // Create a Checkout Session for subscription

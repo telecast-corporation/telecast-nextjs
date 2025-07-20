@@ -1,8 +1,8 @@
 export const dynamic = 'force-dynamic';
 
 import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { getUserFromRequest } from '@/lib/auth0-user';
+// authOptions removed - using Auth0
 import { prisma } from '@/lib/prisma';
 
 interface InternalSearchResult {
@@ -27,7 +27,7 @@ interface InternalSearchResult {
 
 export async function GET(request: Request) {
   try {
-    const session = await getServerSession(authOptions);
+    const user = await getUserFromRequest(request as any);
     if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -47,7 +47,7 @@ export async function GET(request: Request) {
     if (type === 'all' || type === 'podcast') {
       const podcasts = await prisma.podcast.findMany({
         where: {
-          userId: session.user.id,
+          userId: user.id,
           OR: [
             { title: { contains: query, mode: 'insensitive' } },
             { description: { contains: query, mode: 'insensitive' } },
@@ -77,7 +77,7 @@ export async function GET(request: Request) {
       const episodes = await prisma.episode.findMany({
         where: {
           podcast: {
-            userId: session.user.id,
+            userId: user.id,
           },
           OR: [
             { title: { contains: query, mode: 'insensitive' } },

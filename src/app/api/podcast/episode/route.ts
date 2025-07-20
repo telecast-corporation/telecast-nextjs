@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { getUserFromRequest } from '@/lib/auth0-user';
+// authOptions removed - using Auth0
 import { prisma } from "@/lib/prisma";
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.email) {
+    const user = await getUserFromRequest(request as any);
+    if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     const { searchParams } = new URL(request.url);
@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
     }
     // Check if podcast belongs to current user
     const podcast = await prisma.podcast.findFirst({
-      where: { id: podcastId, userId: session.user.id }
+      where: { id: podcastId, userId: user.id }
     });
     if (!podcast) {
       return NextResponse.json({ error: "Podcast not found or access denied" }, { status: 404 });
@@ -38,8 +38,8 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.email) {
+    const user = await getUserFromRequest(request as any);
+    if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     const { title, description, referenceId, podcastId } = await request.json();
@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
     }
     // Check if podcast belongs to current user
     const podcast = await prisma.podcast.findFirst({
-      where: { id: podcastId, userId: session.user.id }
+      where: { id: podcastId, userId: user.id }
     });
     if (!podcast) {
       return NextResponse.json({ error: "Podcast not found or access denied" }, { status: 404 });

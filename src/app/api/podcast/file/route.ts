@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { getUserFromRequest } from '@/lib/auth0-user';
+// authOptions removed - using Auth0
 import { prisma } from "@/lib/prisma";
 import { Storage } from "@google-cloud/storage";
 
@@ -16,8 +16,8 @@ const bucketName = process.env.GOOGLE_CLOUD_PODCAST_BUCKET_NAME || "telecast-cor
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.email) {
+    const user = await getUserFromRequest(request as any);
+    if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     const { searchParams } = new URL(request.url);
@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
     }
     // Check if podcast belongs to current user
     const podcast = await prisma.podcast.findFirst({
-      where: { id: podcastId, userId: session.user.id }
+      where: { id: podcastId, userId: user.id }
     });
     if (!podcast) {
       return NextResponse.json({ error: "Podcast not found or access denied" }, { status: 404 });
@@ -60,8 +60,8 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.email) {
+    const user = await getUserFromRequest(request as any);
+    if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     const formData = await request.formData();
@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
     }
     // Validate reference ID ownership
     const fileReference = await prisma.fileReference.findFirst({
-      where: { referenceId, userId: session.user.id, podcastId }
+      where: { referenceId, userId: user.id, podcastId }
     });
     if (!fileReference) {
       return NextResponse.json({ error: "Reference ID not found or access denied" }, { status: 404 });

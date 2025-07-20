@@ -1,13 +1,12 @@
 import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { getAuth0User } from '@/lib/auth0-session';
 import { prisma } from '@/lib/prisma';
 import { uploadPodcastFile } from '@/lib/storage';
 
 export async function POST(req: Request) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
+    const user = await getAuth0User(req as any);
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -27,6 +26,15 @@ export async function POST(req: Request) {
       );
     }
 
+    // Get user from database
+    const dbUser = await prisma.user.findUnique({
+      where: { email: user.email }
+    });
+
+    if (!dbUser) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
     // Check if podcast exists and belongs to user
     const podcast = await prisma.podcast.findUnique({
       where: { id: podcastId },
@@ -39,7 +47,7 @@ export async function POST(req: Request) {
       );
     }
 
-    if (podcast.userId !== session.user.id) {
+    if (podcast.userId !== dbUser.id) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -105,17 +113,8 @@ export async function GET(req: Request) {
             }
           : {}),
       },
-      orderBy: [
-        { seasonNumber: 'desc' },
-        { episodeNumber: 'desc' },
-      ],
-      include: {
-        podcast: {
-          select: {
-            title: true,
-            coverImage: true,
-          },
-        },
+      orderBy: {
+        createdAt: 'desc',
       },
     });
 

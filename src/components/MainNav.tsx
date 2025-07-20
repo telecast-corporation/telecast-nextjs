@@ -1134,8 +1134,8 @@ const MainNav = memo(() => {
             <Button
               variant="text"
               className="nav-button"
-              onClick={() => router.push('/login')}
-              sx={getNavButtonStyles(theme, pathname, '/login')}
+              onClick={() => router.push('/auth/login')}
+              sx={getNavButtonStyles(theme, pathname, '/auth/login')}
             >
               Sign In
             </Button>
@@ -1175,7 +1175,7 @@ const MainNav = memo(() => {
           </IconButton>
         ) : (
           <IconButton
-            onClick={() => router.push('/login')}
+            onClick={() => router.push('/auth/login')}
             sx={{
               p: 0.5,
               width: 40,

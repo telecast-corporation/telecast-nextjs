@@ -1,8 +1,7 @@
 export const dynamic = 'force-dynamic';
 
 import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { getAuth0User } from '@/lib/auth0-session';
 import { prisma } from '@/lib/prisma';
 import axios from 'axios';
 import { PodcastIndex, Podcast } from '@/lib/podcast-index';

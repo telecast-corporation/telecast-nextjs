@@ -144,7 +144,7 @@ export default function ForgotPasswordPage() {
 
       <Box sx={{ textAlign: 'center', mt: 1 }}>
         <Link
-          href="/login"
+                      href="/auth/login"
           style={{
             display: 'inline-flex',
             alignItems: 'center',

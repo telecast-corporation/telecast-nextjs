@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { getUserFromRequest } from '@/lib/auth0-user';
+// authOptions removed - using Auth0
 import { prisma } from '@/lib/prisma';
 import Stripe from 'stripe';
 
@@ -10,15 +10,15 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const user = await getUserFromRequest(request as any);
     
-    if (!session?.user?.email) {
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     // Get user from database
     const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
+      where: { email: user.email },
       select: { 
         id: true, 
         email: true, 
@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
       cancellationDate.setHours(cancellationDate.getHours() + 1); // Set to expire in 1 hour
 
       await prisma.user.update({
-        where: { email: session.user.email },
+        where: { email: user.email },
         data: {
           premiumExpiresAt: cancellationDate,
         },
@@ -112,7 +112,7 @@ export async function POST(request: NextRequest) {
       
       // Update the user's premiumExpiresAt to match the subscription's period end
       await prisma.user.update({
-        where: { email: session.user.email },
+        where: { email: user.email },
         data: {
           premiumExpiresAt: currentPeriodEnd,
         },
@@ -133,7 +133,7 @@ export async function POST(request: NextRequest) {
       cancellationDate.setHours(cancellationDate.getHours() + 1);
 
       await prisma.user.update({
-        where: { email: session.user.email },
+        where: { email: user.email },
         data: {
           premiumExpiresAt: cancellationDate,
         },

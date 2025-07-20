@@ -69,7 +69,7 @@ function ResetPasswordPageContent() {
       if (response.ok) {
         setMessage(data.message);
         setTimeout(() => {
-          router.push('/login');
+          router.push('/auth/login');
         }, 3000);
       } else {
         setError(data.error || 'Failed to reset password.');

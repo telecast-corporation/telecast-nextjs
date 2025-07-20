@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { getUserFromRequest } from '@/lib/auth0-user';
+// authOptions removed - using Auth0
 import { prisma } from '@/lib/prisma';
 import { uploadPodcastFile } from '@/lib/storage';
 
@@ -9,7 +9,7 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions);
+    const user = await getUserFromRequest(request as any);
     if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -37,7 +37,7 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions);
+    const user = await getUserFromRequest(request as any);
     if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -68,7 +68,7 @@ export async function PUT(
       );
     }
 
-    if (existingPodcast.userId !== session.user.id) {
+    if (existingPodcast.userId !== user.id) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -116,7 +116,7 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions);
+    const user = await getUserFromRequest(request as any);
     if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -133,7 +133,7 @@ export async function DELETE(
       );
     }
 
-    if (existingPodcast.userId !== session.user.id) {
+    if (existingPodcast.userId !== user.id) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }

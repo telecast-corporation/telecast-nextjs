@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { getUserFromRequest } from '@/lib/auth0-user';
+// authOptions removed - using Auth0
 import { prisma } from "@/lib/prisma";
 import { Storage } from "@google-cloud/storage";
 
@@ -19,9 +19,9 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions);
+    const user = await getUserFromRequest(request as any);
     
-    if (!session?.user?.email) {
+    if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -31,7 +31,7 @@ export async function GET(
     const podcast = await prisma.podcast.findFirst({
       where: {
         id: podcastId,
-        userId: session.user.id
+        userId: user.id
       }
     });
 
@@ -84,9 +84,9 @@ export async function POST(
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions);
+    const user = await getUserFromRequest(request as any);
     
-    if (!session?.user?.email) {
+    if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -96,7 +96,7 @@ export async function POST(
     const podcast = await prisma.podcast.findFirst({
       where: {
         id: podcastId,
-        userId: session.user.id
+        userId: user.id
       }
     });
 
@@ -120,7 +120,7 @@ export async function POST(
     const fileReference = await prisma.fileReference.findFirst({
       where: {
         referenceId: referenceId,
-        userId: session.user.id,
+        userId: user.id,
         podcastId: podcastId
       }
     });

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { getUserFromRequest } from '@/lib/auth0-user';
+// authOptions removed - using Auth0
 import { prisma } from '@/lib/prisma';
 import { 
   SpotifyPodcastAPI, 
@@ -14,7 +14,7 @@ import {
 
 export async function POST(request: Request) {
   try {
-    const session = await getServerSession(authOptions);
+    const user = await getUserFromRequest(request as any);
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -47,7 +47,7 @@ export async function POST(request: Request) {
     }
 
     // Verify user owns the episode
-    if (episode.podcast.userId !== session.user.id) {
+    if (episode.podcast.userId !== user.id) {
       return NextResponse.json(
         { error: 'Access denied' },
         { status: 403 }
@@ -70,7 +70,7 @@ export async function POST(request: Request) {
     // Broadcast to each selected platform
     for (const platform of platforms as Platform[]) {
       // Get valid access token (with automatic refresh if needed)
-      const accessToken = await getValidAccessToken(session.user.id, platform);
+      const accessToken = await getValidAccessToken(user.id, platform);
 
       if (!accessToken) {
         results[platform] = {
@@ -116,7 +116,7 @@ export async function POST(request: Request) {
           case 'google':
             const googleApi = new GooglePodcastAPI(accessToken);
             const googleMetadata: GoogleMetadata = {
-              email: metadata.google?.email || session.user.email || '',
+              email: metadata.google?.email || user.email || '',
               episodeTitle: metadata.episodeTitle,
               episodeDescription: metadata.episodeDescription,
               episodeNumber: metadata.episodeNumber ? parseInt(metadata.episodeNumber) : undefined,

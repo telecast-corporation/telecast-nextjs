@@ -26,47 +26,7 @@ if (process.env.ENABLE_EMAIL_VERIFICATION === 'true') {
   });
 }
 
-export async function sendVerificationEmail(email: string, token: string) {
-  // Check if email verification is enabled
-  if (process.env.ENABLE_EMAIL_VERIFICATION !== 'true') {
-    return { messageId: 'skipped-verification-disabled' };
-  }
 
-  if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
-    return { messageId: 'skipped-no-smtp-config' };
-  }
-
-  if (!transporter) {
-    return { messageId: 'skipped-no-transporter' };
-  }
-
-  // Get base URL from environment variables or construct it
-  const baseUrl = process.env.NEXTAUTH_URL || 
-                  process.env.NEXT_PUBLIC_BASE_URL || 
-                  (process.env.NODE_ENV === 'production' 
-                    ? 'https://telecast.ca' 
-                    : 'http://localhost:3000');
-  
-  const verifyUrl = `${baseUrl}/verify-email?token=${token}`;
-
-  try {
-    const info = await transporter.sendMail({
-      from: process.env.SMTP_FROM || process.env.SMTP_USER,
-      to: email,
-      subject: 'Verify your email address',
-      html: `
-        <h1>Welcome to Telecast!</h1>
-        <p>Please click the link below to verify your email address:</p>
-        <a href="${verifyUrl}">${verifyUrl}</a>
-        <p>This link will expire in 24 hours.</p>
-      `,
-    });
-
-    return info;
-  } catch (error) {
-    throw error;
-  }
-}
 
 export async function sendPasswordResetEmail(email: string, token: string) {
   // Check if email verification is enabled
@@ -83,8 +43,8 @@ export async function sendPasswordResetEmail(email: string, token: string) {
   }
 
   // Get base URL from environment variables or construct it
-  const baseUrl = process.env.NEXTAUTH_URL || 
-                  process.env.NEXT_PUBLIC_BASE_URL || 
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 
+                  process.env.AUTH0_BASE_URL || 
                   (process.env.NODE_ENV === 'production' 
                     ? 'https://telecast.ca' 
                     : 'http://localhost:3000');

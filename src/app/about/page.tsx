@@ -381,7 +381,7 @@ export default function About() {
           Join the Telecast community today and turn your voice into impact.
         </Typography>
         <Link 
-          href="/signup" 
+                          href="/auth/login?screen_hint=signup" 
           style={{ 
             display: 'inline-block',
             padding: '12px 32px',

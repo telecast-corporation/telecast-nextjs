@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
+import { useUser } from '@auth0/nextjs-auth0/client';
 import { useRouter } from 'next/navigation';
 import {
   Box,
@@ -59,7 +59,7 @@ interface Recording {
 }
 
 export default function RecordingsPage() {
-  const { status } = useSession();
+  const { user, isLoading } = useUser();
   const router = useRouter();
   const [recordings, setRecordings] = useState<Recording[]>([]);
   const [loading, setLoading] = useState(true);
@@ -73,12 +73,14 @@ export default function RecordingsPage() {
   const [recordingToDelete, setRecordingToDelete] = useState<Recording | null>(null);
 
   useEffect(() => {
-    if (status === 'unauthenticated') {
+    if (!isLoading) {
+      if (!user) {
       router.push('/login');
-    } else if (status === 'authenticated') {
+      } else {
       fetchRecordings();
+      }
     }
-  }, [status, router, page, filter]);
+  }, [isLoading, user, router, page, filter]);
 
   const fetchRecordings = async () => {
     try {
@@ -169,7 +171,7 @@ export default function RecordingsPage() {
     return new Date(dateString).toLocaleDateString();
   };
 
-  if (status === 'loading') {
+  if (isLoading) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
         <CircularProgress />

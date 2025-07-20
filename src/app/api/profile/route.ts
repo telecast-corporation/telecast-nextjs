@@ -1,13 +1,12 @@
 import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { getOrCreateUser, getUserFromRequest } from '@/lib/auth0-user';
 import { prisma } from '@/lib/prisma';
 import { uploadProfileFile, deleteProfileFile } from '@/lib/storage';
 
 export async function PUT(req: Request) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
+    const user = await getUserFromRequest(req as any);
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -23,16 +22,10 @@ export async function PUT(req: Request) {
       );
     }
 
-    // Get current user profile
-    const currentProfile = await prisma.user.findUnique({
-      where: { id: session.user.id },
-    });
-
-    let imageUrl = session.user.image;
+    let imageUrl = user.image;
 
     // If new image is provided, upload it
     if (imageFile) {
-      // No old image to delete
       // Convert file to buffer
       const imageBuffer = Buffer.from(await imageFile.arrayBuffer());
       // Upload new image
@@ -46,7 +39,7 @@ export async function PUT(req: Request) {
 
     // Update user profile
     const updatedUser = await prisma.user.update({
-      where: { id: session.user.id },
+      where: { id: user.id },
       data: {
         name,
         image: imageUrl,
@@ -65,31 +58,22 @@ export async function PUT(req: Request) {
 
 export async function GET(req: Request) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
+    const user = await getUserFromRequest(req as any);
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        image: true,
-        createdAt: true,
-        updatedAt: true,
-      },
+    return NextResponse.json({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      image: user.image,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+      isPremium: user.isPremium,
+      premiumExpiresAt: user.premiumExpiresAt,
+      usedFreeTrial: user.usedFreeTrial,
     });
-
-    if (!user) {
-      return NextResponse.json(
-        { error: 'User not found' },
-        { status: 404 }
-      );
-    }
-
-    return NextResponse.json(user);
   } catch (error) {
     console.error('Error fetching profile:', error);
     return NextResponse.json(

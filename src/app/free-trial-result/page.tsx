@@ -32,7 +32,7 @@ function FreeTrialResultContent() {
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
-      router.push('/login');
+      router.push('/auth/login');
       return;
     }
 

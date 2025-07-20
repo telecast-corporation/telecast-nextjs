@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { getAuth0User } from '@/lib/auth0-session';
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
@@ -10,9 +9,9 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions);
+    const user = await getAuth0User(request);
     
-    if (!session?.user?.email) {
+    if (!user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -34,16 +33,16 @@ export async function GET(
     }
 
     // Check if user can access this recording
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email }
+    const dbUser = await prisma.user.findUnique({
+      where: { email: user.email }
     });
 
-    if (!user) {
+    if (!dbUser) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
     // Allow access if recording is public or belongs to the user
-    if (!recording.isPublic && recording.userId !== user.id) {
+    if (!recording.isPublic && recording.userId !== dbUser.id) {
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
@@ -68,9 +67,9 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions);
+    const user = await getAuth0User(request);
     
-    if (!session?.user?.email) {
+    if (!user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -78,11 +77,11 @@ export async function PUT(
     const { title, description, tags, isPublic } = body;
 
     // Get user from database
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email }
+    const dbUser = await prisma.user.findUnique({
+      where: { email: user.email }
     });
 
-    if (!user) {
+    if (!dbUser) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
@@ -95,7 +94,7 @@ export async function PUT(
       return NextResponse.json({ error: 'Recording not found' }, { status: 404 });
     }
 
-    if (existingRecording.userId !== user.id) {
+    if (existingRecording.userId !== dbUser.id) {
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
@@ -103,10 +102,10 @@ export async function PUT(
     const updatedRecording = await prisma.recording.update({
       where: { id: params.id },
       data: {
-        title: title || existingRecording.title,
-        description: description !== undefined ? description : existingRecording.description,
-        tags: tags || existingRecording.tags,
-        isPublic: isPublic !== undefined ? isPublic : existingRecording.isPublic,
+        title,
+        description,
+        tags,
+        isPublic,
       },
       include: {
         user: {
@@ -134,31 +133,31 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions);
+    const user = await getAuth0User(request);
     
-    if (!session?.user?.email) {
+    if (!user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     // Get user from database
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email }
+    const dbUser = await prisma.user.findUnique({
+      where: { email: user.email }
     });
 
-    if (!user) {
+    if (!dbUser) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
     // Check if recording exists and belongs to user
-    const recording = await prisma.recording.findUnique({
+    const existingRecording = await prisma.recording.findUnique({
       where: { id: params.id }
     });
 
-    if (!recording) {
+    if (!existingRecording) {
       return NextResponse.json({ error: 'Recording not found' }, { status: 404 });
     }
 
-    if (recording.userId !== user.id) {
+    if (existingRecording.userId !== dbUser.id) {
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 

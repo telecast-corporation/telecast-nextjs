@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
+import { useUser } from '@auth0/nextjs-auth0';
 import { useRouter } from 'next/navigation';
 import {
   Box,
@@ -52,7 +52,7 @@ interface Podcast {
 }
 
 export default function Dashboard() {
-  const { data: session, status } = useSession();
+  const { user: auth0User, isLoading } = useUser();
   const { user } = useAuth();
   const router = useRouter();
   const [podcasts, setPodcasts] = useState<Podcast[]>([]);
@@ -91,10 +91,10 @@ export default function Dashboard() {
 
 
   useEffect(() => {
-    if (status === 'authenticated' && user?.id) {
+    if (!isLoading && auth0User && user?.id) {
       fetchPodcasts();
     }
-  }, [status, user?.id]);
+  }, [isLoading, auth0User, user?.id]);
 
 
 
@@ -336,7 +336,7 @@ export default function Dashboard() {
     }
   };
 
-  if (status === 'loading' || loading) {
+  if (isLoading || loading) {
     return (
       <Box
         sx={{
@@ -351,8 +351,8 @@ export default function Dashboard() {
     );
   }
 
-  if (status === 'unauthenticated') {
-    router.push('/login');
+  if (!auth0User) {
+            router.push('/auth/login');
     return null;
   }
 
