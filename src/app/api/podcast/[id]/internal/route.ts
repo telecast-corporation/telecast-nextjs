@@ -3,21 +3,22 @@ import { prisma } from '@/lib/prisma';
 
 export async function GET(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const podcast = await prisma.podcast.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         episodes: {
-          orderBy: { publishDate: 'desc' },
+          orderBy: { publishedAt: 'desc' },
           select: {
             id: true,
             title: true,
             description: true,
             audioUrl: true,
             duration: true,
-            publishDate: true,
+            publishedAt: true,
             episodeNumber: true,
             seasonNumber: true,
             explicit: true,

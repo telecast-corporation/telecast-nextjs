@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server';
-import { getOrCreateUser, getUserFromRequest } from '@/lib/auth0-user';
+import { getOrCreateUser } from '@/lib/auth0-user';
 import { prisma } from '@/lib/prisma';
 import { uploadProfileFile, deleteProfileFile } from '@/lib/storage';
 
 export async function PUT(req: Request) {
   try {
-    const user = await getUserFromRequest(req as any);
+    const user = await getOrCreateUser(req as any);
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -58,7 +58,7 @@ export async function PUT(req: Request) {
 
 export async function GET(req: Request) {
   try {
-    const user = await getUserFromRequest(req as any);
+    const user = await getOrCreateUser(req as any);
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }

@@ -15,7 +15,7 @@ import {
 export async function POST(request: Request) {
   try {
     const user = await getUserFromRequest(request as any);
-    if (!session?.user?.id) {
+    if (!user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -51,6 +51,14 @@ export async function POST(request: Request) {
       return NextResponse.json(
         { error: 'Access denied' },
         { status: 403 }
+      );
+    }
+
+    // Check if episode has audio URL
+    if (!episode.audioUrl) {
+      return NextResponse.json(
+        { error: 'Episode audio URL is missing' },
+        { status: 400 }
       );
     }
 

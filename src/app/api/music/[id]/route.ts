@@ -80,11 +80,11 @@ function generatePreviewOptions(track: any, artist: any) {
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
-    const trackId = params.id;
-    if (!trackId) {
+    if (!id) {
       return NextResponse.json({ error: 'Track ID is required' }, { status: 400 });
     }
 
@@ -92,7 +92,7 @@ export async function GET(
 
     // Fetch track details
     const trackResponse = await axios.get(
-      `https://api.spotify.com/v1/tracks/${trackId}`,
+      `https://api.spotify.com/v1/tracks/${id}`,
       {
         headers: {
           Authorization: `Bearer ${accessToken}`,
@@ -132,7 +132,7 @@ export async function GET(
     );
 
     const relatedTracks = topTracksResponse.data.tracks
-      .filter((t: any) => t.id !== trackId)
+      .filter((t: any) => t.id !== id)
       .slice(0, 5)
       .map((t: any) => ({
         id: t.id,

@@ -1,27 +1,19 @@
-import { NextResponse } from 'next/server';
-import { getAuth0User } from '@/lib/auth0-session';
+import { NextResponse, NextRequest } from 'next/server';
+import { getOrCreateUser } from '@/lib/auth0-user';
 import { prisma } from '@/lib/prisma';
 import { uploadPodcastFile } from '@/lib/storage';
 
 export async function POST(req: Request) {
   try {
-    const user = await getAuth0User(req as any);
+    const user = await getOrCreateUser(req as NextRequest);
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
     }
-
-    console.log('Auth0 user:', user);
-    console.log('User ID:', user.sub);
-
-    // Check if user exists in database
-    const dbUser = await prisma.user.findUnique({
-      where: { email: user.email }
-    });
-
-    if (!dbUser) {
-      console.log('User not found in database');
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
-    }
+    console.log('User:', user);
+    console.log('User ID:', user.id);
 
     const formData = await req.formData();
     const title = formData.get('title') as string;
@@ -48,7 +40,7 @@ export async function POST(req: Request) {
       true // Set isImage to true for podcast cover images
     );
 
-    // Create podcast in database
+    // Create podcast in database using the user's database ID
     const podcast = await prisma.podcast.create({
       data: {
         title,
@@ -56,7 +48,7 @@ export async function POST(req: Request) {
         category,
         tags,
         coverImage,
-        userId: dbUser.id,
+        userId: user.id, // Use the database user ID
         author: user.name || 'Anonymous',
         published: false,
         language: 'en',
@@ -76,25 +68,20 @@ export async function POST(req: Request) {
 
 export async function GET(req: Request) {
   try {
-    const user = await getAuth0User(req as any);
+    const user = await getOrCreateUser(req as NextRequest);
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const { searchParams } = new URL(req.url);
-    const userId = searchParams.get('userId');
-    const search = searchParams.get('search');
-
-    if (!userId) {
       return NextResponse.json(
-        { error: 'User ID is required' },
-        { status: 400 }
+        { error: 'Unauthorized' },
+        { status: 401 }
       );
     }
 
+    const { searchParams } = new URL(req.url);
+    const search = searchParams.get('search');
+
     const podcasts = await prisma.podcast.findMany({
       where: {
-        userId,
+        userId: user.id,
         ...(search
           ? {
               OR: [

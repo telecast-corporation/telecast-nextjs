@@ -3,12 +3,9 @@ import auth0 from './auth0';
 
 export interface Auth0User {
   sub: string;
-  email: string;
-  name: string;
+  email?: string;
+  name?: string;
   picture?: string;
-  'https://telecast.com/premium'?: boolean;
-  'https://telecast.com/premium_expires_at'?: string;
-  'https://telecast.com/used_free_trial'?: boolean;
 }
 
 export async function getAuth0Session(req: NextRequest) {

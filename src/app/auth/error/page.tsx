@@ -4,8 +4,9 @@ import { useSearchParams } from 'next/navigation';
 import { Box, Typography, Card, CardContent, Button } from '@mui/material';
 import { Error as ErrorIcon } from '@mui/icons-material';
 import Link from 'next/link';
+import { Suspense } from 'react';
 
-export default function AuthErrorPage() {
+function AuthErrorContent() {
   const searchParams = useSearchParams();
   const error = searchParams.get('error');
   const errorDescription = searchParams.get('error_description');
@@ -64,5 +65,31 @@ export default function AuthErrorPage() {
         </CardContent>
       </Card>
     </Box>
+  );
+}
+
+export default function AuthErrorPage() {
+  return (
+    <Suspense fallback={
+      <Box
+        sx={{
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          p: 2,
+        }}
+      >
+        <Card sx={{ maxWidth: 500, width: '100%' }}>
+          <CardContent sx={{ textAlign: 'center', p: 4 }}>
+            <Typography variant="h4" gutterBottom>
+              Loading...
+            </Typography>
+          </CardContent>
+        </Card>
+      </Box>
+    }>
+      <AuthErrorContent />
+    </Suspense>
   );
 } 

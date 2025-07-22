@@ -16,8 +16,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    if (!user.email) {
+      return NextResponse.json({ error: 'User email is required' }, { status: 400 });
+    }
+
     // Get user from database
-    const user = await prisma.user.findUnique({
+    const dbUser = await prisma.user.findUnique({
       where: { email: user.email },
       select: { 
         id: true, 
@@ -27,18 +31,22 @@ export async function POST(request: NextRequest) {
       }
     });
 
-    if (!user) {
+    if (!dbUser) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    if (!user.isPremium) {
+    if (!dbUser.isPremium) {
       return NextResponse.json({ error: 'User is not a premium subscriber' }, { status: 400 });
+    }
+
+    if (!dbUser.email) {
+      return NextResponse.json({ error: 'User email is missing in database' }, { status: 500 });
     }
 
     // Check if user has already cancelled their subscription in this billing period
     const now = new Date();
-    const hasCancelledInCurrentPeriod = user.premiumExpiresAt && 
-      user.premiumExpiresAt < new Date(now.getTime() + 24 * 60 * 60 * 1000); // Within 24 hours of expiry
+    const hasCancelledInCurrentPeriod = dbUser.premiumExpiresAt && 
+      dbUser.premiumExpiresAt < new Date(now.getTime() + 24 * 60 * 60 * 1000); // Within 24 hours of expiry
 
     if (hasCancelledInCurrentPeriod) {
       return NextResponse.json({ 
@@ -54,7 +62,7 @@ export async function POST(request: NextRequest) {
     try {
       // Search for customer by email
       const customers = await stripe.customers.list({
-        email: user.email || undefined,
+        email: dbUser.email || undefined,
         limit: 1,
       });
 
@@ -79,7 +87,7 @@ export async function POST(request: NextRequest) {
     if (!subscriptionId) {
       // If no active subscription found in Stripe, we'll handle this gracefully
       // This could happen if the subscription was created outside of Stripe or there's a sync issue
-      console.warn(`No active Stripe subscription found for user ${user.email}`);
+      console.warn(`No active Stripe subscription found for user ${dbUser.email}`);
       
       // For now, we'll simulate cancellation by setting premiumExpiresAt to a near future date
       // This maintains the existing behavior while we work on better Stripe integration
@@ -87,7 +95,7 @@ export async function POST(request: NextRequest) {
       cancellationDate.setHours(cancellationDate.getHours() + 1); // Set to expire in 1 hour
 
       await prisma.user.update({
-        where: { email: user.email },
+        where: { email: dbUser.email },
         data: {
           premiumExpiresAt: cancellationDate,
         },
@@ -112,7 +120,7 @@ export async function POST(request: NextRequest) {
       
       // Update the user's premiumExpiresAt to match the subscription's period end
       await prisma.user.update({
-        where: { email: user.email },
+        where: { email: dbUser.email },
         data: {
           premiumExpiresAt: currentPeriodEnd,
         },
@@ -133,7 +141,7 @@ export async function POST(request: NextRequest) {
       cancellationDate.setHours(cancellationDate.getHours() + 1);
 
       await prisma.user.update({
-        where: { email: user.email },
+        where: { email: dbUser.email },
         data: {
           premiumExpiresAt: cancellationDate,
         },

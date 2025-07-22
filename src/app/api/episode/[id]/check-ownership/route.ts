@@ -4,9 +4,10 @@ import { getUserFromRequest } from '@/lib/auth0-user';
 import { prisma } from "@/lib/prisma";
 
 export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const user = await getUserFromRequest(request as any);
     
@@ -14,7 +15,7 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const episodeId = params.id;
+    const episodeId = id;
 
     // Get the episode and check ownership
     const episode = await prisma.episode.findFirst({

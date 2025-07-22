@@ -5,17 +5,18 @@ import { prisma } from '@/lib/prisma';
 import { uploadPodcastFile } from '@/lib/storage';
 
 export async function GET(
-  req: Request,
-  { params }: { params: { id: string } }
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const user = await getUserFromRequest(request as any);
-    if (!session?.user) {
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const podcast = await prisma.podcast.findUnique({
-      where: { id: params.id },
+      where: { id: id },
     });
 
     if (!podcast) {
@@ -33,16 +34,17 @@ export async function GET(
 }
 
 export async function PUT(
-  req: Request,
-  { params }: { params: { id: string } }
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const user = await getUserFromRequest(request as any);
-    if (!session?.user) {
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const formData = await req.formData();
+    const formData = await request.formData();
     const title = formData.get('title') as string;
     const description = formData.get('description') as string;
     const category = formData.get('category') as string;
@@ -58,7 +60,7 @@ export async function PUT(
 
     // Check if podcast exists and belongs to user
     const existingPodcast = await prisma.podcast.findUnique({
-      where: { id: params.id },
+      where: { id: id },
     });
 
     if (!existingPodcast) {
@@ -97,7 +99,7 @@ export async function PUT(
 
     // Update podcast
     const podcast = await prisma.podcast.update({
-      where: { id: params.id },
+      where: { id: id },
       data: updateData,
     });
 
@@ -112,18 +114,19 @@ export async function PUT(
 }
 
 export async function DELETE(
-  req: Request,
-  { params }: { params: { id: string } }
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const user = await getUserFromRequest(request as any);
-    if (!session?.user) {
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     // Check if podcast exists and belongs to user
     const existingPodcast = await prisma.podcast.findUnique({
-      where: { id: params.id },
+      where: { id: id },
     });
 
     if (!existingPodcast) {
@@ -142,7 +145,7 @@ export async function DELETE(
 
     // Delete podcast
     await prisma.podcast.delete({
-      where: { id: params.id },
+      where: { id: id },
     });
 
     return NextResponse.json({ message: 'Podcast deleted successfully' });

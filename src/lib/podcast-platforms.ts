@@ -281,50 +281,39 @@ export async function refreshAccessToken(platform: string, refreshToken: string)
 
 // Get valid access token (with refresh if needed)
 export async function getValidAccessToken(userId: string, platform: string): Promise<string | null> {
-  const { prisma } = await import('@/lib/prisma');
-  
+  const { prisma } = await import('./prisma');
   try {
-    const account = await prisma.account.findFirst({
-      where: {
-        userId,
-        provider: platform === 'google' ? 'google_podcast' : platform,
-      },
+    const connection = await prisma.platformConnection.findUnique({
+      where: { userId_platform: { userId, platform } },
     });
-
-    if (!account || !account.access_token) {
+    if (!connection || !connection.accessToken) {
       return null;
     }
-
     // Check if token is expired or will expire soon (within 5 minutes)
     const now = Math.floor(Date.now() / 1000);
-    const expiresSoon = account.expires_at && (account.expires_at - now) < 300;
-
-    if (expiresSoon && account.refresh_token) {
+    const expiresSoon = connection.expiresAt && (Math.floor(connection.expiresAt.getTime() / 1000) - now) < 300;
+    if (expiresSoon && connection.refreshToken) {
       try {
         // Refresh the token
-        const refreshData = await refreshAccessToken(platform, account.refresh_token);
-        
+        const refreshData = await refreshAccessToken(platform, connection.refreshToken);
         // Update the token in database
-        await prisma.account.update({
-          where: { id: account.id },
+        await prisma.platformConnection.update({
+          where: { id: connection.id },
           data: {
-            access_token: refreshData.access_token,
-            refresh_token: refreshData.refresh_token || account.refresh_token,
-            expires_at: refreshData.expires_in ? now + refreshData.expires_in : account.expires_at,
-            scope: refreshData.scope || account.scope,
+            accessToken: refreshData.access_token,
+            refreshToken: refreshData.refresh_token || connection.refreshToken,
+            expiresAt: refreshData.expires_in ? new Date(Date.now() + refreshData.expires_in * 1000) : connection.expiresAt,
           },
         });
-
         return refreshData.access_token;
       } catch (refreshError) {
         console.error(`Failed to refresh token for ${platform}:`, refreshError);
-        // If refresh fails, delete the account so user can reconnect
-        await prisma.account.delete({ where: { id: account.id } });
+        // If refresh fails, delete the connection so user can reconnect
+        await prisma.platformConnection.delete({ where: { id: connection.id } });
         return null;
       }
     }
-
-    return account.access_token;
+    return connection.accessToken;
   } catch (error) {
     console.error(`Error getting valid access token for ${platform}:`, error);
     return null;

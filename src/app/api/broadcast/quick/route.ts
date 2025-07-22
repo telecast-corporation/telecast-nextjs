@@ -15,7 +15,7 @@ import {
 export async function POST(request: Request) {
   try {
     const user = await getUserFromRequest(request as any);
-    if (!session?.user?.id) {
+    if (!user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -54,32 +54,29 @@ export async function POST(request: Request) {
       );
     }
 
+    // Check if episode has audio URL
+    if (!episode.audioUrl) {
+      return NextResponse.json(
+        { error: 'Episode audio URL is missing' },
+        { status: 400 }
+      );
+    }
+
     // Determine which platforms to broadcast to
     let platformsToBroadcast: string[] = [];
 
     if (useRememberedPlatforms) {
       // Get user's previously connected platforms
-      const accounts = await prisma.account.findMany({
+      const connections = await prisma.platformConnection.findMany({
         where: {
           userId: user.id,
-          provider: {
-            in: ['spotify', 'apple', 'google_podcast'],
+          platform: {
+            in: ['spotify', 'apple', 'google'],
           },
         },
       });
 
-      platformsToBroadcast = accounts.map(account => {
-        switch (account.provider) {
-          case 'spotify':
-            return 'spotify';
-          case 'apple':
-            return 'apple';
-          case 'google_podcast':
-            return 'google';
-          default:
-            return '';
-        }
-      }).filter(Boolean);
+      platformsToBroadcast = connections.map(connection => connection.platform);
     }
 
     // Add any custom platforms specified
@@ -128,7 +125,7 @@ export async function POST(request: Request) {
           episodeNumber: episode.episodeNumber,
           seasonNumber: episode.seasonNumber,
           explicit: episode.explicit,
-          publishDate: episode.publishDate.toISOString().split('T')[0],
+          publishDate: episode.publishedAt?.toISOString().split('T')[0] || new Date().toISOString().split('T')[0],
           keywords: episode.keywords,
         };
 
@@ -136,8 +133,8 @@ export async function POST(request: Request) {
           case 'spotify':
             const spotifyApi = new SpotifyPodcastAPI(accessToken);
             const spotifyMetadata: SpotifyMetadata = {
-              episodeTitle: metadata.episodeTitle,
-              episodeDescription: metadata.episodeDescription,
+              episodeTitle: metadata.episodeTitle || '',
+              episodeDescription: metadata.episodeDescription || '',
               episodeNumber: metadata.episodeNumber || undefined,
               seasonNumber: metadata.seasonNumber || undefined,
               explicit: metadata.explicit,
@@ -150,13 +147,16 @@ export async function POST(request: Request) {
           case 'apple':
             const appleApi = new ApplePodcastAPI(accessToken);
             const appleMetadata: AppleMetadata = {
-              episodeTitle: metadata.episodeTitle,
-              episodeDescription: metadata.episodeDescription,
+              episodeTitle: metadata.episodeTitle || '',
+              episodeDescription: metadata.episodeDescription || '',
               episodeNumber: metadata.episodeNumber || undefined,
               seasonNumber: metadata.seasonNumber || undefined,
               explicit: metadata.explicit,
               publishDate: metadata.publishDate,
               keywords: metadata.keywords || [],
+              subtitle: body.metadata?.apple?.subtitle,
+              summary: body.metadata?.apple?.summary,
+              itunesCategory: body.metadata?.apple?.itunesCategory,
             };
             results.apple = await appleApi.createEpisode('', appleMetadata, episode.audioUrl);
             break;
@@ -164,9 +164,9 @@ export async function POST(request: Request) {
           case 'google':
             const googleApi = new GooglePodcastAPI(accessToken);
             const googleMetadata: GoogleMetadata = {
-              email: user.email || '',
-              episodeTitle: metadata.episodeTitle,
-              episodeDescription: metadata.episodeDescription,
+              email: body.metadata?.google?.email || user.email || '',
+              episodeTitle: metadata.episodeTitle || '',
+              episodeDescription: metadata.episodeDescription || '',
               episodeNumber: metadata.episodeNumber || undefined,
               seasonNumber: metadata.seasonNumber || undefined,
               explicit: metadata.explicit,

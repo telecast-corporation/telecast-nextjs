@@ -15,9 +15,10 @@ const storage = new Storage({
 const bucketName = process.env.GOOGLE_CLOUD_PODCAST_BUCKET_NAME || "telecast-corp-podcast-bucket";
 
 export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const user = await getUserFromRequest(request as any);
     
@@ -25,12 +26,10 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const podcastId = params.id;
-
     // Check if podcast belongs to current user
     const podcast = await prisma.podcast.findFirst({
       where: {
-        id: podcastId,
+        id: id,
         userId: user.id
       }
     });
@@ -42,13 +41,13 @@ export async function GET(
     // Get temp files for this podcast from Google Cloud Storage
     const bucket = storage.bucket(bucketName);
     const [files] = await bucket.getFiles({
-      prefix: `temp/${podcastId}/`,
+      prefix: `temp/${id}/`,
       maxResults: 100
     });
 
     // Filter and format temp files
     const tempFiles = files
-      .filter(file => file.name.includes(`temp/${podcastId}/`))
+      .filter(file => file.name.includes(`temp/${id}/`))
       .map(file => {
         const url = `https://storage.googleapis.com/${bucketName}/${file.name}`;
         const fileNameParts = file.name.split('/');
@@ -66,7 +65,7 @@ export async function GET(
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()); // Sort by date desc
 
     return NextResponse.json({
-      podcastId: podcastId,
+      podcastId: id,
       files: tempFiles
     });
 
@@ -80,9 +79,10 @@ export async function GET(
 }
 
 export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string } }
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const user = await getUserFromRequest(request as any);
     
@@ -90,12 +90,10 @@ export async function POST(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const podcastId = params.id;
-
     // Check if podcast belongs to current user
     const podcast = await prisma.podcast.findFirst({
       where: {
-        id: podcastId,
+        id: id,
         userId: user.id
       }
     });
@@ -121,7 +119,7 @@ export async function POST(
       where: {
         referenceId: referenceId,
         userId: user.id,
-        podcastId: podcastId
+        podcastId: id
       }
     });
 
@@ -140,7 +138,7 @@ export async function POST(
     // Generate temporary filename
     const timestamp = Date.now();
     const fileExtension = file.name.split(".").pop();
-    const tempFileName = `temp/${podcastId}/${referenceId}/${timestamp}.${fileExtension}`;
+    const tempFileName = `temp/${id}/${referenceId}/${timestamp}.${fileExtension}`;
 
     // Upload to temporary location in Google Cloud Storage
     const { uploadPodcastFile } = await import("@/lib/storage");

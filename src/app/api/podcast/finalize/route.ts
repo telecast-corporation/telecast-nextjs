@@ -7,7 +7,7 @@ import { moveFile, deleteFile } from "@/lib/storage";
 export async function POST(request: NextRequest) {
   try {
     const user = await getUserFromRequest(request as any);
-    if (!session?.user?.id) {
+    if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -24,13 +24,23 @@ export async function POST(request: NextRequest) {
     const timestamp = Date.now();
     const fileExtension = tempPath.split('.').pop() || 'wav';
     const finalFileName = `podcasts/${podcastId}/${referenceId}/${timestamp}.${fileExtension}`;
+    
+    console.log('File paths:', {
+      tempPath,
+      finalFileName,
+      fileExtension,
+      timestamp
+    });
 
     console.log('Attempting to move file from:', tempPath, 'to:', finalFileName);
     
     // Move file from temp to final location
     const moveResult = await moveFile(tempPath, finalFileName);
     
+    console.log('Move result:', moveResult);
+    
     if (!moveResult.success) {
+      console.error('File move failed. Source path:', tempPath, 'Destination path:', finalFileName);
       throw new Error('Failed to move file to final location');
     }
 
@@ -43,7 +53,7 @@ export async function POST(request: NextRequest) {
         episodeNumber: metadata.episodeNumber ? parseInt(metadata.episodeNumber) : null,
         seasonNumber: metadata.seasonNumber ? parseInt(metadata.seasonNumber) : null,
         audioUrl: moveResult.url,
-        publishDate: new Date(metadata.publishDate),
+        publishedAt: new Date(metadata.publishDate),
         podcastId: podcastId,
         explicit: metadata.explicit,
         keywords: metadata.keywords ? metadata.keywords.split(',').map((k: string) => k.trim()) : [],

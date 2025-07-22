@@ -23,6 +23,10 @@ import {
   IconButton,
   Tooltip,
   CircularProgress,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from "@mui/material";
 
 import { useTheme } from "@mui/material/styles";
@@ -33,6 +37,7 @@ import {
   Settings as SettingsIcon,
   CheckCircle as CheckCircleIcon,
   CloudUpload as CloudUploadIcon,
+  Celebration as CelebrationIcon,
 } from "@mui/icons-material";
 import { useRouter } from "next/navigation";
 
@@ -119,6 +124,17 @@ export default function BroadcastPage() {
   const [audioFile, setAudioFile] = useState<File | null>(null);
   const [uploadError, setUploadError] = useState('');
   const [isUploading, setIsUploading] = useState(false);
+  const [successDialog, setSuccessDialog] = useState<{
+    open: boolean;
+    title: string;
+    message: string;
+    episodeId?: string;
+    podcastId?: string;
+  }>({
+    open: false,
+    title: '',
+    message: ''
+  });
   const router = useRouter();
 
   // Check for existing uploaded file and platform status on component mount
@@ -217,17 +233,24 @@ export default function BroadcastPage() {
   // Platform authentication functions
   const checkPlatformStatus = async () => {
     try {
-      const response = await fetch('/api/auth/podcast-platforms/status');
-      if (response.ok) {
-        const status = await response.json();
-        setPlatformStatus(status);
-        
-        // Update connection history
-        setConnectionHistory(prev => ({
-          ...prev,
-          ...status
-        }));
-      }
+      // Check Spotify connection via Auth0
+      const spotifyResponse = await fetch('/api/auth/spotify-token');
+      const spotifyData = await spotifyResponse.json();
+      
+      const status = {
+        spotify: spotifyData.connected || false,
+        apple: false, // TODO: Implement Apple connection
+        google: false, // TODO: Implement Google connection
+        telecast: true // Always true since it's our platform
+      };
+      
+      setPlatformStatus(status);
+      
+      // Update connection history
+      setConnectionHistory(prev => ({
+        ...prev,
+        ...status
+      }));
     } catch (error) {
       console.error('Error checking platform status:', error);
     }
@@ -243,7 +266,14 @@ export default function BroadcastPage() {
         [platform]: false
       }));
       
-      window.location.href = `/api/auth/podcast-platforms/${platform}`;
+      if (platform === 'spotify') {
+        // Redirect to Auth0 login with Spotify connection
+        window.location.href = `/auth/login?connection=spotify&returnTo=${encodeURIComponent('/broadcast')}`;
+      } else {
+        // TODO: Implement other platforms
+        console.log(`Connecting to ${platform} - not implemented yet`);
+        setIsConnecting(null);
+      }
     } catch (error) {
       console.error(`Error connecting to ${platform}:`, error);
       setIsConnecting(null);
@@ -385,23 +415,46 @@ export default function BroadcastPage() {
               .map(([platform, result]) => `${platform}: ${(result as any).success ? 'Success' : 'Failed'}`)
               .join(', ');
             
-            alert(`Successfully launched "${metadata.episodeTitle}" to Telecast and ${platformResults}!`);
+            setSuccessDialog({
+              open: true,
+              title: '🎉 Podcast Launched Successfully!',
+              message: `"${metadata.episodeTitle}" has been successfully launched to Telecast and ${platformResults}!`,
+              episodeId: result.episodeId,
+              podcastId: referenceData.podcastId
+            });
           } else {
-            alert(`Successfully launched "${metadata.episodeTitle}" to Telecast! Platform broadcasting failed.`);
+            setSuccessDialog({
+              open: true,
+              title: '🎉 Podcast Launched Successfully!',
+              message: `"${metadata.episodeTitle}" has been successfully launched to Telecast! Platform broadcasting failed.`,
+              episodeId: result.episodeId,
+              podcastId: referenceData.podcastId
+            });
           }
         } catch (broadcastError) {
           console.error('Platform broadcasting error:', broadcastError);
-          alert(`Successfully launched "${metadata.episodeTitle}" to Telecast! Platform broadcasting failed.`);
+          setSuccessDialog({
+            open: true,
+            title: '🎉 Podcast Launched Successfully!',
+            message: `"${metadata.episodeTitle}" has been successfully launched to Telecast! Platform broadcasting failed.`,
+            episodeId: result.episodeId,
+            podcastId: referenceData.podcastId
+          });
         }
       } else {
-        alert(`Successfully launched "${metadata.episodeTitle}" to Telecast!`);
+        setSuccessDialog({
+          open: true,
+          title: '🎉 Podcast Launched Successfully!',
+          message: `"${metadata.episodeTitle}" has been successfully launched to Telecast!`,
+          episodeId: result.episodeId,
+          podcastId: referenceData.podcastId
+        });
       }
       
       // Clear sessionStorage
       sessionStorage.removeItem('broadcastReference');
       
-      // Redirect to the specific podcast page
-      router.push(`/podcast/${referenceData.podcastId}`);
+      // Don't redirect immediately - let user see the success dialog first
       
     } catch (error) {
       console.error('Error finalizing podcast:', error);
@@ -1321,6 +1374,95 @@ export default function BroadcastPage() {
           </form>
         </Paper>
       </Box>
+
+      {/* Success Dialog */}
+      <Dialog
+        open={successDialog.open}
+        onClose={() => setSuccessDialog(prev => ({ ...prev, open: false }))}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            background: 'linear-gradient(135deg, #4CAF50 0%, #45a049 100%)',
+            color: 'white',
+            boxShadow: '0 20px 40px rgba(0,0,0,0.3)',
+          }
+        }}
+      >
+        <DialogTitle sx={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: 2,
+          fontSize: { xs: '1.25rem', sm: '1.5rem' },
+          fontWeight: 700,
+          pb: 1
+        }}>
+          <CelebrationIcon sx={{ fontSize: { xs: '1.5rem', sm: '2rem' } }} />
+          {successDialog.title}
+        </DialogTitle>
+        
+        <DialogContent sx={{ pt: 2 }}>
+          <Typography 
+            variant="body1" 
+            sx={{ 
+              fontSize: { xs: '1rem', sm: '1.125rem' },
+              lineHeight: 1.6,
+              mb: 3
+            }}
+          >
+            {successDialog.message}
+          </Typography>
+          
+          <Box sx={{ 
+            bgcolor: 'rgba(255,255,255,0.1)', 
+            p: 2, 
+            borderRadius: 2,
+            mb: 2
+          }}>
+            <Typography variant="body2" sx={{ opacity: 0.9 }}>
+              Your podcast is now live and available to listeners worldwide! 🎧
+            </Typography>
+          </Box>
+        </DialogContent>
+        
+        <DialogActions sx={{ p: 3, pt: 0 }}>
+          <Button
+            onClick={() => setSuccessDialog(prev => ({ ...prev, open: false }))}
+            variant="outlined"
+            sx={{ 
+              color: 'white', 
+              borderColor: 'white',
+              '&:hover': {
+                borderColor: 'white',
+                bgcolor: 'rgba(255,255,255,0.1)'
+              }
+            }}
+          >
+            Continue Editing
+          </Button>
+          
+          {successDialog.podcastId && (
+            <Button
+              onClick={() => {
+                setSuccessDialog(prev => ({ ...prev, open: false }));
+                router.push(`/podcast/${successDialog.podcastId}`);
+              }}
+              variant="contained"
+              sx={{ 
+                bgcolor: 'white',
+                color: '#4CAF50',
+                fontWeight: 600,
+                '&:hover': {
+                  bgcolor: 'rgba(255,255,255,0.9)'
+                }
+              }}
+            >
+              View Podcast
+            </Button>
+          )}
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 } 

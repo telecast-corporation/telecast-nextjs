@@ -6,8 +6,9 @@ const YOUTUBE_API_URL = 'https://www.googleapis.com/youtube/v3';
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     if (!YOUTUBE_API_KEY) {
       console.error('YouTube API key is not configured');
@@ -17,13 +18,11 @@ export async function GET(
       );
     }
 
-    const videoId = params.id;
-
     // First get the video details to get the channel ID
     const videoResponse = await axios.get(`${YOUTUBE_API_URL}/videos`, {
       params: {
         part: 'snippet',
-        id: videoId,
+        id: id,
         key: YOUTUBE_API_KEY,
       },
     });
@@ -55,7 +54,7 @@ export async function GET(
 
     // Filter out the current video and get video statistics
     const relatedVideos = response.data.items
-      .filter((item: any) => item.id.videoId !== videoId)
+      .filter((item: any) => item.id.videoId !== id)
       .slice(0, 10);
 
     if (relatedVideos.length === 0) {

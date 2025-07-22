@@ -5,18 +5,19 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
-    const user = await getAuth0User(request);
+    const user = await getAuth0User(new NextRequest(request));
     
     if (!user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const recording = await prisma.recording.findUnique({
-      where: { id: params.id },
+      where: { id: id },
       include: {
         user: {
           select: {
@@ -48,7 +49,7 @@ export async function GET(
 
     // Increment view count
     await prisma.recording.update({
-      where: { id: params.id },
+      where: { id: id },
       data: { views: { increment: 1 } }
     });
 
@@ -63,11 +64,12 @@ export async function GET(
 }
 
 export async function PUT(
-  request: NextRequest,
-  { params }: { params: { id: string } }
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
-    const user = await getAuth0User(request);
+    const user = await getAuth0User(new NextRequest(request));
     
     if (!user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -87,7 +89,7 @@ export async function PUT(
 
     // Check if recording exists and belongs to user
     const existingRecording = await prisma.recording.findUnique({
-      where: { id: params.id }
+      where: { id: id }
     });
 
     if (!existingRecording) {
@@ -100,7 +102,7 @@ export async function PUT(
 
     // Update recording
     const updatedRecording = await prisma.recording.update({
-      where: { id: params.id },
+      where: { id: id },
       data: {
         title,
         description,
@@ -129,11 +131,12 @@ export async function PUT(
 }
 
 export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { id: string } }
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
-    const user = await getAuth0User(request);
+    const user = await getAuth0User(new NextRequest(request));
     
     if (!user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -150,7 +153,7 @@ export async function DELETE(
 
     // Check if recording exists and belongs to user
     const existingRecording = await prisma.recording.findUnique({
-      where: { id: params.id }
+      where: { id: id }
     });
 
     if (!existingRecording) {
@@ -163,7 +166,7 @@ export async function DELETE(
 
     // Delete recording
     await prisma.recording.delete({
-      where: { id: params.id }
+      where: { id: id }
     });
 
     return NextResponse.json({ message: 'Recording deleted successfully' });

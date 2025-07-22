@@ -4,9 +4,10 @@ import { getUserFromRequest } from '@/lib/auth0-user';
 import { prisma } from "@/lib/prisma";
 
 export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const user = await getUserFromRequest(request as any);
     
@@ -14,12 +15,10 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const podcastId = params.id;
-
     // Check if podcast belongs to current user
     const podcast = await prisma.podcast.findFirst({
       where: {
-        id: podcastId,
+        id: id,
         userId: user.id
       }
     });
@@ -31,7 +30,7 @@ export async function GET(
     // Get all episodes for this podcast
     const episodes = await prisma.episode.findMany({
       where: {
-        podcastId: podcastId
+        podcastId: id
       },
       orderBy: {
         createdAt: 'desc'
@@ -48,7 +47,7 @@ export async function GET(
     });
 
     return NextResponse.json({
-      podcastId: podcastId,
+      podcastId: id,
       episodes: episodes
     });
 
@@ -62,9 +61,10 @@ export async function GET(
 }
 
 export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string } }
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const user = await getUserFromRequest(request as any);
     
@@ -72,12 +72,10 @@ export async function POST(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const podcastId = params.id;
-
     // Check if podcast belongs to current user
     const podcast = await prisma.podcast.findFirst({
       where: {
-        id: podcastId,
+        id: id,
         userId: user.id
       }
     });
@@ -99,7 +97,7 @@ export async function POST(
     // Get the latest episode number for this podcast
     const latestEpisode = await prisma.episode.findFirst({
       where: {
-        podcastId: podcastId
+        podcastId: id
       },
       orderBy: {
         episodeNumber: 'desc'
@@ -113,7 +111,7 @@ export async function POST(
       data: {
         title,
         description: description || "",
-        podcastId,
+        podcastId: id,
         episodeNumber: nextEpisodeNumber,
         seasonNumber: 1,
         duration: 0, // Will be updated after processing

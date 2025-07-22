@@ -28,7 +28,7 @@ interface InternalSearchResult {
 export async function GET(request: Request) {
   try {
     const user = await getUserFromRequest(request as any);
-    if (!session?.user) {
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -94,25 +94,24 @@ export async function GET(request: Request) {
             },
           },
         },
-        orderBy: { publishDate: 'desc' },
+        orderBy: { publishedAt: 'desc' },
         take: maxResults,
       });
 
       results.push(...episodes.map(episode => ({
         id: episode.id,
         title: episode.title,
-        description: episode.description,
-        coverImage: episode.podcast.coverImage || '',
-        author: episode.podcast.title, // Use podcast title as author for episodes
+        description: episode.description || '',
+        coverImage: episode.podcast?.coverImage || '',
+        author: episode.podcast?.title || '',
         source: 'internal' as const,
         type: 'episode' as const,
         podcastId: episode.podcastId,
-        podcastTitle: episode.podcast.title,
-        episodeNumber: episode.episodeNumber || undefined,
-        seasonNumber: episode.seasonNumber || undefined,
-        duration: episode.duration,
-        publishDate: episode.publishDate.toISOString(),
-        views: episode.views,
+        podcastTitle: episode.podcast?.title || '',
+        episodeNumber: episode.episodeNumber ?? undefined,
+        seasonNumber: episode.seasonNumber ?? undefined,
+        publishedAt: episode.publishedAt,
+        duration: episode.duration ?? undefined,
         likes: episode.likes,
       })));
     }

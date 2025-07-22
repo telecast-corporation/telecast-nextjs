@@ -15,17 +15,16 @@ const storage = new Storage({
 const bucketName = process.env.GOOGLE_CLOUD_PODCAST_BUCKET_NAME || "telecast-corp-podcast-bucket";
 
 export async function GET(
-  request: NextRequest,
-  { params }: { params: { episodeId: string } }
+  request: Request,
+  { params }: { params: Promise<{ episodeId: string }> }
 ) {
+  const { episodeId } = await params;
   try {
     const user = await getUserFromRequest(request as any);
     
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-
-    const episodeId = params.episodeId;
 
     // Get the episode and check ownership
     const episode = await prisma.episode.findFirst({

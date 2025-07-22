@@ -6,16 +6,16 @@ const YOUTUBE_API_URL = 'https://www.googleapis.com/youtube/v3';
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  try {
-    const videoId = params.id;
+  const { id } = await params;
 
+  try {
     // Get video details
     const videoResponse = await axios.get(`${YOUTUBE_API_URL}/videos`, {
       params: {
         part: 'snippet,statistics,contentDetails',
-        id: videoId,
+        id: id,
         key: YOUTUBE_API_KEY,
       },
     });
@@ -40,7 +40,7 @@ export async function GET(
       .replace('S', '');
 
     return NextResponse.json({
-      id: videoId,
+      id: id,
       title: snippet.title,
       description: snippet.description,
       thumbnail: snippet.thumbnails.high.url,
@@ -50,7 +50,7 @@ export async function GET(
       likeCount: parseInt(statistics.likeCount),
       duration,
       source: 'youtube',
-      sourceUrl: `https://www.youtube.com/watch?v=${videoId}`,
+      sourceUrl: `https://www.youtube.com/watch?v=${id}`,
     });
   } catch (error) {
     console.error('Error fetching video:', error);
