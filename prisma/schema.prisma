@@ -9,28 +9,22 @@ datasource db {
 }
 
 model User {
-  id                 String            @id @default(cuid())
-  auth0Id            String?           @unique // Auth0 user ID (e.g., "auth0|123456789")
-  email              String?           @unique
-  name               String?
-  createdAt          DateTime          @default(now())
-  updatedAt          DateTime          @updatedAt
-  image              String?
-  rssFeed            String?
-  isPremium          Boolean           @default(false)
-  premiumExpiresAt   DateTime?
-  usedFreeTrial      Boolean           @default(false)
-  fileReferences     FileReference[]
-  podcasts           Podcast[]
-  recordings         Recording[]
+  id               String          @id @default(cuid())
+  email            String?         @unique
+  name             String?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  image            String?
+  rssFeed          String?
+  isPremium        Boolean         @default(false)
+  premiumExpiresAt DateTime?
+  usedFreeTrial    Boolean         @default(false)
+  auth0Id          String?         @unique
+  fileReferences   FileReference[]
+  podcasts         Podcast[]
+  recordings       Recording[]
   platformConnections PlatformConnection[]
 }
-
-
-
-
-
-
 
 model Podcast {
   id             String          @id @default(cuid())
@@ -61,31 +55,31 @@ model Podcast {
 }
 
 model Episode {
-  id          String    @id @default(cuid())
-  title       String
-  description String?
-  podcastId   String
-  podcast     Podcast   @relation(fields: [podcastId], references: [id], onDelete: Cascade)
-  audioUrl    String?
-  duration    Int?
-  fileSize    Int?
-  publishedAt DateTime?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id            String    @id @default(cuid())
+  title         String
+  description   String?
+  podcastId     String
+  audioUrl      String?
+  duration      Int?
+  fileSize      Int?
+  publishedAt   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
   episodeNumber Int?
   seasonNumber  Int?
-  explicit      Boolean  @default(false)
+  explicit      Boolean   @default(false)
   keywords      String[]
-  views         Int      @default(0)
-  likes         Int      @default(0)
+  views         Int       @default(0)
+  likes         Int       @default(0)
   referenceId   String?
+  podcast       Podcast   @relation(fields: [podcastId], references: [id], onDelete: Cascade)
 
   @@index([podcastId])
   @@index([title])
 }
 
 model Recording {
-  id          String    @id @default(cuid())
+  id          String   @id @default(cuid())
   title       String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt

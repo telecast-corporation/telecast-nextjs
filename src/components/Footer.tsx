@@ -68,6 +68,20 @@ export default function Footer() {
               <Link
                 component="button"
                 variant="body2"
+                onClick={() => handleNavigation('/')}
+                sx={{ 
+                  textAlign: 'left', 
+                  color: 'text.secondary',
+                  fontSize: { xs: '0.9rem', sm: '1rem' },
+                  fontFamily: lexend.style.fontFamily,
+                  fontWeight: 400
+                }}
+              >
+                Home
+              </Link>
+              <Link
+                component="button"
+                variant="body2"
                 onClick={() => handleNavigation('/about')}
                 sx={{ 
                   textAlign: 'left', 
