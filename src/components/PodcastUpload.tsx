@@ -84,7 +84,7 @@ export default function PodcastUpload() {
         throw new Error('Failed to upload podcast');
       }
 
-      router.push('/dashboard');
+              router.push('/create');
       router.refresh();
     } catch (err) {
       setError('Error uploading podcast. Please try again.');

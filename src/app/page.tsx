@@ -24,6 +24,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import StarIcon from '@mui/icons-material/Star';
 import SearchParamsWrapper from '@/components/SearchParamsWrapper';
+import PartnerLogos from '@/components/PartnerLogos';
 
 interface TrendingItem {
     id: string;
@@ -252,6 +253,9 @@ function HomePageContent() {
 
   return (
     <Container>
+      {/* Partner Logos */}
+      <PartnerLogos />
+      
       <Typography
         variant="h6"
         align="center"

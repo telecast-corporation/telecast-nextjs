@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { Container, Typography, Box, CircularProgress } from '@mui/material';
 import UnifiedSearchResults from '@/components/UnifiedSearchResults';
 import BookTypeToggle from '@/components/BookTypeToggle';
+import PartnerLogos from '@/components/PartnerLogos';
 
 interface SearchResult {
   id: string;
@@ -144,44 +145,120 @@ export default function SearchResults() {
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
+      {/* Partner Logos */}
+      <PartnerLogos />
+      
       {/* CTA for podcast recording */}
       {type === 'podcast' && (
-        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 4 }}>
-          <a href="/record" style={{ textDecoration: 'none' }}>
+        <Box sx={{ 
+          display: 'flex', 
+          flexDirection: 'column', 
+          alignItems: 'center', 
+          mb: 4,
+          px: { xs: 2, sm: 0 }
+        }}>
+          <a href="/record" style={{ textDecoration: 'none', width: '100%', maxWidth: '500px' }}>
             <Box
               component="button"
               sx={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: 2,
-                background: '#ff9800',
+                justifyContent: 'center',
+                gap: { xs: 1, sm: 2 },
+                background: 'linear-gradient(135deg, #ff6b35 0%, #f7931e 100%)',
                 color: '#fff',
-                px: 7,
-                py: 3,
-                borderRadius: 1,
-                fontWeight: 900,
-                fontSize: { xs: '1.5rem', sm: '1.9rem' },
+                px: { xs: 3, sm: 6 },
+                py: { xs: 2, sm: 3 },
+                borderRadius: { xs: 2, sm: 3 },
+                fontWeight: 700,
+                fontSize: { xs: '1rem', sm: '1.2rem', md: '1.4rem' },
                 border: 'none',
-                boxShadow: '0 6px 24px 0 rgba(255, 152, 0, 0.18)',
+                boxShadow: '0 8px 32px rgba(255, 107, 53, 0.3)',
                 cursor: 'pointer',
-                transition: 'background 0.2s, box-shadow 0.2s, transform 0.1s',
-                letterSpacing: 1,
-                mt: 2,
-                mb: 1,
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                letterSpacing: { xs: 0.5, sm: 0.8 },
+                width: '100%',
+                position: 'relative',
+                overflow: 'hidden',
+                '&::before': {
+                  content: '""',
+                  position: 'absolute',
+                  top: 0,
+                  left: '-100%',
+                  width: '100%',
+                  height: '100%',
+                  background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent)',
+                  transition: 'left 0.5s',
+                },
                 '&:hover': {
-                  background: '#fb8c00',
-                  boxShadow: '0 10px 32px 0 rgba(255, 152, 0, 0.28)',
-                  transform: 'translateY(-2px) scale(1.03)',
+                  background: 'linear-gradient(135deg, #e55a2b 0%, #e8851a 100%)',
+                  boxShadow: '0 12px 40px rgba(255, 107, 53, 0.4)',
+                  transform: 'translateY(-3px)',
+                  '&::before': {
+                    left: '100%',
+                  },
+                },
+                '&:active': {
+                  transform: 'translateY(-1px)',
+                  boxShadow: '0 6px 20px rgba(255, 107, 53, 0.3)',
                 },
               }}
             >
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none"><path d="M12 17C14.7614 17 17 14.7614 17 12V7C17 4.23858 14.7614 2 12 2C9.23858 2 7 4.23858 7 7V12C7 14.7614 9.23858 17 12 17Z" fill="white"/><path d="M19 11.9999C19 16.4182 15.4183 19.9999 11 19.9999C6.58172 19.9999 3 16.4182 3 11.9999" stroke="white" strokeWidth="2" strokeLinecap="round"/><path d="M12 22V20" stroke="white" strokeWidth="2" strokeLinecap="round"/></svg>
-              Make Your Own Podcast with Telecast
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" style={{ marginLeft: 8 }}><path d="M5 12h14M13 6l6 6-6 6" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              <svg 
+                width={24} 
+                height={24} 
+                viewBox="0 0 24 24" 
+                fill="none"
+                style={{ 
+                  minWidth: '24px',
+                  filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))'
+                }}
+              >
+                <path d="M12 17C14.7614 17 17 14.7614 17 12V7C17 4.23858 14.7614 2 12 2C9.23858 2 7 4.23858 7 7V12C7 14.7614 9.23858 17 12 17Z" fill="white"/>
+                <path d="M19 11.9999C19 16.4182 15.4183 19.9999 11 19.9999C6.58172 19.9999 3 16.4182 3 11.9999" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+                <path d="M12 22V20" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+              </svg>
+              <span style={{ 
+                whiteSpace: 'nowrap',
+                textShadow: '0 1px 2px rgba(0,0,0,0.1)'
+              }}>
+                <Box component="span" sx={{ 
+                  display: { xs: 'inline', sm: 'none' }
+                }}>
+                  Create Podcast
+                </Box>
+                <Box component="span" sx={{ 
+                  display: { xs: 'none', sm: 'inline' }
+                }}>
+                  Make Your Own Podcast
+                </Box>
+              </span>
+              <svg 
+                width={20} 
+                height={20} 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                style={{ 
+                  marginLeft: '8px',
+                  minWidth: '20px',
+                  filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))'
+                }}
+              >
+                <path d="M5 12h14M13 6l6 6-6 6" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
             </Box>
           </a>
-          <Box sx={{ textAlign: 'center', color: '#ff9800', fontWeight: 700, fontSize: 17, mt: 1, letterSpacing: 0.5, textShadow: '0 1px 8px rgba(255,152,0,0.08)' }}>
-            No experience needed. One click to start!
+          <Box sx={{ 
+            textAlign: 'center', 
+            color: '#ff6b35', 
+            fontWeight: 600, 
+            fontSize: { xs: '0.875rem', sm: '1rem' }, 
+            mt: 2, 
+            letterSpacing: 0.3,
+            textShadow: '0 1px 4px rgba(255,107,53,0.1)',
+            opacity: 0.9
+          }}>
+            ✨ No experience needed • One click to start!
           </Box>
         </Box>
       )}
