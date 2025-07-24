@@ -281,43 +281,47 @@ export async function refreshAccessToken(platform: string, refreshToken: string)
 
 // Get valid access token (with refresh if needed)
 export async function getValidAccessToken(userId: string, platform: string): Promise<string | null> {
-  const { prisma } = await import('./prisma');
-  try {
-    const connection = await prisma.platformConnection.findUnique({
-      where: { userId_platform: { userId, platform } },
-    });
-    if (!connection || !connection.accessToken) {
-      return null;
-    }
-    // Check if token is expired or will expire soon (within 5 minutes)
-    const now = Math.floor(Date.now() / 1000);
-    const expiresSoon = connection.expiresAt && (Math.floor(connection.expiresAt.getTime() / 1000) - now) < 300;
-    if (expiresSoon && connection.refreshToken) {
-      try {
-        // Refresh the token
-        const refreshData = await refreshAccessToken(platform, connection.refreshToken);
-        // Update the token in database
-        await prisma.platformConnection.update({
-          where: { id: connection.id },
-          data: {
-            accessToken: refreshData.access_token,
-            refreshToken: refreshData.refresh_token || connection.refreshToken,
-            expiresAt: refreshData.expires_in ? new Date(Date.now() + refreshData.expires_in * 1000) : connection.expiresAt,
-          },
-        });
-        return refreshData.access_token;
-      } catch (refreshError) {
-        console.error(`Failed to refresh token for ${platform}:`, refreshError);
-        // If refresh fails, delete the connection so user can reconnect
-        await prisma.platformConnection.delete({ where: { id: connection.id } });
-        return null;
-      }
-    }
-    return connection.accessToken;
-  } catch (error) {
-    console.error(`Error getting valid access token for ${platform}:`, error);
-    return null;
-  }
+  // Platform connections not available in current database schema
+  // const { prisma } = await import('./prisma');
+  // try {
+  //   const connection = await prisma.platformConnection.findUnique({
+  //     where: { userId_platform: { userId, platform } },
+  //   });
+  //   if (!connection || !connection.accessToken) {
+  //     return null;
+  //   }
+  //   // Check if token is expired or will expire soon (within 5 minutes)
+  //   const now = Math.floor(Date.now() / 1000);
+  //   const expiresSoon = connection.expiresAt && (Math.floor(connection.expiresAt.getTime() / 1000) - now) < 300;
+  //   if (expiresSoon && connection.refreshToken) {
+  //     try {
+  //       // Refresh the token
+  //       const refreshData = await refreshAccessToken(platform, connection.refreshToken);
+  //       // Update the token in database
+  //       await prisma.platformConnection.update({
+  //         where: { id: connection.id },
+  //         data: {
+  //           accessToken: refreshData.access_token,
+  //           refreshToken: refreshData.refresh_token || connection.refreshToken,
+  //           expiresAt: refreshData.expires_in ? new Date(Date.now() + refreshData.expires_in * 1000) : connection.expiresAt,
+  //         },
+  //       });
+  //       return refreshData.access_token;
+  //     } catch (refreshError) {
+  //       console.error(`Failed to refresh token for ${platform}:`, refreshError);
+  //       // If refresh fails, delete the connection so user can reconnect
+  //       await prisma.platformConnection.delete({ where: { id: connection.id } });
+  //       return null;
+  //     }
+  //   }
+  //   return connection.accessToken;
+  // } catch (error) {
+  //   console.error(`Error getting valid access token for ${platform}:`, error);
+  //   return null;
+  // }
+  
+  // Return null since platform connections are not available
+  return null;
 }
 
 // Platform status checking

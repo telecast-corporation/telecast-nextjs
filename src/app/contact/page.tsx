@@ -45,6 +45,8 @@ export default function Contacts() {
           color: theme.palette.primary.main,
           ...typography.title,
           mb: { xs: 2, sm: 3 },
+          fontSize: { xs: '2.2rem', sm: '3rem', md: '3.5rem' },
+          fontWeight: 700,
         }}
       >
         Contact Us
@@ -64,7 +66,7 @@ export default function Contacts() {
         <input type="hidden" name="_captcha" value="false" />
         <input type="hidden" name="_next" value="/thank-you" />
         <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-          <Typography component="label" htmlFor="name" sx={{ mb: 1, ...typography.subheading, color: 'text.primary' }}>
+          <Typography component="label" htmlFor="name" sx={{ mb: 1, ...typography.subheading, color: 'text.primary', fontSize: '1.2rem', fontWeight: 600 }}>
             Your Name
           </Typography>
           <input
@@ -81,7 +83,7 @@ export default function Contacts() {
               borderRadius: borderRadius.medium,
               backgroundColor: theme.palette.background.default,
               color: theme.palette.text.primary,
-              fontSize: typography.input.fontSize.lg || '0.9rem',
+              fontSize: '1rem',
               fontFamily: 'inherit',
               outline: 'none',
               transition: 'border-color 0.2s',
@@ -89,7 +91,7 @@ export default function Contacts() {
           />
         </Box>
         <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-          <Typography component="label" htmlFor="email" sx={{ mb: 1, ...typography.subheading, color: 'text.primary' }}>
+          <Typography component="label" htmlFor="email" sx={{ mb: 1, ...typography.subheading, color: 'text.primary', fontSize: '1.2rem', fontWeight: 600 }}>
             Email
           </Typography>
           <input
@@ -106,7 +108,7 @@ export default function Contacts() {
               borderRadius: borderRadius.medium,
               backgroundColor: theme.palette.background.default,
               color: theme.palette.text.primary,
-              fontSize: typography.input.fontSize.lg || '0.9rem',
+              fontSize: '1rem',
               fontFamily: 'inherit',
               outline: 'none',
               transition: 'border-color 0.2s',
@@ -114,7 +116,7 @@ export default function Contacts() {
           />
         </Box>
         <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-          <Typography component="label" htmlFor="message" sx={{ mb: 1, ...typography.subheading, color: 'text.primary' }}>
+          <Typography component="label" htmlFor="message" sx={{ mb: 1, ...typography.subheading, color: 'text.primary', fontSize: '1.2rem', fontWeight: 600 }}>
             Message
           </Typography>
           <textarea
@@ -131,7 +133,7 @@ export default function Contacts() {
               borderRadius: borderRadius.medium,
               backgroundColor: theme.palette.background.default,
               color: theme.palette.text.primary,
-              fontSize: typography.input.fontSize.lg || '0.9rem',
+              fontSize: '1rem',
               fontFamily: 'inherit',
               resize: 'vertical',
               outline: 'none',
@@ -150,6 +152,8 @@ export default function Contacts() {
             textTransform: 'none',
             boxShadow: '0 2px 8px rgba(37,99,235,0.08)',
             mt: { xs: 1, sm: 1.5 },
+            fontSize: '1.1rem',
+            fontWeight: 600,
             '&:hover': {
               backgroundColor: 'primary.dark',
             },

@@ -81,6 +81,8 @@ export default function About() {
           color: theme.palette.primary.main,
           ...typography.title,
           mb: spacing.section,
+          fontSize: { xs: '2.2rem', sm: '3rem', md: '3.5rem' },
+          fontWeight: 700,
         }}
       >
         About Telecast
@@ -100,11 +102,11 @@ export default function About() {
                 }}
               >
                 <CardContent sx={{ p: spacing.gap }}>
-                  <Typography variant="h5" sx={{ ...typography.subheading, mb: spacing.gap, display: 'flex', alignItems: 'center' }}>
+                  <Typography variant="h5" sx={{ ...typography.subheading, mb: spacing.gap, display: 'flex', alignItems: 'center', fontSize: '1.6rem', fontWeight: 600 }}>
                     <span style={{ marginRight: '0.5rem' }}>👆</span>
                     User-Friendly Experience
                   </Typography>
-                  <Typography variant="body1" sx={{ ...typography.body }}>
+                  <Typography variant="body1" sx={{ ...typography.body, fontSize: '1.1rem', lineHeight: 1.6 }}>
                     At the core of our service, we offer an exceptionally user-friendly platform designed for both novice and seasoned podcasters. Our recording tools are intuitive, allowing creators to focus on content rather than the complexities of technology.
                   </Typography>
                 </CardContent>
@@ -122,11 +124,11 @@ export default function About() {
               }}
             >
               <CardContent sx={{ p: spacing.gap }}>
-                <Typography variant="h5" sx={{ ...typography.subheading, mb: spacing.gap, display: 'flex', alignItems: 'center' }}>
+                <Typography variant="h5" sx={{ ...typography.subheading, mb: spacing.gap, display: 'flex', alignItems: 'center', fontSize: '1.6rem', fontWeight: 600 }}>
                   <span style={{ marginRight: '0.5rem' }}>👥</span>
                   Community & Collaboration
                 </Typography>
-                <Typography variant="body1" sx={{ ...typography.body }}>
+                <Typography variant="body1" sx={{ ...typography.body, fontSize: '1.1rem', lineHeight: 1.6 }}>
                   We believe in the power of community. Our platform isn't just a place to host podcasts; it's a thriving ecosystem where listeners can engage directly with creators and each other.
                 </Typography>
               </CardContent>
@@ -143,11 +145,11 @@ export default function About() {
               }}
             >
               <CardContent sx={{ p: spacing.gap }}>
-                <Typography variant="h5" sx={{ ...typography.subheading, mb: spacing.gap, display: 'flex', alignItems: 'center' }}>
+                <Typography variant="h5" sx={{ ...typography.subheading, mb: spacing.gap, display: 'flex', alignItems: 'center', fontSize: '1.6rem', fontWeight: 600 }}>
                   <span style={{ marginRight: '0.5rem' }}>🌍</span>
                   Content Diversity & Discovery
                 </Typography>
-                <Typography variant="body1" sx={{ ...typography.body }}>
+                <Typography variant="body1" sx={{ ...typography.body, fontSize: '1.1rem', lineHeight: 1.6 }}>
                   Our directory is curated to showcase the richness of human experience through audio. We commit to promoting a wide array of genres, from the niche to the mainstream.
                 </Typography>
               </CardContent>
@@ -184,6 +186,8 @@ export default function About() {
                 ...typography.heading,
                 color: theme.palette.text.primary,
                 mb: spacing.gap,
+                fontSize: { xs: '1.8rem', sm: '2.2rem', md: '2.7rem' },
+                fontWeight: 700,
               }}
             >
               Innovation That Elevates Your Voice
@@ -192,7 +196,9 @@ export default function About() {
               variant="body1" 
               sx={{ 
                 ...typography.body,
-                color: theme.palette.text.secondary, 
+                color: theme.palette.text.secondary,
+                fontSize: '1.2rem',
+                lineHeight: 1.7,
               }}
             >
               Our tools support emerging formats like 3D audio, choose-your-own-adventure episodes, and smart home integration—so you're not just podcasting, you're pioneering.
@@ -217,7 +223,7 @@ export default function About() {
             fontWeight: 700, 
             color: theme.palette.primary.main,
             mb: 2,
-            fontSize: { xs: '1.5rem', sm: '2rem' }
+            fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' }
           }}
         >
           Why Creators Choose Telecast
@@ -226,7 +232,8 @@ export default function About() {
           variant="body1" 
           sx={{ 
             color: theme.palette.text.secondary,
-            fontSize: '1.1rem',
+            fontSize: '1.3rem',
+            lineHeight: 1.6,
             maxWidth: 600,
             mx: 'auto'
           }}
@@ -246,12 +253,13 @@ export default function About() {
                 sx={{ 
                   fontWeight: 700, 
                   color: theme.palette.primary.main,
-                  mb: 1
+                  mb: 1,
+                  fontSize: '2.5rem'
                 }}
               >
                 5,000+
               </Typography>
-              <Typography variant="body1" color="text.secondary">
+              <Typography variant="body1" color="text.secondary" sx={{ fontSize: '1.2rem' }}>
                 Podcasts Hosted
               </Typography>
             </Box>
@@ -264,12 +272,13 @@ export default function About() {
                 sx={{ 
                   fontWeight: 700, 
                   color: theme.palette.primary.main,
-                  mb: 1
+                  mb: 1,
+                  fontSize: '2.5rem'
                 }}
               >
                 1M+
               </Typography>
-              <Typography variant="body1" color="text.secondary">
+              <Typography variant="body1" color="text.secondary" sx={{ fontSize: '1.2rem' }}>
                 Listeners Reached
               </Typography>
             </Box>
@@ -282,12 +291,13 @@ export default function About() {
                 sx={{ 
                   fontWeight: 700, 
                   color: theme.palette.primary.main,
-                  mb: 1
+                  mb: 1,
+                  fontSize: '2.5rem'
                 }}
               >
                 98%
               </Typography>
-              <Typography variant="body1" color="text.secondary">
+              <Typography variant="body1" color="text.secondary" sx={{ fontSize: '1.2rem' }}>
                 Satisfaction Rate
               </Typography>
             </Box>
@@ -303,7 +313,7 @@ export default function About() {
             fontWeight: 700, 
             color: theme.palette.text.primary,
             mb: 3,
-            fontSize: { xs: '1.5rem', sm: '2rem' }
+            fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' }
           }}
         >
           Creator Spotlight
@@ -332,7 +342,8 @@ export default function About() {
           sx={{ 
             fontStyle: 'italic', 
             color: theme.palette.text.secondary,
-            fontSize: '1.1rem',
+            fontSize: '1.4rem',
+            lineHeight: 1.6,
             maxWidth: 600,
             mx: 'auto',
             mb: 2
@@ -344,7 +355,8 @@ export default function About() {
           variant="body1" 
           sx={{ 
             fontWeight: 600, 
-            color: theme.palette.text.primary
+            color: theme.palette.text.primary,
+            fontSize: '1.2rem'
           }}
         >
           Jessie T., Host of "Mind Over Mic"
@@ -366,7 +378,7 @@ export default function About() {
           sx={{ 
             fontWeight: 700,
             mb: 2,
-            fontSize: { xs: '1.5rem', sm: '2rem' }
+            fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' }
           }}
         >
           Ready to Start Your Podcast Journey?
@@ -374,7 +386,8 @@ export default function About() {
         <Typography 
           variant="body1" 
           sx={{ 
-            fontSize: '1.1rem',
+            fontSize: '1.3rem',
+            lineHeight: 1.6,
             mb: 3
           }}
         >

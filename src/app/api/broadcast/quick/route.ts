@@ -66,17 +66,18 @@ export async function POST(request: Request) {
     let platformsToBroadcast: string[] = [];
 
     if (useRememberedPlatforms) {
+      // Platform connections not available in current database schema
       // Get user's previously connected platforms
-      const connections = await prisma.platformConnection.findMany({
-        where: {
-          userId: user.id,
-          platform: {
-            in: ['spotify', 'apple', 'google'],
-          },
-        },
-      });
+      // const connections = await prisma.platformConnection.findMany({
+      //   where: {
+      //     userId: user.id,
+      //     platform: {
+      //       in: ['spotify', 'apple', 'google'],
+      //     },
+      //   },
+      // });
 
-      platformsToBroadcast = connections.map(connection => connection.platform);
+      // platformsToBroadcast = connections.map(connection => connection.platform);
     }
 
     // Add any custom platforms specified

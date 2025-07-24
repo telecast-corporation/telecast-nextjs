@@ -875,9 +875,22 @@ const MainNav = memo(() => {
 
       {/* Mobile Navigation - Vertical Stack */}
       <List sx={{ px: 2, py: 1 }}>
-        <ListItem button onClick={() => { handleDrawerToggle(); router.push('/about'); }} sx={{ py: 1.5 }}>
+        <ListItem button onClick={() => { handleDrawerToggle(); router.push('/'); }} sx={{ py: 1.5 }}>
           <ListItemIcon sx={{ minWidth: 40 }}>
             <HomeIcon />
+          </ListItemIcon>
+          <ListItemText 
+            primary="Home" 
+            primaryTypographyProps={{ 
+              fontFamily: lexend.style.fontFamily,
+              ...typography.nav
+            }} 
+          />
+        </ListItem>
+        
+        <ListItem button onClick={() => { handleDrawerToggle(); router.push('/about'); }} sx={{ py: 1.5 }}>
+          <ListItemIcon sx={{ minWidth: 40 }}>
+            <BuildIcon />
           </ListItemIcon>
           <ListItemText 
             primary="About" 
@@ -915,12 +928,12 @@ const MainNav = memo(() => {
         </ListItem>
         
                   {isAuthenticated && (
-            <ListItem button onClick={() => { handleDrawerToggle(); router.push('/dashboard'); }} sx={{ py: 1.5 }}>
+                            <ListItem button onClick={() => { handleDrawerToggle(); router.push('/create'); }} sx={{ py: 1.5 }}>
               <ListItemIcon sx={{ minWidth: 40 }}>
                 <PodcastIcon />
               </ListItemIcon>
               <ListItemText 
-                primary="Dashboard" 
+                                  primary="Create" 
                 primaryTypographyProps={{ 
                   fontFamily: lexend.style.fontFamily,
                   ...typography.nav
@@ -997,6 +1010,31 @@ const MainNav = memo(() => {
           </Link>
         </LogoArea>
 
+        {/* Home Button */}
+        <Box sx={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'center',
+          px: 1
+        }}>
+          <Tooltip title="Home">
+            <IconButton
+              onClick={() => router.push('/')}
+              sx={{
+                color: pathname === '/' ? theme.palette.primary.main : theme.palette.text.secondary,
+                backgroundColor: pathname === '/' ? alpha(theme.palette.primary.main, 0.1) : 'transparent',
+                '&:hover': {
+                  backgroundColor: alpha(theme.palette.primary.main, 0.1),
+                  color: theme.palette.primary.main,
+                },
+                transition: 'all 0.2s ease',
+              }}
+            >
+              <HomeIcon />
+            </IconButton>
+          </Tooltip>
+        </Box>
+
           <SearchContainer ref={searchBoxRef}>
             <Box className="search-icon">
               <SearchIcon />
@@ -1059,6 +1097,16 @@ const MainNav = memo(() => {
           <Button 
             variant="text"
             className="nav-button"
+            startIcon={<HomeIcon />}
+            onClick={() => router.push('/')}
+            sx={getNavButtonStyles(theme, pathname, '/')}
+          >
+            Home
+          </Button>
+
+          <Button 
+            variant="text"
+            className="nav-button"
             onClick={() => router.push('/about')}
             sx={getNavButtonStyles(theme, pathname, '/about')}
           >
@@ -1087,10 +1135,10 @@ const MainNav = memo(() => {
             <Button 
               variant="text"
               className="nav-button"
-              onClick={() => router.push('/dashboard')}
-              sx={getNavButtonStyles(theme, pathname, '/dashboard')}
+              onClick={() => router.push('/create')}
+              sx={getNavButtonStyles(theme, pathname, '/create')}
             >
-              Dashboard
+              Create
             </Button>
           )}
 
