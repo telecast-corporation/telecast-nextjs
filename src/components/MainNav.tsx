@@ -328,7 +328,7 @@ const LogoArea = styled(Box)(({ theme }) => ({
   width: '100%',
   overflow: 'hidden',
   '& img': {
-    maxHeight: '1000%',
+    maxHeight: '150%',
     maxWidth: '100%', // Ensure logo doesn't exceed container width
     width: 'auto',
     objectFit: 'contain',
@@ -336,14 +336,14 @@ const LogoArea = styled(Box)(({ theme }) => ({
   [theme.breakpoints.down('lg')]: {
     justifyContent: 'center',
     '& img': {
-      maxHeight: '100%', // Smaller on mobile
+      maxHeight: '140%', // Much larger on mobile
       maxWidth: '100%', // Leave some margin on mobile
     },
   },
   [theme.breakpoints.down('sm')]: {
     '& img': {
-      maxHeight: '100%', // Even smaller on very small screens
-      maxWidth: '85%', // More conservative width on small screens
+      maxHeight: '120%', // Larger on very small screens
+      maxWidth: '95%', // More space on small screens
     },
   },
 }));
@@ -1000,40 +1000,17 @@ const MainNav = memo(() => {
                 style={{
                   width: '100%',
                   height: 'auto',
-                  maxWidth: '180px',
-                  maxHeight: '60px',
+                  maxWidth: '350px',
+                  maxHeight: '120px',
                   objectFit: 'contain',
                 }}
-                sizes="(max-width: 600px) 120px, (max-width: 900px) 160px, 180px"
+                sizes="(max-width: 600px) 200px, (max-width: 900px) 280px, 350px"
               />
             </Box>
           </Link>
         </LogoArea>
 
-        {/* Home Button */}
-        <Box sx={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          justifyContent: 'center',
-          px: 1
-        }}>
-          <Tooltip title="Home">
-            <IconButton
-              onClick={() => router.push('/')}
-              sx={{
-                color: pathname === '/' ? theme.palette.primary.main : theme.palette.text.secondary,
-                backgroundColor: pathname === '/' ? alpha(theme.palette.primary.main, 0.1) : 'transparent',
-                '&:hover': {
-                  backgroundColor: alpha(theme.palette.primary.main, 0.1),
-                  color: theme.palette.primary.main,
-                },
-                transition: 'all 0.2s ease',
-              }}
-            >
-              <HomeIcon />
-            </IconButton>
-          </Tooltip>
-        </Box>
+
 
           <SearchContainer ref={searchBoxRef}>
             <Box className="search-icon">
@@ -1093,16 +1070,6 @@ const MainNav = memo(() => {
       </FiltersArea>
 
         <NavGroup sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.5, sm: 1 } }}>
-
-          <Button 
-            variant="text"
-            className="nav-button"
-            startIcon={<HomeIcon />}
-            onClick={() => router.push('/')}
-            sx={getNavButtonStyles(theme, pathname, '/')}
-          >
-            Home
-          </Button>
 
           <Button 
             variant="text"
