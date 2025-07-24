@@ -154,109 +154,54 @@ export default function SearchResults() {
           display: 'flex', 
           flexDirection: 'column', 
           alignItems: 'center', 
-          mb: 4,
+          mb: 3,
           px: { xs: 2, sm: 0 }
         }}>
-          <a href="/record" style={{ textDecoration: 'none', width: '100%', maxWidth: '500px' }}>
+          <a href="/record" style={{ textDecoration: 'none' }}>
             <Box
-              component="button"
               sx={{
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: { xs: 1, sm: 2 },
-                background: 'linear-gradient(135deg, #ff6b35 0%, #f7931e 100%)',
-                color: '#fff',
-                px: { xs: 3, sm: 6 },
-                py: { xs: 2, sm: 3 },
-                borderRadius: { xs: 2, sm: 3 },
-                fontWeight: 700,
-                fontSize: { xs: '1rem', sm: '1.2rem', md: '1.4rem' },
-                border: 'none',
-                boxShadow: '0 8px 32px rgba(255, 107, 53, 0.3)',
+                gap: 1,
+                color: '#ff6b35',
+                fontWeight: 600,
+                fontSize: { xs: '1rem', sm: '1.1rem' },
+                textDecoration: 'underline',
+                textUnderlineOffset: '3px',
+                textDecorationThickness: '2px',
                 cursor: 'pointer',
-                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                letterSpacing: { xs: 0.5, sm: 0.8 },
-                width: '100%',
-                position: 'relative',
-                overflow: 'hidden',
-                '&::before': {
-                  content: '""',
-                  position: 'absolute',
-                  top: 0,
-                  left: '-100%',
-                  width: '100%',
-                  height: '100%',
-                  background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent)',
-                  transition: 'left 0.5s',
-                },
+                transition: 'all 0.2s ease',
                 '&:hover': {
-                  background: 'linear-gradient(135deg, #e55a2b 0%, #e8851a 100%)',
-                  boxShadow: '0 12px 40px rgba(255, 107, 53, 0.4)',
-                  transform: 'translateY(-3px)',
-                  '&::before': {
-                    left: '100%',
-                  },
-                },
-                '&:active': {
+                  color: '#e55a2b',
                   transform: 'translateY(-1px)',
-                  boxShadow: '0 6px 20px rgba(255, 107, 53, 0.3)',
+                  '& span:last-child': {
+                    transform: 'translateX(2px)',
+                  },
                 },
               }}
             >
-              <svg 
-                width={24} 
-                height={24} 
-                viewBox="0 0 24 24" 
-                fill="none"
-                style={{ 
-                  minWidth: '24px',
-                  filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))'
-                }}
-              >
-                <path d="M12 17C14.7614 17 17 14.7614 17 12V7C17 4.23858 14.7614 2 12 2C9.23858 2 7 4.23858 7 7V12C7 14.7614 9.23858 17 12 17Z" fill="white"/>
-                <path d="M19 11.9999C19 16.4182 15.4183 19.9999 11 19.9999C6.58172 19.9999 3 16.4182 3 11.9999" stroke="white" strokeWidth="2" strokeLinecap="round"/>
-                <path d="M12 22V20" stroke="white" strokeWidth="2" strokeLinecap="round"/>
-              </svg>
+              <span>Create your own podcast</span>
               <span style={{ 
-                whiteSpace: 'nowrap',
-                textShadow: '0 1px 2px rgba(0,0,0,0.1)'
+                fontSize: '0.9em',
+                display: 'inline-block',
+                marginLeft: '6px',
+                color: '#e55a2b',
+                fontWeight: 'bold',
+                transition: 'transform 0.2s ease'
               }}>
-                <Box component="span" sx={{ 
-                  display: { xs: 'inline', sm: 'none' }
-                }}>
-                  Create Podcast
-                </Box>
-                <Box component="span" sx={{ 
-                  display: { xs: 'none', sm: 'inline' }
-                }}>
-                  Make Your Own Podcast
-                </Box>
+                ↗
               </span>
-              <svg 
-                width={20} 
-                height={20} 
-                viewBox="0 0 24 24" 
-                fill="none" 
-                style={{ 
-                  marginLeft: '8px',
-                  minWidth: '20px',
-                  filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))'
-                }}
-              >
-                <path d="M5 12h14M13 6l6 6-6 6" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
             </Box>
           </a>
           <Box sx={{ 
             textAlign: 'center', 
             color: '#ff6b35', 
-            fontWeight: 600, 
-            fontSize: { xs: '0.875rem', sm: '1rem' }, 
-            mt: 2, 
-            letterSpacing: 0.3,
-            textShadow: '0 1px 4px rgba(255,107,53,0.1)',
-            opacity: 0.9
+            fontWeight: 500, 
+            fontSize: { xs: '0.8rem', sm: '0.9rem' }, 
+            mt: 1, 
+            letterSpacing: 0.2,
+            opacity: 0.8
           }}>
             ✨ No experience needed • One click to start!
           </Box>

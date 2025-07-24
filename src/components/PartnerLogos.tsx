@@ -11,9 +11,10 @@ export default function PartnerLogos() {
         display: 'flex',
         justifyContent: { xs: 'flex-start', sm: 'center' },
         alignItems: 'center',
-        gap: { xs: 2, sm: 2, md: 3 },
-        py: 2,
+        gap: { xs: 4, sm: 2, md: 1 },
+        py: { xs: 0.5, sm: 1 },
         px: { xs: 1, sm: 2 },
+        pb: { xs: 0.5, sm: 0.5 }, // Minimal bottom padding
         flexWrap: 'nowrap',
         overflow: { xs: 'auto', sm: 'visible' },
         scrollSnapType: { xs: 'x mandatory', sm: 'none' },
@@ -24,6 +25,7 @@ export default function PartnerLogos() {
         msOverflowStyle: 'none',
         WebkitOverflowScrolling: 'touch',
         minWidth: { xs: '100%', sm: 'auto' },
+        mb: { xs: 0.5, sm: 0 }, // Minimal margin bottom
       }}
     >
       <Link
@@ -44,8 +46,8 @@ export default function PartnerLogos() {
       >
         <Box
           sx={{
-            maxHeight: { xs: '35px', sm: '50px', md: '80px' },
-            maxWidth: { xs: '80px', sm: '120px', md: '200px' },
+            maxHeight: { xs: '50px', sm: '60px', md: '80px' },
+            maxWidth: { xs: '120px', sm: '140px', md: '200px' },
             width: 'auto',
             height: 'auto',
           }}
@@ -82,8 +84,8 @@ export default function PartnerLogos() {
       >
         <Box
           sx={{
-            maxHeight: { xs: '35px', sm: '50px', md: '80px' },
-            maxWidth: { xs: '80px', sm: '120px', md: '200px' },
+            maxHeight: { xs: '50px', sm: '60px', md: '80px' },
+            maxWidth: { xs: '120px', sm: '140px', md: '200px' },
             width: 'auto',
             height: 'auto',
           }}
@@ -120,8 +122,8 @@ export default function PartnerLogos() {
       >
         <Box
           sx={{
-            maxHeight: { xs: '35px', sm: '50px', md: '80px' },
-            maxWidth: { xs: '80px', sm: '120px', md: '200px' },
+            maxHeight: { xs: '50px', sm: '60px', md: '80px' },
+            maxWidth: { xs: '120px', sm: '140px', md: '200px' },
             width: 'auto',
             height: 'auto',
           }}
