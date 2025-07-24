@@ -18,8 +18,8 @@ export default function BookTypeToggle({ value, onChange }: BookTypeToggleProps)
   };
 
   return (
-    <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', gap: 2 }}>
-      <Typography variant="subtitle1" color="text.secondary">
+    <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+      <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.875rem' }}>
         Show:
       </Typography>
       <ToggleButtonGroup
@@ -28,16 +28,33 @@ export default function BookTypeToggle({ value, onChange }: BookTypeToggleProps)
         onChange={handleChange}
         aria-label="book type selection"
         size="small"
+        sx={{
+          '& .MuiToggleButton-root': {
+            px: 1.5,
+            py: 0.5,
+            fontSize: '0.8rem',
+            minHeight: '32px',
+            border: '1px solid',
+            borderColor: 'divider',
+            '&.Mui-selected': {
+              backgroundColor: 'action.selected',
+              color: 'text.primary',
+            },
+            '&:hover': {
+              backgroundColor: 'action.hover',
+            },
+          },
+        }}
       >
         <ToggleButton value="books" aria-label="books only">
-          <BookIcon sx={{ mr: 1, fontSize: 16 }} />
-          <Typography variant="body2">
+          <BookIcon sx={{ mr: 0.5, fontSize: 14 }} />
+          <Typography variant="caption" sx={{ fontSize: '0.75rem' }}>
             Books
           </Typography>
         </ToggleButton>
         <ToggleButton value="audiobooks" aria-label="audiobooks only">
-          <AudiobookIcon sx={{ mr: 1, fontSize: 16 }} />
-          <Typography variant="body2">
+          <AudiobookIcon sx={{ mr: 0.5, fontSize: 14 }} />
+          <Typography variant="caption" sx={{ fontSize: '0.75rem' }}>
             Audiobooks
           </Typography>
         </ToggleButton>

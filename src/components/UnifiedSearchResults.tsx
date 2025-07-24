@@ -668,23 +668,23 @@ export default function UnifiedSearchResults({ results, searchType = 'all', load
         variant="h6"
         align="center"
         sx={{
-          mt: 4,
-          mb: 4,
-          px: 3,
-          py: 2,
+          mt: { xs: 1, sm: 0.5 },
+          mb: { xs: 3, sm: 4 },
+          px: { xs: 2, sm: 3 },
+          py: { xs: 1, sm: 1.5, md: 2 },
           fontWeight: 400,
-          fontSize: { xs: '0.95rem', sm: '1.1rem', md: '1.2rem' },
+          fontSize: { xs: '0.85rem', sm: '1rem', md: '1.2rem' },
           background: TAGLINE_COLORS[searchType?.toLowerCase() || 'all'] || '#2563eb',
-          borderRadius: 5,
+          borderRadius: { xs: 3, sm: 5 },
           boxShadow: '0 2px 16px 0 rgba(30, 64, 175, 0.07)',
           color: '#fff',
-          letterSpacing: 0.7,
-          maxWidth: 720,
+          letterSpacing: { xs: 0.3, sm: 0.7 },
+          maxWidth: { xs: '95%', sm: 720 },
           mx: 'auto',
           fontStyle: 'italic',
           display: 'flex',
           alignItems: 'center',
-          gap: 1.5,
+          gap: { xs: 1, sm: 1.5 },
           transition: 'box-shadow 0.3s',
           animation: 'fadeInTagline 1.2s ease',
           '@keyframes fadeInTagline': {
@@ -693,7 +693,7 @@ export default function UnifiedSearchResults({ results, searchType = 'all', load
           },
         }}
       >
-        <StarIcon sx={{ fontSize: { xs: 18, sm: 20, md: 22 }, color: '#fff', mr: 1, opacity: 0.85 }} />
+        <StarIcon sx={{ fontSize: { xs: 16, sm: 18, md: 22 }, color: '#fff', mr: { xs: 0.5, sm: 1 }, opacity: 0.85 }} />
         Your premier destination for podcasts, videos, and music. Discover, listen, and share your favorite content.
       </Typography>
       {sortedEntries.map(([type, typeResults], index) => (

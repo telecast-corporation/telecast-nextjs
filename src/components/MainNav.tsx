@@ -328,7 +328,7 @@ const LogoArea = styled(Box)(({ theme }) => ({
   width: '100%',
   overflow: 'hidden',
   '& img': {
-    maxHeight: '150%',
+    maxHeight: '130%',
     maxWidth: '100%', // Ensure logo doesn't exceed container width
     width: 'auto',
     objectFit: 'contain',
@@ -336,13 +336,13 @@ const LogoArea = styled(Box)(({ theme }) => ({
   [theme.breakpoints.down('lg')]: {
     justifyContent: 'center',
     '& img': {
-      maxHeight: '140%', // Much larger on mobile
+      maxHeight: '120%', // Slightly larger on mobile
       maxWidth: '100%', // Leave some margin on mobile
     },
   },
   [theme.breakpoints.down('sm')]: {
     '& img': {
-      maxHeight: '120%', // Larger on very small screens
+      maxHeight: '110%', // Appropriate size on very small screens
       maxWidth: '95%', // More space on small screens
     },
   },
@@ -1000,11 +1000,11 @@ const MainNav = memo(() => {
                 style={{
                   width: '100%',
                   height: 'auto',
-                  maxWidth: '350px',
-                  maxHeight: '120px',
+                  maxWidth: '280px',
+                  maxHeight: '100px',
                   objectFit: 'contain',
                 }}
-                sizes="(max-width: 600px) 200px, (max-width: 900px) 280px, 350px"
+                sizes="(max-width: 600px) 160px, (max-width: 900px) 220px, 280px"
               />
             </Box>
           </Link>
