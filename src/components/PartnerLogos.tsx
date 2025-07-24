@@ -67,7 +67,7 @@ export default function PartnerLogos() {
       </Link>
 
       <Link
-        href="https://sunnydeals.ca"
+        href="https://sunnydeals.com"
         target="_blank"
         rel="noopener noreferrer"
         sx={{
@@ -92,7 +92,7 @@ export default function PartnerLogos() {
         >
           <Image
             src="/sunnydeals.jpeg"
-            alt="SunnyDeals.ca"
+            alt="SunnyDeals.com"
             width={200}
             height={80}
             style={{

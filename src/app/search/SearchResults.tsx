@@ -145,9 +145,6 @@ export default function SearchResults() {
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
-      {/* Partner Logos */}
-      <PartnerLogos />
-      
       {/* CTA for podcast recording */}
       {type === 'podcast' && (
         <Box sx={{ 
@@ -207,6 +204,9 @@ export default function SearchResults() {
           </Box>
         </Box>
       )}
+      
+      {/* Partner Logos */}
+      <PartnerLogos />
       {query && (
         <Typography variant="h4" component="h1" gutterBottom>
           Search Results for "{query}"
