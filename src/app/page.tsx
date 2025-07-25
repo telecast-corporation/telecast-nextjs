@@ -254,7 +254,7 @@ function HomePageContent() {
 
   return (
     <Container sx={{ 
-      py: { xs: 1, sm: 2 },
+      py: { xs: 0.5, sm: 1 },
       px: { xs: 1, sm: 2 }
     }}>
       {/* Create Podcast CTA Button */}
@@ -265,50 +265,48 @@ function HomePageContent() {
         mb: { xs: 2, sm: 3 },
         px: { xs: 2, sm: 3 }
       }}>
-        <Box
+        <Button
           onClick={() => router.push('/create')}
+          variant="contained"
           sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 1,
-            color: '#2563eb',
-            fontWeight: 600,
+            backgroundColor: '#2563eb',
+            borderRadius: '8px',
+            px: { xs: 3, sm: 4 },
+            py: { xs: 1.5, sm: 2 },
             fontSize: { xs: '1rem', sm: '1.1rem' },
-            textDecoration: 'underline',
-            textUnderlineOffset: '3px',
-            textDecorationThickness: '2px',
-            cursor: 'pointer',
+            fontWeight: 600,
+            textTransform: 'none',
+            boxShadow: '0 4px 12px rgba(37, 99, 235, 0.2)',
             transition: 'all 0.2s ease',
             '&:hover': {
-              color: '#1d4ed8',
+              backgroundColor: '#1d4ed8',
+              boxShadow: '0 6px 16px rgba(37, 99, 235, 0.3)',
               transform: 'translateY(-1px)',
-              '& span:last-child': {
-                transform: 'translateX(2px)',
-              },
             },
           }}
         >
-          <span>Create your own podcast</span>
-          <span style={{ 
-            fontSize: '0.9em',
-            display: 'inline-block',
-            marginLeft: '6px',
-            color: '#1d4ed8',
-            fontWeight: 'bold',
-            transition: 'transform 0.2s ease'
-          }}>
-            ↗
-          </span>
-        </Box>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <span>🎙️</span>
+            <span>Create Your Podcast</span>
+            <span style={{ 
+              fontSize: '0.9em',
+              display: 'inline-block',
+              marginLeft: '4px',
+              transition: 'transform 0.2s ease'
+            }}>
+              →
+            </span>
+          </Box>
+        </Button>
         <Box sx={{ 
           textAlign: 'center', 
-          color: '#2563eb', 
+          color: '#6b7280', 
           fontWeight: 500, 
           fontSize: { xs: '0.8rem', sm: '0.9rem' }, 
-          mt: 1, 
+          mt: 2, 
           letterSpacing: 0.2,
-          opacity: 0.8
+          opacity: 0.9,
+          maxWidth: '300px'
         }}>
           ✨ No experience needed • One click to start!
         </Box>
