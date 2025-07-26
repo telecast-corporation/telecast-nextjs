@@ -253,9 +253,67 @@ function HomePageContent() {
 
   return (
     <Container sx={{ 
-      py: { xs: 2, sm: 3 },
+      py: { xs: 1, sm: 1.5 },
       px: { xs: 1, sm: 2 }
     }}>
+      {/* CTA for podcast recording */}
+      <Box sx={{ 
+        display: 'flex', 
+        flexDirection: 'column', 
+        alignItems: 'center', 
+        mb: 2,
+        px: { xs: 2, sm: 0 }
+      }}>
+        <a href="/record" style={{ textDecoration: 'none' }}>
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 1,
+              color: '#2563eb',
+              fontWeight: 600,
+              fontSize: { xs: '1rem', sm: '1.1rem' },
+              textDecoration: 'underline',
+              textUnderlineOffset: '3px',
+              textDecorationThickness: '2px',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              '&:hover': {
+                color: '#1d4ed8',
+                transform: 'translateY(-1px)',
+                '& span:last-child': {
+                  transform: 'translateX(2px)',
+                },
+              },
+            }}
+          >
+            <span>Create your own podcast</span>
+            <span style={{ 
+              fontSize: '0.9em',
+              display: 'inline-block',
+              marginLeft: '6px',
+              color: '#1d4ed8',
+              fontWeight: 'bold',
+              transition: 'transform 0.2s ease'
+            }}>
+              ↗
+            </span>
+          </Box>
+        </a>
+        <Box sx={{ 
+          textAlign: 'center', 
+          color: '#2563eb', 
+          fontWeight: 500, 
+          fontSize: { xs: '0.8rem', sm: '0.9rem' }, 
+          mt: 1, 
+          letterSpacing: 0.2,
+          opacity: 0.8
+        }}>
+          ✨ No experience needed • One click to start!
+        </Box>
+      </Box>
+      
       {/* Partner Logos */}
       <PartnerLogos />
       
