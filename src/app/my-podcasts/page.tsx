@@ -107,7 +107,7 @@ export default function MyPodcasts() {
   }
 
   return (
-    <Container maxWidth="lg" sx={{ py: 6 }}>
+    <Container maxWidth="lg" sx={{ py: 3 }}>
       <Box sx={{ textAlign: 'center', mb: 6 }}>
         <Typography 
           variant="h3" 
@@ -138,9 +138,19 @@ export default function MyPodcasts() {
           variant="contained"
           onClick={() => router.push('/broadcast')}
           sx={{
-            backgroundColor: '#2196F3',
+            backgroundColor: '#2563eb',
+            borderRadius: '8px',
+            px: 4,
+            py: 2,
+            fontSize: '1.1rem',
+            fontWeight: 600,
+            textTransform: 'none',
+            boxShadow: '0 4px 12px rgba(37, 99, 235, 0.2)',
+            transition: 'all 0.2s ease',
             '&:hover': {
-              backgroundColor: '#1976D2',
+              backgroundColor: '#1d4ed8',
+              boxShadow: '0 6px 16px rgba(37, 99, 235, 0.3)',
+              transform: 'translateY(-1px)',
             },
           }}
         >
