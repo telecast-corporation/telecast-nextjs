@@ -2,10 +2,11 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Container, Typography, Box, CircularProgress } from '@mui/material';
+import { Container, Typography, Box, CircularProgress, Button } from '@mui/material';
 import UnifiedSearchResults from '@/components/UnifiedSearchResults';
 import BookTypeToggle from '@/components/BookTypeToggle';
 import PartnerLogos from '@/components/PartnerLogos';
+import { useRouter } from 'next/navigation';
 
 interface SearchResult {
   id: string;
@@ -26,6 +27,7 @@ export default function SearchResults() {
   const [bookType, setBookType] = useState<'books' | 'audiobooks'>('books');
   const debounceTimerRef = useRef<NodeJS.Timeout>();
   const showRecommendations = !query && ['podcast', 'video', 'music', 'book'].includes(type);
+  const router = useRouter();
 
   useEffect(() => {
     const fetchResults = async () => {
@@ -144,7 +146,7 @@ export default function SearchResults() {
   };
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
+    <Container maxWidth="lg" sx={{ py: 2 }}>
       {/* CTA for podcast recording */}
       {type === 'podcast' && (
         <Box sx={{ 
@@ -154,51 +156,48 @@ export default function SearchResults() {
           mb: 3,
           px: { xs: 2, sm: 0 }
         }}>
-          <a href="/record" style={{ textDecoration: 'none' }}>
-            <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 1,
-                color: '#ff6b35',
-                fontWeight: 600,
-                fontSize: { xs: '1rem', sm: '1.1rem' },
-                textDecoration: 'underline',
-                textUnderlineOffset: '3px',
-                textDecorationThickness: '2px',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-                '&:hover': {
-                  color: '#e55a2b',
-                  transform: 'translateY(-1px)',
-                  '& span:last-child': {
-                    transform: 'translateX(2px)',
-                  },
-                },
-              }}
-            >
-              <span>Create your own podcast</span>
+          <Button
+            onClick={() => router.push('/create')}
+            variant="contained"
+            sx={{
+              backgroundColor: '#ff6b35',
+              borderRadius: '8px',
+              px: { xs: 3, sm: 4 },
+              py: { xs: 1.5, sm: 2 },
+              fontSize: { xs: '1rem', sm: '1.1rem' },
+              fontWeight: 600,
+              textTransform: 'none',
+              boxShadow: '0 4px 12px rgba(255, 107, 53, 0.2)',
+              transition: 'all 0.2s ease',
+              '&:hover': {
+                backgroundColor: '#e55a2b',
+                boxShadow: '0 6px 16px rgba(255, 107, 53, 0.3)',
+                transform: 'translateY(-1px)',
+              },
+            }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <span>🎙️</span>
+              <span>Create Your Podcast</span>
               <span style={{ 
                 fontSize: '0.9em',
                 display: 'inline-block',
-                marginLeft: '6px',
-                color: '#e55a2b',
-                fontWeight: 'bold',
+                marginLeft: '4px',
                 transition: 'transform 0.2s ease'
               }}>
-                ↗
+                →
               </span>
             </Box>
-          </a>
+          </Button>
           <Box sx={{ 
             textAlign: 'center', 
-            color: '#ff6b35', 
+            color: '#6b7280', 
             fontWeight: 500, 
             fontSize: { xs: '0.8rem', sm: '0.9rem' }, 
-            mt: 1, 
+            mt: 2, 
             letterSpacing: 0.2,
-            opacity: 0.8
+            opacity: 0.9,
+            maxWidth: '300px'
           }}>
             ✨ No experience needed • One click to start!
           </Box>
