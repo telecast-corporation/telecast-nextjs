@@ -144,17 +144,14 @@ export default function SearchResults() {
   };
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
-      {/* Partner Logos */}
-      <PartnerLogos />
-      
+    <Container maxWidth="lg" sx={{ py: { xs: 1, sm: 1.5 } }}>
       {/* CTA for podcast recording */}
       {type === 'podcast' && (
         <Box sx={{ 
           display: 'flex', 
           flexDirection: 'column', 
           alignItems: 'center', 
-          mb: 3,
+          mb: 2,
           px: { xs: 2, sm: 0 }
         }}>
           <a href="/record" style={{ textDecoration: 'none' }}>
@@ -207,6 +204,9 @@ export default function SearchResults() {
           </Box>
         </Box>
       )}
+      
+      {/* Partner Logos */}
+      <PartnerLogos />
       {query && (
         <Typography variant="h4" component="h1" gutterBottom>
           Search Results for "{query}"
