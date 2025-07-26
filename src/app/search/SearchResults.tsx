@@ -2,10 +2,11 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Container, Typography, Box, CircularProgress } from '@mui/material';
+import { Container, Typography, Box, CircularProgress, Button } from '@mui/material';
 import UnifiedSearchResults from '@/components/UnifiedSearchResults';
 import BookTypeToggle from '@/components/BookTypeToggle';
 import PartnerLogos from '@/components/PartnerLogos';
+import { useRouter } from 'next/navigation';
 
 interface SearchResult {
   id: string;
@@ -26,6 +27,7 @@ export default function SearchResults() {
   const [bookType, setBookType] = useState<'books' | 'audiobooks'>('books');
   const debounceTimerRef = useRef<NodeJS.Timeout>();
   const showRecommendations = !query && ['podcast', 'video', 'music', 'book'].includes(type);
+  const router = useRouter();
 
   useEffect(() => {
     const fetchResults = async () => {

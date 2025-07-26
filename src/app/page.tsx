@@ -15,11 +15,12 @@ import {
   useTheme,
   useMediaQuery,
   Snackbar,
+  Button,
 } from '@mui/material';
 import { useRouter, useSearchParams } from 'next/navigation';
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
-import { Search as SearchIcon, Headphones as HeadphonesIcon, VideoLibrary as VideoIcon, MusicNote as MusicIcon, MenuBook as BookIcon } from '@mui/icons-material';
+import { Search as SearchIcon, Headphones as HeadphonesIcon, VideoLibrary as VideoIcon, MusicNote as MusicIcon, MenuBook as BookIcon, Mic as MicIcon } from '@mui/icons-material';
 import Link from 'next/link';
 import Image from 'next/image';
 import StarIcon from '@mui/icons-material/Star';
