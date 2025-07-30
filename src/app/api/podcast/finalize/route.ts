@@ -61,6 +61,20 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // Check if this is the first episode and automatically publish the podcast
+    const episodeCount = await prisma.episode.count({
+      where: { podcastId: podcastId }
+    });
+
+    if (episodeCount === 1) {
+      // This is the first episode, automatically publish the podcast
+      await prisma.podcast.update({
+        where: { id: podcastId },
+        data: { published: true }
+      });
+      console.log('Automatically published podcast:', podcastId);
+    }
+
     // Clean up temp file
     try {
       await deleteFile(tempPath);

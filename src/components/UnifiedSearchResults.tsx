@@ -57,6 +57,7 @@ interface SearchResult {
   narrator?: string;
   audibleUrl?: string;
   // Podcast specific
+  published?: boolean; // For internal podcasts
   // Music specific
   album?: string;
   releaseDate?: string;
@@ -311,6 +312,24 @@ export default function UnifiedSearchResults({ results, searchType = 'all', load
             </Typography>
           )}
           
+          {result.type === 'podcast' && result.published !== undefined && (
+            <Chip 
+              label={result.published ? 'Published' : 'Draft'} 
+              size="small" 
+              color={result.published ? 'success' : 'default'}
+              variant={result.published ? 'filled' : 'outlined'}
+              sx={{ 
+                fontSize: '0.25rem', 
+                height: 'auto', 
+                mb: 0.5,
+                '& .MuiChip-label': { 
+                  px: 0.5, 
+                  py: 0.2 
+                } 
+              }}
+            />
+          )}
+          
           {result.type === 'book' && (
             <>
               {result.rating && (
@@ -322,7 +341,7 @@ export default function UnifiedSearchResults({ results, searchType = 'all', load
                     readOnly 
                     sx={{ fontSize: '0.7rem' }}
                   />
-                  <Typography variant="caption" color="text.secondary" sx={{ ml: 0.5, fontSize: '0.3rem' }}>
+                  <Typography variant="caption" color="text.secondary" sx={{ ml: 0.5, fontSize: '0.3rem' }} component="span">
                     ({result.ratingsCount})
                   </Typography>
                 </Box>
@@ -356,6 +375,7 @@ export default function UnifiedSearchResults({ results, searchType = 'all', load
                 <Typography
                   variant="caption"
                   color="text.secondary"
+                  component="span"
                   sx={{
                     display: 'block',
                     fontSize: { xs: '0.25rem', sm: '0.3rem', md: '0.35rem', lg: '0.4rem' },
@@ -369,6 +389,7 @@ export default function UnifiedSearchResults({ results, searchType = 'all', load
                 <Typography
                   variant="caption"
                   color="text.secondary"
+                  component="span"
                   sx={{
                     display: 'block',
                     fontSize: { xs: '0.25rem', sm: '0.3rem', md: '0.35rem', lg: '0.4rem' },
@@ -387,7 +408,7 @@ export default function UnifiedSearchResults({ results, searchType = 'all', load
                     readOnly 
                     sx={{ fontSize: '0.7rem' }}
                   />
-                  <Typography variant="caption" color="text.secondary" sx={{ ml: 0.5, fontSize: '0.3rem' }}>
+                  <Typography variant="caption" color="text.secondary" sx={{ ml: 0.5, fontSize: '0.3rem' }} component="span">
                     ({result.ratingsCount})
                   </Typography>
                 </Box>
@@ -398,11 +419,8 @@ export default function UnifiedSearchResults({ results, searchType = 'all', load
           <Typography 
             variant="caption" 
             color="text.secondary" 
-            sx={{ 
-              mt: 0.5, 
-              display: 'block',
-              fontSize: { xs: '0.25rem', sm: '0.3rem', md: '0.35rem', lg: '0.4rem' }
-            }}
+            component="span"
+            sx={{ mt: 0.5, display: 'block', fontSize: '0.9rem' }}
           >
             {result.publishedAt || result.publishedDate || result.releaseDate}
           </Typography>
@@ -528,7 +546,7 @@ export default function UnifiedSearchResults({ results, searchType = 'all', load
                     readOnly 
                     sx={{ fontSize: '1rem' }}
                   />
-                  <Typography variant="caption" color="text.secondary" sx={{ ml: 0.5, fontSize: '0.8rem' }}>
+                  <Typography variant="caption" color="text.secondary" sx={{ ml: 0.5, fontSize: '0.8rem' }} component="span">
                     ({result.ratingsCount})
                   </Typography>
                 </Box>
@@ -553,6 +571,7 @@ export default function UnifiedSearchResults({ results, searchType = 'all', load
               <Typography 
                 variant="caption" 
                 color="text.secondary" 
+                component="span"
                 sx={{ mt: 0.5, display: 'block', fontSize: '0.9rem' }}
               >
                 {result.publishedAt || result.publishedDate || result.releaseDate}
