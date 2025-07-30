@@ -785,13 +785,13 @@ const MainNav = memo(() => {
                 </ListItemAvatar>
                 <ListItemText 
                   primary={
-                    <Typography variant="body2" noWrap>
+                    <Typography variant="body2" component="div" noWrap>
                       {suggestion.title}
                     </Typography>
                   }
                   secondary={
                     suggestion.author && (
-                      <Typography variant="body2" color="text.secondary" noWrap>
+                      <Typography variant="body2" component="span" color="text.secondary" noWrap>
                         {suggestion.author}
                       </Typography>
                     )

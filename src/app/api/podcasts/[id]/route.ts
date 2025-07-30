@@ -156,4 +156,64 @@ export async function DELETE(
       { status: 500 }
     );
   }
+}
+
+export async function PATCH(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
+  try {
+    const user = await getUserFromRequest(request as any);
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const body = await request.json();
+    const { published } = body;
+
+    // Check if podcast exists and belongs to user
+    const existingPodcast = await prisma.podcast.findUnique({
+      where: { id: id },
+      include: {
+        episodes: true
+      }
+    });
+
+    if (!existingPodcast) {
+      return NextResponse.json(
+        { error: 'Podcast not found' },
+        { status: 404 }
+      );
+    }
+
+    if (existingPodcast.userId !== user.id) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    // If trying to publish, check if podcast has episodes
+    if (published && existingPodcast.episodes.length === 0) {
+      return NextResponse.json(
+        { error: 'Cannot publish podcast without episodes' },
+        { status: 400 }
+      );
+    }
+
+    // Update podcast published status
+    const podcast = await prisma.podcast.update({
+      where: { id: id },
+      data: { published },
+    });
+
+    return NextResponse.json(podcast);
+  } catch (error) {
+    console.error('Error updating podcast:', error);
+    return NextResponse.json(
+      { error: 'Error updating podcast' },
+      { status: 500 }
+    );
+  }
 } 

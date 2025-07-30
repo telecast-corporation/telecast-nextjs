@@ -38,24 +38,9 @@ import {
   CheckCircle as CheckCircleIcon,
   CloudUpload as CloudUploadIcon,
   Celebration as CelebrationIcon,
+  CalendarToday as CalendarIcon,
 } from "@mui/icons-material";
 import { useRouter } from "next/navigation";
-
-interface AppleMetadata {
-  subtitle: string;
-  summary: string;
-  keywords: string;
-  season: string;
-  itunesCategory: string;
-}
-
-interface SpotifyMetadata {
-  // Add Spotify-specific fields as needed
-}
-
-interface GoogleMetadata {
-  email: string;
-}
 
 interface PodcastMetadata {
   // Episode-specific fields matching the schema exactly
@@ -66,18 +51,6 @@ interface PodcastMetadata {
   keywords: string;
   explicit: boolean;
   publishDate: string; // Changed from pubDate to publishDate to match schema
-  
-  // Platform-specific metadata (these will be stored elsewhere)
-  apple: AppleMetadata;
-  spotify: SpotifyMetadata;
-  google: GoogleMetadata;
-}
-
-interface Platforms {
-  spotify: boolean;
-  apple: boolean;
-  google: boolean;
-  telecast: boolean;
 }
 
 const DEFAULT_METADATA: PodcastMetadata = {
@@ -88,39 +61,12 @@ const DEFAULT_METADATA: PodcastMetadata = {
   seasonNumber: "",
   keywords: "",
   explicit: false,
-  publishDate: "",
-  
-  // Platform-specific
-  apple: {
-    subtitle: "",
-    summary: "",
-    keywords: "",
-    season: "",
-    itunesCategory: "",
-  },
-  spotify: {},
-  google: {
-    email: "",
-  },
+  publishDate: new Date().toISOString().split('T')[0], // Set default to today's date
 };
 
 export default function BroadcastPage() {
   const theme = useTheme();
   const [metadata, setMetadata] = useState<PodcastMetadata>(DEFAULT_METADATA);
-  const [platforms, setPlatforms] = useState<Platforms>({
-    spotify: false,
-    apple: false,
-    google: false,
-    telecast: true, // always true
-  });
-  const [platformStatus, setPlatformStatus] = useState<Platforms>({
-    spotify: false,
-    apple: false,
-    google: false,
-    telecast: true,
-  });
-  const [isConnecting, setIsConnecting] = useState<string | null>(null);
-  const [connectionHistory, setConnectionHistory] = useState<Record<string, boolean>>({});
   const [audioFile, setAudioFile] = useState<File | null>(null);
   const [uploadError, setUploadError] = useState('');
   const [isUploading, setIsUploading] = useState(false);
@@ -137,7 +83,7 @@ export default function BroadcastPage() {
   });
   const router = useRouter();
 
-  // Check for existing uploaded file and platform status on component mount
+  // Check for existing uploaded file on component mount
   useEffect(() => {
     const broadcastReference = sessionStorage.getItem('broadcastReference');
     if (broadcastReference) {
@@ -171,9 +117,6 @@ export default function BroadcastPage() {
         console.error('Error parsing broadcast reference:', error);
       }
     }
-
-    // Check platform connection status
-    checkPlatformStatus();
   }, []);
 
   // Check URL parameters for OAuth results
@@ -185,7 +128,7 @@ export default function BroadcastPage() {
 
     if (success) {
       alert(`Successfully connected to ${success.replace('_connected', '')}!`);
-      checkPlatformStatus();
+      // checkPlatformStatus(); // Removed as platforms are no longer selectable
     } else if (error) {
       alert(`Connection failed: ${message || error}`);
     }
@@ -204,94 +147,29 @@ export default function BroadcastPage() {
   const handleMainChange = (field: keyof PodcastMetadata, value: string | boolean) => {
     setMetadata((prev) => {
       const next = { ...prev, [field]: value };
+      
       // Autofill platform fields if they are empty
       if (field === "episodeTitle") {
-        if (!prev.apple.subtitle) next.apple.subtitle = value as string;
-        if (!prev.apple.summary) next.apple.summary = value as string;
+        // Removed platform autofill as platforms are no longer selectable
       }
       if (field === "episodeDescription") {
-        if (!prev.apple.summary) next.apple.summary = value as string;
+        // Removed platform autofill as platforms are no longer selectable
       }
       return next;
     });
   };
 
-  const handlePlatformChange = (platform: keyof Pick<PodcastMetadata, 'apple' | 'spotify' | 'google'>, field: string, value: string) => {
-    setMetadata((prev) => ({
-      ...prev,
-      [platform]: {
-        ...prev[platform],
-        [field]: value,
-      },
-    }));
+  // Platform helper functions - removed as platforms are no longer selectable
+  const getPlatformIcon = (platform: string) => {
+    // Removed as platforms are no longer selectable
   };
 
-  const handlePlatformSelect = (platform: keyof Platforms) => {
-    setPlatforms((prev) => ({ ...prev, [platform]: !prev[platform] }));
+  const getPlatformColor = (platform: string) => {
+    // Removed as platforms are no longer selectable
   };
 
-  // Platform authentication functions
-  const checkPlatformStatus = async () => {
-    try {
-      // Check Spotify connection via Auth0
-      const spotifyResponse = await fetch('/api/auth/spotify-token');
-      const spotifyData = await spotifyResponse.json();
-      
-      const status = {
-        spotify: spotifyData.connected || false,
-        apple: false, // TODO: Implement Apple connection
-        google: false, // TODO: Implement Google connection
-        telecast: true // Always true since it's our platform
-      };
-      
-      setPlatformStatus(status);
-      
-      // Update connection history
-      setConnectionHistory(prev => ({
-        ...prev,
-        ...status
-      }));
-    } catch (error) {
-      console.error('Error checking platform status:', error);
-    }
-  };
-
-  const connectPlatform = async (platform: string) => {
-    try {
-      setIsConnecting(platform);
-      
-      // Store connection attempt in history
-      setConnectionHistory(prev => ({
-        ...prev,
-        [platform]: false
-      }));
-      
-      if (platform === 'spotify') {
-        // Redirect to Auth0 login with Spotify connection
-        window.location.href = `/auth/login?connection=spotify&returnTo=${encodeURIComponent('/broadcast')}`;
-      } else {
-        // TODO: Implement other platforms
-        console.log(`Connecting to ${platform} - not implemented yet`);
-        setIsConnecting(null);
-      }
-    } catch (error) {
-      console.error(`Error connecting to ${platform}:`, error);
-      setIsConnecting(null);
-    }
-  };
-
-  const disconnectPlatform = async (platform: string) => {
-    try {
-      const response = await fetch(`/api/auth/podcast-platforms/${platform}/disconnect`, {
-        method: 'DELETE',
-      });
-      if (response.ok) {
-        setPlatformStatus(prev => ({ ...prev, [platform]: false }));
-        setPlatforms(prev => ({ ...prev, [platform]: false }));
-      }
-    } catch (error) {
-      console.error(`Error disconnecting from ${platform}:`, error);
-    }
+  const getPlatformAccentColor = (platform: string) => {
+    // Removed as platforms are no longer selectable
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -353,9 +231,9 @@ export default function BroadcastPage() {
           keywords: metadata.keywords,
           explicit: metadata.explicit,
           publishDate: metadata.publishDate || new Date().toISOString().split('T')[0],
-          apple: metadata.apple,
-          spotify: metadata.spotify,
-          google: metadata.google,
+          // apple: metadata.apple, // Removed as platforms are no longer selectable
+          // spotify: metadata.spotify, // Removed as platforms are no longer selectable
+          // google: metadata.google, // Removed as platforms are no longer selectable
         }
       };
 
@@ -376,72 +254,72 @@ export default function BroadcastPage() {
       const result = await response.json();
       
       // Broadcast to selected platforms
-      const selectedPlatforms = Object.entries(platforms)
-        .filter(([platform, enabled]) => enabled && platform !== 'telecast')
-        .map(([platform]) => platform);
+      // const selectedPlatforms = Object.entries(platforms) // Removed as platforms are no longer selectable
+      //   .filter(([platform, enabled]) => enabled && platform !== 'telecast')
+      //   .map(([platform]) => platform);
 
-      if (selectedPlatforms.length > 0) {
-        try {
-          const broadcastResponse = await fetch('/api/broadcast/platforms', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              episodeId: result.episodeId,
-              platforms: selectedPlatforms,
-              metadata: {
-                episodeTitle: metadata.episodeTitle,
-                episodeDescription: metadata.episodeDescription,
-                episodeNumber: metadata.episodeNumber,
-                seasonNumber: metadata.seasonNumber,
-                keywords: metadata.keywords,
-                explicit: metadata.explicit,
-                publishDate: metadata.publishDate || new Date().toISOString().split('T')[0],
-                apple: metadata.apple,
-                spotify: metadata.spotify,
-                google: metadata.google,
-              }
-            }),
-          });
+      // if (selectedPlatforms.length > 0) {
+      //   try {
+      //     const broadcastResponse = await fetch('/api/broadcast/platforms', { // Removed as platforms are no longer selectable
+      //       method: 'POST',
+      //       headers: {
+      //         'Content-Type': 'application/json',
+      //       },
+      //       body: JSON.stringify({
+      //         episodeId: result.episodeId,
+      //         platforms: selectedPlatforms,
+      //         metadata: {
+      //           episodeTitle: metadata.episodeTitle,
+      //           episodeDescription: metadata.episodeDescription,
+      //           episodeNumber: metadata.episodeNumber,
+      //           seasonNumber: metadata.seasonNumber,
+      //           keywords: metadata.keywords,
+      //           explicit: metadata.explicit,
+      //           publishDate: metadata.publishDate || new Date().toISOString().split('T')[0],
+      //           apple: metadata.apple,
+      //           spotify: metadata.spotify,
+      //           google: metadata.google,
+      //         }
+      //       }),
+      //     });
 
-          if (broadcastResponse.ok) {
-            const broadcastResult = await broadcastResponse.json();
-            console.log('Platform broadcast results:', broadcastResult);
+      //     if (broadcastResponse.ok) {
+      //       const broadcastResult = await broadcastResponse.json();
+      //       console.log('Platform broadcast results:', broadcastResult);
             
-            // Show platform-specific results
-            const platformResults = Object.entries(broadcastResult.results)
-              .filter(([platform, result]) => result && selectedPlatforms.includes(platform))
-              .map(([platform, result]) => `${platform}: ${(result as any).success ? 'Success' : 'Failed'}`)
-              .join(', ');
+      //       // Show platform-specific results
+      //       const platformResults = Object.entries(broadcastResult.results)
+      //         .filter(([platform, result]) => result && selectedPlatforms.includes(platform))
+      //         .map(([platform, result]) => `${platform}: ${(result as any).success ? 'Success' : 'Failed'}`)
+      //         .join(', ');
             
-            setSuccessDialog({
-              open: true,
-              title: '🎉 Podcast Launched Successfully!',
-              message: `"${metadata.episodeTitle}" has been successfully launched to Telecast and ${platformResults}!`,
-              episodeId: result.episodeId,
-              podcastId: referenceData.podcastId
-            });
-          } else {
-            setSuccessDialog({
-              open: true,
-              title: '🎉 Podcast Launched Successfully!',
-              message: `"${metadata.episodeTitle}" has been successfully launched to Telecast! Platform broadcasting failed.`,
-              episodeId: result.episodeId,
-              podcastId: referenceData.podcastId
-            });
-          }
-        } catch (broadcastError) {
-          console.error('Platform broadcasting error:', broadcastError);
-          setSuccessDialog({
-            open: true,
-            title: '🎉 Podcast Launched Successfully!',
-            message: `"${metadata.episodeTitle}" has been successfully launched to Telecast! Platform broadcasting failed.`,
-            episodeId: result.episodeId,
-            podcastId: referenceData.podcastId
-          });
-        }
-      } else {
+      //       setSuccessDialog({
+      //         open: true,
+      //         title: '🎉 Podcast Launched Successfully!',
+      //         message: `"${metadata.episodeTitle}" has been successfully launched to Telecast and ${platformResults}!`,
+      //         episodeId: result.episodeId,
+      //         podcastId: referenceData.podcastId
+      //       });
+      //     } else {
+      //       setSuccessDialog({
+      //         open: true,
+      //         title: '🎉 Podcast Launched Successfully!',
+      //         message: `"${metadata.episodeTitle}" has been successfully launched to Telecast! Platform broadcasting failed.`,
+      //         episodeId: result.episodeId,
+      //         podcastId: referenceData.podcastId
+      //       });
+      //     }
+      //   } catch (broadcastError) {
+      //     console.error('Platform broadcasting error:', broadcastError);
+      //     setSuccessDialog({
+      //       open: true,
+      //       title: '🎉 Podcast Launched Successfully!',
+      //       message: `"${metadata.episodeTitle}" has been successfully launched to Telecast! Platform broadcasting failed.`,
+      //       episodeId: result.episodeId,
+      //       podcastId: referenceData.podcastId
+      //     });
+      //   }
+      // } else {
         setSuccessDialog({
           open: true,
           title: '🎉 Podcast Launched Successfully!',
@@ -449,7 +327,7 @@ export default function BroadcastPage() {
           episodeId: result.episodeId,
           podcastId: referenceData.podcastId
         });
-      }
+      // }
       
       // Clear sessionStorage
       sessionStorage.removeItem('broadcastReference');
@@ -459,36 +337,6 @@ export default function BroadcastPage() {
     } catch (error) {
       console.error('Error finalizing podcast:', error);
       alert(`Error finalizing podcast: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    }
-  };
-
-  const getPlatformIcon = (platform: string) => {
-    switch (platform) {
-      case 'spotify': return <MusicNoteIcon />;
-      case 'apple': return <RadioIcon />;
-      case 'google': return <SettingsIcon />;
-      case 'telecast': return <PodcastsIcon />;
-      default: return <RadioIcon />;
-    }
-  };
-
-  const getPlatformColor = (platform: string) => {
-    switch (platform) {
-      case 'spotify': return '#1DB954';
-      case 'apple': return '#000000';
-      case 'google': return '#4285F4';
-      case 'telecast': return theme.palette.primary.main;
-      default: return theme.palette.primary.main;
-    }
-  };
-
-  const getPlatformAccentColor = (platform: string) => {
-    switch (platform) {
-      case 'spotify': return '#1DB954';
-      case 'apple': return '#000000';
-      case 'google': return '#4285F4';
-      case 'telecast': return '#ff6b35';
-      default: return '#ff6b35';
     }
   };
 
@@ -641,7 +489,7 @@ export default function BroadcastPage() {
               lineHeight: { xs: 1.4, sm: 1.5 }
             }}
           >
-            Share your voice with the world across all major podcast platforms
+            Share your voice with the world on Telecast
           </Typography>
           
           {/* Platform Stats */}
@@ -672,7 +520,7 @@ export default function BroadcastPage() {
               icon={<CheckCircleIcon />} 
               label="Instant Distribution" 
               sx={{ 
-                bgcolor: theme.palette.primary.main,
+                bgcolor: theme.palette.secondary.main,
                 color: 'white',
                 fontWeight: 600,
                 fontSize: { xs: '0.75rem', sm: '0.875rem' },
@@ -828,135 +676,7 @@ export default function BroadcastPage() {
               </CardContent>
             </Card>
 
-            {/* Platform Selection */}
-            <Card sx={{ mb: 4, background: 'rgba(255,255,255,0.05)', backdropFilter: 'blur(10px)' }}>
-              <CardContent>
-                <Typography 
-                  variant="h5" 
-                  fontWeight={700} 
-                  mb={3} 
-                  sx={{ 
-                    color: '#ff6b35',
-                    fontSize: { xs: '1.25rem', sm: '1.5rem', md: '1.75rem' }
-                  }}
-                >
-                  Select Distribution Platforms
-                </Typography>
-                <Grid container spacing={{ xs: 1, sm: 2 }}>
-                  {Object.entries(platforms).map(([platform, enabled]) => (
-                    <Grid item xs={12} sm={6} md={3} key={platform}>
-                      <Card
-                        sx={{
-                          cursor: platform === 'telecast' ? 'default' : 'pointer',
-                          transition: 'all 0.3s ease',
-                          background: enabled 
-                            ? `linear-gradient(135deg, ${getPlatformColor(platform)}15, ${getPlatformAccentColor(platform)}10)`
-                            : 'rgba(255,255,255,0.05)',
-                          border: enabled 
-                            ? `2px solid ${getPlatformColor(platform)}` 
-                            : '2px solid rgba(0,0,0,0.1)',
-                          '&:hover': {
-                            transform: platform === 'telecast' ? 'none' : 'translateY(-2px)',
-                            boxShadow: platform === 'telecast' ? 'none' : '0 8px 25px rgba(0,0,0,0.15)',
-                          }
-                        }}
-                        onClick={() => platform !== 'telecast' && handlePlatformSelect(platform as keyof Platforms)}
-                      >
-                        <CardContent sx={{ textAlign: 'center', py: { xs: 2, sm: 3 } }}>
-                          <Box
-                            sx={{
-                              color: enabled ? getPlatformColor(platform) : 'text.secondary',
-                              mb: 1,
-                              fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2rem' }
-                            }}
-                          >
-                            {getPlatformIcon(platform)}
-                          </Box>
-                          <Typography 
-                            variant="h6" 
-                            fontWeight={600} 
-                            mb={1}
-                            sx={{ fontSize: { xs: '1rem', sm: '1.125rem', md: '1.25rem' } }}
-                          >
-                            {platform.charAt(0).toUpperCase() + platform.slice(1)}
-                          </Typography>
-                          <Typography 
-                            variant="body2" 
-                            color="text.secondary"
-                            sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
-                          >
-                            {platform === 'telecast' ? 'Always included' : enabled ? 'Selected' : 'Click to add'}
-                          </Typography>
-                          
-                          {platform === 'telecast' ? (
-                            <Chip 
-                              label="Required" 
-                              size="small" 
-                              color="primary" 
-                              sx={{ 
-                                mt: 1,
-                                fontSize: { xs: '0.625rem', sm: '0.75rem' }
-                              }}
-                            />
-                          ) : (
-                            <Box sx={{ mt: 2 }}>
-                              {platformStatus[platform as keyof Platforms] ? (
-                                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                                  <Chip 
-                                    label="Connected" 
-                                    size="small" 
-                                    color="success" 
-                                    sx={{ 
-                                      fontSize: { xs: '0.625rem', sm: '0.75rem' }
-                                    }}
-                                  />
-                                  <Button
-                                    variant="outlined"
-                                    size="small"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      disconnectPlatform(platform);
-                                    }}
-                                    sx={{ 
-                                      fontSize: { xs: '0.625rem', sm: '0.75rem' },
-                                      py: 0.5,
-                                      px: 1
-                                    }}
-                                  >
-                                    Disconnect
-                                  </Button>
-                                </Box>
-                              ) : (
-                                <Button
-                                  variant="contained"
-                                  size="small"
-                                  disabled={isConnecting === platform}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    connectPlatform(platform);
-                                  }}
-                                  sx={{ 
-                                    fontSize: { xs: '0.625rem', sm: '0.75rem' },
-                                    py: 0.5,
-                                    px: 1,
-                                    bgcolor: getPlatformColor(platform),
-                                    '&:hover': {
-                                      bgcolor: getPlatformAccentColor(platform),
-                                    }
-                                  }}
-                                >
-                                  {isConnecting === platform ? 'Connecting...' : 'Connect'}
-                                </Button>
-                              )}
-                            </Box>
-                          )}
-                        </CardContent>
-                      </Card>
-                    </Grid>
-                  ))}
-                </Grid>
-              </CardContent>
-            </Card>
+            {/* Removed as platforms are no longer selectable */}
 
             <Divider sx={{ my: 4, borderColor: 'rgba(255,255,255,0.1)' }} />
 
@@ -1124,6 +844,11 @@ export default function BroadcastPage() {
                       onChange={(e) => handleMainChange("publishDate", e.target.value)}
                       fullWidth
                       type="date"
+                      InputProps={{
+                        startAdornment: (
+                          <CalendarIcon sx={{ mr: 1, color: 'text.secondary' }} />
+                        ),
+                      }}
                       sx={{
                         '& .MuiOutlinedInput-root': {
                           '& fieldset': {
@@ -1174,155 +899,7 @@ export default function BroadcastPage() {
             <Divider sx={{ my: 4, borderColor: 'rgba(255,255,255,0.1)' }} />
 
             {/* Platform-Specific Metadata */}
-            {platforms.apple && (
-              <Card sx={{ mb: 4, background: 'rgba(255,255,255,0.05)', backdropFilter: 'blur(10px)' }}>
-                <CardContent>
-                  <Typography variant="h5" fontWeight={700} mb={3} sx={{ color: '#ff6b35' }}>
-                    Apple Podcasts Settings
-                  </Typography>
-                  <Grid container spacing={3}>
-                    <Grid item xs={12} sm={6}>
-                      <TextField
-                        label="iTunes Subtitle"
-                        value={metadata.apple.subtitle}
-                        onChange={(e) => handlePlatformChange("apple", "subtitle", e.target.value)}
-                        fullWidth
-                        sx={{
-                          '& .MuiOutlinedInput-root': {
-                            '& fieldset': {
-                              borderColor: 'rgba(255,255,255,0.2)',
-                            },
-                            '&:hover fieldset': {
-                              borderColor: 'rgba(255,255,255,0.3)',
-                            },
-                            '&.Mui-focused fieldset': {
-                              borderColor: theme.palette.primary.main,
-                            },
-                          },
-                        }}
-                      />
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                      <TextField
-                        label="iTunes Summary"
-                        value={metadata.apple.summary}
-                        onChange={(e) => handlePlatformChange("apple", "summary", e.target.value)}
-                        fullWidth
-                        sx={{
-                          '& .MuiOutlinedInput-root': {
-                            '& fieldset': {
-                              borderColor: 'rgba(255,255,255,0.2)',
-                            },
-                            '&:hover fieldset': {
-                              borderColor: 'rgba(255,255,255,0.3)',
-                            },
-                            '&.Mui-focused fieldset': {
-                              borderColor: theme.palette.primary.main,
-                            },
-                          },
-                        }}
-                      />
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                      <TextField
-                        label="iTunes Keywords"
-                        value={metadata.apple.keywords}
-                        onChange={(e) => handlePlatformChange("apple", "keywords", e.target.value)}
-                        fullWidth
-                        sx={{
-                          '& .MuiOutlinedInput-root': {
-                            '& fieldset': {
-                              borderColor: 'rgba(255,255,255,0.2)',
-                            },
-                            '&:hover fieldset': {
-                              borderColor: 'rgba(255,255,255,0.3)',
-                            },
-                            '&.Mui-focused fieldset': {
-                              borderColor: theme.palette.primary.main,
-                            },
-                          },
-                        }}
-                      />
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                      <TextField
-                        label="iTunes Season"
-                        value={metadata.apple.season}
-                        onChange={(e) => handlePlatformChange("apple", "season", e.target.value)}
-                        fullWidth
-                        sx={{
-                          '& .MuiOutlinedInput-root': {
-                            '& fieldset': {
-                              borderColor: 'rgba(255,255,255,0.2)',
-                            },
-                            '&:hover fieldset': {
-                              borderColor: 'rgba(255,255,255,0.3)',
-                            },
-                            '&.Mui-focused fieldset': {
-                              borderColor: theme.palette.primary.main,
-                            },
-                          },
-                        }}
-                      />
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                      <TextField
-                        label="iTunes Category"
-                        value={metadata.apple.itunesCategory}
-                        onChange={(e) => handlePlatformChange("apple", "itunesCategory", e.target.value)}
-                        fullWidth
-                        sx={{
-                          '& .MuiOutlinedInput-root': {
-                            '& fieldset': {
-                              borderColor: 'rgba(255,255,255,0.2)',
-                            },
-                            '&:hover fieldset': {
-                              borderColor: 'rgba(255,255,255,0.3)',
-                            },
-                            '&.Mui-focused fieldset': {
-                              borderColor: theme.palette.primary.main,
-                            },
-                          },
-                        }}
-                      />
-                    </Grid>
-                  </Grid>
-                </CardContent>
-              </Card>
-            )}
-
-            {platforms.google && (
-              <Card sx={{ mb: 4, background: 'rgba(255,255,255,0.05)', backdropFilter: 'blur(10px)' }}>
-                <CardContent>
-                  <Typography variant="h5" fontWeight={700} mb={3} sx={{ color: '#ff6b35' }}>
-                    Google Podcasts Settings
-                  </Typography>
-                  <Grid container spacing={3}>
-                    <Grid item xs={12} sm={6}>
-                      <TextField
-                        label="Google Play Email"
-                        value={metadata.google.email}
-                        onChange={(e) => handlePlatformChange("google", "email", e.target.value)}
-                        fullWidth
-                        sx={{
-                          '& .MuiOutlinedInput-root': {
-                            '& fieldset': {
-                              borderColor: 'rgba(255,255,255,0.2)',
-                            },
-                            '&:hover fieldset': {
-                              borderColor: 'rgba(255,255,255,0.3)',
-                            },
-                            '&.Mui-focused fieldset': {
-                              borderColor: theme.palette.primary.main,
-                            },
-                          },
-                        }}
-                      />
-                    </Grid>
-                  </Grid>
-                </CardContent>
-              </Card>
-            )}
+            {/* Removed as platforms are no longer selectable */}
 
             {/* Submit Button */}
             <Box mt={6} display="flex" justifyContent="space-between" alignItems="center" flexDirection={{ xs: 'column', sm: 'row' }} gap={{ xs: 2, sm: 0 }}>

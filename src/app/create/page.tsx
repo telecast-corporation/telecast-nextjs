@@ -26,7 +26,6 @@ import {
   CircularProgress,
   List,
   ListItem,
-  ListItemText,
   ListItemSecondaryAction,
 } from '@mui/material';
 import {
@@ -38,6 +37,8 @@ import {
   Pause as PauseIcon,
   List as ListIcon,
   Mic as MicIcon,
+  Visibility as PublishIcon,
+  VisibilityOff as UnpublishIcon,
 } from '@mui/icons-material';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -49,6 +50,7 @@ interface Podcast {
   category: string;
   tags: string[];
   createdAt: string;
+  published: boolean;
 }
 
 export default function Dashboard() {
@@ -308,6 +310,29 @@ export default function Dashboard() {
     }
   };
 
+  const handlePublishToggle = async (podcast: Podcast) => {
+    try {
+      const response = await fetch(`/api/podcasts/${podcast.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          published: !podcast.published
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update podcast status');
+      }
+
+      await fetchPodcasts();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update podcast status');
+    }
+  };
+
   const handlePodcastClick = async (podcast: Podcast) => {
     router.push(`/podcast/${podcast.id}`);
   };
@@ -467,6 +492,12 @@ export default function Dashboard() {
                       <Chip key={tag} label={tag} size="small" />
                     ))}
                   </Stack>
+                  <Chip 
+                    label={podcast.published ? 'Published' : 'Draft'} 
+                    size="small" 
+                    color={podcast.published ? 'success' : 'default'}
+                    variant={podcast.published ? 'filled' : 'outlined'}
+                  />
                 </CardContent>
                 <CardActions>
                   <Tooltip title="View Episodes">
@@ -488,6 +519,17 @@ export default function Dashboard() {
                       handleDeletePodcast(podcast.id);
                     }}>
                       <DeleteIcon />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title={podcast.published ? 'Unpublish Podcast' : 'Publish Podcast'}>
+                    <IconButton
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handlePublishToggle(podcast);
+                      }}
+                      color={podcast.published ? 'error' : 'success'}
+                    >
+                      {podcast.published ? <UnpublishIcon /> : <PublishIcon />}
                     </IconButton>
                   </Tooltip>
                 </CardActions>
