@@ -416,6 +416,7 @@ export default function PodcastPage() {
                         primary={
                           <Typography
                             variant="subtitle1"
+                            component="div"
                             sx={{
                               fontWeight: 500,
                               color: 'text.primary',
@@ -428,9 +429,10 @@ export default function PodcastPage() {
                           </Typography>
                         }
                         secondary={
-                          <Box>
+                          <>
                             <Typography 
                               variant="body2" 
+                              component="span"
                               color="text.secondary"
                               sx={{ fontSize: { xs: '0.7rem', sm: '0.75rem' } }}
                             >
@@ -462,6 +464,7 @@ export default function PodcastPage() {
                                 {episode.keywords.length > 3 && (
                                   <Typography 
                                     variant="caption" 
+                                    component="span"
                                     color="text.secondary"
                                     sx={{ fontSize: '0.6rem', alignSelf: 'center' }}
                                   >
@@ -470,7 +473,7 @@ export default function PodcastPage() {
                                 )}
                               </Box>
                             )}
-                          </Box>
+                          </>
                         }
                       />
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>

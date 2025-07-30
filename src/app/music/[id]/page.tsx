@@ -462,6 +462,7 @@ export default function MusicPage() {
                   primary={
                     <Typography 
                       variant="subtitle2" 
+                      component="div"
                       sx={{ 
                         whiteSpace: 'normal',
                         display: '-webkit-box',
@@ -479,6 +480,7 @@ export default function MusicPage() {
                   secondary={
                     <Typography 
                       variant="body2" 
+                      component="span"
                       color="text.secondary"
                       sx={{ 
                         fontSize: { xs: '0.7rem', sm: '0.75rem' },
