@@ -396,7 +396,7 @@ function ProfilePage() {
             </Box>
             
             <Grid container spacing={2} sx={{ mb: 3 }}>
-              <Grid item xs={12} sm={4}>
+              <Grid item xs={12} sm={6}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
                   <CheckCircleIcon sx={{ fontSize: 16, color: '#10B981' }} />
                   <Typography variant="body2" sx={{ fontWeight: 500, fontSize: '0.8rem' }}>
@@ -404,15 +404,7 @@ function ProfilePage() {
                   </Typography>
                 </Box>
               </Grid>
-              <Grid item xs={12} sm={4}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                  <CheckCircleIcon sx={{ fontSize: 16, color: '#10B981' }} />
-                  <Typography variant="body2" sx={{ fontWeight: 500, fontSize: '0.8rem' }}>
-                    Broadcast to all podcast platforms
-                  </Typography>
-                </Box>
-              </Grid>
-              <Grid item xs={12} sm={4}>
+              <Grid item xs={12} sm={6}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
                   <CheckCircleIcon sx={{ fontSize: 16, color: '#10B981' }} />
                   <Typography variant="body2" sx={{ fontWeight: 500, fontSize: '0.8rem' }}>
@@ -422,7 +414,7 @@ function ProfilePage() {
               </Grid>
             </Grid>
             
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
                 <Box>
                   <Typography variant="h6" fontWeight={600} sx={{ color: '#FCD34D', fontSize: '1rem' }}>
                     Just $9.99/month

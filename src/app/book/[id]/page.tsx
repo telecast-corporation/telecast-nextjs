@@ -255,7 +255,7 @@ export default function BookPage() {
                 </ListItemAvatar>
                 <ListItemText
                   primary={
-                    <Typography variant="subtitle2" sx={{ fontWeight: 600, fontSize: '1rem', lineHeight: 1.2 }}>
+                    <Typography variant="subtitle2" component="div" sx={{ fontWeight: 600, fontSize: '1rem', lineHeight: 1.2 }}>
                       {relatedBook.title}
                     </Typography>
                   }
