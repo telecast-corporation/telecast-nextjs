@@ -67,7 +67,7 @@ export default function Contacts() {
         <input type="hidden" name="_next" value="/thank-you" />
         <Box sx={{ display: 'flex', flexDirection: 'column' }}>
           <Typography component="label" htmlFor="name" sx={{ mb: 1, ...typography.subheading, color: 'text.primary', fontSize: '1.2rem', fontWeight: 600 }}>
-            Your Name
+            Your Name *
           </Typography>
           <input
             type="text"
@@ -92,7 +92,7 @@ export default function Contacts() {
         </Box>
         <Box sx={{ display: 'flex', flexDirection: 'column' }}>
           <Typography component="label" htmlFor="email" sx={{ mb: 1, ...typography.subheading, color: 'text.primary', fontSize: '1.2rem', fontWeight: 600 }}>
-            Email
+            Email *
           </Typography>
           <input
             type="email"
@@ -117,7 +117,7 @@ export default function Contacts() {
         </Box>
         <Box sx={{ display: 'flex', flexDirection: 'column' }}>
           <Typography component="label" htmlFor="message" sx={{ mb: 1, ...typography.subheading, color: 'text.primary', fontSize: '1.2rem', fontWeight: 600 }}>
-            Message
+            Message *
           </Typography>
           <textarea
             id="message"

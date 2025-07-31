@@ -552,7 +552,7 @@ export default function Dashboard() {
         <DialogContent>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 2 }}>
             <TextField
-              label="Podcast Title"
+              label="Podcast Title *"
               fullWidth
               value={newPodcast.title}
               onChange={(e) =>
@@ -560,7 +560,7 @@ export default function Dashboard() {
               }
             />
             <TextField
-              label="Description"
+              label="Description *"
               fullWidth
               multiline
               rows={4}
@@ -571,7 +571,7 @@ export default function Dashboard() {
             />
             <TextField
               select
-              label="Category"
+              label="Category *"
               fullWidth
               value={newPodcast.category}
               onChange={(e) =>
@@ -603,7 +603,7 @@ export default function Dashboard() {
               component="label"
               startIcon={<UploadIcon />}
             >
-              Upload Cover Image
+              Upload Cover Image *
               <input
                 type="file"
                 hidden
@@ -644,14 +644,14 @@ export default function Dashboard() {
           <TextField
             autoFocus
             margin="dense"
-            label="Title"
+            label="Title *"
             fullWidth
             value={editForm.title}
             onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
           />
           <TextField
             margin="dense"
-            label="Description"
+            label="Description *"
             fullWidth
             multiline
             rows={4}
@@ -660,7 +660,7 @@ export default function Dashboard() {
           />
           <TextField
             margin="dense"
-            label="Category"
+            label="Category *"
             fullWidth
             select
             value={editForm.category}
@@ -690,7 +690,7 @@ export default function Dashboard() {
             startIcon={<UploadIcon />}
             sx={{ mt: 2 }}
           >
-            Change Cover Image
+            Change Cover Image *
             <input
               type="file"
               hidden

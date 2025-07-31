@@ -563,7 +563,7 @@ export default function BroadcastPage() {
                     fontSize: { xs: '1.25rem', sm: '1.5rem', md: '1.75rem' }
                   }}
                 >
-                  Upload Audio File
+                  Upload Audio File *
                 </Typography>
                 
                 {!audioFile ? (
@@ -697,7 +697,7 @@ export default function BroadcastPage() {
                 <Grid container spacing={{ xs: 2, sm: 3 }}>
                   <Grid item xs={12}>
                     <TextField
-                      label="Episode Title"
+                      label="Episode Title *"
                       value={metadata.episodeTitle}
                       onChange={(e) => handleMainChange("episodeTitle", e.target.value)}
                       fullWidth
@@ -725,7 +725,7 @@ export default function BroadcastPage() {
                   </Grid>
                   <Grid item xs={12}>
                     <TextField
-                      label="Episode Description"
+                      label="Episode Description *"
                       value={metadata.episodeDescription}
                       onChange={(e) => handleMainChange("episodeDescription", e.target.value)}
                       fullWidth

@@ -603,7 +603,7 @@ function ProfilePage() {
           <TextField
             fullWidth
             type="password"
-            label="Current Password"
+            label="Current Password *"
             value={passwordForm.currentPassword}
             onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
             error={!!passwordErrors.currentPassword}
@@ -626,7 +626,7 @@ function ProfilePage() {
           <TextField
             fullWidth
             type="password"
-            label="New Password"
+            label="New Password *"
             value={passwordForm.newPassword}
             onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
             error={!!passwordErrors.newPassword}
@@ -649,7 +649,7 @@ function ProfilePage() {
           <TextField
             fullWidth
             type="password"
-            label="Confirm New Password"
+            label="Confirm New Password *"
             value={passwordForm.confirmPassword}
             onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
             error={!!passwordErrors.confirmPassword}
