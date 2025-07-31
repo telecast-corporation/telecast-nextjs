@@ -157,7 +157,7 @@ function ResetPasswordPageContent() {
 
       <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
         <TextField
-          label="New Password"
+          label="New Password *"
           name="password"
           type={showPassword ? 'text' : 'password'}
           value={password}
@@ -192,7 +192,7 @@ function ResetPasswordPageContent() {
           }}
         />
         <TextField
-          label="Confirm New Password"
+          label="Confirm New Password *"
           name="confirmPassword"
           type={showConfirmPassword ? 'text' : 'password'}
           value={confirmPassword}

@@ -99,7 +99,7 @@ export default function ForgotPasswordPage() {
 
       <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 1, mb: 2 }}>
         <TextField
-          label="Email Address"
+          label="Email Address *"
           name="email"
           type="email"
           value={email}

@@ -103,7 +103,7 @@ export default function PodcastUpload() {
       <Box component="form" onSubmit={handleSubmit} sx={{ mt: 3 }}>
         <TextField
           fullWidth
-          label="Title"
+          label="Title *"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           required
@@ -112,7 +112,7 @@ export default function PodcastUpload() {
 
         <TextField
           fullWidth
-          label="Description"
+          label="Description *"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           required
@@ -122,10 +122,10 @@ export default function PodcastUpload() {
         />
 
         <FormControl fullWidth sx={{ mb: 2 }}>
-          <InputLabel>Category</InputLabel>
+          <InputLabel>Category *</InputLabel>
           <Select
             value={category}
-            label="Category"
+            label="Category *"
             onChange={(e) => setCategory(e.target.value)}
             required
           >
@@ -161,7 +161,7 @@ export default function PodcastUpload() {
 
         <Box sx={{ mb: 2 }}>
           <Typography variant="subtitle1" gutterBottom>
-            Audio File
+            Audio File *
           </Typography>
           <input
             type="file"
@@ -173,7 +173,7 @@ export default function PodcastUpload() {
 
         <Box sx={{ mb: 3 }}>
           <Typography variant="subtitle1" gutterBottom>
-            Cover Image
+            Cover Image *
           </Typography>
           <input
             type="file"
