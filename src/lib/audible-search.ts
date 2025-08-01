@@ -13,7 +13,7 @@ function ensureHttps(url: string | undefined): string | undefined {
 }
 
 // Export the search function so it can be called directly
-export async function searchAudible(query: string, maxResults: number = 40) {
+export async function searchAudible(query: string, maxResults: number = 300) {
   try {
     console.log('🔍 Scraping Audible for query:', query);
     console.log('🔍 Environment:', process.env.NODE_ENV);
