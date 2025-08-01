@@ -20,8 +20,8 @@ async function getTrendingVideos() {
         params: {
           part: 'snippet,statistics',
           chart: 'mostPopular',
-          regionCode: 'US',
-          maxResults: 10,
+          regionCode: 'CA',
+          maxResults: 200,
           key: YOUTUBE_API_KEY,
         },
       }
@@ -77,38 +77,49 @@ async function getTrendingMusic() {
     const accessToken = tokenResponse.data.access_token;
     console.log('Got Spotify access token');
 
-    // Search for tracks from popular artists
-    const popularArtists = ['Taylor Swift', 'Drake', 'The Weeknd', 'Ed Sheeran'];
-    const randomArtist = popularArtists[Math.floor(Math.random() * popularArtists.length)];
-    
-    console.log('Searching tracks for artist:', randomArtist);
-    const response = await axios.get(
-      'https://api.spotify.com/v1/search',
-      {
+        // Search for tracks from multiple popular artists to get more results
+    const popularArtists = ['Taylor Swift', 'Drake', 'The Weeknd', 'Ed Sheeran', 'Ariana Grande', 'Post Malone'];
+    const searchPromises = popularArtists.slice(0, 6).map(artist => // Use 6 artists to get ~300 tracks (50 each)
+      axios.get('https://api.spotify.com/v1/search', {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
         params: {
-          q: `artist:${randomArtist}`,
+          q: `artist:${artist}`,
           type: 'track',
-          limit: 10,
-          market: 'US',
+          limit: 50, // Spotify's max limit per request
+          market: 'CA',
         },
-      }
+      })
     );
 
-    if (!response.data.tracks?.items) {
-      console.error('Invalid response from Spotify:', response.data);
-      return [];
-    }
+    const responses = await Promise.allSettled(searchPromises);
+    const allTracks: any[] = [];
 
-    console.log('Music response:', {
-      totalTracks: response.data.tracks.items.length,
-      firstTrack: response.data.tracks.items[0]?.name,
-      artist: randomArtist,
+    responses.forEach((result, index) => {
+      if (result.status === 'fulfilled' && result.value.data.tracks?.items) {
+        const tracks = result.value.data.tracks.items;
+        allTracks.push(...tracks);
+        console.log(`Got ${tracks.length} tracks from ${popularArtists[index]}`);
+      } else {
+        console.error(`Failed to get tracks from ${popularArtists[index]}`);
+      }
     });
 
-    return response.data.tracks.items.map((track: any) => ({
+    console.log('Music response:', {
+      totalTracks: allTracks.length,
+      artistsSearched: popularArtists.slice(0, 6),
+    });
+
+    // Remove duplicates based on track ID and shuffle for variety
+    const uniqueTracks = Array.from(
+      new Map(allTracks.map(track => [track.id, track])).values()
+    );
+    
+    // Shuffle the tracks for better variety
+    const shuffledTracks = uniqueTracks.sort(() => Math.random() - 0.5);
+
+    return shuffledTracks.slice(0, 300).map((track: any) => ({
       id: track.id,
       type: 'music',
       title: track.name,
@@ -146,7 +157,8 @@ async function getTrendingBooks() {
       {
         params: {
           q: 'fiction',
-          maxResults: 10,
+          maxResults: 40,
+          country: 'CA',
           key: GOOGLE_BOOKS_API_KEY,
         },
       }
@@ -192,7 +204,7 @@ async function getTrendingPodcasts() {
     const response = await axios.get(
       'https://api.podcastindex.org/api/1.0/recent/feeds',
       {
-        params: { max: 10 },
+        params: { max: 200 },
         headers: {
           'User-Agent': 'Telecast/1.0',
           'X-Auth-Key': PODCASTINDEX_API_KEY,

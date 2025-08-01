@@ -31,6 +31,8 @@ interface SearchRequest {
   types: string[];
   maxResults?: number;
   trending?: boolean;
+  page?: number;
+  limit?: number;
 }
 
 async function getSpotifyAccessToken() {
@@ -70,7 +72,7 @@ function truncateText(text: string, maxLength: number): string {
   return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
 }
 
-async function searchYouTube(query: string, maxResults: number = 20) {
+async function searchYouTube(query: string, maxResults: number = 300) {
   try {
     const response = await axios.get('https://www.googleapis.com/youtube/v3/search', {
       params: {
@@ -78,6 +80,7 @@ async function searchYouTube(query: string, maxResults: number = 20) {
         maxResults,
         q: query,
         type: 'video',
+        regionCode: 'CA',
         key: process.env.YOUTUBE_API_KEY,
       },
     });
@@ -105,7 +108,7 @@ function ensureHttps(url: string | undefined): string | undefined {
   return url.replace(/^http:/, 'https:');
 }
 
-async function searchBooks(query: string, maxResults: number = 40) {
+async function searchBooks(query: string, maxResults: number = 300) {
   try {
     // Ensure maxResults doesn't exceed Google Books API limit of 40
     const safeMaxResults = Math.min(maxResults, 40);
@@ -114,6 +117,7 @@ async function searchBooks(query: string, maxResults: number = 40) {
       params: {
         q: query,
         maxResults: safeMaxResults,
+        country: 'CA',
         key: process.env.GOOGLE_BOOKS_API_KEY,
       },
     });
@@ -139,7 +143,7 @@ async function searchBooks(query: string, maxResults: number = 40) {
   }
 }
 
-async function searchPodcasts(query: string, maxResults: number = 20, request?: Request) {
+async function searchPodcasts(query: string, maxResults: number = 300, request?: Request) {
   try {
     const podcastIndex = new PodcastIndex();
     const externalResults = await podcastIndex.search(query);
@@ -232,7 +236,7 @@ async function searchPodcasts(query: string, maxResults: number = 20, request?: 
   }
 }
 
-async function searchMusic(query: string, maxResults: number = 20) {
+async function searchMusic(query: string, maxResults: number = 300) {
       try {
         const accessToken = await getSpotifyAccessToken();
     if (!accessToken) {
@@ -247,6 +251,7 @@ async function searchMusic(query: string, maxResults: number = 20) {
         q: query,
         type: 'track',
         limit: maxResults,
+        market: 'CA',
       },
     });
 
@@ -268,7 +273,7 @@ async function searchMusic(query: string, maxResults: number = 20) {
   }
 }
 
-async function searchAudiobooks(query: string, maxResults: number = 40) {
+async function searchAudiobooks(query: string, maxResults: number = 300) {
   try {
     console.log('🎧 Searching audiobooks for query:', query);
     
@@ -322,9 +327,9 @@ async function searchAudiobooks(query: string, maxResults: number = 40) {
 export async function POST(request: Request) {
   try {
     const body: SearchRequest = await request.json();
-    const { query, types, maxResults = 50, trending = false } = body;
+    const { query, types, maxResults = 300, trending = false, page = 1, limit = 20 } = body;
 
-    console.log('🔍 Search API called:', { query, types, maxResults, trending });
+    console.log('🔍 Search API called:', { query, types, maxResults, trending, page, limit });
 
     // If trending is true and query is 'recommended', fetch trending content
     if (trending && query === 'recommended') {
@@ -333,10 +338,26 @@ export async function POST(request: Request) {
       // For audiobooks, just fall back to regular search since trending doesn't support audiobooks yet
       if (types.includes('audiobook')) {
         console.log('🎧 Falling back to regular search for audiobooks');
-        const fallbackResults = await searchAudiobooks('fiction', Math.min(maxResults, 40));
+        const fallbackResults = await searchAudiobooks('fiction', Math.min(maxResults, 300));
+        
+        // Apply pagination
+        const startIndex = (page - 1) * limit;
+        const endIndex = startIndex + limit;
+        const paginatedResults = fallbackResults.slice(startIndex, endIndex);
+        const totalPages = Math.ceil(fallbackResults.length / limit);
+
         return NextResponse.json({
-          results: fallbackResults,
-          total: fallbackResults.length,
+          results: paginatedResults,
+          pagination: {
+            page,
+            limit,
+            total: fallbackResults.length,
+            totalPages,
+            hasNextPage: page < totalPages,
+            hasPrevPage: page > 1,
+            startIndex: startIndex + 1,
+            endIndex: Math.min(endIndex, fallbackResults.length),
+          },
         });
       }
       
@@ -392,9 +413,25 @@ export async function POST(request: Request) {
         }
         
         console.log('📈 Returning trending results:', trendingResults.length);
+        
+        // Apply pagination
+        const startIndex = (page - 1) * limit;
+        const endIndex = startIndex + limit;
+        const paginatedResults = trendingResults.slice(startIndex, endIndex);
+        const totalPages = Math.ceil(trendingResults.length / limit);
+
         return NextResponse.json({
-          results: trendingResults,
-          total: trendingResults.length,
+          results: paginatedResults,
+          pagination: {
+            page,
+            limit,
+            total: trendingResults.length,
+            totalPages,
+            hasNextPage: page < totalPages,
+            hasPrevPage: page > 1,
+            startIndex: startIndex + 1,
+            endIndex: Math.min(endIndex, trendingResults.length),
+          },
         });
       } catch (error) {
         console.error('❌ Error fetching trending content:', error);
@@ -402,10 +439,26 @@ export async function POST(request: Request) {
         // For books, search for popular fiction as fallback
         if (types.includes('book')) {
           console.log('📚 Falling back to fiction search for books');
-          const fallbackResults = await searchBooks('fiction', Math.min(maxResults, 40));
+          const fallbackResults = await searchBooks('fiction', Math.min(maxResults, 300));
+          
+          // Apply pagination
+          const startIndex = (page - 1) * limit;
+          const endIndex = startIndex + limit;
+          const paginatedResults = fallbackResults.slice(startIndex, endIndex);
+          const totalPages = Math.ceil(fallbackResults.length / limit);
+
           return NextResponse.json({
-            results: fallbackResults,
-            total: fallbackResults.length,
+            results: paginatedResults,
+            pagination: {
+              page,
+              limit,
+              total: fallbackResults.length,
+              totalPages,
+              hasNextPage: page < totalPages,
+              hasPrevPage: page > 1,
+              startIndex: startIndex + 1,
+              endIndex: Math.min(endIndex, fallbackResults.length),
+            },
           });
         }
       }
@@ -425,8 +478,8 @@ export async function POST(request: Request) {
     // If types includes 'all', search all types
     if (types.includes('all')) {
       searchPromises.push(searchYouTube(query, maxResults));
-      searchPromises.push(searchBooks(query, Math.min(maxResults, 40)));
-      searchPromises.push(searchAudiobooks(query, Math.min(maxResults, 40)));
+      searchPromises.push(searchBooks(query, Math.min(maxResults, 300)));
+      searchPromises.push(searchAudiobooks(query, Math.min(maxResults, 300)));
       searchPromises.push(searchPodcasts(query, maxResults, request));
       searchPromises.push(searchMusic(query, maxResults));
     } else {
@@ -435,10 +488,10 @@ export async function POST(request: Request) {
         searchPromises.push(searchYouTube(query, maxResults));
       }
       if (types.includes('book')) {
-        searchPromises.push(searchBooks(query, Math.min(maxResults, 40)));
+        searchPromises.push(searchBooks(query, Math.min(maxResults, 300)));
       }
       if (types.includes('audiobook')) {
-        searchPromises.push(searchAudiobooks(query, Math.min(maxResults, 40)));
+        searchPromises.push(searchAudiobooks(query, Math.min(maxResults, 300)));
       }
       if (types.includes('podcast')) {
         searchPromises.push(searchPodcasts(query, maxResults, request));
@@ -582,9 +635,24 @@ export async function POST(request: Request) {
       })));
     }
     
+    // Apply pagination
+    const startIndex = (page - 1) * limit;
+    const endIndex = startIndex + limit;
+    const paginatedResults = searchResults.slice(startIndex, endIndex);
+    const totalPages = Math.ceil(searchResults.length / limit);
+
     return NextResponse.json({
-      results: searchResults,
-      total: searchResults.length,
+      results: paginatedResults,
+      pagination: {
+        page,
+        limit,
+        total: searchResults.length,
+        totalPages,
+        hasNextPage: page < totalPages,
+        hasPrevPage: page > 1,
+        startIndex: startIndex + 1,
+        endIndex: Math.min(endIndex, searchResults.length),
+      },
     });
   } catch (error) {
     console.error('❌ Search error:', error);

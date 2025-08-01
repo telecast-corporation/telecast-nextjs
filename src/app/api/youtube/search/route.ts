@@ -23,10 +23,11 @@ export async function GET(request: Request) {
     const response = await axios.get('https://www.googleapis.com/youtube/v3/search', {
       params: {
         part: 'snippet',
-        maxResults: 1,
+        maxResults: 300,
         q: query,
         type: type,
         videoCategoryId: '10', // Music category
+        regionCode: 'CA',
         key: YOUTUBE_API_KEY,
       },
     });

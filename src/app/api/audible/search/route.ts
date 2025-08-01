@@ -7,7 +7,7 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const query = searchParams.get('q');
-    const maxResults = parseInt(searchParams.get('maxResults') || '40');
+    const maxResults = parseInt(searchParams.get('maxResults') || '300');
 
     if (!query) {
       return NextResponse.json({ error: 'Query parameter is required' }, { status: 400 });
