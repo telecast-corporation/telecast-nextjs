@@ -6,6 +6,7 @@ import { Container, Typography, Box, CircularProgress, Button } from '@mui/mater
 import UnifiedSearchResults from '@/components/UnifiedSearchResults';
 import BookTypeToggle from '@/components/BookTypeToggle';
 import PartnerLogos from '@/components/PartnerLogos';
+import Pagination from '@/components/Pagination';
 import { useRouter } from 'next/navigation';
 
 interface SearchResult {
@@ -25,9 +26,17 @@ export default function SearchResults() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [bookType, setBookType] = useState<'books' | 'audiobooks'>('books');
+  const [pagination, setPagination] = useState<any>(null);
   const debounceTimerRef = useRef<NodeJS.Timeout>();
   const showRecommendations = !query && ['podcast', 'video', 'music', 'book'].includes(type);
   const router = useRouter();
+  const currentPage = parseInt(searchParams.get('page') || '1');
+
+  const handlePageChange = (page: number) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('page', page.toString());
+    router.push(`/search?${params.toString()}`);
+  };
 
   useEffect(() => {
     const fetchResults = async () => {
@@ -64,8 +73,10 @@ export default function SearchResults() {
           body: JSON.stringify({
             query: query || 'recommended',
             types: searchTypes,
-            maxResults: 100,
+            maxResults: 300,
             trending: showRecommendations,
+            page: currentPage,
+            limit: 20,
           }),
         });
 
@@ -82,6 +93,7 @@ export default function SearchResults() {
         }));
 
         setResults(typedResults);
+        setPagination(data.pagination);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'An error occurred');
       } finally {
@@ -97,6 +109,7 @@ export default function SearchResults() {
     if (query || showRecommendations) {
       setLoading(true);
       setError(null);
+      setPagination(null); // Reset pagination when search changes
     }
 
     debounceTimerRef.current = setTimeout(fetchResults, 500);
@@ -106,7 +119,7 @@ export default function SearchResults() {
         clearTimeout(debounceTimerRef.current);
       }
     };
-  }, [query, type, bookType, showRecommendations]);
+  }, [query, type, bookType, showRecommendations, currentPage]);
 
   if (!query && !showRecommendations) {
     return (
@@ -221,6 +234,20 @@ export default function SearchResults() {
       )}
       
       <UnifiedSearchResults results={results} searchType={type} loading={loading} trending={showRecommendations} />
+      
+      {/* Pagination */}
+      {pagination && pagination.totalPages > 1 && !loading && (
+        <Pagination
+          currentPage={pagination.page}
+          totalPages={pagination.totalPages}
+          onPageChange={handlePageChange}
+          showingSummary={{
+            start: pagination.startIndex,
+            end: pagination.endIndex,
+            total: pagination.total,
+          }}
+        />
+      )}
     </Container>
   );
 } 
