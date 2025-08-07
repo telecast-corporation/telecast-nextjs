@@ -64,7 +64,12 @@ export default function Footer() {
             >
               Quick Links
             </Typography>
-            <Box sx={{ display: 'flex', flexDirection: { xs: 'row', sm: 'column' }, flexWrap: 'wrap', gap: 1 }}>
+            <Box sx={{ 
+              display: 'grid', 
+              gridTemplateColumns: { xs: '1fr 1fr', sm: '1fr 1fr' }, 
+              gap: { xs: 1, sm: 2 },
+              maxWidth: '100%'
+            }}>
               <Link
                 component="button"
                 variant="body2"
@@ -74,7 +79,8 @@ export default function Footer() {
                   color: 'text.secondary',
                   fontSize: { xs: '0.9rem', sm: '1rem' },
                   fontFamily: lexend.style.fontFamily,
-                  fontWeight: 400
+                  fontWeight: 400,
+                  justifyContent: 'flex-start'
                 }}
               >
                 Home
@@ -88,7 +94,8 @@ export default function Footer() {
                   color: 'text.secondary',
                   fontSize: { xs: '0.9rem', sm: '1rem' },
                   fontFamily: lexend.style.fontFamily,
-                  fontWeight: 400
+                  fontWeight: 400,
+                  justifyContent: 'flex-start'
                 }}
               >
                 About
@@ -102,7 +109,8 @@ export default function Footer() {
                   color: 'text.secondary',
                   fontSize: { xs: '0.9rem', sm: '1rem' },
                   fontFamily: lexend.style.fontFamily,
-                  fontWeight: 400
+                  fontWeight: 400,
+                  justifyContent: 'flex-start'
                 }}
               >
                 Services
@@ -116,7 +124,8 @@ export default function Footer() {
                   color: 'text.secondary',
                   fontSize: { xs: '0.9rem', sm: '1rem' },
                   fontFamily: lexend.style.fontFamily,
-                  fontWeight: 400
+                  fontWeight: 400,
+                  justifyContent: 'flex-start'
                 }}
               >
                 Contact
@@ -130,10 +139,71 @@ export default function Footer() {
                   color: 'text.secondary',
                   fontSize: { xs: '0.9rem', sm: '1rem' },
                   fontFamily: lexend.style.fontFamily,
-                  fontWeight: 400
+                  fontWeight: 400,
+                  justifyContent: 'flex-start'
                 }}
               >
                 Mission
+              </Link>
+              <Link
+                component="button"
+                variant="body2"
+                onClick={() => handleNavigation('/faq')}
+                sx={{ 
+                  textAlign: 'left', 
+                  color: 'text.secondary',
+                  fontSize: { xs: '0.9rem', sm: '1rem' },
+                  fontFamily: lexend.style.fontFamily,
+                  fontWeight: 400,
+                  justifyContent: 'flex-start'
+                }}
+              >
+                FAQ
+              </Link>
+              <Link
+                component="button"
+                variant="body2"
+                onClick={() => handleNavigation('/terms')}
+                sx={{ 
+                  textAlign: 'left', 
+                  color: 'text.secondary',
+                  fontSize: { xs: '0.9rem', sm: '1rem' },
+                  fontFamily: lexend.style.fontFamily,
+                  fontWeight: 400,
+                  justifyContent: 'flex-start'
+                }}
+              >
+                Terms
+              </Link>
+              <Link
+                component="button"
+                variant="body2"
+                onClick={() => handleNavigation('/privacy')}
+                sx={{ 
+                  textAlign: 'left', 
+                  color: 'text.secondary',
+                  fontSize: { xs: '0.9rem', sm: '1rem' },
+                  fontFamily: lexend.style.fontFamily,
+                  fontWeight: 400,
+                  justifyContent: 'flex-start'
+                }}
+              >
+                Privacy
+              </Link>
+              <Link
+                component="button"
+                variant="body2"
+                onClick={() => handleNavigation('/pricing')}
+                sx={{ 
+                  textAlign: 'left', 
+                  color: 'text.secondary',
+                  fontSize: { xs: '0.9rem', sm: '1rem' },
+                  fontFamily: lexend.style.fontFamily,
+                  fontWeight: 400,
+                  justifyContent: 'flex-start'
+                }}
+              >
+                Pricing
               </Link>
             </Box>
           </Grid>
