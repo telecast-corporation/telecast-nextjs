@@ -16,6 +16,7 @@ import {
   Star as StarIcon,
 } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
+import StartFreeTrial from '@/components/StartFreeTrial';
 
 export default function PricingPage() {
   const theme = useTheme();
@@ -184,26 +185,36 @@ export default function PricingPage() {
               </Box>
             </Box>
 
-            <Button 
+            <Button
               variant="outlined" 
               fullWidth
               onClick={() => router.push('/profile')}
-              sx={{ 
-                py: 1.5,
-                px: 3,
-                borderRadius: 2,
-                fontWeight: 600,
-                fontSize: '1rem',
+              sx={{
+                py: 2,
+                px: 4,
+                borderRadius: 3,
+                fontWeight: 700,
+                fontSize: '1.1rem',
+                textTransform: 'none',
+                borderWidth: 2,
                 borderColor: theme.palette.primary.main,
                 color: theme.palette.primary.main,
+                background: 'linear-gradient(135deg, rgba(37, 99, 235, 0.05) 0%, rgba(59, 130, 246, 0.05) 100%)',
+                boxShadow: '0 4px 12px rgba(37, 99, 235, 0.15)',
+                transition: 'all 0.3s ease',
                 '&:hover': {
+                  background: 'linear-gradient(135deg, rgba(37, 99, 235, 0.1) 0%, rgba(59, 130, 246, 0.1) 100%)',
                   borderColor: theme.palette.primary.dark,
-                  backgroundColor: theme.palette.primary.main,
-                  color: 'white'
-                }
+                  color: theme.palette.primary.dark,
+                  transform: 'translateY(-2px)',
+                  boxShadow: '0 8px 25px rgba(37, 99, 235, 0.25)',
+                },
+                '&:active': {
+                  transform: 'translateY(0px)',
+                },
               }}
             >
-              Get Started Free
+              🚀 Sign Up for Free and Get Started
             </Button>
           </Paper>
         </Grid>
@@ -352,26 +363,12 @@ export default function PricingPage() {
               </Box>
             </Box>
 
-            <Button 
+            <StartFreeTrial 
               variant="contained" 
               fullWidth
-              onClick={() => router.push('/profile')}
-              sx={{ 
-                py: 1.5,
-                px: 3,
-                borderRadius: 2,
-                fontWeight: 600,
-                fontSize: '1rem',
-                background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
-                '&:hover': {
-                  background: `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.primary.main} 100%)`,
-                  transform: 'translateY(-1px)',
-                  boxShadow: theme.shadows[4]
-                }
-              }}
             >
               Start Free Trial
-            </Button>
+            </StartFreeTrial>
           </Paper>
         </Grid>
       </Grid>
