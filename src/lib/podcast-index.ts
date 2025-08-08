@@ -57,7 +57,8 @@ export class PodcastIndex {
       .digest('hex');
 
     return {
-      'User-Agent': 'Telecast/1.0',
+      'User-Agent': 'Telecast/1.0 (+https://telecast.ca)',
+      'Accept': 'application/json',
       'X-Auth-Key': API_KEY,
       'X-Auth-Date': timestamp.toString(),
       'Authorization': hash,
@@ -182,15 +183,14 @@ export class PodcastIndex {
     }
   }
 
-  async submitFeedByUrl(feedUrl: string): Promise<any> {
+  async submitFeedByUrl(feedUrl: string, options?: { chash?: string; itunesid?: number; pretty?: boolean }): Promise<any> {
     try {
-      const response = await axios.post(
+      const response = await axios.get(
         `${PODCASTINDEX_API_URL}/add/byfeedurl`,
-        { url: feedUrl },
         {
+          params: { url: feedUrl, ...(options?.chash ? { chash: options.chash } : {}), ...(options?.itunesid ? { itunesid: options.itunesid } : {}), ...(options?.pretty ? { pretty: true } : {}) },
           headers: {
             ...this.generateAuthHeaders(),
-            'Content-Type': 'application/json'
           },
         }
       );
