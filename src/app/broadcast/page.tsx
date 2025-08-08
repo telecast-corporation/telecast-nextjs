@@ -898,8 +898,127 @@ export default function BroadcastPage() {
 
             <Divider sx={{ my: 4, borderColor: 'rgba(255,255,255,0.1)' }} />
 
-            {/* Platform-Specific Metadata */}
-            {/* Removed as platforms are no longer selectable */}
+            {/* Platform Options */}
+            <Card sx={{ mb: 4, background: 'rgba(255,255,255,0.05)', backdropFilter: 'blur(10px)' }}>
+              <CardContent>
+                <Typography 
+                  variant="h5" 
+                  fontWeight={700} 
+                  mb={3} 
+                  sx={{ 
+                    color: '#ff6b35',
+                    fontSize: { xs: '1.25rem', sm: '1.5rem', md: '1.75rem' }
+                  }}
+                >
+                  Broadcast Options
+                </Typography>
+
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                  Your RSS feeds are ready. Submit them to platforms below.
+                </Typography>
+
+                <Grid container spacing={{ xs: 2, sm: 3 }}>
+                  {/* Spotify */}
+                  <Grid item xs={12} md={4}>
+                    <Box sx={{ p: 2, borderRadius: 2, border: '1px solid', borderColor: 'divider' }}>
+                      <Typography variant="h6" fontWeight={700} sx={{ mb: 1 }}>Spotify</Typography>
+                      <Typography variant="body2" sx={{ mb: 1 }}>Use this feed:</Typography>
+                                             <Box sx={{
+                         p: 1,
+                         bgcolor: 'rgba(255,255,255,0.06)',
+                         borderRadius: 1,
+                         fontSize: '0.85rem',
+                         wordBreak: 'break-all',
+                         mb: 1,
+                       }}>
+                         {typeof window !== 'undefined' && (JSON.parse(sessionStorage.getItem('broadcastReference') || '{}') as any)?.podcastId
+                           ? `${process.env.NEXT_PUBLIC_BASE_URL || 'https://telecast.ca'}/api/podcast/${encodeURIComponent((JSON.parse(sessionStorage.getItem('broadcastReference') || '{}') as any).podcastId)}/rss/spotify`
+                           : 'Feed URL will appear after creating your podcast.'}
+                       </Box>
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        onClick={() => window.open('https://podcasters.spotify.com/submit', '_blank')}
+                      >
+                        Open Spotify for Podcasters
+                      </Button>
+                    </Box>
+                  </Grid>
+
+                  {/* Apple Podcasts */}
+                  <Grid item xs={12} md={4}>
+                    <Box sx={{ p: 2, borderRadius: 2, border: '1px solid', borderColor: 'divider' }}>
+                      <Typography variant="h6" fontWeight={700} sx={{ mb: 1 }}>Apple Podcasts</Typography>
+                      <Typography variant="body2" sx={{ mb: 1 }}>Use this feed:</Typography>
+                                             <Box sx={{
+                         p: 1,
+                         bgcolor: 'rgba(255,255,255,0.06)',
+                         borderRadius: 1,
+                         fontSize: '0.85rem',
+                         wordBreak: 'break-all',
+                         mb: 1,
+                       }}>
+                         {typeof window !== 'undefined' && (JSON.parse(sessionStorage.getItem('broadcastReference') || '{}') as any)?.podcastId
+                           ? `${process.env.NEXT_PUBLIC_BASE_URL || 'https://telecast.ca'}/api/podcast/${encodeURIComponent((JSON.parse(sessionStorage.getItem('broadcastReference') || '{}') as any).podcastId)}/rss/apple`
+                           : 'Feed URL will appear after creating your podcast.'}
+                       </Box>
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        onClick={() => window.open('https://podcastsconnect.apple.com/my-podcasts/new', '_blank')}
+                      >
+                        Open Apple Podcasts Connect
+                      </Button>
+                    </Box>
+                  </Grid>
+
+                  {/* Podcast Index */}
+                  <Grid item xs={12} md={4}>
+                    <Box sx={{ p: 2, borderRadius: 2, border: '1px solid', borderColor: 'divider' }}>
+                      <Typography variant="h6" fontWeight={700} sx={{ mb: 1 }}>Podcast Index</Typography>
+                      <Typography variant="body2" sx={{ mb: 1 }}>Feed (auto-submitted):</Typography>
+                                             <Box sx={{
+                         p: 1,
+                         bgcolor: 'rgba(255,255,255,0.06)',
+                         borderRadius: 1,
+                         fontSize: '0.85rem',
+                         wordBreak: 'break-all',
+                         mb: 1,
+                       }}>
+                         {typeof window !== 'undefined' && (JSON.parse(sessionStorage.getItem('broadcastReference') || '{}') as any)?.podcastId
+                           ? `${process.env.NEXT_PUBLIC_BASE_URL || 'https://telecast.ca'}/api/podcast/${encodeURIComponent((JSON.parse(sessionStorage.getItem('broadcastReference') || '{}') as any).podcastId)}/rss/podcastindex`
+                           : 'Feed URL will appear after creating your podcast.'}
+                       </Box>
+                      <Button
+                        variant="contained"
+                        size="small"
+                        onClick={async () => {
+                          try {
+                            const reference = sessionStorage.getItem('broadcastReference');
+                            const podcastId = reference ? (JSON.parse(reference) as any).podcastId : undefined;
+                            if (!podcastId) {
+                              alert('Podcast ID not found. Please ensure you created a podcast.');
+                              return;
+                            }
+                            const res = await fetch(`/api/podcast/${encodeURIComponent(podcastId)}/podcast-index/submit`, { method: 'POST' });
+                            if (!res.ok) {
+                              const data = await res.json();
+                              throw new Error(data.error || 'Submit failed');
+                            }
+                            const data = await res.json();
+                            alert('Submitted to Podcast Index successfully!');
+                          } catch (err: any) {
+                            alert(`Failed to submit to Podcast Index: ${err?.message || 'Unknown error'}`);
+                          }
+                        }}
+                      >
+                        Submit to Podcast Index
+                      </Button>
+                    </Box>
+                  </Grid>
+                </Grid>
+              </CardContent>
+            </Card>
 
             {/* Submit Button */}
             <Box mt={6} display="flex" justifyContent="space-between" alignItems="center" flexDirection={{ xs: 'column', sm: 'row' }} gap={{ xs: 2, sm: 0 }}>

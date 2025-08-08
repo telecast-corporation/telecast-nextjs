@@ -181,7 +181,33 @@ export class PodcastIndex {
       throw error;
     }
   }
-} 
+
+  async submitFeedByUrl(feedUrl: string): Promise<any> {
+    try {
+      const response = await axios.post(
+        `${PODCASTINDEX_API_URL}/add/byfeedurl`,
+        { url: feedUrl },
+        {
+          headers: {
+            ...this.generateAuthHeaders(),
+            'Content-Type': 'application/json'
+          },
+        }
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Error submitting feed to Podcast Index:', error);
+      if (axios.isAxiosError(error)) {
+        console.error('PodcastIndex submit error:', {
+          status: error.response?.status,
+          data: error.response?.data,
+          message: error.message
+        });
+      }
+      throw error;
+    }
+  }
+}
 
 // Export a singleton instance
 export const podcastIndex = new PodcastIndex(); 
