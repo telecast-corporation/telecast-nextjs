@@ -29,7 +29,7 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         
         {/* Optimized prefetch strategy - only prefetch most critical pages */}
-        <link rel="prefetch" href="/create" />
+        <link rel="prefetch" href="/my-podcasts" />
         <link rel="prefetch" href="/auth/login" />
         
         {/* Defer less critical pages */}

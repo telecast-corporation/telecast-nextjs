@@ -172,3 +172,43 @@ export const moveFile = async (
 export const deleteFile = async (filename: string): Promise<void> => {
   await podcastBucket.file(filename).delete();
 }; 
+
+export const getDraftUploadSignedUrl = async (
+  path: string,
+  contentType: string
+): Promise<string> => {
+  const fileUpload = podcastBucket.file(path);
+  const [url] = await fileUpload.getSignedUrl({
+    version: 'v4',
+    action: 'write',
+    expires: Date.now() + 15 * 60 * 1000, // 15 minutes
+    contentType,
+  } as any);
+  return url;
+};
+
+export const getDraftReadSignedUrl = async (
+  path: string
+): Promise<string> => {
+  const fileUpload = podcastBucket.file(path);
+  const [url] = await fileUpload.getSignedUrl({
+    version: 'v4',
+    action: 'read',
+    expires: Date.now() + 60 * 60 * 1000, // 1 hour
+  } as any);
+  return url;
+};
+
+// Generate short-lived read URL for a finalized file path
+export const getFileReadSignedUrl = async (
+  path: string,
+  ttlMs: number = 60 * 60 * 1000
+): Promise<string> => {
+  const file = podcastBucket.file(path);
+  const [url] = await file.getSignedUrl({
+    version: 'v4',
+    action: 'read',
+    expires: Date.now() + ttlMs,
+  } as any);
+  return url;
+}; 

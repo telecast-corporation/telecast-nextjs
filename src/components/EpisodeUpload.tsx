@@ -78,8 +78,8 @@ export default function EpisodeUpload() {
           lastModified: audioFile.lastModified
         }));
 
-        // Navigate to broadcast page
-        router.push('/broadcast');
+        // Navigate to finalize page
+        router.push('/finalize');
       };
       reader.readAsDataURL(audioFile);
     } catch (error) {
@@ -209,7 +209,7 @@ export default function EpisodeUpload() {
                 }
               }}
             >
-              {loading ? 'Saving...' : 'Continue to Broadcast'}
+              {loading ? 'Saving...' : 'Continue to Finalize'}
             </Button>
           </Box>
         </Box>

@@ -928,7 +928,7 @@ const MainNav = memo(() => {
         </ListItem>
         
                   {isAuthenticated && (
-                            <ListItem button onClick={() => { handleDrawerToggle(); router.push('/create'); }} sx={{ py: 1.5 }}>
+                            <ListItem button onClick={() => { handleDrawerToggle(); router.push('/my-podcasts'); }} sx={{ py: 1.5 }}>
               <ListItemIcon sx={{ minWidth: 40 }}>
                 <PodcastIcon />
               </ListItemIcon>
@@ -1102,8 +1102,8 @@ const MainNav = memo(() => {
             <Button 
               variant="text"
               className="nav-button"
-              onClick={() => router.push('/create')}
-              sx={getNavButtonStyles(theme, pathname, '/create')}
+              onClick={() => router.push('/my-podcasts')}
+              sx={getNavButtonStyles(theme, pathname, '/my-podcasts')}
             >
               Create
             </Button>

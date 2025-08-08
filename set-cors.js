@@ -7,35 +7,34 @@ const storage = new Storage();
 // The ID of your GCS bucket
 const bucketName = 'telecast-corp-podcast-bucket';
 
-// The origin for this CORS config to allow requests from
-const origin = 'http://localhost:3000';
+// Allowed origins
+const origins = ['http://localhost:3000', 'https://telecast.ca'];
 
-// The response header to share across origins
-const responseHeader = 'Content-Type';
+// Methods to allow (include OPTIONS for preflight)
+const methods = ['GET', 'PUT', 'HEAD', 'OPTIONS'];
 
-// The maximum amount of time the browser can make requests before it must
-// repeat preflighted requests
+// Response headers to expose
+const responseHeaders = ['Content-Type', 'x-goog-resumable', 'Range'];
+
+// Max age for preflight cache
 const maxAgeSeconds = 3600;
-
-// The name of the method
-const method = 'GET';
 
 async function configureBucketCors() {
   try {
     await storage.bucket(bucketName).setCorsConfiguration([
       {
         maxAgeSeconds,
-        method: [method],
-        origin: [origin],
-        responseHeader: [responseHeader],
+        method: methods,
+        origin: origins,
+        responseHeader: responseHeaders,
       },
     ]);
 
-    console.log(`✅ Bucket ${bucketName} was updated with a CORS config`);
-    console.log(`   to allow ${method} requests from ${origin}`);
-    console.log(`   sharing ${responseHeader} responses across origins`);
+    console.log(`✅ Bucket ${bucketName} CORS updated`);
+    console.log(`   Methods: ${methods.join(', ')}; Origins: ${origins.join(', ')}`);
   } catch (error) {
     console.error('❌ Error setting CORS configuration:', error);
+    process.exit(1);
   }
 }
 

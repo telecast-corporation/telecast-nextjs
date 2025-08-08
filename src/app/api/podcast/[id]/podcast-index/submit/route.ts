@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { podcastIndex } from '@/lib/podcast-index';
 import { getUserFromRequest } from '@/lib/auth0-user';
+import crypto from 'crypto';
 
 export async function POST(
   request: Request,
@@ -36,10 +37,22 @@ export async function POST(
     }
 
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://telecast.ca';
-
     const feedUrl = `${baseUrl}/api/podcast/${encodeURIComponent(id)}/rss/podcastindex`;
 
-    const result = await podcastIndex.submitFeedByUrl(feedUrl);
+    // Best-effort chash from known fields (ownerEmail unknown/not exposed)
+    // Fields: title, link, feedLanguage, generator, author, ownerName, ownerEmail
+    // We'll map from our data as possible
+    const title = podcast.title || '';
+    const link = `${baseUrl}/podcast/${encodeURIComponent(id)}`;
+    const feedLanguage = podcast.language || 'en';
+    const generator = 'Telecast';
+    const author = podcast.author || podcast.userId || '';
+    const ownerName = podcast.author || '';
+    const ownerEmail = '';
+    const chashInput = `${title}${link}${feedLanguage}${generator}${author}${ownerName}${ownerEmail}`;
+    const chash = crypto.createHash('md5').update(chashInput).digest('hex');
+
+    const result = await podcastIndex.submitFeedByUrl(feedUrl, { chash, pretty: true });
 
     return NextResponse.json({ success: true, result, feedUrl });
   } catch (error) {
