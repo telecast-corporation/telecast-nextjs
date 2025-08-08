@@ -50,7 +50,7 @@ export const uploadPodcastFile = async (
 
   const [url] = await fileUpload.getSignedUrl({
     action: 'read',
-    expires: '03-01-2500', // Long expiration for podcast files
+    expires: new Date('2500-03-01'), // Long expiration for podcast files
   });
 
   return { url, filename };
@@ -94,7 +94,7 @@ export const uploadPodcastTempFile = async (
 
   const [url] = await fileUpload.getSignedUrl({
     action: 'read',
-    expires: '03-01-2500', // Long expiration for podcast files
+    expires: new Date('2500-03-01'), // Long expiration for podcast files
   });
 
   return { url, filename };
@@ -117,7 +117,7 @@ export const uploadProfileFile = async (
 
   const [url] = await fileUpload.getSignedUrl({
     action: 'read',
-    expires: '03-01-2500', // Long expiration for profile pictures
+    expires: new Date('2500-03-01'), // Long expiration for profile pictures
   });
 
   return { url, filename };
@@ -158,7 +158,7 @@ export const moveFile = async (
     // Get signed URL for the new file
     const [url] = await destinationFile.getSignedUrl({
       action: 'read',
-      expires: '03-01-2500',
+      expires: new Date('2500-03-01'),
     });
 
     return { success: true, url };
