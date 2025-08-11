@@ -160,7 +160,13 @@ export default function UnifiedSearchResults({ results, searchType = 'all', load
   const getContentUrl = (result: SearchResult) => {
     switch (result.type) {
       case 'podcast':
-        return `/podcast/${result.id}`;
+        {
+          const idString = String(result.id);
+          if (idString.startsWith('internal-')) {
+            return `/podcast/${idString.replace(/^internal-/, '')}`;
+          }
+          return `/podcast/external/${idString}`;
+        }
       case 'video':
         return `/video/${result.id}`;
       case 'book':
