@@ -89,59 +89,46 @@ export default function UploadPodcastPage() {
     
     setUploading(true);
     setError("");
-    
+
     try {
-      // Generate reference ID for this upload
-      const referenceResponse = await fetch("/api/podcast/reference", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          podcastId: params.id,
-        }),
-      });
-
-      if (!referenceResponse.ok) {
-        throw new Error("Failed to generate reference ID");
-      }
-
-      const referenceData = await referenceResponse.json();
-      const referenceId = referenceData.referenceId;
-      
-      const formData = new FormData();
-      formData.append("file", audioFile);
-      formData.append("podcastId", params.id as string);
-      formData.append("referenceId", referenceId);
-
-      const response = await fetch("/api/podcast/upload/temp", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Upload failed");
-      }
-
-      const result = await response.json();
-      console.log("Temporary upload successful:", result);
-      
-      // Store reference info for the edit page
-      sessionStorage.setItem("editSession", JSON.stringify({
-        referenceId: referenceId,
-        tempFileName: result.tempFileName,
-        tempUrl: result.tempUrl,
-        tempPath: result.tempPath,
+      console.log('[Upload] Draft flow start', {
         podcastId: params.id,
-        originalFileName: audioFile.name,
-      }));
-      
-      // Navigate to edit page after successful upload
+        file: { name: audioFile.name, type: audioFile.type, size: audioFile.size }
+      });
+
+      // Create draft and get upload URL
+      const createDraftResp = await fetch('/api/drafts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ podcastId: params.id, contentType: audioFile.type || 'audio/wav' }),
+      });
+      console.log('[Upload] Create draft status', createDraftResp.status);
+      if (!createDraftResp.ok) {
+        const msg = await createDraftResp.text().catch(() => '');
+        throw new Error(`Failed to create draft: ${msg}`);
+      }
+      const { draftId, uploadUrl } = await createDraftResp.json();
+      if (!draftId || !uploadUrl) throw new Error('Invalid draft response');
+      console.log('[Upload] Draft created', { draftId });
+
+      // Upload file directly to GCS
+      console.log('[Upload] PUT to signed URL');
+      const putResp = await fetch(uploadUrl, {
+        method: 'PUT',
+        headers: { 'Content-Type': audioFile.type || 'application/octet-stream' },
+        body: audioFile,
+      });
+      console.log('[Upload] PUT status', putResp.status);
+      if (!putResp.ok) {
+        const text = await putResp.text().catch(() => '');
+        throw new Error(`Failed to upload: ${putResp.status} ${text}`);
+      }
+
       setUploading(false);
-      router.push("/edit");
+      console.log('[Upload] Navigating to /edit?draft=...');
+      router.push(`/edit?draft=${encodeURIComponent(draftId)}`);
     } catch (err) {
-      console.error("Upload error:", err);
+      console.error("[Upload] Draft upload error", err);
       setError(err instanceof Error ? err.message : "Failed to upload audio file");
       setUploading(false);
     }

@@ -57,7 +57,8 @@ export class PodcastIndex {
       .digest('hex');
 
     return {
-      'User-Agent': 'Telecast/1.0',
+      'User-Agent': 'Telecast/1.0 (+https://telecast.ca)',
+      'Accept': 'application/json',
       'X-Auth-Key': API_KEY,
       'X-Auth-Date': timestamp.toString(),
       'Authorization': hash,
@@ -181,7 +182,32 @@ export class PodcastIndex {
       throw error;
     }
   }
-} 
+
+  async submitFeedByUrl(feedUrl: string, options?: { chash?: string; itunesid?: number; pretty?: boolean }): Promise<any> {
+    try {
+      const response = await axios.get(
+        `${PODCASTINDEX_API_URL}/add/byfeedurl`,
+        {
+          params: { url: feedUrl, ...(options?.chash ? { chash: options.chash } : {}), ...(options?.itunesid ? { itunesid: options.itunesid } : {}), ...(options?.pretty ? { pretty: true } : {}) },
+          headers: {
+            ...this.generateAuthHeaders(),
+          },
+        }
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Error submitting feed to Podcast Index:', error);
+      if (axios.isAxiosError(error)) {
+        console.error('PodcastIndex submit error:', {
+          status: error.response?.status,
+          data: error.response?.data,
+          message: error.message
+        });
+      }
+      throw error;
+    }
+  }
+}
 
 // Export a singleton instance
 export const podcastIndex = new PodcastIndex(); 

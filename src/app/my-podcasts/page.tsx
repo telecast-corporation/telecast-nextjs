@@ -1,38 +1,60 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { useUser } from '@auth0/nextjs-auth0';
+import { useRouter } from 'next/navigation';
 import {
-  Container,
   Box,
+  Container,
   Typography,
+  Button,
   Grid,
   Card,
   CardContent,
   CardMedia,
-  Button,
-  IconButton,
+  CardActions,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
+  TextField,
+  MenuItem,
+  Chip,
+  Stack,
+  IconButton,
+  Tooltip,
   CircularProgress,
   Alert,
 } from '@mui/material';
 import {
+  Add as AddIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
-  PlayArrow as PlayIcon,
-  Pause as PauseIcon,
+  Upload as UploadIcon,
+  List as ListIcon,
+  Visibility as PublishIcon,
+  VisibilityOff as UnpublishIcon,
 } from '@mui/icons-material';
-import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
+import Link from 'next/link';
 
 interface Podcast {
   id: string;
   title: string;
   description: string;
   coverImage: string;
-  audioUrl: string;
+  category: string;
+  tags: string[];
   createdAt: string;
+  published: boolean;
+}
+
+interface DraftItem {
+  id: string;
+  podcastId: string;
+  status: string;
+  updatedAt: string;
+  podcast?: { id: string; title: string };
 }
 
 export default function MyPodcasts() {
@@ -43,10 +65,21 @@ export default function MyPodcasts() {
   const [selectedPodcast, setSelectedPodcast] = useState<Podcast | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [currentlyPlaying, setCurrentlyPlaying] = useState<string | null>(null);
-  const audioRef = React.useRef<HTMLAudioElement | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [drafts, setDrafts] = useState<DraftItem[]>([]);
 
   useEffect(() => {
     fetchPodcasts();
+    (async () => {
+      try {
+        const res = await fetch('/api/drafts');
+        if (!res.ok) throw new Error('Failed to fetch drafts');
+        const data = await res.json();
+        setDrafts(data);
+      } catch (e) {
+        setError('Failed to load drafts');
+      }
+    })();
   }, []);
 
   const fetchPodcasts = async () => {
@@ -84,19 +117,7 @@ export default function MyPodcasts() {
     }
   };
 
-  const handlePlay = (podcast: Podcast) => {
-    if (currentlyPlaying === podcast.id) {
-      audioRef.current?.pause();
-      setCurrentlyPlaying(null);
-    } else {
-      if (audioRef.current) {
-        audioRef.current.pause();
-      }
-      audioRef.current = new Audio(podcast.audioUrl);
-      audioRef.current.play();
-      setCurrentlyPlaying(podcast.id);
-    }
-  };
+  // Removed inline audio preview for podcasts listing
 
   if (loading) {
     return (
@@ -134,28 +155,28 @@ export default function MyPodcasts() {
         >
           Manage your podcast episodes
         </Typography>
-        <Button
-          variant="contained"
-          onClick={() => router.push('/broadcast')}
-          sx={{
-            backgroundColor: '#2563eb',
-            borderRadius: '8px',
-            px: 4,
-            py: 2,
-            fontSize: '1.1rem',
-            fontWeight: 600,
-            textTransform: 'none',
-            boxShadow: '0 4px 12px rgba(37, 99, 235, 0.2)',
-            transition: 'all 0.2s ease',
-            '&:hover': {
-              backgroundColor: '#1d4ed8',
-              boxShadow: '0 6px 16px rgba(37, 99, 235, 0.3)',
-              transform: 'translateY(-1px)',
-            },
-          }}
-        >
-          Create New Podcast
-        </Button>
+                  <Button
+            variant="contained"
+            onClick={() => router.push('/finalize')}
+            sx={{
+              backgroundColor: '#2563eb',
+              borderRadius: '8px',
+              px: 4,
+              py: 2,
+              fontSize: '1.1rem',
+              fontWeight: 600,
+              textTransform: 'none',
+              boxShadow: '0 4px 12px rgba(37, 99, 235, 0.2)',
+              transition: 'all 0.2s ease',
+              '&:hover': {
+                backgroundColor: '#1d4ed8',
+                boxShadow: '0 6px 16px rgba(37, 99, 235, 0.3)',
+                transform: 'translateY(-1px)',
+              },
+            }}
+          >
+            Create New Podcast
+          </Button>
       </Box>
 
       {error && (
@@ -202,25 +223,10 @@ export default function MyPodcasts() {
                     {new Date(podcast.createdAt).toLocaleDateString()}
                   </Typography>
                   <Box>
-                    <IconButton
-                      onClick={() => handlePlay(podcast)}
-                      color="primary"
-                    >
-                      {currentlyPlaying === podcast.id ? <PauseIcon /> : <PlayIcon />}
+                    <IconButton onClick={() => router.push(`/podcast/${podcast.id}`)} color="primary">
+                      <ListIcon />
                     </IconButton>
-                    <IconButton
-                      onClick={() => router.push(`/edit-podcast/${podcast.id}`)}
-                      color="primary"
-                    >
-                      <EditIcon />
-                    </IconButton>
-                    <IconButton
-                      onClick={() => {
-                        setSelectedPodcast(podcast);
-                        setDeleteDialogOpen(true);
-                      }}
-                      color="error"
-                    >
+                    <IconButton onClick={() => { setSelectedPodcast(podcast); setDeleteDialogOpen(true); }} color="error">
                       <DeleteIcon />
                     </IconButton>
                   </Box>
@@ -230,6 +236,27 @@ export default function MyPodcasts() {
           </Grid>
         ))}
       </Grid>
+
+      <Box sx={{ mt: 6 }}>
+        <Typography variant="h4" sx={{ mb: 2 }}>My Drafts</Typography>
+        {drafts.length === 0 ? (
+          <Typography variant="body1">No drafts yet.</Typography>
+        ) : (
+          <ul style={{ listStyle: 'none', padding: 0 }}>
+            {drafts.map((d) => (
+              <li key={d.id} style={{ marginBottom: '0.5rem' }}>
+                <Typography variant="body2">
+                  <span>{d.podcast?.title || 'Untitled Podcast'}</span>
+                  <span> • Updated: {new Date(d.updatedAt).toLocaleString()}</span>
+                  <span> • Status: {d.status}</span>
+                  <span> • </span>
+                  <Link href={`/edit?draft=${d.id}`}>Edit</Link>
+                </Typography>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Box>
 
       <Dialog
         open={deleteDialogOpen}
