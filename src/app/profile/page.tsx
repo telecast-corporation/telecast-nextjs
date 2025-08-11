@@ -33,6 +33,7 @@ import {
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { typography, spacing, borderRadius } from '@/styles/typography';
+import StartFreeTrial from '@/components/StartFreeTrial';
 
 export default function ProfilePageWrapper() {
   return (
@@ -67,7 +68,6 @@ function ProfilePage() {
     message: string;
     severity: 'success' | 'error';
   }>({ open: false, message: '', severity: 'success' });
-  const [isStartingTrial, setIsStartingTrial] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
@@ -121,6 +121,8 @@ function ProfilePage() {
       setIsRefreshing(false);
     }
   };
+
+
 
   const validatePasswordForm = () => {
     const errors = {
@@ -203,30 +205,7 @@ function ProfilePage() {
       setIsChangingPassword(false);
     }
   };
-  const handleStartFreeTrial = async () => {
-    setIsStartingTrial(true);
-    try {
-      const response = await fetch('/api/auth/start-free-trial', {
-        method: 'POST',
-      });
-      
-      if (response.redirected) {
-        window.location.href = response.url;
-      } else {
-        // Fallback if redirect doesn't work
-        const data = await response.json();
-        if (response.ok) {
-          setSnackbar({ open: true, message: data.message, severity: 'success' });
-        } else {
-          setSnackbar({ open: true, message: data.error, severity: 'error' });
-        }
-      }
-    } catch (err) {
-      setSnackbar({ open: true, message: 'An error occurred while starting your free trial', severity: 'error' });
-    } finally {
-      setIsStartingTrial(false);
-    }
-  };
+
 
 
 
@@ -481,27 +460,10 @@ function ProfilePage() {
                     Free Trial Used ✓
                   </Button>
                 ) : (
-                  <Button
+                  <StartFreeTrial
                     variant="outlined"
-                    onClick={handleStartFreeTrial}
-                    disabled={isStartingTrial}
-                    sx={{
-                      color: 'white',
-                      borderColor: 'rgba(255,255,255,0.3)',
-                      fontWeight: 500,
-                      px: 3,
-                      py: 1,
-                      borderRadius: 2,
-                      textTransform: 'none',
-                      fontSize: '0.875rem',
-                      '&:hover': {
-                        borderColor: 'white',
-                        backgroundColor: 'rgba(255,255,255,0.1)',
-                      },
-                    }}
-                  >
-                    {isStartingTrial ? 'Starting Trial...' : 'Start Free Trial (90 Days)'}
-                  </Button>
+                    children="Start Free Trial (90 Days)"
+                  />
                 )}
               </Box>
           </Box>

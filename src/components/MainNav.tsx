@@ -55,6 +55,11 @@ import {
   Build as BuildIcon,
   AccountCircle as AccountCircleIcon,
   Email as EmailIcon,
+  Info as InfoIcon,
+  Help as HelpIcon,
+  Create as CreateIcon,
+  Mic as MicIcon,
+  AttachMoney as AttachMoneyIcon,
 } from '@mui/icons-material';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -890,7 +895,7 @@ const MainNav = memo(() => {
         
         <ListItem button onClick={() => { handleDrawerToggle(); router.push('/about'); }} sx={{ py: 1.5 }}>
           <ListItemIcon sx={{ minWidth: 40 }}>
-            <BuildIcon />
+            <InfoIcon />
           </ListItemIcon>
           <ListItemText 
             primary="About" 
@@ -927,10 +932,36 @@ const MainNav = memo(() => {
           />
         </ListItem>
         
+        <ListItem button onClick={() => { handleDrawerToggle(); router.push('/faq'); }} sx={{ py: 1.5 }}>
+          <ListItemIcon sx={{ minWidth: 40 }}>
+            <HelpIcon />
+          </ListItemIcon>
+          <ListItemText 
+            primary="FAQ" 
+            primaryTypographyProps={{ 
+              fontFamily: lexend.style.fontFamily,
+              ...typography.nav
+            }} 
+          />
+        </ListItem>
+        
+        <ListItem button onClick={() => { handleDrawerToggle(); router.push('/pricing'); }} sx={{ py: 1.5 }}>
+          <ListItemIcon sx={{ minWidth: 40 }}>
+            <AttachMoneyIcon />
+          </ListItemIcon>
+          <ListItemText 
+            primary="Pricing" 
+            primaryTypographyProps={{ 
+              fontFamily: lexend.style.fontFamily,
+              ...typography.nav
+            }} 
+          />
+        </ListItem>
+        
                   {isAuthenticated && (
                             <ListItem button onClick={() => { handleDrawerToggle(); router.push('/my-podcasts'); }} sx={{ py: 1.5 }}>
               <ListItemIcon sx={{ minWidth: 40 }}>
-                <PodcastIcon />
+                <CreateIcon />
               </ListItemIcon>
               <ListItemText 
                                   primary="Create" 
