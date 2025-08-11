@@ -231,63 +231,46 @@ export default function RecordPodcastPage() {
       setError("");
       
       try {
+        console.log('[Record] Draft flow start', { podcastId: params.id, blobSize: audioBlob.size, blobType: audioBlob.type });
         // Convert blob to file
         const audioFile = new File([audioBlob], "recorded-audio.wav", {
           type: "audio/wav",
           lastModified: Date.now(),
         });
+        console.log('[Record] Created File from blob', { name: audioFile.name, type: audioFile.type, size: audioFile.size });
         
-        // Generate reference ID for this recording
-        const referenceResponse = await fetch("/api/podcast/reference", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            podcastId: params.id,
-          }),
+        // Create draft and get upload URL
+        const createDraftResp = await fetch('/api/drafts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ podcastId: params.id, contentType: audioFile.type || 'audio/wav' }),
         });
+        console.log('[Record] Create draft status', createDraftResp.status);
+        if (!createDraftResp.ok) {
+          const msg = await createDraftResp.text().catch(() => '');
+          throw new Error(`Failed to create draft: ${msg}`);
+        }
+        const { draftId, uploadUrl } = await createDraftResp.json();
+        if (!draftId || !uploadUrl) throw new Error('Invalid draft response');
+        console.log('[Record] Draft created', { draftId });
 
-        if (!referenceResponse.ok) {
-          throw new Error("Failed to generate reference ID");
+        // Upload file to signed URL
+        const putResp = await fetch(uploadUrl, {
+          method: 'PUT',
+          headers: { 'Content-Type': audioFile.type || 'application/octet-stream' },
+          body: audioFile,
+        });
+        console.log('[Record] PUT status', putResp.status);
+        if (!putResp.ok) {
+          const text = await putResp.text().catch(() => '');
+          throw new Error(`Failed to upload: ${putResp.status} ${text}`);
         }
 
-        const referenceData = await referenceResponse.json();
-        const referenceId = referenceData.referenceId;
-        
-        const formData = new FormData();
-        formData.append("file", audioFile);
-        formData.append("podcastId", params.id as string);
-        formData.append("referenceId", referenceId);
-
-        const response = await fetch("/api/podcast/upload/temp", {
-          method: "POST",
-          body: formData,
-        });
-
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || "Upload failed");
-        }
-
-        const result = await response.json();
-        console.log("Temporary upload successful:", result);
-        
-        // Store reference info for the edit page
-        sessionStorage.setItem("editSession", JSON.stringify({
-          referenceId: referenceId,
-          tempFileName: result.tempFileName,
-          tempUrl: result.tempUrl,
-          tempPath: result.tempPath,
-          podcastId: params.id,
-          originalFileName: audioFile.name,
-        }));
-        
-        // Navigate to edit page
         setUploading(false);
-        router.push("/edit");
+        console.log('[Record] Navigating to /edit?draft=...');
+        router.push(`/edit?draft=${encodeURIComponent(draftId)}`);
       } catch (err) {
-        console.error("Upload error:", err);
+        console.error("[Record] Upload error", err);
         setError(err instanceof Error ? err.message : "Failed to upload audio file");
         setUploading(false);
       }

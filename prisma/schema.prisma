@@ -23,6 +23,8 @@ model User {
   fileReferences   FileReference[]
   podcasts         Podcast[]
   recordings       Recording[]
+  platformConnections PlatformConnection[]
+  drafts           Draft[]
 }
 
 model Podcast {
@@ -45,6 +47,7 @@ model Podcast {
   rssFeed        String?
   episodes       Episode[]
   fileReferences FileReference[]
+  drafts         Draft[]
   user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
@@ -106,4 +109,39 @@ model FileReference {
   @@index([referenceId])
   @@index([userId])
   @@index([podcastId])
+}
+
+model PlatformConnection {
+  id           String    @id @default(cuid())
+  userId       String
+  platform     String    // 'spotify', 'apple', 'google'
+  accessToken  String
+  refreshToken String?
+  expiresAt    DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, platform])
+  @@index([userId])
+  @@index([platform])
+}
+
+model Draft {
+  id           String   @id @default(cuid())
+  podcastId    String
+  userId       String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  originalPath String?
+  editedPath   String?
+  isEdited     Boolean  @default(false)
+  metadataJSON Json?
+  status       String   @default("open") // open, closed
+
+  podcast      Podcast  @relation(fields: [podcastId], references: [id], onDelete: Cascade)
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([podcastId])
+  @@index([userId])
 }

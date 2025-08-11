@@ -13,8 +13,8 @@ export default function UploadPage() {
       if (!user) {
         router.push('/auth/login');
       } else {
-      // Redirect to broadcast page since upload is now integrated there
-      router.push('/broadcast');
+      // Redirect to finalize page
+      router.push('/finalize');
     }
     }
   }, [user, isLoading, router]);

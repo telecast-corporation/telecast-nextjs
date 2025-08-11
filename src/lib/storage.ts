@@ -50,7 +50,7 @@ export const uploadPodcastFile = async (
 
   const [url] = await fileUpload.getSignedUrl({
     action: 'read',
-    expires: '03-01-2500', // Long expiration for podcast files
+    expires: new Date('2500-03-01'), // Long expiration for podcast files
   });
 
   return { url, filename };
@@ -94,7 +94,7 @@ export const uploadPodcastTempFile = async (
 
   const [url] = await fileUpload.getSignedUrl({
     action: 'read',
-    expires: '03-01-2500', // Long expiration for podcast files
+    expires: new Date('2500-03-01'), // Long expiration for podcast files
   });
 
   return { url, filename };
@@ -117,7 +117,7 @@ export const uploadProfileFile = async (
 
   const [url] = await fileUpload.getSignedUrl({
     action: 'read',
-    expires: '03-01-2500', // Long expiration for profile pictures
+    expires: new Date('2500-03-01'), // Long expiration for profile pictures
   });
 
   return { url, filename };
@@ -158,7 +158,7 @@ export const moveFile = async (
     // Get signed URL for the new file
     const [url] = await destinationFile.getSignedUrl({
       action: 'read',
-      expires: '03-01-2500',
+      expires: new Date('2500-03-01'),
     });
 
     return { success: true, url };
@@ -171,4 +171,44 @@ export const moveFile = async (
 // Delete file from podcast bucket (generic function)
 export const deleteFile = async (filename: string): Promise<void> => {
   await podcastBucket.file(filename).delete();
+}; 
+
+export const getDraftUploadSignedUrl = async (
+  path: string,
+  contentType: string
+): Promise<string> => {
+  const fileUpload = podcastBucket.file(path);
+  const [url] = await fileUpload.getSignedUrl({
+    version: 'v4',
+    action: 'write',
+    expires: Date.now() + 15 * 60 * 1000, // 15 minutes
+    contentType,
+  } as any);
+  return url;
+};
+
+export const getDraftReadSignedUrl = async (
+  path: string
+): Promise<string> => {
+  const fileUpload = podcastBucket.file(path);
+  const [url] = await fileUpload.getSignedUrl({
+    version: 'v4',
+    action: 'read',
+    expires: Date.now() + 60 * 60 * 1000, // 1 hour
+  } as any);
+  return url;
+};
+
+// Generate short-lived read URL for a finalized file path
+export const getFileReadSignedUrl = async (
+  path: string,
+  ttlMs: number = 60 * 60 * 1000
+): Promise<string> => {
+  const file = podcastBucket.file(path);
+  const [url] = await file.getSignedUrl({
+    version: 'v4',
+    action: 'read',
+    expires: Date.now() + ttlMs,
+  } as any);
+  return url;
 }; 
