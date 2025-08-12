@@ -1129,6 +1129,15 @@ const MainNav = memo(() => {
             Contact
           </Button>
 
+          <Button 
+            variant="text"
+            className="nav-button"
+            onClick={() => router.push('/pricing')}
+            sx={getNavButtonStyles(theme, pathname, '/pricing')}
+          >
+            Pricing
+          </Button>
+
           {isAuthenticated && (
             <Button 
               variant="text"

@@ -44,9 +44,11 @@ export default function ProfilePageWrapper() {
 }
 
 function ProfilePage() {
-  const { user, isAuthenticated, isLoading, logout } = useAuth();
+  const { user: authUser, isAuthenticated, isLoading, logout } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [user, setUser] = useState<any>(null);
+  const [userLoading, setUserLoading] = useState(true);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteConfirmation, setDeleteConfirmation] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
@@ -76,6 +78,30 @@ function ProfilePage() {
     }
   }, [isLoading, isAuthenticated, router]);
 
+  // Fetch user data from API
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (isAuthenticated) {
+        try {
+          setUserLoading(true);
+          const response = await fetch('/api/profile');
+          if (response.ok) {
+            const userData = await response.json();
+            setUser(userData);
+          } else {
+            console.error('Failed to fetch user data');
+          }
+        } catch (error) {
+          console.error('Error fetching user data:', error);
+        } finally {
+          setUserLoading(false);
+        }
+      }
+    };
+
+    fetchUserData();
+  }, [isAuthenticated]);
+
   // Handle checkout success
   useEffect(() => {
     const checkout = searchParams.get('checkout');
@@ -91,14 +117,16 @@ function ProfilePage() {
       url.searchParams.delete('checkout');
       window.history.replaceState({}, '', url.toString());
       
-      // Refresh session data instead of reloading the page
+      // Refresh user data instead of reloading the page
       setTimeout(async () => {
         try {
-          await fetch('/api/auth/session', { method: 'GET' });
-          // Force a re-render by updating a state
-          setSnackbar(prev => ({ ...prev }));
+          const response = await fetch('/api/profile');
+          if (response.ok) {
+            const userData = await response.json();
+            setUser(userData);
+          }
         } catch (error) {
-          // Failed to refresh session
+          // Failed to refresh user data
         }
       }, 2000);
     }
@@ -107,14 +135,27 @@ function ProfilePage() {
   const handleRefreshSession = async () => {
     setIsRefreshing(true);
     try {
-      // Force a session refresh by calling the session endpoint
-      await fetch('/api/auth/session', { method: 'GET' });
-      // Reload the page to get updated user data
-      window.location.reload();
+      // Fetch fresh user data from API
+      const response = await fetch('/api/profile');
+      if (response.ok) {
+        const userData = await response.json();
+        setUser(userData);
+        setSnackbar({
+          open: true,
+          message: 'User data refreshed successfully',
+          severity: 'success',
+        });
+      } else {
+        setSnackbar({
+          open: true,
+          message: 'Failed to refresh user data',
+          severity: 'error',
+        });
+      }
     } catch (error) {
       setSnackbar({
         open: true,
-        message: 'Failed to refresh session',
+        message: 'Failed to refresh user data',
         severity: 'error',
       });
     } finally {
@@ -251,7 +292,7 @@ function ProfilePage() {
     }
   };
 
-  if (isLoading) {
+  if (isLoading || userLoading) {
     return (
       <Container maxWidth="md" sx={{ mt: 4 }}>
         <Typography>Loading...</Typography>
@@ -391,12 +432,20 @@ function ProfilePage() {
                   </Typography>
                 </Box>
               </Grid>
+              <Grid item xs={12} sm={6}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                  <CheckCircleIcon sx={{ fontSize: 16, color: '#10B981' }} />
+                  <Typography variant="body2" sx={{ fontWeight: 500, fontSize: '0.8rem' }}>
+                    Broadcast to other podcast platforms
+                  </Typography>
+                </Box>
+              </Grid>
             </Grid>
             
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
                 <Box>
                   <Typography variant="h6" fontWeight={600} sx={{ color: '#FCD34D', fontSize: '1rem' }}>
-                    Just $9.99/month
+                    Just $17.99/month
                   </Typography>
                   <Typography variant="caption" sx={{ opacity: 0.8, fontSize: '0.75rem' }}>
                     Cancel anytime • No setup fees
