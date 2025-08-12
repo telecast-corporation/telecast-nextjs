@@ -251,10 +251,6 @@ export default function PaymentPage() {
                 </Box>
               </Box>
 
-              <Typography variant="h6" fontWeight={600} sx={{ color: '#FFD700', mb: 3, fontSize: '1.1rem' }}>
-                Just $9.99 CAD/month
-              </Typography>
-
               <Box sx={{ mb: 4 }}>
                 <Typography variant="h6" fontWeight={600} sx={{ mb: 2, fontSize: '1rem' }}>
                   What you get:
