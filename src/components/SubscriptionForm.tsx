@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button, Box, Typography, Alert } from '@mui/material';
 import { useAuth } from '@/contexts/AuthContext';
 import { typography, spacing, borderRadius } from '@/styles/typography';
+import { stripePromise } from '@/lib/stripe-client';
 
 const SubscriptionForm: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
@@ -20,18 +21,38 @@ const SubscriptionForm: React.FC = () => {
       return;
     }
 
-    const res = await fetch('/api/payment/create-checkout-session', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({}),
-    });
-    const data = await res.json();
-    if (data.url) {
-      window.location.href = data.url; // Redirect to Stripe Checkout
-    } else {
-      setError(data.error || 'Failed to start checkout');
+    try {
+      // Load Stripe
+      const stripe = await stripePromise;
+      if (!stripe) {
+        throw new Error('Failed to load Stripe');
+      }
+
+      // Create checkout session
+      const res = await fetch('/api/payment/create-checkout-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      });
+      
+      const data = await res.json();
+      
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to create checkout session');
+      }
+
+      if (data.url) {
+        // Redirect to Stripe Checkout
+        window.location.href = data.url;
+      } else {
+        throw new Error('No checkout URL received');
+      }
+    } catch (error: any) {
+      console.error('Subscription error:', error);
+      setError(error.message || 'Failed to start checkout');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (
