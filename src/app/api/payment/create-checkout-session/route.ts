@@ -6,7 +6,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
   apiVersion: '2025-06-30.basil',
 });
 
-const PRICE_ID = 'price_1RkoI5L1gjoL2pfG31JiL1Ut'; // CAD $9.99/month
+const PRICE_ID = process.env.STRIPE_PRICE_ID || 'price_1RkoI5L1gjoL2pfG31JiL1Ut'; // Use environment variable or fallback
 
 export async function POST(request: NextRequest) {
   try {

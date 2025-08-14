@@ -9,7 +9,9 @@
     "lint": "next lint",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
-    "prisma:studio": "prisma studio"
+    "prisma:studio": "prisma studio",
+    "verify-stripe": "node scripts/verify-stripe-config.js",
+    "deploy-check": "node scripts/deploy-stripe-live.js"
   },
   "dependencies": {
     "@auth0/nextjs-auth0": "^4.8.0",
