@@ -23,6 +23,7 @@
     "@mui/lab": "^5.0.0-alpha.125",
     "@mui/material": "^5.17.1",
     "@prisma/client": "^5.22.0",
+    "@stripe/stripe-js": "^7.8.0",
     "@swc/cli": "^0.7.7",
     "@swc/core": "^1.11.31",
     "@tailwindcss/postcss": "^4.1.11",
