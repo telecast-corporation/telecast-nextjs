@@ -29,7 +29,7 @@ import PartnerLogos from '@/components/PartnerLogos';
 
 interface TrendingItem {
     id: string;
-  type: 'video' | 'music' | 'book' | 'podcast';
+  type: 'video' | 'music' | 'book' | 'podcast' | 'news';
     title: string;
     description: string;
   thumbnail: string;
@@ -43,6 +43,8 @@ interface TrendingItem {
   rating?: number;
     episodeCount?: number;
   categories?: string[];
+  source?: string;
+  sourceUrl?: string;
 }
 
 interface ContentCarouselProps {
@@ -152,6 +154,11 @@ function ContentCarousel({ title, items, onItemClick }: ContentCarouselProps) {
                     {item.author} • {item.episodeCount} episodes
                   </Typography>
                 )}
+                {item.type === 'news' && item.author && (
+                  <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.85rem', sm: '1.2vw', md: '0.9rem' }, fontWeight: 400 }}>
+                    {item.author} • {item.source}
+                  </Typography>
+                )}
               </CardContent>
             </Card>
           </Grid>
@@ -170,11 +177,13 @@ function HomePageContent() {
     music: TrendingItem[];
     books: TrendingItem[];
     podcasts: TrendingItem[];
+    news: TrendingItem[];
   }>({
     videos: [],
     music: [],
     books: [],
     podcasts: [],
+    news: [],
   });
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -232,6 +241,11 @@ function HomePageContent() {
         break;
       case 'podcast':
         router.push(`/podcast/${item.id}`);
+        break;
+      case 'news':
+        if (item.url) {
+          window.open(item.url, '_blank');
+        }
         break;
     }
   };
@@ -376,6 +390,11 @@ function HomePageContent() {
         <ContentCarousel
           title="Trending Podcasts"
           items={trendingContent.podcasts}
+          onItemClick={handleItemClick}
+        />
+        <ContentCarousel
+          title="Trending News"
+          items={trendingContent.news}
           onItemClick={handleItemClick}
         />
       </Box>

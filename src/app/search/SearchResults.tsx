@@ -11,7 +11,7 @@ import { useRouter } from 'next/navigation';
 
 interface SearchResult {
   id: string;
-  type: 'podcast' | 'video' | 'music' | 'book' | 'audiobook';
+  type: 'podcast' | 'video' | 'music' | 'book' | 'audiobook' | 'news';
   title: string;
   description?: string;
   thumbnail?: string;
@@ -28,7 +28,7 @@ export default function SearchResults() {
   const [bookType, setBookType] = useState<'books' | 'audiobooks'>('books');
   const [pagination, setPagination] = useState<any>(null);
   const debounceTimerRef = useRef<NodeJS.Timeout>();
-  const showRecommendations = !query && ['podcast', 'video', 'music', 'book'].includes(type);
+  const showRecommendations = !query && ['podcast', 'video', 'music', 'book', 'news'].includes(type);
   const router = useRouter();
   const currentPage = parseInt(searchParams.get('page') || '1');
 
@@ -73,10 +73,10 @@ export default function SearchResults() {
           body: JSON.stringify({
             query: query || 'recommended',
             types: searchTypes,
-            maxResults: 300,
+            maxResults: type === 'news' ? 500 : 300,
             trending: showRecommendations,
             page: currentPage,
-            limit: 20,
+            limit: type === 'news' ? 50 : 20,
           }),
         });
 
@@ -89,7 +89,7 @@ export default function SearchResults() {
         // Ensure the results match the expected type
         const typedResults: SearchResult[] = (data.results || []).map((result: any) => ({
           ...result,
-          type: result.type as 'podcast' | 'video' | 'music' | 'book' | 'audiobook'
+          type: result.type as 'podcast' | 'video' | 'music' | 'book' | 'audiobook' | 'news'
         }));
 
         setResults(typedResults);

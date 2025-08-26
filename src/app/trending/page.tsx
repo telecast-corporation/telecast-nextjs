@@ -14,12 +14,14 @@ import {
   CardMedia,
   CardActionArea,
   Chip,
+  Button,
 } from '@mui/material';
 import { useRouter } from 'next/navigation';
+import Pagination from '@/components/Pagination';
 
 interface TrendingItem {
   id: string;
-  type: 'video' | 'music' | 'book';
+  type: 'video' | 'music' | 'book' | 'news';
   title: string;
   description?: string;
   thumbnail?: string;
@@ -31,6 +33,8 @@ interface TrendingItem {
   author?: string;
   publishedDate?: string;
   rating?: number;
+  source?: string;
+  sourceUrl?: string;
 }
 
 interface TabPanelProps {
@@ -69,7 +73,10 @@ export default function TrendingPage() {
     videos: TrendingItem[];
     music: TrendingItem[];
     books: TrendingItem[];
-  }>({ videos: [], music: [], books: [] });
+    news: TrendingItem[];
+  }>({ videos: [], music: [], books: [], news: [] });
+  const [newsPage, setNewsPage] = useState(1);
+  const [newsPagination, setNewsPagination] = useState<any>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -108,7 +115,16 @@ export default function TrendingPage() {
       case 'book':
         router.push(`/book/${item.id}`);
         break;
+      case 'news':
+        if (item.url) {
+          window.open(item.url, '_blank');
+        }
+        break;
     }
+  };
+
+  const handleNewsPageChange = (page: number) => {
+    setNewsPage(page);
   };
 
   if (loading) {
@@ -142,6 +158,7 @@ export default function TrendingPage() {
           <Tab label="Videos" />
           <Tab label="Music" />
           <Tab label="Books" />
+          <Tab label="News" />
         </Tabs>
       </Box>
 
@@ -242,6 +259,63 @@ export default function TrendingPage() {
             </Grid>
           ))}
         </Grid>
+      </TabPanel>
+
+      <TabPanel value={value} index={3}>
+        <Grid container spacing={3}>
+          {trendingContent.news
+            .slice((newsPage - 1) * 20, newsPage * 20)
+            .map((article) => (
+            <Grid item xs={12} sm={6} md={4} key={article.id}>
+              <Card>
+                <CardActionArea onClick={() => handleItemClick(article)}>
+                  <CardMedia
+                    component="img"
+                    height="200"
+                    image={article.thumbnail}
+                    alt={article.title}
+                  />
+                  <CardContent>
+                    <Typography gutterBottom variant="h6" component="div" noWrap>
+                      {article.title}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" noWrap>
+                      {article.description}
+                    </Typography>
+                    <Box sx={{ mt: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Typography variant="caption" color="text.secondary">
+                        {article.author}
+                      </Typography>
+                      {article.source && (
+                        <Chip
+                          size="small"
+                          label={article.source}
+                          variant="outlined"
+                        />
+                      )}
+                    </Box>
+                  </CardContent>
+                </CardActionArea>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+        
+        {/* News Pagination */}
+        {trendingContent.news.length > 20 && (
+          <Box sx={{ mt: 4, display: 'flex', justifyContent: 'center' }}>
+            <Pagination
+              currentPage={newsPage}
+              totalPages={Math.ceil(trendingContent.news.length / 20)}
+              onPageChange={handleNewsPageChange}
+              showingSummary={{
+                start: (newsPage - 1) * 20 + 1,
+                end: Math.min(newsPage * 20, trendingContent.news.length),
+                total: trendingContent.news.length,
+              }}
+            />
+          </Box>
+        )}
       </TabPanel>
     </Container>
   );

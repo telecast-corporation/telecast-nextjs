@@ -27,6 +27,7 @@ import {
   KeyboardArrowLeft as ArrowLeftIcon,
   KeyboardArrowRight as ArrowRightIcon,
   PlayArrow,
+  Article as ArticleIcon,
 } from '@mui/icons-material';
 import { useState } from 'react';
 import Link from 'next/link';
@@ -36,7 +37,7 @@ import React from 'react';
 import StarIcon from '@mui/icons-material/Star';
 
 interface SearchResult {
-  type: 'video' | 'book' | 'audiobook' | 'podcast' | 'music';
+  type: 'video' | 'book' | 'audiobook' | 'podcast' | 'music' | 'news';
   id: string;
   title: string;
   description?: string;
@@ -78,6 +79,7 @@ const TAGLINE_COLORS: Record<string, string> = {
   music: '#10b981',
   book: '#a855f7',
   audiobook: '#f97316',
+  news: '#dc2626',
 };
 
 export default function UnifiedSearchResults({ results, searchType = 'all', loading = false, trending = false }: UnifiedSearchResultsProps) {
@@ -86,7 +88,7 @@ export default function UnifiedSearchResults({ results, searchType = 'all', load
   const { play } = useAudio();
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('md'));
-  const ITEMS_PER_PAGE = isSmallScreen ? 2 : 4;
+  const ITEMS_PER_PAGE = isSmallScreen ? 6 : 12;
 
   if (loading) {
     return (
@@ -116,6 +118,8 @@ export default function UnifiedSearchResults({ results, searchType = 'all', load
         return <PodcastIcon />;
       case 'music':
         return <MusicIcon />;
+      case 'news':
+        return <ArticleIcon />;
       default:
         return null;
     }
@@ -133,13 +137,15 @@ export default function UnifiedSearchResults({ results, searchType = 'all', load
         return trending ? 'Trending Podcasts' : 'Podcasts';
       case 'music':
         return trending ? 'Trending Music' : 'Music';
+      case 'news':
+        return trending ? 'Trending News' : 'News';
       default:
         return type;
     }
   };
 
   // Define the order of content types
-  const CONTENT_TYPE_ORDER = ['podcast', 'video', 'music', 'book', 'audiobook'];
+  const CONTENT_TYPE_ORDER = ['podcast', 'video', 'music', 'book', 'audiobook', 'news'];
 
   // Group results by type
   const groupedResults = results.reduce((acc, result) => {
@@ -187,6 +193,8 @@ export default function UnifiedSearchResults({ results, searchType = 'all', load
         return audiobookUrl;
       case 'music':
         return `/music/${result.id}`;
+      case 'news':
+        return result.url || '#';
       default:
         return result.url || '#';
     }
@@ -732,7 +740,7 @@ export default function UnifiedSearchResults({ results, searchType = 'all', load
             </Typography>
           </Box>
 
-          {searchType === 'all' ? (
+          {searchType === 'all' && type !== 'news' ? (
             renderCarousel(type, typeResults)
           ) : (
             renderVerticalList(typeResults)

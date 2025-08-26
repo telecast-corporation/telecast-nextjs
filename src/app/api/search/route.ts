@@ -324,6 +324,284 @@ async function searchAudiobooks(query: string, maxResults: number = 300) {
   }
 }
 
+async function searchNews(query: string, maxResults: number = 300) {
+  try {
+    console.log('📰 Searching Canadian news for:', query);
+    
+    // Try multiple Canadian news sources
+    const newsSources = [
+      'https://globalnews.ca/feed/',
+      'https://www.cbc.ca/webfeed/rss/rss-topstoriestopstories',
+      'https://www.ctvnews.ca/rss/ctvnews-ca-top-stories-public-rss-1.822009',
+      'https://www.cbc.ca/webfeed/rss/rss-business',
+      'https://www.cbc.ca/webfeed/rss/rss-politics',
+      'https://www.cbc.ca/webfeed/rss/rss-canada',
+      'https://www.cbc.ca/webfeed/rss/rss-world',
+      'https://www.cbc.ca/webfeed/rss/rss-technology',
+      'https://www.cbc.ca/webfeed/rss/rss-sports',
+      'https://www.cbc.ca/webfeed/rss/rss-arts'
+    ];
+    
+    let allArticles = [];
+    
+    for (const source of newsSources) {
+      try {
+        console.log(`📰 Trying source: ${source}`);
+        const response = await fetch(source, {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (compatible; Telecast/1.0)'
+          }
+        });
+        
+        if (!response.ok) {
+          console.log(`📰 Source failed: ${source} - ${response.status}`);
+          continue;
+        }
+        
+        const xmlText = await response.text();
+        
+        // Parse RSS feed - handle CDATA sections
+        const itemRegex = /<item>([\s\S]*?)<\/item>/g;
+        const titleRegex = /<title>(?:<!\[CDATA\[)?(.*?)(?:\]\]>)?<\/title>/;
+        const descriptionRegex = /<description>(?:<!\[CDATA\[)?(.*?)(?:\]\]>)?<\/description>/;
+        const linkRegex = /<link>(.*?)<\/link>/;
+        const pubDateRegex = /<pubDate>(.*?)<\/pubDate>/;
+        const creatorRegex = /<dc:creator>(?:<!\[CDATA\[)?(.*?)(?:\]\]>)?<\/dc:creator>/;
+        const mediaThumbnailRegex = /<media:thumbnail url="(.*?)"/;
+        
+                 let match;
+         let itemCount = 0;
+         while ((match = itemRegex.exec(xmlText)) !== null) {
+           itemCount++;
+           const itemContent = match[1];
+           
+           const title = itemContent.match(titleRegex)?.[1] || 'No title';
+           const description = itemContent.match(descriptionRegex)?.[1] || 'No description';
+           const link = itemContent.match(linkRegex)?.[1] || '';
+           const pubDate = itemContent.match(pubDateRegex)?.[1] || '';
+           const creator = itemContent.match(creatorRegex)?.[1] || 'Unknown Author';
+           const thumbnail = itemContent.match(mediaThumbnailRegex)?.[1] || 'https://via.placeholder.com/300x200?text=Canadian+News';
+           
+           console.log(`📰 Parsed item ${itemCount}:`, { title: title.substring(0, 50) + '...', hasDescription: !!description, hasLink: !!link });
+           
+           // Filter by query if provided (but be less strict for news)
+           if (query && query.trim() !== '') {
+             const queryLower = query.toLowerCase();
+             const titleLower = title.toLowerCase();
+             const descriptionLower = description.toLowerCase();
+             
+             // For news, be more lenient - show articles if they match OR if query is general
+             const isGeneralQuery = ['canada', 'canadian', 'news', 'latest', 'update', 'today'].some(term => 
+               queryLower.includes(term)
+             );
+             
+             if (!isGeneralQuery && !titleLower.includes(queryLower) && !descriptionLower.includes(queryLower)) {
+               console.log(`📰 Item filtered out by query: "${query}"`);
+               continue;
+             }
+           }
+           
+           allArticles.push({
+             type: 'news',
+             id: `news-${allArticles.length}-${Date.now()}`,
+             title: title,
+             description: description,
+             thumbnail: thumbnail,
+             url: link,
+             author: creator,
+             publishedAt: pubDate,
+             source: source.includes('globalnews') ? 'globalnews' : 
+                    source.includes('cbc') ? 'cbc' : 'ctv',
+             sourceUrl: link,
+           });
+         }
+         
+         console.log(`📰 Total items parsed from ${source}: ${itemCount}, articles added: ${allArticles.length}`);
+        
+        console.log(`📰 Found ${allArticles.length} articles from ${source}`);
+        
+        // Continue fetching from all sources
+        
+             } catch (error: any) {
+         console.log(`📰 Error with source ${source}:`, error.message);
+         continue;
+       }
+    }
+    
+    // If no articles found from RSS feeds, add some fallback Canadian news
+    if (allArticles.length === 0) {
+      console.log('📰 No RSS articles found, adding fallback Canadian news');
+      allArticles = [
+        {
+          type: 'news',
+          id: `news-fallback-1-${Date.now()}`,
+          title: 'Canadian News - Latest Updates',
+          description: 'Stay informed with the latest news from across Canada.',
+          thumbnail: 'https://via.placeholder.com/300x200?text=Canadian+News',
+          url: 'https://www.cbc.ca/news',
+          author: 'CBC News',
+          publishedAt: new Date().toISOString(),
+          source: 'cbc',
+          sourceUrl: 'https://www.cbc.ca/news',
+        },
+        {
+          type: 'news',
+          id: `news-fallback-2-${Date.now()}`,
+          title: 'Toronto News - City Updates',
+          description: 'Latest news and updates from the city of Toronto.',
+          thumbnail: 'https://via.placeholder.com/300x200?text=Toronto+News',
+          url: 'https://www.cbc.ca/news/canada/toronto',
+          author: 'CBC Toronto',
+          publishedAt: new Date().toISOString(),
+          source: 'cbc',
+          sourceUrl: 'https://www.cbc.ca/news/canada/toronto',
+        },
+        {
+          type: 'news',
+          id: `news-fallback-3-${Date.now()}`,
+          title: 'Vancouver News - West Coast Updates',
+          description: 'Latest news and updates from Vancouver and British Columbia.',
+          thumbnail: 'https://via.placeholder.com/300x200?text=Vancouver+News',
+          url: 'https://www.cbc.ca/news/canada/british-columbia',
+          author: 'CBC Vancouver',
+          publishedAt: new Date().toISOString(),
+          source: 'cbc',
+          sourceUrl: 'https://www.cbc.ca/news/canada/british-columbia',
+        },
+        {
+          type: 'news',
+          id: `news-fallback-4-${Date.now()}`,
+          title: 'Montreal News - Quebec Updates',
+          description: 'Latest news and updates from Montreal and Quebec.',
+          thumbnail: 'https://via.placeholder.com/300x200?text=Montreal+News',
+          url: 'https://www.cbc.ca/news/canada/montreal',
+          author: 'CBC Montreal',
+          publishedAt: new Date().toISOString(),
+          source: 'cbc',
+          sourceUrl: 'https://www.cbc.ca/news/canada/montreal',
+        },
+        {
+          type: 'news',
+          id: `news-fallback-5-${Date.now()}`,
+          title: 'Calgary News - Alberta Updates',
+          description: 'Latest news and updates from Calgary and Alberta.',
+          thumbnail: 'https://via.placeholder.com/300x200?text=Calgary+News',
+          url: 'https://www.cbc.ca/news/canada/calgary',
+          author: 'CBC Calgary',
+          publishedAt: new Date().toISOString(),
+          source: 'cbc',
+          sourceUrl: 'https://www.cbc.ca/news/canada/calgary',
+        }
+      ];
+    }
+    
+    const articles = allArticles;
+    return articles;
+  } catch (error: any) {
+    console.error('📰 Error searching Canadian news:', error.message);
+    
+    // Fallback: return some sample Canadian news
+    return [
+      {
+        type: 'news',
+        id: `news-fallback-1`,
+        title: 'Toronto News - Latest Updates',
+        description: 'Stay informed with the latest news from Toronto and across Canada.',
+        thumbnail: 'https://via.placeholder.com/300x200?text=Toronto+News',
+        url: 'https://www.cbc.ca/news/canada/toronto',
+        author: 'CBC Toronto',
+        publishedAt: new Date().toISOString(),
+        source: 'cbc',
+        sourceUrl: 'https://www.cbc.ca/news/canada/toronto',
+      },
+      {
+        type: 'news',
+        id: `news-fallback-2`,
+        title: 'Canadian Business News',
+        description: 'Latest business and economic news from across Canada.',
+        thumbnail: 'https://via.placeholder.com/300x200?text=Business+News',
+        url: 'https://www.cbc.ca/news/business',
+        author: 'CBC Business',
+        publishedAt: new Date().toISOString(),
+        source: 'cbc',
+        sourceUrl: 'https://www.cbc.ca/news/business',
+      },
+      {
+        type: 'news',
+        id: `news-fallback-3`,
+        title: 'Vancouver News - West Coast Updates',
+        description: 'Latest news and updates from Vancouver and British Columbia.',
+        thumbnail: 'https://via.placeholder.com/300x200?text=Vancouver+News',
+        url: 'https://www.cbc.ca/news/canada/british-columbia',
+        author: 'CBC Vancouver',
+        publishedAt: new Date().toISOString(),
+        source: 'cbc',
+        sourceUrl: 'https://www.cbc.ca/news/canada/british-columbia',
+      },
+      {
+        type: 'news',
+        id: `news-fallback-4`,
+        title: 'Montreal News - Quebec Updates',
+        description: 'Latest news and updates from Montreal and Quebec.',
+        thumbnail: 'https://via.placeholder.com/300x200?text=Montreal+News',
+        url: 'https://www.cbc.ca/news/canada/montreal',
+        author: 'CBC Montreal',
+        publishedAt: new Date().toISOString(),
+        source: 'cbc',
+        sourceUrl: 'https://www.cbc.ca/news/canada/montreal',
+      },
+      {
+        type: 'news',
+        id: `news-fallback-5`,
+        title: 'Calgary News - Alberta Updates',
+        description: 'Latest news and updates from Calgary and Alberta.',
+        thumbnail: 'https://via.placeholder.com/300x200?text=Calgary+News',
+        url: 'https://www.cbc.ca/news/canada/calgary',
+        author: 'CBC Calgary',
+        publishedAt: new Date().toISOString(),
+        source: 'cbc',
+        sourceUrl: 'https://www.cbc.ca/news/canada/calgary',
+      },
+      {
+        type: 'news',
+        id: `news-fallback-6`,
+        title: 'Ottawa News - National Updates',
+        description: 'Latest national news and updates from Ottawa.',
+        thumbnail: 'https://via.placeholder.com/300x200?text=Ottawa+News',
+        url: 'https://www.cbc.ca/news/politics',
+        author: 'CBC Politics',
+        publishedAt: new Date().toISOString(),
+        source: 'cbc',
+        sourceUrl: 'https://www.cbc.ca/news/politics',
+      },
+      {
+        type: 'news',
+        id: `news-fallback-7`,
+        title: 'Edmonton News - Alberta Updates',
+        description: 'Latest news and updates from Edmonton and Alberta.',
+        thumbnail: 'https://via.placeholder.com/300x200?text=Edmonton+News',
+        url: 'https://www.cbc.ca/news/canada/edmonton',
+        author: 'CBC Edmonton',
+        publishedAt: new Date().toISOString(),
+        source: 'cbc',
+        sourceUrl: 'https://www.cbc.ca/news/canada/edmonton',
+      },
+      {
+        type: 'news',
+        id: `news-fallback-8`,
+        title: 'Winnipeg News - Manitoba Updates',
+        description: 'Latest news and updates from Winnipeg and Manitoba.',
+        thumbnail: 'https://via.placeholder.com/300x200?text=Winnipeg+News',
+        url: 'https://www.cbc.ca/news/canada/manitoba',
+        author: 'CBC Manitoba',
+        publishedAt: new Date().toISOString(),
+        source: 'cbc',
+        sourceUrl: 'https://www.cbc.ca/news/canada/manitoba',
+      }
+    ];
+  }
+}
+
 export async function POST(request: Request) {
   try {
     const body: SearchRequest = await request.json();
@@ -394,6 +672,7 @@ export async function POST(request: Request) {
           books: trendingData.books?.length || 0,
           music: trendingData.music?.length || 0,
           podcasts: trendingData.podcasts?.length || 0,
+          news: trendingData.news?.length || 0,
         });
         
         let trendingResults: any[] = [];
@@ -403,13 +682,15 @@ export async function POST(request: Request) {
             ...trendingData.videos || [],
             ...trendingData.music || [],
             ...trendingData.books || [],
-            ...trendingData.podcasts || []
+            ...trendingData.podcasts || [],
+            ...trendingData.news || []
           ];
         } else {
           if (types.includes('video')) trendingResults.push(...(trendingData.videos || []));
           if (types.includes('music')) trendingResults.push(...(trendingData.music || []));
           if (types.includes('book')) trendingResults.push(...(trendingData.books || []));
           if (types.includes('podcast')) trendingResults.push(...(trendingData.podcasts || []));
+          if (types.includes('news')) trendingResults.push(...(trendingData.news || []));
         }
         
         console.log('📈 Returning trending results:', trendingResults.length);
@@ -464,7 +745,8 @@ export async function POST(request: Request) {
       }
     }
 
-    if (!query) {
+    // For news searches, allow empty query to get general news
+    if (!query && !types.includes('news')) {
       return NextResponse.json(
         { error: 'Query parameter is required' },
         { status: 400 }
@@ -482,6 +764,7 @@ export async function POST(request: Request) {
       searchPromises.push(searchAudiobooks(query, Math.min(maxResults, 300)));
       searchPromises.push(searchPodcasts(query, maxResults, request));
       searchPromises.push(searchMusic(query, maxResults));
+      searchPromises.push(searchNews(query, maxResults));
     } else {
       // Otherwise, only search the specified types
       if (types.includes('video')) {
@@ -499,18 +782,22 @@ export async function POST(request: Request) {
       if (types.includes('music')) {
         searchPromises.push(searchMusic(query, maxResults));
       }
+      if (types.includes('news')) {
+        searchPromises.push(searchNews(query, maxResults));
+      }
     }
 
     const results = await Promise.allSettled(searchPromises);
     const searchResults = results
       .filter((result): result is PromiseFulfilledResult<any[]> => result.status === 'fulfilled')
-      .flatMap(result => result.value);
+      .flatMap(result => result.value)
+      .filter(item => item && item.title && item.title.trim() !== ''); // Filter out invalid items
 
     // Enhanced relevance scoring and sorting
     const queryWords = query.toLowerCase().split(/\s+/).filter(word => word.length > 0);
     
     const calculateRelevanceScore = (item: any) => {
-      const title = item.title.toLowerCase();
+      const title = (item.title || '').toLowerCase();
       const description = (item.description || '').toLowerCase();
       const author = (item.author || '').toLowerCase();
       
@@ -614,10 +901,9 @@ export async function POST(request: Request) {
       return a.title.length - b.title.length;
     });
 
-    // Log top results with their relevance scores
-    const topResults = searchResults.slice(0, 10);
-    console.log('🔍 Top results with relevance scores:');
-    topResults.forEach((result, index) => {
+    // Log all results with their relevance scores
+    console.log('🔍 All results with relevance scores:');
+    searchResults.forEach((result, index) => {
       const score = calculateRelevanceScore(result);
       console.log(`${index + 1}. [${score}pts] ${result.title} (${result.type})`);
     });
