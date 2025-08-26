@@ -7,6 +7,7 @@ const SPOTIFY_CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET;
 const GOOGLE_BOOKS_API_KEY = process.env.GOOGLE_BOOKS_API_KEY;
 const PODCASTINDEX_API_KEY = process.env.PODCASTINDEX_API_KEY;
 const PODCASTINDEX_API_SECRET = process.env.PODCASTINDEX_API_SECRET;
+const NEWS_API_KEY = process.env.NEWS_API_KEY;
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -232,14 +233,106 @@ async function getTrendingPodcasts() {
   }
 }
 
+async function getTrendingNews() {
+  try {
+    console.log('Fetching trending Canadian news...');
+
+    // Try multiple sources to get more news
+    const newsSources = [
+      'https://globalnews.ca/feed/',
+      'https://www.cbc.ca/webfeed/rss/rss-topstoriestopstories',
+      'https://www.cbc.ca/webfeed/rss/rss-business',
+      'https://www.cbc.ca/webfeed/rss/rss-politics',
+      'https://www.cbc.ca/webfeed/rss/rss-canada',
+      'https://www.cbc.ca/webfeed/rss/rss-world',
+      'https://www.cbc.ca/webfeed/rss/rss-technology',
+      'https://www.cbc.ca/webfeed/rss/rss-sports',
+      'https://www.cbc.ca/webfeed/rss/rss-arts',
+      'https://www.ctvnews.ca/rss/ctvnews-ca-top-stories-public-rss-1.822009',
+      'https://www.ctvnews.ca/rss/ctvnews-ca-canada-public-rss-1.822008',
+      'https://www.ctvnews.ca/rss/ctvnews-ca-world-public-rss-1.822010',
+      'https://www.ctvnews.ca/rss/ctvnews-ca-business-public-rss-1.822011',
+      'https://www.ctvnews.ca/rss/ctvnews-ca-politics-public-rss-1.822012'
+    ];
+    
+    let allArticles = [];
+    
+    for (const source of newsSources) {
+      try {
+        console.log(`📰 Trying trending source: ${source}`);
+        const response = await fetch(source, {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (compatible; Telecast/1.0)'
+          }
+        });
+        
+        if (!response.ok) {
+          console.log(`📰 Source failed: ${source} - ${response.status}`);
+          continue;
+        }
+
+        const xmlText = await response.text();
+        
+        // Parse RSS feed - handle CDATA sections
+        const itemRegex = /<item>([\s\S]*?)<\/item>/g;
+        const titleRegex = /<title>(?:<!\[CDATA\[)?(.*?)(?:\]\]>)?<\/title>/;
+        const descriptionRegex = /<description>(?:<!\[CDATA\[)?(.*?)(?:\]\]>)?<\/description>/;
+        const linkRegex = /<link>(.*?)<\/link>/;
+        const pubDateRegex = /<pubDate>(.*?)<\/pubDate>/;
+        const creatorRegex = /<dc:creator>(?:<!\[CDATA\[)?(.*?)(?:\]\]>)?<\/dc:creator>/;
+        const mediaThumbnailRegex = /<media:thumbnail url="(.*?)"/;
+        
+        let match;
+        while ((match = itemRegex.exec(xmlText)) !== null) {
+          const itemContent = match[1];
+          
+          const title = itemContent.match(titleRegex)?.[1] || 'No title';
+          const description = itemContent.match(descriptionRegex)?.[1] || 'No description';
+          const link = itemContent.match(linkRegex)?.[1] || '';
+          const pubDate = itemContent.match(pubDateRegex)?.[1] || '';
+          const creator = itemContent.match(creatorRegex)?.[1] || 'Unknown Author';
+          const thumbnail = itemContent.match(mediaThumbnailRegex)?.[1] || 'https://via.placeholder.com/300x200?text=Canadian+News';
+          
+          allArticles.push({
+            id: `news-${allArticles.length}-${Date.now()}`,
+            type: 'news',
+            title: title,
+            description: description,
+            thumbnail: thumbnail,
+            url: link,
+            author: creator,
+            publishedAt: pubDate,
+            source: source.includes('globalnews') ? 'globalnews' : 
+                   source.includes('ctv') ? 'ctv' : 'cbc',
+            sourceUrl: link,
+          });
+        }
+        
+        console.log(`📰 Found ${allArticles.length} articles from ${source}`);
+        
+      } catch (error: any) {
+        console.log(`📰 Error with source ${source}:`, error.message);
+        continue;
+      }
+    }
+    
+    console.log('Canadian trending news response:', { articlesCount: allArticles.length });
+    return allArticles;
+  } catch (error) {
+    console.error('Error fetching trending Canadian news:', error);
+    return [];
+  }
+}
+
 export async function GET(request: Request) {
   try {
     console.log('Starting to fetch all trending content...');
-    const [videos, music, books, podcasts] = await Promise.all([
+    const [videos, music, books, podcasts, news] = await Promise.all([
       getTrendingVideos(),
       getTrendingMusic(),
       getTrendingBooks(),
       getTrendingPodcasts(),
+      getTrendingNews(),
     ]);
 
     console.log('All content fetched:', {
@@ -247,6 +340,7 @@ export async function GET(request: Request) {
       musicCount: music.length,
       booksCount: books.length,
       podcastsCount: podcasts.length,
+      newsCount: news.length,
     });
 
     // Combine and sort all trending content by type
@@ -255,6 +349,7 @@ export async function GET(request: Request) {
       music,
       books,
       podcasts,
+      news,
     };
 
     return new NextResponse(JSON.stringify(trendingContent), {

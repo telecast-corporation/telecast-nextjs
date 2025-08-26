@@ -60,6 +60,7 @@ import {
   Create as CreateIcon,
   Mic as MicIcon,
   AttachMoney as AttachMoneyIcon,
+  Article as NewsIcon,
 } from '@mui/icons-material';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -577,7 +578,8 @@ const MainNav = memo(() => {
       'Podcasts': 'podcast',
       'Videos': 'video',
       'Music': 'music',
-      'Books': 'book'
+      'Books': 'book',
+      'News': 'news'
     };
     return typeMap[filter] || 'all';
   };
@@ -604,7 +606,8 @@ const MainNav = memo(() => {
     { value: 'Podcasts', icon: <HeadphonesIcon /> },
     { value: 'Videos', icon: <VideoIcon /> },
     { value: 'Music', icon: <MusicIcon /> },
-    { value: 'Books', icon: <BookIcon /> }
+    { value: 'Books', icon: <BookIcon /> },
+    { value: 'News', icon: <NewsIcon /> }
   ];
 
   // Handle autocomplete suggestion selection
@@ -1098,6 +1101,14 @@ const MainNav = memo(() => {
                       >
           Books
                       </Button>
+        <Button
+          variant="text"
+          startIcon={<NewsIcon />}
+          onClick={() => handleFilterSelect('News')}
+          sx={getFilterButtonStyles(theme, selectedFilter, 'News')}
+        >
+          News
+        </Button>
       </FiltersArea>
 
         <NavGroup sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.5, sm: 1 } }}>

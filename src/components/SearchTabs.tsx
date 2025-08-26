@@ -4,6 +4,7 @@ import MicIcon from '@mui/icons-material/Mic';
 import VideoIcon from '@mui/icons-material/VideoLibrary';
 import MusicIcon from '@mui/icons-material/MusicNote';
 import BookIcon from '@mui/icons-material/Book';
+import ArticleIcon from '@mui/icons-material/Article';
 
 interface SearchTabsProps {
   value: string;
@@ -23,6 +24,7 @@ const SearchTabs: React.FC<SearchTabsProps> = ({ value, onChange }) => (
     <Tab value="videos" label="Videos" icon={<VideoIcon />} iconPosition="start" />
     <Tab value="music" label="Music" icon={<MusicIcon />} iconPosition="start" />
     <Tab value="books" label="Books" icon={<BookIcon />} iconPosition="start" />
+    <Tab value="news" label="News" icon={<ArticleIcon />} iconPosition="start" />
   </Tabs>
 );
 
