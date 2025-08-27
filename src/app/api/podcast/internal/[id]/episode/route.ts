@@ -5,6 +5,10 @@ import { uploadPodcastFile } from '@/lib/storage';
 
 const prisma = new PrismaClient();
 
+// Configure for large file uploads
+export const maxDuration = 300; // 5 minutes
+export const dynamic = 'force-dynamic';
+
 
 
 export async function POST(
@@ -53,9 +57,9 @@ export async function POST(
       return NextResponse.json({ error: 'File must be an audio file' }, { status: 400 });
     }
 
-    // Validate file size (100MB limit)
-    if (audioFile.size > 100 * 1024 * 1024) {
-      return NextResponse.json({ error: 'File size must be less than 100MB' }, { status: 400 });
+    // Validate file size (50MB limit for remote compatibility)
+    if (audioFile.size > 50 * 1024 * 1024) {
+      return NextResponse.json({ error: 'File size must be less than 50MB' }, { status: 400 });
     }
 
     // Create episode first to get episodeId
@@ -100,6 +104,17 @@ export async function POST(
 
   } catch (error) {
     console.error('Episode creation error:', error);
+    
+    // Check for specific error types
+    if (error instanceof Error) {
+      if (error.message.includes('413') || error.message.includes('Payload Too Large')) {
+        return NextResponse.json(
+          { error: 'File size too large. Please try a smaller file or contact support.' },
+          { status: 413 }
+        );
+      }
+    }
+    
     return NextResponse.json(
       { error: 'Failed to create episode' },
       { status: 500 }

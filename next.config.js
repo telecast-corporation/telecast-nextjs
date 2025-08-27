@@ -8,6 +8,10 @@ const nextConfig = {
       },
     ],
   },
+  // Configure API routes to handle larger file uploads
+  experimental: {
+    serverComponentsExternalPackages: ['@prisma/client'],
+  },
   // Temporarily disable Turbopack to fix bootstrap issues
   // experimental: {
   //   turbo: {
