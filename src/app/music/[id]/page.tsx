@@ -111,7 +111,7 @@ export default function MusicPage() {
     const fetchYoutubeVideo = async () => {
       if (selectedPlatform === 'youtube' && music) {
         try {
-          const response = await axios.get('/api/youtube/search', {
+          const response = await axios.get('/api/video', {
             params: {
               q: `${music.artist.name} - ${music.title} official audio`,
               type: 'video'
@@ -124,7 +124,7 @@ export default function MusicPage() {
           console.error('Error fetching YouTube video:', err);
           // Fallback to music video search if audio search fails
           try {
-            const fallbackResponse = await axios.get('/api/youtube/search', {
+            const fallbackResponse = await axios.get('/api/video', {
               params: {
                 q: `${music.artist.name} - ${music.title} official music video`,
                 type: 'video'

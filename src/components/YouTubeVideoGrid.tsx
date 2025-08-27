@@ -35,7 +35,7 @@ export default function YouTubeVideoGrid({ searchQuery }: YouTubeVideoGridProps)
       setError(null);
       
       try {
-        const response = await fetch(`/api/youtube/search?q=${encodeURIComponent(searchQuery)}`);
+        const response = await fetch(`/api/video?q=${encodeURIComponent(searchQuery)}`);
         const data = await response.json();
         
         if (!response.ok) {

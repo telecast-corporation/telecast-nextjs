@@ -23,6 +23,10 @@ import {
   ListItemSecondaryAction,
   Tooltip,
   Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from '@mui/material';
 import {
   PlayArrow,
@@ -37,25 +41,29 @@ import {
   Mic as MicIcon,
   Upload as UploadIcon,
   Radio as RadioIcon,
+  Save as SaveIcon,
 } from '@mui/icons-material';
 import { useAudio } from '@/contexts/AudioContext';
 
 // Define the database episode type
 interface DatabaseEpisode {
   id: string;
-  title: string;
-  description: string;
+  title: string | null;
+  description: string | null;
   audioUrl: string;
-  duration: number;
-  publishDate: Date;
-  episodeNumber?: number;
-  seasonNumber?: number;
+  duration: number | null;
+  publishDate: Date | null;
+  episodeNumber?: number | null;
+  seasonNumber?: number | null;
   explicit: boolean;
   keywords: string[];
   views: number;
   likes: number;
   createdAt: Date;
   updatedAt: Date;
+  isFinal: boolean;
+  isPublished: boolean;
+  fileSize: number | null;
 }
 
 // Define the database podcast type
@@ -95,13 +103,14 @@ export default function PodcastPage() {
   const [currentlyPlaying, setCurrentlyPlaying] = useState<string | null>(null);
   const [isQuickBroadcasting, setIsQuickBroadcasting] = useState<string | null>(null);
 
+
   useEffect(() => {
     const fetchPodcast = async () => {
       try {
         setLoading(true);
         const podcastId = params.id as string;
         
-        const response = await axios.get(`/api/podcast/${podcastId}/internal`);
+        const response = await axios.get(`/api/podcast/internal/${podcastId}`);
         
         if (response.data) {
           console.log('Podcast data received:', {
@@ -109,6 +118,7 @@ export default function PodcastPage() {
             title: response.data.title,
             coverImage: response.data.coverImage
           });
+          console.log('Episodes data:', response.data.episodes);
           setPodcast(response.data);
           setEpisodes(response.data.episodes || []);
         } else {
@@ -138,14 +148,46 @@ export default function PodcastPage() {
       setCurrentlyPlaying(null);
     } else {
       // If clicking a different episode, play new one
-      const audio = new Audio(episode.audioUrl);
-      audio.play();
-      setCurrentlyPlaying(episode.id);
+      try {
+        // Check if audioUrl exists and is valid
+        if (!episode.audioUrl) {
+          console.error('No audio URL available for episode:', episode.id);
+          alert('Audio file not available for this episode');
+          return;
+        }
 
-      // Handle audio end
-      audio.onended = () => {
+        console.log('Playing episode:', {
+          id: episode.id,
+          title: episode.title,
+          audioUrl: episode.audioUrl
+        });
+
+        const audio = new Audio(episode.audioUrl);
+        
+        // Add error handling for audio loading
+        audio.onerror = (e) => {
+          console.error('Audio loading error:', e);
+          alert('Failed to load audio file');
+          setCurrentlyPlaying(null);
+        };
+
+        audio.play().catch((error) => {
+          console.error('Audio play error:', error);
+          alert('Failed to play audio file');
+          setCurrentlyPlaying(null);
+        });
+
+        setCurrentlyPlaying(episode.id);
+
+        // Handle audio end
+        audio.onended = () => {
+          setCurrentlyPlaying(null);
+        };
+      } catch (error) {
+        console.error('Error playing episode:', error);
+        alert('Failed to play episode');
         setCurrentlyPlaying(null);
-      };
+      }
     }
   };
 
@@ -159,8 +201,12 @@ export default function PodcastPage() {
   // Calculate pagination
   const indexOfLastEpisode = currentPage * episodesPerPage;
   const indexOfFirstEpisode = indexOfLastEpisode - episodesPerPage;
-  const currentEpisodes = episodes.slice(indexOfFirstEpisode, indexOfLastEpisode);
-  const totalPages = Math.ceil(episodes.length / episodesPerPage);
+  // Separate published and draft episodes
+  const publishedEpisodes = episodes.filter(episode => episode.isPublished);
+  const draftEpisodes = episodes.filter(episode => !episode.isPublished);
+  
+  const currentEpisodes = publishedEpisodes.slice(indexOfFirstEpisode, indexOfLastEpisode);
+  const totalPages = Math.ceil(publishedEpisodes.length / episodesPerPage);
 
   const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
     setCurrentPage(value);
@@ -337,22 +383,120 @@ export default function PodcastPage() {
 
       {/* Episodes Section */}
       <Box id="episodes-section">
+        {/* Draft Episodes Section */}
+        {draftEpisodes.length > 0 && (
+          <Box sx={{ mb: 4 }}>
+            <Typography variant="h6" gutterBottom color="warning.main">
+              Draft Episodes ({draftEpisodes.length})
+            </Typography>
+            <Card>
+              <List sx={{ width: '100%', bgcolor: 'background.paper' }}>
+                {draftEpisodes.map((episode, index) => (
+                  <ListItem
+                    key={episode.id}
+                    disablePadding
+                    divider={index < draftEpisodes.length - 1}
+                    sx={{
+                      '&:hover': {
+                        bgcolor: 'action.hover',
+                      },
+                    }}
+                  >
+                    <ListItemButton
+                      onClick={() => router.push(`/podcast/${podcast.id}/episode/${episode.id}/finalize`)}
+                      sx={{
+                        py: { xs: 1, sm: 1.5 },
+                        px: { xs: 1, sm: 2 },
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+                        <ListItemText
+                          primary={
+                            <Typography
+                              variant="subtitle1"
+                              component="div"
+                              sx={{
+                                fontWeight: 500,
+                                color: 'text.primary',
+                                fontSize: { xs: '0.8rem', sm: '0.9rem' },
+                                lineHeight: 1.2,
+                                mb: 0.5
+                              }}
+                            >
+                              {episode.title || 'Untitled Episode'}
+                            </Typography>
+                          }
+                          secondary={
+                            <>
+                              <Typography 
+                                variant="body2" 
+                                component="span"
+                                color="text.secondary"
+                                sx={{ fontSize: { xs: '0.7rem', sm: '0.75rem' } }}
+                              >
+                                Draft • {new Date(episode.createdAt).toLocaleDateString('en-US', {
+                                  year: 'numeric',
+                                  month: 'long',
+                                  day: 'numeric'
+                                })}
+                              </Typography>
+                              {episode.fileSize && (
+                                <Typography 
+                                  variant="body2" 
+                                  component="span"
+                                  color="text.secondary"
+                                  sx={{ fontSize: { xs: '0.7rem', sm: '0.75rem' }, ml: 1 }}
+                                >
+                                  • {(episode.fileSize / 1024 / 1024).toFixed(2)} MB
+                                </Typography>
+                              )}
+                            </>
+                          }
+                        />
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                      <Tooltip title="Finalize Episode">
+                              <IconButton
+                                size="small"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  router.push(`/podcast/${podcast.id}/episode/${episode.id}/finalize`);
+                                }}
+                                sx={{
+                                  color: 'warning.main',
+                                  '&:hover': {
+                                    backgroundColor: 'warning.light',
+                                  }
+                                }}
+                              >
+                                <SaveIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                        </Box>
+                      </Box>
+                    </ListItemButton>
+                  </ListItem>
+                ))}
+              </List>
+            </Card>
+          </Box>
+        )}
+
+        {/* Published Episodes Section */}
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
           <Typography variant="h5" gutterBottom sx={{ textAlign: 'center', mb: 0 }}>
-            Episodes
+            Published Episodes ({publishedEpisodes.length})
           </Typography>
-          <Link href={`/upload/${podcast.id}`} style={{ textDecoration: 'none' }}>
-            <Button
-              variant="contained"
-              startIcon={<AddIcon />}
-              sx={{ minWidth: 'auto' }}
-            >
-              Add Episode
-            </Button>
-          </Link>
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            sx={{ minWidth: 'auto' }}
+            onClick={() => router.push(`/podcast/${podcast?.id}/episode/new/edit`)}
+          >
+            Add Episode
+          </Button>
         </Box>
         
-        {episodes.length === 0 ? (
+        {publishedEpisodes.length === 0 && draftEpisodes.length === 0 ? (
           <Card>
             <Box sx={{ p: 4, textAlign: 'center' }}>
               <Typography variant="h6" color="text.secondary" gutterBottom>
@@ -362,22 +506,13 @@ export default function PodcastPage() {
                 Start building your podcast by creating your first episode
               </Typography>
               <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center' }}>
-                <Link href={`/upload/${podcast.id}`} style={{ textDecoration: 'none' }}>
-                  <Button
-                    variant="contained"
-                    startIcon={<UploadIcon />}
-                  >
-                    Upload Episode
-                  </Button>
-                </Link>
-                <Link href={`/record/${podcast.id}`} style={{ textDecoration: 'none' }}>
-                  <Button
-                    variant="outlined"
-                    startIcon={<MicIcon />}
-                  >
-                    Record Episode
-                  </Button>
-                </Link>
+                <Button
+                  variant="contained"
+                  startIcon={<AddIcon />}
+                  onClick={() => router.push(`/podcast/${podcast.id}/episode/new/edit`)}
+                >
+                  Add Episode
+                </Button>
               </Box>
             </Box>
           </Card>
@@ -436,11 +571,18 @@ export default function PodcastPage() {
                               color="text.secondary"
                               sx={{ fontSize: { xs: '0.7rem', sm: '0.75rem' } }}
                             >
-                              {new Date(episode.publishDate).toLocaleDateString('en-US', {
-                                year: 'numeric',
-                                month: 'long',
-                                day: 'numeric'
-                              })}
+                              {episode.publishDate 
+                                ? new Date(episode.publishDate).toLocaleDateString('en-US', {
+                                    year: 'numeric',
+                                    month: 'long',
+                                    day: 'numeric'
+                                  })
+                                : new Date(episode.createdAt).toLocaleDateString('en-US', {
+                                    year: 'numeric',
+                                    month: 'long',
+                                    day: 'numeric'
+                                  })
+                              }
                             </Typography>
                             {episode.keywords && episode.keywords.length > 0 && (
                               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 0.5 }}>
@@ -521,6 +663,7 @@ export default function PodcastPage() {
           </Box>
         )}
       </Box>
+
 
 
     </Container>

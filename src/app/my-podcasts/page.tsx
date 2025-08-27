@@ -36,7 +36,6 @@ import {
   VisibilityOff as UnpublishIcon,
 } from '@mui/icons-material';
 import { useAuth } from '@/contexts/AuthContext';
-import Link from 'next/link';
 
 interface Podcast {
   id: string;
@@ -49,15 +48,10 @@ interface Podcast {
   published: boolean;
 }
 
-interface DraftItem {
-  id: string;
-  podcastId: string;
-  status: string;
-  updatedAt: string;
-  podcast?: { id: string; title: string };
-}
+
 
 export default function MyPodcasts() {
+  const { user, isLoading } = useUser();
   const router = useRouter();
   const [podcasts, setPodcasts] = useState<Podcast[]>([]);
   const [loading, setLoading] = useState(true);
@@ -66,25 +60,38 @@ export default function MyPodcasts() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [currentlyPlaying, setCurrentlyPlaying] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const [drafts, setDrafts] = useState<DraftItem[]>([]);
 
   useEffect(() => {
-    fetchPodcasts();
-    (async () => {
-      try {
-        const res = await fetch('/api/drafts');
-        if (!res.ok) throw new Error('Failed to fetch drafts');
-        const data = await res.json();
-        setDrafts(data);
-      } catch (e) {
-        setError('Failed to load drafts');
+    if (!isLoading && user) {
+      fetchPodcasts();
+    }
+  }, [isLoading, user]);
+
+  // Refresh podcasts when navigating back to this page
+  useEffect(() => {
+    const handleRouteChange = () => {
+      if (user) {
+        fetchPodcasts();
       }
-    })();
-  }, []);
+    };
+
+    // Refresh on mount and when the page becomes visible
+    handleRouteChange();
+    
+    // Also refresh when the window gains focus (e.g., after navigation back)
+    const handleFocus = () => {
+      if (user) {
+        fetchPodcasts();
+      }
+    };
+
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, [user]);
 
   const fetchPodcasts = async () => {
     try {
-      const response = await fetch('/api/podcast/my-podcasts');
+      const response = await fetch('/api/podcast/internal');
       if (!response.ok) {
         throw new Error('Failed to fetch podcasts');
       }
@@ -97,11 +104,13 @@ export default function MyPodcasts() {
     }
   };
 
+
+
   const handleDelete = async () => {
     if (!selectedPodcast) return;
 
     try {
-      const response = await fetch(`/api/podcast/${selectedPodcast.id}`, {
+      const response = await fetch(`/api/podcast/internal/${selectedPodcast.id}`, {
         method: 'DELETE',
       });
 
@@ -117,14 +126,23 @@ export default function MyPodcasts() {
     }
   };
 
+
+
+
+
   // Removed inline audio preview for podcasts listing
 
-  if (loading) {
+  if (isLoading || loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
         <CircularProgress />
       </Box>
     );
+  }
+
+  if (!user) {
+    router.push('/auth/login');
+    return null;
   }
 
   return (
@@ -155,28 +173,31 @@ export default function MyPodcasts() {
         >
           Manage your podcast episodes
         </Typography>
-                  <Button
-            variant="contained"
-            onClick={() => router.push('/finalize')}
-            sx={{
-              backgroundColor: '#2563eb',
-              borderRadius: '8px',
-              px: 4,
-              py: 2,
-              fontSize: '1.1rem',
-              fontWeight: 600,
-              textTransform: 'none',
-              boxShadow: '0 4px 12px rgba(37, 99, 235, 0.2)',
-              transition: 'all 0.2s ease',
-              '&:hover': {
-                backgroundColor: '#1d4ed8',
-                boxShadow: '0 6px 16px rgba(37, 99, 235, 0.3)',
-                transform: 'translateY(-1px)',
-              },
-            }}
-          >
-            Create New Podcast
-          </Button>
+        <Button
+          variant="contained"
+          onClick={() => {
+            console.log('Create New Podcast button clicked');
+            router.push('/my-podcasts/create');
+          }}
+          sx={{
+            backgroundColor: '#2563eb',
+            borderRadius: '8px',
+            px: 4,
+            py: 2,
+            fontSize: '1.1rem',
+            fontWeight: 600,
+            textTransform: 'none',
+            boxShadow: '0 4px 12px rgba(37, 99, 235, 0.2)',
+            transition: 'all 0.2s ease',
+            '&:hover': {
+              backgroundColor: '#1d4ed8',
+              boxShadow: '0 6px 16px rgba(37, 99, 235, 0.3)',
+              transform: 'translateY(-1px)',
+            },
+          }}
+        >
+          Create New Podcast
+        </Button>
       </Box>
 
       {error && (
@@ -237,27 +258,11 @@ export default function MyPodcasts() {
         ))}
       </Grid>
 
-      <Box sx={{ mt: 6 }}>
-        <Typography variant="h4" sx={{ mb: 2 }}>My Drafts</Typography>
-        {drafts.length === 0 ? (
-          <Typography variant="body1">No drafts yet.</Typography>
-        ) : (
-          <ul style={{ listStyle: 'none', padding: 0 }}>
-            {drafts.map((d) => (
-              <li key={d.id} style={{ marginBottom: '0.5rem' }}>
-                <Typography variant="body2">
-                  <span>{d.podcast?.title || 'Untitled Podcast'}</span>
-                  <span> • Updated: {new Date(d.updatedAt).toLocaleString()}</span>
-                  <span> • Status: {d.status}</span>
-                  <span> • </span>
-                  <Link href={`/edit?draft=${d.id}`}>Edit</Link>
-                </Typography>
-              </li>
-            ))}
-          </ul>
-        )}
-      </Box>
 
+
+
+
+      {/* Delete Podcast Dialog */}
       <Dialog
         open={deleteDialogOpen}
         onClose={() => setDeleteDialogOpen(false)}
@@ -275,6 +280,8 @@ export default function MyPodcasts() {
           </Button>
         </DialogActions>
       </Dialog>
+
+
     </Container>
   );
 } 

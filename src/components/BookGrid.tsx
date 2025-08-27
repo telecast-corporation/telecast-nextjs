@@ -54,7 +54,7 @@ export default function BookGrid({ searchQuery }: BookGridProps) {
       setError(null);
       
       try {
-        const response = await fetch(`/api/books/search?q=${encodeURIComponent(searchQuery)}`);
+        const response = await fetch(`/api/book?q=${encodeURIComponent(searchQuery)}`);
         const data = await response.json();
         
         if (!response.ok) {

@@ -13,9 +13,9 @@ export default function UploadPage() {
       if (!user) {
         router.push('/auth/login');
       } else {
-      // Redirect to finalize page
-      router.push('/finalize');
-    }
+        // Redirect to finalize page
+        router.push('/finalize');
+      }
     }
   }, [user, isLoading, router]);
 

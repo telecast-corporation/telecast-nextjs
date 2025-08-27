@@ -57,10 +57,6 @@ export default function UploadPodcastPage() {
         ws.on("finish", () => {
           setIsPlaying(false);
         });
-        ws.on("error", (err: any) => {
-          setError("Failed to render waveform");
-          setLoading(false);
-        });
       }).catch((err) => {
         console.error("Failed to load wavesurfer:", err);
         setError("Failed to load waveform library");
