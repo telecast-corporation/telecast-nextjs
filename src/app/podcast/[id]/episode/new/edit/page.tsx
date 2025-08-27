@@ -142,30 +142,51 @@ export default function NewEpisodeEditPage() {
   const initializeWaveSurfer = () => {
     if (!waveformRef.current || !window.WaveSurfer || wavesurferRef.current) return;
 
-    const wavesurfer = window.WaveSurfer.create({
-      container: waveformRef.current,
-      waveColor: theme.palette.primary.main,
-      progressColor: theme.palette.secondary.main,
-      barWidth: 3,
-      barGap: 2,
-      height: 130,
-      cursorWidth: 1,
-      cursorColor: theme.palette.secondary.main,
-      responsive: true,
-      normalize: true,
-      plugins: [
-        window.WaveSurfer.regions.create({
-          dragSelection: true,
-          slop: 10,
-        })
-      ]
-    });
+    let wavesurfer: any;
+
+    // Check if regions plugin is available
+    if (!window.WaveSurfer.regions) {
+      console.warn('Regions plugin not available, creating WaveSurfer without regions');
+      wavesurfer = window.WaveSurfer.create({
+        container: waveformRef.current,
+        waveColor: theme.palette.primary.main,
+        progressColor: theme.palette.secondary.main,
+        barWidth: 3,
+        barGap: 2,
+        height: 130,
+        cursorWidth: 1,
+        cursorColor: theme.palette.secondary.main,
+        responsive: true,
+        normalize: true,
+      });
+    } else {
+      wavesurfer = window.WaveSurfer.create({
+        container: waveformRef.current,
+        waveColor: theme.palette.primary.main,
+        progressColor: theme.palette.secondary.main,
+        barWidth: 3,
+        barGap: 2,
+        height: 130,
+        cursorWidth: 1,
+        cursorColor: theme.palette.secondary.main,
+        responsive: true,
+        normalize: true,
+        plugins: [
+          window.WaveSurfer.regions.create({
+            dragSelection: true,
+            slop: 10,
+          })
+        ]
+      });
+    }
 
     wavesurferRef.current = wavesurfer;
 
     wavesurfer.on("ready", () => {
       // Don't show regions by default - only in trim mode
-      wavesurfer.regions.clear();
+      if (wavesurfer.regions) {
+        wavesurfer.regions.clear();
+      }
     });
 
     wavesurfer.on("play", () => {
@@ -202,7 +223,10 @@ export default function NewEpisodeEditPage() {
   };
 
   const playRegion = () => {
-    if (!wavesurferRef.current) return;
+    if (!wavesurferRef.current || !wavesurferRef.current.regions) {
+      console.warn('Regions plugin not available');
+      return;
+    }
 
     const regions = wavesurferRef.current.regions.list;
     const regionKeys = Object.keys(regions);
@@ -230,7 +254,10 @@ export default function NewEpisodeEditPage() {
   };
 
   const trimLeft = () => {
-    if (!wavesurferRef.current) return;
+    if (!wavesurferRef.current || !wavesurferRef.current.regions) {
+      console.warn('Regions plugin not available');
+      return;
+    }
 
     const regions = wavesurferRef.current.regions.list;
     const regionKeys = Object.keys(regions);
@@ -323,7 +350,7 @@ export default function NewEpisodeEditPage() {
     setIsTrimMode(true);
     setIsPlayingRegion(false);
     
-    if (wavesurferRef.current) {
+    if (wavesurferRef.current && wavesurferRef.current.regions) {
       wavesurferRef.current.regions.clear();
       const duration = wavesurferRef.current.getDuration();
       if (duration > 0) {
@@ -335,6 +362,8 @@ export default function NewEpisodeEditPage() {
           resize: true,
         });
       }
+    } else {
+      console.warn('Regions plugin not available for trim mode');
     }
   };
 
