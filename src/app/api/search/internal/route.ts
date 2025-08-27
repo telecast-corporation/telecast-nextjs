@@ -100,7 +100,7 @@ export async function GET(request: Request) {
 
       results.push(...episodes.map(episode => ({
         id: episode.id,
-        title: episode.title,
+        title: episode.title || 'Untitled Episode',
         description: episode.description || '',
         coverImage: episode.podcast?.coverImage || '',
         author: episode.podcast?.title || '',

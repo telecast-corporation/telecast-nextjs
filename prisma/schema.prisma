@@ -20,11 +20,8 @@ model User {
   premiumExpiresAt DateTime?
   usedFreeTrial    Boolean         @default(false)
   auth0Id          String?         @unique
-  fileReferences   FileReference[]
   podcasts         Podcast[]
-  recordings       Recording[]
   platformConnections PlatformConnection[]
-  drafts           Draft[]
 }
 
 model Podcast {
@@ -46,8 +43,6 @@ model Podcast {
   isPublic       Boolean         @default(false)
   rssFeed        String?
   episodes       Episode[]
-  fileReferences FileReference[]
-  drafts         Draft[]
   user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
@@ -58,57 +53,41 @@ model Podcast {
 
 model Episode {
   id            String    @id @default(cuid())
-  title         String
-  description   String?
   podcastId     String
-  audioUrl      String?
-  duration      Int?
-  fileSize      Int?
-  publishedAt   DateTime?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  episodeNumber Int?
-  seasonNumber  Int?
+  audioUrl      String    // Required - always has audio file
+  
+  // Optional metadata (filled during finalization)
+  title         String?   // Episode title
+  description   String?   // Episode description
+  episodeNumber Int?      // Episode number in series
+  seasonNumber  Int?      // Season number
   explicit      Boolean   @default(false)
-  keywords      String[]
+  keywords      String[]  @default([])
+  
+  // Publishing info
+  publishedAt   DateTime? // When episode was finalized/published
+  isPublished   Boolean   @default(false) // Whether episode is finalized
+  isFinal       Boolean   @default(false) // Whether episode has been finalized with metadata
+  
+  // File metadata
+  duration      Int?      // Audio duration in seconds
+  fileSize      Int?      // File size in bytes
+  
+  // Analytics
   views         Int       @default(0)
   likes         Int       @default(0)
-  referenceId   String?
+  
+  // Timestamps
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  // Relations
   podcast       Podcast   @relation(fields: [podcastId], references: [id], onDelete: Cascade)
 
   @@index([podcastId])
-  @@index([title])
-}
-
-model Recording {
-  id          String   @id @default(cuid())
-  title       String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  userId      String
-  isPublic    Boolean  @default(false)
-  views       Int      @default(0)
-  description String
-  tags        String[]
-  audioUrl    String
-  duration    Int      @default(0)
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
-model FileReference {
-  id          String   @id @default(cuid())
-  referenceId String   @unique
-  podcastId   String
-  userId      String
-  status      String   @default("temp")
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  podcast     Podcast  @relation(fields: [podcastId], references: [id], onDelete: Cascade)
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([referenceId])
-  @@index([userId])
-  @@index([podcastId])
+  @@index([isPublished])
+  @@index([publishedAt])
+  @@index([isFinal])
 }
 
 model PlatformConnection {
@@ -120,28 +99,11 @@ model PlatformConnection {
   expiresAt    DateTime?
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
+  
+  // Relations
   user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, platform])
   @@index([userId])
   @@index([platform])
-}
-
-model Draft {
-  id           String   @id @default(cuid())
-  podcastId    String
-  userId       String
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  originalPath String?
-  editedPath   String?
-  isEdited     Boolean  @default(false)
-  metadataJSON Json?
-  status       String   @default("open") // open, closed
-
-  podcast      Podcast  @relation(fields: [podcastId], references: [id], onDelete: Cascade)
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([podcastId])
-  @@index([userId])
 }

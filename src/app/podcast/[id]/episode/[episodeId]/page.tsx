@@ -92,7 +92,7 @@ export default function EpisodePage() {
   useEffect(() => {
     const fetchPodcast = async () => {
       try {
-        const response = await fetch(`/api/podcast/${params.id}`);
+        const response = await fetch(`/api/podcast/internal/${params.id}`);
         if (!response.ok) {
           throw new Error('Failed to fetch podcast');
         }

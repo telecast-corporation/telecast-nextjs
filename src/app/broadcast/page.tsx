@@ -158,7 +158,7 @@ export default function BroadcastPage() {
       // Fetch preview URL for latest episode
       if (data.podcastId) {
         try {
-          const p = await fetch(`/api/podcast/${encodeURIComponent(data.podcastId)}/preview`);
+          const p = await fetch(`/api/podcast/internal/${encodeURIComponent(data.podcastId)}/preview`);
           if (p.ok) {
             const jp = await p.json();
             setPreviewUrl(jp.previewUrl);
@@ -175,7 +175,7 @@ export default function BroadcastPage() {
 
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://telecast.ca';
   const feedUrl = (platform: 'spotify' | 'apple' | 'podcastindex') =>
-    finalizedPodcastId ? `${baseUrl}/api/podcast/${encodeURIComponent(finalizedPodcastId)}/rss/${platform}` : '';
+            finalizedPodcastId ? `${baseUrl}/api/podcast/internal/${encodeURIComponent(finalizedPodcastId)}/rss/${platform}` : '';
 
   return (
     <Box sx={{ minHeight: '100vh', py: 6, px: { xs: 2, sm: 4 }, bgcolor: theme.palette.mode === 'dark' ? '#1a1a2e' : '#f8fafc' }}>
@@ -324,7 +324,7 @@ export default function BroadcastPage() {
                   onClick={async () => {
                     if (!finalizedPodcastId) return;
                     try {
-                      const res = await fetch(`/api/podcast/${encodeURIComponent(finalizedPodcastId)}/podcast-index/submit`, { method: 'POST' });
+                      const res = await fetch(`/api/podcast/internal/${encodeURIComponent(finalizedPodcastId)}/podcast-index/submit`, { method: 'POST' });
                       if (!res.ok) {
                         const data = await res.json();
                         throw new Error(data.error || 'Submit failed');
