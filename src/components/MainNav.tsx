@@ -967,7 +967,7 @@ const MainNav = memo(() => {
                 <CreateIcon />
               </ListItemIcon>
               <ListItemText 
-                                  primary="My Podcasts" 
+                                  primary="Create" 
                 primaryTypographyProps={{ 
                   fontFamily: lexend.style.fontFamily,
                   ...typography.nav
@@ -1156,7 +1156,7 @@ const MainNav = memo(() => {
               onClick={() => router.push('/my-podcasts')}
               sx={getNavButtonStyles(theme, pathname, '/my-podcasts')}
             >
-              My Podcasts
+              Create
             </Button>
           )}
 
