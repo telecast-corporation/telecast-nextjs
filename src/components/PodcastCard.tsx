@@ -16,7 +16,23 @@ const PodcastCard = memo(({ podcast, episode }: PodcastCardProps) => {
 
   const handlePlay = useCallback(() => {
     if (episode) {
-      play(podcast, episode);
+      const playablePodcast = {
+        id: podcast.id.toString(),
+        title: podcast.title,
+        author: podcast.author,
+        description: podcast.description,
+        image: podcast.image,
+        url: podcast.url,
+      };
+      const playableEpisode = {
+        id: episode.id.toString(),
+        title: episode.title,
+        description: episode.description,
+        audioUrl: episode.audioUrl,
+        duration: episode.duration,
+        publishDate: episode.publishDate,
+      };
+      play(playablePodcast, playableEpisode);
     }
   }, [podcast, episode, play]);
 
