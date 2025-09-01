@@ -90,14 +90,22 @@ export default function ExternalPodcastPage() {
   const handlePlayEpisode = (episode: Episode) => {
     if (!podcast) return;
     const playablePodcast = {
-      id: podcast.id,
+      id: podcast.id.toString(),
       title: podcast.title,
       author: podcast.author,
       description: podcast.description,
       image: podcast.image,
       url: podcast.url,
     };
-    play(playablePodcast, episode);
+    const playableEpisode = {
+      id: episode.id.toString(),
+      title: episode.title,
+      description: episode.description,
+      audioUrl: episode.audioUrl,
+      duration: episode.duration,
+      publishDate: episode.publishDate,
+    };
+    play(playablePodcast, playableEpisode);
   };
 
   if (loading) {
@@ -183,7 +191,7 @@ export default function ExternalPodcastPage() {
                 <ListItemButton onClick={() => handlePlayEpisode(episode)}>
                   <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
                     <IconButton size="small" sx={{ mr: 1, color: 'primary.main' }}>
-                      {currentEpisode?.id === episode.id ? <PauseIcon /> : <PlayArrow />}
+                      {currentEpisode?.id === episode.id.toString() ? <PauseIcon /> : <PlayArrow />}
                     </IconButton>
                     <ListItemText
                       primary={

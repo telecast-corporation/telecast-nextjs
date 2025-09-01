@@ -206,7 +206,7 @@ export default function UnifiedSearchResults({ results, searchType = 'all', load
     
     if (result.type === 'podcast') {
       const podcast = {
-        id: Number(result.id),
+        id: Number(result.id).toString(),
         title: result.title,
         author: result.author || '',
         description: result.description || '',
@@ -215,7 +215,7 @@ export default function UnifiedSearchResults({ results, searchType = 'all', load
       };
       
       const episode = {
-        id: Number(result.id),
+        id: Number(result.id).toString(),
         title: result.title,
         description: result.description || '',
         audioUrl: result.url || '',
