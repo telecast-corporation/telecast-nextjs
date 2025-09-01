@@ -11,6 +11,7 @@ import {
   GoogleMetadata,
   getValidAccessToken
 } from '@/lib/podcast-platforms';
+import { getFileReadSignedUrl } from '@/lib/storage';
 
 export async function POST(request: Request) {
   try {
@@ -54,13 +55,16 @@ export async function POST(request: Request) {
       );
     }
 
-    // Check if episode has audio URL
+    // Check if episode has audio file path
     if (!episode.audioUrl) {
       return NextResponse.json(
-        { error: 'Episode audio URL is missing' },
+        { error: 'Episode audio file is missing' },
         { status: 400 }
       );
     }
+
+    // Get fresh signed URL for the audio file (valid for 24 hours for broadcasting)
+    const signedAudioUrl = await getFileReadSignedUrl(episode.audioUrl, 24 * 60 * 60 * 1000);
 
     // Determine which platforms to broadcast to
     let platformsToBroadcast: string[] = [];
@@ -142,7 +146,7 @@ export async function POST(request: Request) {
               publishDate: metadata.publishDate,
               keywords: metadata.keywords || [],
             };
-            results.spotify = await spotifyApi.createEpisode('', spotifyMetadata, episode.audioUrl);
+            results.spotify = await spotifyApi.createEpisode('', spotifyMetadata, signedAudioUrl);
             break;
 
           case 'apple':
@@ -159,7 +163,7 @@ export async function POST(request: Request) {
               summary: body.metadata?.apple?.summary,
               itunesCategory: body.metadata?.apple?.itunesCategory,
             };
-            results.apple = await appleApi.createEpisode('', appleMetadata, episode.audioUrl);
+            results.apple = await appleApi.createEpisode('', appleMetadata, signedAudioUrl);
             break;
 
           case 'google':
@@ -174,7 +178,7 @@ export async function POST(request: Request) {
               publishDate: metadata.publishDate,
               keywords: metadata.keywords || [],
             };
-            results.google = await googleApi.uploadToYouTube(googleMetadata, episode.audioUrl);
+            results.google = await googleApi.uploadToYouTube(googleMetadata, signedAudioUrl);
             break;
         }
       } catch (error) {

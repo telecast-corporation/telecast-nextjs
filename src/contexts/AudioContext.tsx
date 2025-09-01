@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useRef, useState, useEffect, useMemo, useCallback } from 'react';
 
 export interface Episode {
-  id: number;
+  id: string;
   title: string;
   description: string;
   audioUrl: string;
@@ -13,7 +13,7 @@ export interface Episode {
 }
 
 export interface Podcast {
-  id: number;
+  id: string;
   title: string;
   author: string;
   description: string;
@@ -128,7 +128,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   // Memoize functions to prevent unnecessary re-renders
-  const play = useCallback((podcast: Podcast, episode: Episode) => {
+  const play = useCallback(async (podcast: Podcast, episode: Episode) => {
     if (!audioRef.current) return;
 
     try {
@@ -146,8 +146,18 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
       setCurrentTime(0);
       setDuration(0);
 
+      // Get fresh signed URL for the audio file
+      const response = await fetch(`/api/podcast/internal/${podcast.id}/episode/${episode.id}/audio-url`);
+      
+      if (!response.ok) {
+        throw new Error(`Failed to get audio URL: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      const signedAudioUrl = data.audioUrl;
+
       // Set new source and start playback
-        audioRef.current.src = episode.audioUrl;
+      audioRef.current.src = signedAudioUrl;
       audioRef.current.load(); // Ensure the new source is loaded
       
       const playPromise = audioRef.current.play();

@@ -25,6 +25,8 @@ import {
   Upload as UploadIcon,
 } from '@mui/icons-material';
 import { useTheme } from '@mui/material/styles';
+import { convertAudioToWav, convertRecordedAudioToWav, audioBufferToWav } from '@/lib/audio-utils';
+import { enqueueSnackbar } from 'notistack';
 
 interface Episode {
   id: string;
@@ -96,16 +98,36 @@ export default function NewEpisodeEditPage() {
         }
       };
 
-      mediaRecorder.onstop = () => {
-        const blob = new Blob(recordedChunksRef.current, { type: 'audio/webm' });
-        const recordedUrl = URL.createObjectURL(blob);
-        setRecordedUrl(recordedUrl);
-        setAudioFile(new File([blob], 'recording.webm', { type: 'audio/webm' }));
+      mediaRecorder.onstop = async () => {
+        const webmBlob = new Blob(recordedChunksRef.current, { type: 'audio/webm' });
+        
+        try {
+          // Convert recorded audio to WAV format
+          const wavBlob = await convertRecordedAudioToWav(webmBlob);
+          const wavFile = new File([wavBlob], 'recording.wav', { type: 'audio/wav' });
+          
+          const recordedUrl = URL.createObjectURL(wavBlob);
+          setRecordedUrl(recordedUrl);
+          setAudioFile(wavFile);
 
-        // Load the recorded audio into the main waveform for editing
-        if (waveformRef.current) {
-          initializeWaveSurfer();
-          wavesurferRef.current.loadBlob(blob);
+          // Load the recorded audio into the main waveform for editing
+          if (waveformRef.current) {
+            initializeWaveSurfer();
+            wavesurferRef.current.loadBlob(wavBlob);
+          }
+        } catch (error) {
+          console.error('Error converting recorded audio to WAV:', error);
+          enqueueSnackbar('Error converting recorded audio to WAV format', { variant: 'error' });
+          
+          // Fallback to original webm blob
+          const recordedUrl = URL.createObjectURL(webmBlob);
+          setRecordedUrl(recordedUrl);
+          setAudioFile(new File([webmBlob], 'recording.webm', { type: 'audio/webm' }));
+          
+          if (waveformRef.current) {
+            initializeWaveSurfer();
+            wavesurferRef.current.loadBlob(webmBlob);
+          }
         }
 
         // Stop all tracks
@@ -214,11 +236,19 @@ export default function NewEpisodeEditPage() {
     }
   };
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      setAudioFile(file);
-      setRecordedUrl(URL.createObjectURL(file));
+      try {
+        // Convert uploaded file to WAV format
+        const wavBlob = await convertAudioToWav(file);
+        const wavFile = new File([wavBlob], file.name.replace(/\.[^/.]+$/, '.wav'), { type: 'audio/wav' });
+        setAudioFile(wavFile);
+        setRecordedUrl(URL.createObjectURL(wavFile));
+      } catch (error) {
+        console.error('Error converting audio to WAV:', error);
+        enqueueSnackbar('Error converting audio file to WAV format', { variant: 'error' });
+      }
     }
   };
 
@@ -393,9 +423,10 @@ export default function NewEpisodeEditPage() {
 
       const renderedBuffer = await offlineContext.startRendering();
       
+      // Convert AudioBuffer to WAV format
       const audioBlob = await new Promise<Blob>((resolve) => {
-        const channelData = renderedBuffer.getChannelData(0);
-        const blob = new Blob([channelData], { type: 'audio/wav' });
+        const wavBuffer = audioBufferToWav(renderedBuffer);
+        const blob = new Blob([wavBuffer], { type: 'audio/wav' });
         resolve(blob);
       });
 

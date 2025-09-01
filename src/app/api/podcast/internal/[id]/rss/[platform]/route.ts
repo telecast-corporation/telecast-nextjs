@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getFileReadSignedUrl } from '@/lib/storage';
 
 export async function GET(
   request: Request,
@@ -26,17 +27,28 @@ export async function GET(
     const siteUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://telecast.ca';
     const atomSelfHref = `${siteUrl}/api/podcast/internal/${encodeURIComponent(podcast.id)}/rss/${normalizedPlatform}`;
 
+    // Generate fresh signed URLs for all episodes (valid for 24 hours for RSS feeds)
+    const episodesWithSignedUrls = await Promise.all(
+      podcast.episodes.map(async (episode: any) => {
+        const signedUrl = await getFileReadSignedUrl(episode.audioUrl, 24 * 60 * 60 * 1000);
+        return {
+          ...episode,
+          signedAudioUrl: signedUrl
+        };
+      })
+    );
+
     // Generate RSS feed based on platform
     let rssContent = '';
     
     if (normalizedPlatform === 'spotify') {
-      rssContent = generateSpotifyRSS(podcast, atomSelfHref);
+      rssContent = generateSpotifyRSS(podcast, atomSelfHref, episodesWithSignedUrls);
     } else if (normalizedPlatform === 'apple') {
-      rssContent = generateAppleRSS(podcast, atomSelfHref);
+      rssContent = generateAppleRSS(podcast, atomSelfHref, episodesWithSignedUrls);
     } else if (normalizedPlatform === 'google') {
-      rssContent = generateGoogleRSS(podcast, atomSelfHref);
+      rssContent = generateGoogleRSS(podcast, atomSelfHref, episodesWithSignedUrls);
     } else {
-      rssContent = generateGenericRSS(podcast, atomSelfHref);
+      rssContent = generateGenericRSS(podcast, atomSelfHref, episodesWithSignedUrls);
     }
 
     return new NextResponse(rssContent, {
@@ -51,7 +63,7 @@ export async function GET(
   }
 }
 
-function generateSpotifyRSS(podcast: any, selfHref: string): string {
+function generateSpotifyRSS(podcast: any, selfHref: string, episodesWithSignedUrls: any[]): string {
   return `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
@@ -64,14 +76,14 @@ function generateSpotifyRSS(podcast: any, selfHref: string): string {
     <itunes:category text="${podcast.category}"/>
     <itunes:explicit>${podcast.explicit ? 'yes' : 'no'}</itunes:explicit>
     ${podcast.coverImage ? `<itunes:image href="${podcast.coverImage}"/>` : ''}
-    ${podcast.episodes.map((episode: any) => `
+    ${episodesWithSignedUrls.map((episode: any) => `
     <item>
       <title>${escapeXml(episode.title)}</title>
       <description>${escapeXml(episode.description || '')}</description>
       <link>${process.env.NEXT_PUBLIC_BASE_URL}/podcast/${podcast.id}/episode/${episode.id}</link>
       <guid>${episode.id}</guid>
       <pubDate>${episode.publishedAt.toUTCString()}</pubDate>
-      <enclosure url="${episode.audioUrl}" type="audio/mpeg" length="0"/>
+      <enclosure url="${episode.signedAudioUrl}" type="audio/mpeg" length="0"/>
       <itunes:duration>${episode.duration || 0}</itunes:duration>
       <itunes:explicit>${episode.explicit ? 'yes' : 'no'}</itunes:explicit>
     </item>`).join('')}
@@ -79,7 +91,7 @@ function generateSpotifyRSS(podcast: any, selfHref: string): string {
 </rss>`;
 }
 
-function generateAppleRSS(podcast: any, selfHref: string): string {
+function generateAppleRSS(podcast: any, selfHref: string, episodesWithSignedUrls: any[]): string {
   return `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd">
   <channel>
@@ -91,14 +103,14 @@ function generateAppleRSS(podcast: any, selfHref: string): string {
     <itunes:category text="${podcast.category}"/>
     <itunes:explicit>${podcast.explicit ? 'yes' : 'no'}</itunes:explicit>
     ${podcast.coverImage ? `<itunes:image href="${podcast.coverImage}"/>` : ''}
-    ${podcast.episodes.map((episode: any) => `
+    ${episodesWithSignedUrls.map((episode: any) => `
     <item>
       <title>${escapeXml(episode.title)}</title>
       <description>${escapeXml(episode.description || '')}</description>
       <link>${process.env.NEXT_PUBLIC_BASE_URL}/podcast/${podcast.id}/episode/${episode.id}</link>
       <guid>${episode.id}</guid>
       <pubDate>${episode.publishedAt.toUTCString()}</pubDate>
-      <enclosure url="${episode.audioUrl}" type="audio/mpeg" length="0"/>
+      <enclosure url="${episode.signedAudioUrl}" type="audio/mpeg" length="0"/>
       <itunes:duration>${episode.duration || 0}</itunes:duration>
       <itunes:explicit>${episode.explicit ? 'yes' : 'no'}</itunes:explicit>
     </item>`).join('')}
@@ -106,7 +118,7 @@ function generateAppleRSS(podcast: any, selfHref: string): string {
 </rss>`;
 }
 
-function generateGoogleRSS(podcast: any, selfHref: string): string {
+function generateGoogleRSS(podcast: any, selfHref: string, episodesWithSignedUrls: any[]): string {
   return `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0">
   <channel>
@@ -116,20 +128,20 @@ function generateGoogleRSS(podcast: any, selfHref: string): string {
     <language>${podcast.language || 'en'}</language>
     <author>${escapeXml(podcast.author)}</author>
     <category>${podcast.category}</category>
-    ${podcast.episodes.map((episode: any) => `
+    ${episodesWithSignedUrls.map((episode: any) => `
     <item>
       <title>${escapeXml(episode.title)}</title>
       <description>${escapeXml(episode.description || '')}</description>
       <link>${process.env.NEXT_PUBLIC_BASE_URL}/podcast/${podcast.id}/episode/${episode.id}</link>
       <guid>${episode.id}</guid>
       <pubDate>${episode.publishedAt.toUTCString()}</pubDate>
-      <enclosure url="${episode.audioUrl}" type="audio/mpeg" length="0"/>
+      <enclosure url="${episode.signedAudioUrl}" type="audio/mpeg" length="0"/>
     </item>`).join('')}
   </channel>
 </rss>`;
 }
 
-function generateGenericRSS(podcast: any, selfHref: string): string {
+function generateGenericRSS(podcast: any, selfHref: string, episodesWithSignedUrls: any[]): string {
   return `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0">
   <channel>
@@ -139,14 +151,14 @@ function generateGenericRSS(podcast: any, selfHref: string): string {
     <language>${podcast.language || 'en'}</language>
     <author>${escapeXml(podcast.author)}</author>
     <category>${podcast.category}</category>
-    ${podcast.episodes.map((episode: any) => `
+    ${episodesWithSignedUrls.map((episode: any) => `
     <item>
       <title>${escapeXml(episode.title)}</title>
       <description>${escapeXml(episode.description || '')}</description>
       <link>${process.env.NEXT_PUBLIC_BASE_URL}/podcast/${podcast.id}/episode/${episode.id}</link>
       <guid>${episode.id}</guid>
       <pubDate>${episode.publishedAt.toUTCString()}</pubDate>
-      <enclosure url="${episode.audioUrl}" type="audio/mpeg" length="0"/>
+      <enclosure url="${episode.signedAudioUrl}" type="audio/mpeg" length="0"/>
     </item>`).join('')}
   </channel>
 </rss>`;
