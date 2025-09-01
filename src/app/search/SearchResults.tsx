@@ -169,7 +169,7 @@ export default function SearchResults() {
           mb: 2,
           px: { xs: 2, sm: 0 }
         }}>
-          <a href="/record" style={{ textDecoration: 'none' }}>
+          <a href="/my-podcasts" style={{ textDecoration: 'none' }}>
             <Box
               sx={{
                 display: 'flex',

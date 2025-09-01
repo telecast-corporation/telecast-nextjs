@@ -31,4 +31,31 @@ export function hasCancelledInCurrentPeriod(premiumExpiresAt: Date | null): bool
   
   // If premium expires within 24 hours, consider it as cancelled in current period
   return expiryDate < new Date(now.getTime() + 24 * 60 * 60 * 1000);
+}
+
+/**
+ * Convert audio URLs to proxy URLs for better CORS handling
+ * @param audioUrl - The original audio URL
+ * @returns The proxy URL or original URL if already a proxy/external URL
+ */
+export function getAudioProxyUrl(audioUrl: string): string {
+  if (!audioUrl) return '';
+  
+  // If it's already a proxy URL, return as is
+  if (audioUrl.includes('/api/audio/')) {
+    return audioUrl;
+  }
+  
+  // If it's already a full URL (signed URL), use it directly
+  if (audioUrl.startsWith('http')) {
+    return audioUrl;
+  }
+  
+  // If it's a file path (stored in database), convert to proxy URL
+  if (audioUrl.startsWith('podcasts/')) {
+    return `/api/audio/${encodeURIComponent(audioUrl)}`;
+  }
+  
+  // For any other URL, return as is
+  return audioUrl;
 } 
