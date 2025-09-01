@@ -587,7 +587,7 @@ export default function PodcastPage() {
                   }}
                 >
                   <ListItemButton
-                    onClick={() => handlePlayEpisode(episode)}
+                    onClick={() => router.push(`/podcast/${podcast.id}/episode/${episode.id}`)}
                     sx={{
                       py: { xs: 1, sm: 1.5 },
                       px: { xs: 1, sm: 2 },
@@ -596,6 +596,10 @@ export default function PodcastPage() {
                     <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
                       <IconButton
                         size="small"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handlePlayEpisode(episode);
+                        }}
                         sx={{
                           mr: 1,
                           color: 'primary.main',

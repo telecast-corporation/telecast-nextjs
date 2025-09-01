@@ -300,13 +300,7 @@ export default function FinalizeEpisodePage() {
             </Select>
           </FormControl>
 
-          {episode.fileSize && (
-            <Box sx={{ p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
-              <Typography variant="body2" color="text.secondary">
-                <strong>Audio File:</strong> {(episode.fileSize / 1024 / 1024).toFixed(2)} MB
-              </Typography>
-            </Box>
-          )}
+
 
           {error && (
             <Alert severity="error" sx={{ mt: 2 }}>
