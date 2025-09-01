@@ -26,6 +26,7 @@ import Image from 'next/image';
 import StarIcon from '@mui/icons-material/Star';
 import SearchParamsWrapper from '@/components/SearchParamsWrapper';
 import PartnerLogos from '@/components/PartnerLogos';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface TrendingItem {
     id: string;
@@ -187,6 +188,7 @@ function HomePageContent() {
   });
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
 
   // Check for success message from signup
   useEffect(() => {
@@ -279,7 +281,10 @@ function HomePageContent() {
         mb: 2,
         px: { xs: 2, sm: 0 }
       }}>
-        <a href="/my-podcasts" style={{ textDecoration: 'none' }}>
+        <a 
+          href={isAuthenticated ? "/my-podcasts" : "/auth/login"} 
+          style={{ textDecoration: 'none' }}
+        >
           <Box
             sx={{
               display: 'flex',

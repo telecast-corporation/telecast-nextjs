@@ -8,6 +8,8 @@ import BookTypeToggle from '@/components/BookTypeToggle';
 import PartnerLogos from '@/components/PartnerLogos';
 import Pagination from '@/components/Pagination';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
+
 
 interface SearchResult {
   id: string;
@@ -31,6 +33,7 @@ export default function SearchResults() {
   const showRecommendations = !query && ['podcast', 'video', 'music', 'book', 'news'].includes(type);
   const router = useRouter();
   const currentPage = parseInt(searchParams.get('page') || '1');
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
 
   const handlePageChange = (page: number) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -169,7 +172,11 @@ export default function SearchResults() {
           mb: 2,
           px: { xs: 2, sm: 0 }
         }}>
-          <a href="/my-podcasts" style={{ textDecoration: 'none' }}>
+            <a 
+            href={isAuthenticated ? "/my-podcasts" : "/auth/login"} 
+            style={{ textDecoration: 'none' }}
+          >
+
             <Box
               sx={{
                 display: 'flex',
