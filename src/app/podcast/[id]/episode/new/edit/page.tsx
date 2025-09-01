@@ -482,32 +482,14 @@ export default function NewEpisodeEditPage() {
         
         <Paper sx={{ p: 4, mt: 3 }}>
           <Typography variant="h6" gutterBottom>
-            Episode Details
-          </Typography>
-          
-          <Box sx={{ mb: 3 }}>
-            {audioFile ? (
-              <>
-                <Typography variant="body1">
-                  <strong>File:</strong> {audioFile.name}
-                </Typography>
-                <Typography variant="body1">
-                  <strong>Size:</strong> {(audioFile.size / 1024 / 1024).toFixed(2)} MB
-                </Typography>
-                <Typography variant="body1">
-                  <strong>Type:</strong> {audioFile.type}
-                </Typography>
-              </>
-            ) : (
-              <Typography variant="body1" color="text.secondary">
-                No audio file loaded yet. Upload a file or record audio to get started.
-              </Typography>
-            )}
-          </Box>
-
-          <Typography variant="h6" gutterBottom>
             Audio Editor
           </Typography>
+          
+          {!audioFile && (
+            <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+              Upload a file or record audio to get started.
+            </Typography>
+          )}
 
           {/* Hidden File Input */}
           <input
@@ -537,19 +519,6 @@ export default function NewEpisodeEditPage() {
                   Recording...
                 </Typography>
               </Box>
-            </Box>
-          )}
-
-          {/* Recorded Audio Container */}
-          {recordedUrl && (
-            <Box sx={{ mb: 3 }}>
-              <Typography variant="subtitle1" gutterBottom>
-                Recorded Audio
-              </Typography>
-              <div
-                ref={recordingsContainerRef}
-                style={{ margin: "1rem 0" }}
-              />
             </Box>
           )}
 
@@ -709,13 +678,7 @@ export default function NewEpisodeEditPage() {
             </Alert>
           )}
 
-          <Box sx={{ mt: 4, p: 3, bgcolor: 'info.50', borderRadius: 1 }}>
-            <Typography variant="h6" gutterBottom>Instructions</Typography>
-            <Typography variant="body2" color="text.secondary">1. Record audio or upload an audio file</Typography>
-            <Typography variant="body2" color="text.secondary">2. Use the waveform to select regions for editing</Typography>
-            <Typography variant="body2" color="text.secondary">3. Click "Trim" to remove the selected region</Typography>
-            <Typography variant="body2" color="text.secondary">4. Click "Create Episode" to save your episode</Typography>
-          </Box>
+
         </Paper>
       </Box>
 
