@@ -27,6 +27,7 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  DialogContentText,
 } from '@mui/material';
 import {
   PlayArrow,
@@ -44,6 +45,8 @@ import {
   Save as SaveIcon,
 } from '@mui/icons-material';
 import { useAudio } from '@/contexts/AudioContext';
+import { useAudioUrl } from '@/hooks/useAudioUrl';
+import { enqueueSnackbar } from 'notistack';
 
 // Define the database episode type
 interface DatabaseEpisode {
@@ -93,15 +96,18 @@ import axios from 'axios';
 export default function PodcastPage() {
   const params = useParams();
   const router = useRouter();
-  const { play } = useAudio();
+  const { play, pause, isPlaying, currentEpisode } = useAudio();
   const [podcast, setPodcast] = useState<DatabasePodcast | null>(null);
   const [episodes, setEpisodes] = useState<DatabaseEpisode[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const episodesPerPage = 10;
-  const [currentlyPlaying, setCurrentlyPlaying] = useState<string | null>(null);
+
   const [isQuickBroadcasting, setIsQuickBroadcasting] = useState<string | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [episodeToDelete, setEpisodeToDelete] = useState<DatabaseEpisode | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
 
   useEffect(() => {
@@ -142,52 +148,85 @@ export default function PodcastPage() {
 
 
 
-  const handlePlayEpisode = (episode: DatabaseEpisode) => {
-    if (currentlyPlaying === episode.id) {
-      // If clicking the currently playing episode, pause it
-      setCurrentlyPlaying(null);
-    } else {
-      // If clicking a different episode, play new one
-      try {
-        // Check if audioUrl exists and is valid
-        if (!episode.audioUrl) {
-          console.error('No audio URL available for episode:', episode.id);
-          alert('Audio file not available for this episode');
-          return;
-        }
+  const handleDeleteEpisode = (episode: DatabaseEpisode) => {
+    setEpisodeToDelete(episode);
+    setDeleteDialogOpen(true);
+  };
 
-        console.log('Playing episode:', {
-          id: episode.id,
-          title: episode.title,
-          audioUrl: episode.audioUrl
-        });
+  const confirmDeleteEpisode = async () => {
+    if (!episodeToDelete) return;
 
-        const audio = new Audio(episode.audioUrl);
-        
-        // Add error handling for audio loading
-        audio.onerror = (e) => {
-          console.error('Audio loading error:', e);
-          alert('Failed to load audio file');
-          setCurrentlyPlaying(null);
-        };
+    setIsDeleting(true);
+    try {
+      const response = await fetch(`/api/podcast/internal/${params.id}/episode/${episodeToDelete.id}`, {
+        method: 'DELETE',
+      });
 
-        audio.play().catch((error) => {
-          console.error('Audio play error:', error);
-          alert('Failed to play audio file');
-          setCurrentlyPlaying(null);
-        });
-
-        setCurrentlyPlaying(episode.id);
-
-        // Handle audio end
-        audio.onended = () => {
-          setCurrentlyPlaying(null);
-        };
-      } catch (error) {
-        console.error('Error playing episode:', error);
-        alert('Failed to play episode');
-        setCurrentlyPlaying(null);
+      if (!response.ok) {
+        throw new Error('Failed to delete episode');
       }
+
+      // Remove episode from local state
+      setEpisodes(episodes.filter(ep => ep.id !== episodeToDelete.id));
+      
+      // Close dialog and reset state
+      setDeleteDialogOpen(false);
+      setEpisodeToDelete(null);
+      
+      // Show success message
+      enqueueSnackbar('Episode deleted successfully', { variant: 'success' });
+    } catch (error) {
+      console.error('Error deleting episode:', error);
+      enqueueSnackbar('Failed to delete episode', { variant: 'error' });
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const cancelDeleteEpisode = () => {
+    setDeleteDialogOpen(false);
+    setEpisodeToDelete(null);
+  };
+
+  const handlePlayEpisode = async (episode: DatabaseEpisode) => {
+    if (!episode.audioUrl) {
+      console.error('No audio file path available for episode:', episode.id);
+      alert('Audio file not available for this episode');
+      return;
+    }
+
+    // Convert database episode to AudioContext episode format
+    const audioContextEpisode = {
+      id: episode.id,
+      title: episode.title || 'Untitled Episode',
+      description: episode.description || '',
+      audioUrl: episode.audioUrl,
+      duration: episode.duration || 0,
+      publishDate: episode.publishDate?.toISOString() || new Date().toISOString(),
+    };
+
+    // Convert database podcast to AudioContext podcast format
+    const audioContextPodcast = {
+      id: podcast?.id || '',
+      title: podcast?.title || '',
+      author: podcast?.author || '',
+      description: podcast?.description || '',
+      image: podcast?.coverImage || '',
+      url: '',
+    };
+
+    // If it's the same episode that's currently playing, pause it
+    if (currentEpisode?.id === episode.id && isPlaying) {
+      pause();
+      return;
+    }
+
+    // Play the episode using AudioContext
+    try {
+      await play(audioContextPodcast, audioContextEpisode);
+    } catch (error) {
+      console.error('Error playing episode:', error);
+      alert('Failed to play episode');
     }
   };
 
@@ -454,23 +493,40 @@ export default function PodcastPage() {
                           }
                         />
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                                      <Tooltip title="Finalize Episode">
-                              <IconButton
-                                size="small"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  router.push(`/podcast/${podcast.id}/episode/${episode.id}/finalize`);
-                                }}
-                                sx={{
-                                  color: 'warning.main',
-                                  '&:hover': {
-                                    backgroundColor: 'warning.light',
-                                  }
-                                }}
-                              >
-                                <SaveIcon fontSize="small" />
-                              </IconButton>
-                            </Tooltip>
+                          <Tooltip title="Finalize Episode">
+                            <IconButton
+                              size="small"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                router.push(`/podcast/${podcast.id}/episode/${episode.id}/finalize`);
+                              }}
+                              sx={{
+                                color: 'warning.main',
+                                '&:hover': {
+                                  backgroundColor: 'warning.light',
+                                }
+                              }}
+                            >
+                              <SaveIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Delete Episode">
+                            <IconButton
+                              size="small"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteEpisode(episode);
+                              }}
+                              sx={{
+                                color: 'error.main',
+                                '&:hover': {
+                                  backgroundColor: 'error.light',
+                                }
+                              }}
+                            >
+                              <DeleteIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
                         </Box>
                       </Box>
                     </ListItemButton>
@@ -486,14 +542,14 @@ export default function PodcastPage() {
           <Typography variant="h5" gutterBottom sx={{ textAlign: 'center', mb: 0 }}>
             Published Episodes ({publishedEpisodes.length})
           </Typography>
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            sx={{ minWidth: 'auto' }}
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              sx={{ minWidth: 'auto' }}
             onClick={() => router.push(`/podcast/${podcast?.id}/episode/new/edit`)}
-          >
-            Add Episode
-          </Button>
+            >
+              Add Episode
+            </Button>
         </Box>
         
         {publishedEpisodes.length === 0 && draftEpisodes.length === 0 ? (
@@ -506,13 +562,13 @@ export default function PodcastPage() {
                 Start building your podcast by creating your first episode
               </Typography>
               <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center' }}>
-                <Button
-                  variant="contained"
+                  <Button
+                    variant="contained"
                   startIcon={<AddIcon />}
                   onClick={() => router.push(`/podcast/${podcast.id}/episode/new/edit`)}
-                >
+                  >
                   Add Episode
-                </Button>
+                  </Button>
               </Box>
             </Box>
           </Card>
@@ -545,7 +601,7 @@ export default function PodcastPage() {
                           color: 'primary.main',
                         }}
                       >
-                        {currentlyPlaying === episode.id ? <PauseIcon /> : <PlayArrow />}
+                        {currentEpisode?.id === episode.id && isPlaying ? <PauseIcon /> : <PlayArrow />}
                       </IconButton>
                       <ListItemText
                         primary={
@@ -578,9 +634,9 @@ export default function PodcastPage() {
                                     day: 'numeric'
                                   })
                                 : new Date(episode.createdAt).toLocaleDateString('en-US', {
-                                    year: 'numeric',
-                                    month: 'long',
-                                    day: 'numeric'
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric'
                                   })
                               }
                             </Typography>
@@ -641,6 +697,23 @@ export default function PodcastPage() {
                             )}
                           </IconButton>
                         </Tooltip>
+                        <Tooltip title="Delete Episode">
+                          <IconButton
+                            size="small"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteEpisode(episode);
+                            }}
+                            sx={{
+                              color: 'error.main',
+                              '&:hover': {
+                                backgroundColor: 'error.light',
+                              }
+                            }}
+                          >
+                            <DeleteIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
                       </Box>
                     </Box>
                   </ListItemButton>
@@ -664,7 +737,36 @@ export default function PodcastPage() {
         )}
       </Box>
 
-
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={cancelDeleteEpisode}
+        aria-labelledby="delete-dialog-title"
+        aria-describedby="delete-dialog-description"
+      >
+        <DialogTitle id="delete-dialog-title">
+          Delete Episode
+        </DialogTitle>
+        <DialogContent>
+          <Typography id="delete-dialog-description">
+            Are you sure you want to delete "{episodeToDelete?.title || 'Untitled Episode'}"? 
+            This action cannot be undone and will permanently remove the episode.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={cancelDeleteEpisode} disabled={isDeleting}>
+            Cancel
+          </Button>
+          <Button 
+            onClick={confirmDeleteEpisode} 
+            color="error" 
+            variant="contained"
+            disabled={isDeleting}
+          >
+            {isDeleting ? 'Deleting...' : 'Delete'}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
     </Container>
   );

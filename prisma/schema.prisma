@@ -54,7 +54,7 @@ model Podcast {
 model Episode {
   id            String    @id @default(cuid())
   podcastId     String
-  audioUrl      String    // Required - always has audio file
+  audioUrl      String    // Required - stores file path in Google Cloud Storage
   
   // Optional metadata (filled during finalization)
   title         String?   // Episode title

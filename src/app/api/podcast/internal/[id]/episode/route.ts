@@ -1,9 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuth0User } from '@/lib/auth0-session';
 import { PrismaClient } from '@prisma/client';
-import { uploadPodcastFile } from '@/lib/storage';
+import { Storage } from '@google-cloud/storage';
 
 const prisma = new PrismaClient();
+
+// Initialize Storage client
+const storage = new Storage({
+  projectId: process.env.GOOGLE_CLOUD_PROJECT_ID,
+  credentials: {
+    client_email: process.env.GOOGLE_CLOUD_CLIENT_EMAIL,
+    private_key: process.env.GOOGLE_CLOUD_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+  },
+});
+
+const podcastBucket = storage.bucket(process.env.GOOGLE_CLOUD_PODCAST_BUCKET_NAME || '');
 
 // Configure for large file uploads
 export const maxDuration = 300; // 5 minutes
@@ -77,29 +88,33 @@ export async function POST(
     const bytes = await audioFile.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    // Generate filename for the episode
-    const fileExtension = audioFile.name.split('.').pop() || 'wav';
-    const filename = `podcasts/${podcastId}/episodes/${episode.id}/original.${fileExtension}`;
+    // Generate filename for the episode with randomized name
+    // Since we're converting everything to WAV format on the frontend, always use .wav extension
+    const fileExtension = 'wav';
+    const timestamp = Date.now();
+    const randomString = Math.random().toString(36).substring(2, 15);
+    const filename = `podcasts/${podcastId}/episodes/${episode.id}/${timestamp}-${randomString}.${fileExtension}`;
 
-    // Upload file using existing storage utility
-    const { url: signedUrl } = await uploadPodcastFile(
-      buffer,
-      filename,
-      audioFile.type
-    );
+    // Upload file directly to storage (without signed URL)
+    const fileUpload = podcastBucket.file(filename);
+    await fileUpload.save(buffer, {
+      metadata: {
+        contentType: audioFile.type,
+      },
+    });
 
-    // Update episode with the audio URL
+    // Update episode with the file path (not signed URL)
     await prisma.episode.update({
       where: { id: episode.id },
       data: {
-        audioUrl: signedUrl,
+        audioUrl: filename, // Store the file path, not signed URL
       }
     });
 
     return NextResponse.json({
       episodeId: episode.id,
       message: 'Episode created successfully',
-      audioUrl: signedUrl
+      audioUrl: filename
     });
 
   } catch (error) {

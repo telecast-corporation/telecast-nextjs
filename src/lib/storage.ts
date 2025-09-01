@@ -17,7 +17,10 @@ const profileBucket = storage.bucket(process.env.GOOGLE_CLOUD_PROFILE_BUCKET_NAM
 const generateUniqueFilename = (originalName: string, prefix: string): string => {
   const timestamp = Date.now();
   const randomString = Math.random().toString(36).substring(2, 15);
-  const extension = originalName.split('.').pop();
+  
+  // For podcast files, always use .wav extension since we convert everything to WAV
+  const extension = prefix === 'podcasts' || prefix === 'podcasts/temp' ? 'wav' : originalName.split('.').pop();
+  
   return `${prefix}/${timestamp}-${randomString}.${extension}`;
 };
 

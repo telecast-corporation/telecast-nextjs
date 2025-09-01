@@ -119,11 +119,11 @@ export async function PUT(
         audioFile.type
       );
 
-      // Update episode with new audio URL
+      // Update episode with new audio file path
       const updatedEpisode = await prisma.episode.update({
         where: { id: episodeId },
         data: { 
-          audioUrl: uploadResult.url,
+          audioUrl: uploadResult.filename, // Store file path, not signed URL
           updatedAt: new Date()
         },
         include: {
@@ -204,7 +204,19 @@ export async function DELETE(
       return NextResponse.json({ error: 'Episode not found or access denied' }, { status: 404 });
     }
 
-    // Delete episode
+    // Delete the audio file from storage if it exists
+    if (existingEpisode.audioUrl) {
+      try {
+        const { deletePodcastFile } = await import('@/lib/storage');
+        await deletePodcastFile(existingEpisode.audioUrl);
+        console.log('Audio file deleted from storage:', existingEpisode.audioUrl);
+      } catch (error) {
+        console.error('Error deleting audio file from storage:', error);
+        // Continue with database deletion even if file deletion fails
+      }
+    }
+
+    // Delete episode from database
     await prisma.episode.delete({
       where: { id: episodeId }
     });
