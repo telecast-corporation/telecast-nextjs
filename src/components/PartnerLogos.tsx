@@ -12,7 +12,7 @@ export default function PartnerLogos() {
         flexDirection: { xs: 'row', sm: 'row' },
         alignItems: 'center',
         justifyContent: { xs: 'flex-start', sm: 'center' },
-        gap: { xs: 3, sm: 4, md: 5 },
+        gap: { xs: 8, sm: 10, md: 15 },
         py: { xs: 2, sm: 3 },
         px: { xs: 2, sm: 3 },
         overflow: { xs: 'auto', sm: 'visible' },
@@ -57,9 +57,9 @@ export default function PartnerLogos() {
         <Box
           className="logo-image"
           sx={{
-            maxHeight: { xs: '80px', sm: '100px', md: '120px' },
-            maxWidth: { xs: '200px', sm: '250px', md: '300px' },
-            width: 'auto',
+            maxHeight: { xs: '60px', sm: '100px', md: '140px' },
+            maxWidth: { xs: '120px', sm: '200px', md: '400px' },
+            width: { xs: '100%', sm: '150%' },
             height: 'auto',
             borderRadius: 2,
             transition: 'box-shadow 0.3s ease',
@@ -68,11 +68,11 @@ export default function PartnerLogos() {
           <Image
             src="/webmall.jpeg"
             alt="WebMall.ca - Click to visit our partner shopping mall"
-            width={300}
-            height={120}
+            width={400}
+            height={700}
             style={{
               height: 'auto',
-              width: '100%',
+              width: '150%',
               objectFit: 'contain',
               borderRadius: '8px',
             }}
