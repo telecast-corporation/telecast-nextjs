@@ -9,28 +9,31 @@ export default function PartnerLogos() {
     <Box
       sx={{
         display: 'flex',
-        flexDirection: 'column',
+        flexDirection: { xs: 'row', sm: 'row' },
         alignItems: 'center',
-        gap: { xs: 2, sm: 3 },
+        justifyContent: { xs: 'flex-start', sm: 'center' },
+        gap: { xs: 3, sm: 4, md: 5 },
         py: { xs: 2, sm: 3 },
         px: { xs: 2, sm: 3 },
-        textAlign: 'center',
+        overflow: { xs: 'auto', sm: 'visible' },
+        scrollSnapType: { xs: 'x mandatory', sm: 'none' },
+        '&::-webkit-scrollbar': {
+          display: 'none',
+        },
+        scrollbarWidth: 'none',
+        msOverflowStyle: 'none',
+        WebkitOverflowScrolling: 'touch',
+        minWidth: { xs: '100%', sm: 'auto' },
+        flexWrap: 'nowrap',
+        // Soft border styling
+        border: '1px solid #2563eb',
+        borderRadius: 3,
+        backgroundColor: 'rgba(248, 250, 252, 0.8)',
+        boxShadow: '0 2px 12px rgba(37, 99, 235, 0.08)',
+        backdropFilter: 'blur(8px)',
+        position: 'relative',
       }}
     >
-      {/* Shopping phrase */}
-      <Typography
-        variant="h6"
-        sx={{
-          color: '#2563eb',
-          fontWeight: 600,
-          fontSize: { xs: '1rem', sm: '1.2rem', md: '1.4rem' },
-          textAlign: 'center',
-          mb: 1,
-        }}
-      >
-        Feel like shopping? Click and Go! Visit our partner shopping mall today.
-      </Typography>
-
       {/* WebMall logo and link */}
       <Link
         href="https://webmall.ca"
@@ -38,10 +41,11 @@ export default function PartnerLogos() {
         rel="noopener noreferrer"
         sx={{
           display: 'flex',
-          flexDirection: 'column',
           alignItems: 'center',
           textDecoration: 'none',
           transition: 'all 0.3s ease',
+          scrollSnapAlign: { xs: 'start', sm: 'none' },
+          flexShrink: 0,
           '&:hover': {
             transform: 'scale(1.05)',
             '& .logo-image': {
@@ -53,8 +57,8 @@ export default function PartnerLogos() {
         <Box
           className="logo-image"
           sx={{
-            maxHeight: { xs: '60px', sm: '80px', md: '100px' },
-            maxWidth: { xs: '150px', sm: '200px', md: '250px' },
+            maxHeight: { xs: '80px', sm: '100px', md: '120px' },
+            maxWidth: { xs: '200px', sm: '250px', md: '300px' },
             width: 'auto',
             height: 'auto',
             borderRadius: 2,
@@ -64,8 +68,8 @@ export default function PartnerLogos() {
           <Image
             src="/webmall.jpeg"
             alt="WebMall.ca - Click to visit our partner shopping mall"
-            width={250}
-            height={100}
+            width={300}
+            height={120}
             style={{
               height: 'auto',
               width: '100%',
@@ -74,24 +78,60 @@ export default function PartnerLogos() {
             }}
           />
         </Box>
-        
-        {/* Clickable text below logo */}
-        <Typography
-          variant="body1"
-          sx={{
-            color: '#2563eb',
-            fontWeight: 500,
-            fontSize: { xs: '0.9rem', sm: '1rem' },
-            mt: 1,
-            textDecoration: 'underline',
-            textUnderlineOffset: '3px',
-            cursor: 'pointer',
-            '&:hover': {
+      </Link>
+
+      {/* Shopping phrase text - now clickable */}
+      <Link
+        href="https://webmall.ca"
+        target="_blank"
+        rel="noopener noreferrer"
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: { xs: 'flex-start', sm: 'flex-start' },
+          gap: 0.5,
+          flexShrink: 0,
+          scrollSnapAlign: { xs: 'start', sm: 'none' },
+          minWidth: { xs: '200px', sm: 'auto' },
+          textDecoration: 'none',
+          transition: 'all 0.3s ease',
+          '&:hover': {
+            transform: 'scale(1.02)',
+            '& .shopping-text': {
               color: '#1d4ed8',
             },
+          },
+        }}
+      >
+        <Typography
+          className="shopping-text"
+          variant="h6"
+          sx={{
+            color: '#2563eb',
+            fontWeight: 600,
+            fontSize: { xs: '0.9rem', sm: '1rem', md: '1.1rem' },
+            lineHeight: 1.2,
+            whiteSpace: 'nowrap',
+            cursor: 'pointer',
+            transition: 'color 0.3s ease',
           }}
         >
-          Click to visit WebMall.ca
+          Feel like shopping? Click and Go.
+        </Typography>
+        <Typography
+          className="shopping-text"
+          variant="h6"
+          sx={{
+            color: '#2563eb',
+            fontWeight: 600,
+            fontSize: { xs: '0.9rem', sm: '1rem', md: '1.1rem' },
+            lineHeight: 1.2,
+            whiteSpace: 'nowrap',
+            cursor: 'pointer',
+            transition: 'color 0.3s ease',
+          }}
+        >
+          Visit our partner shopping mall today.
         </Typography>
       </Link>
     </Box>
