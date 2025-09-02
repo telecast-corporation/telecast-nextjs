@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Box, Link } from '@mui/material';
+import { Box, Link, Typography } from '@mui/material';
 import Image from 'next/image';
 
 export default function PartnerLogos() {
@@ -9,137 +9,90 @@ export default function PartnerLogos() {
     <Box
       sx={{
         display: 'flex',
-        justifyContent: { xs: 'flex-start', sm: 'center' },
+        flexDirection: 'column',
         alignItems: 'center',
-        gap: { xs: 4, sm: 2, md: 1 },
-        py: { xs: 0.5, sm: 1 },
-        px: { xs: 1, sm: 2 },
-        pb: { xs: 0.5, sm: 0.5 }, // Minimal bottom padding
-        flexWrap: 'nowrap',
-        overflow: { xs: 'auto', sm: 'visible' },
-        scrollSnapType: { xs: 'x mandatory', sm: 'none' },
-        '&::-webkit-scrollbar': {
-          display: 'none',
-        },
-        scrollbarWidth: 'none',
-        msOverflowStyle: 'none',
-        WebkitOverflowScrolling: 'touch',
-        minWidth: { xs: '100%', sm: 'auto' },
-        mb: { xs: 0.5, sm: 0 }, // Minimal margin bottom
+        gap: { xs: 2, sm: 3 },
+        py: { xs: 2, sm: 3 },
+        px: { xs: 2, sm: 3 },
+        textAlign: 'center',
       }}
     >
+      {/* Shopping phrase */}
+      <Typography
+        variant="h6"
+        sx={{
+          color: '#2563eb',
+          fontWeight: 600,
+          fontSize: { xs: '1rem', sm: '1.2rem', md: '1.4rem' },
+          textAlign: 'center',
+          mb: 1,
+        }}
+      >
+        Feel like shopping? Click and Go! Visit our partner shopping mall today.
+      </Typography>
+
+      {/* WebMall logo and link */}
       <Link
         href="https://webmall.ca"
         target="_blank"
         rel="noopener noreferrer"
         sx={{
           display: 'flex',
+          flexDirection: 'column',
           alignItems: 'center',
           textDecoration: 'none',
-          transition: 'transform 0.2s ease',
-          scrollSnapAlign: { xs: 'start', sm: 'none' },
-          flexShrink: 0,
+          transition: 'all 0.3s ease',
           '&:hover': {
             transform: 'scale(1.05)',
+            '& .logo-image': {
+              boxShadow: '0 8px 25px rgba(37, 99, 235, 0.2)',
+            },
           },
         }}
       >
         <Box
+          className="logo-image"
           sx={{
-            maxHeight: { xs: '50px', sm: '60px', md: '80px' },
-            maxWidth: { xs: '120px', sm: '140px', md: '200px' },
+            maxHeight: { xs: '60px', sm: '80px', md: '100px' },
+            maxWidth: { xs: '150px', sm: '200px', md: '250px' },
             width: 'auto',
             height: 'auto',
+            borderRadius: 2,
+            transition: 'box-shadow 0.3s ease',
           }}
         >
           <Image
             src="/webmall.jpeg"
-            alt="WebMall.ca"
-            width={200}
-            height={80}
+            alt="WebMall.ca - Click to visit our partner shopping mall"
+            width={250}
+            height={100}
             style={{
               height: 'auto',
               width: '100%',
               objectFit: 'contain',
+              borderRadius: '8px',
             }}
           />
         </Box>
-      </Link>
-
-      <Link
-        href="https://sunnydeals.com"
-        target="_blank"
-        rel="noopener noreferrer"
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-          textDecoration: 'none',
-          transition: 'transform 0.2s ease',
-          scrollSnapAlign: { xs: 'start', sm: 'none' },
-          flexShrink: 0,
-          '&:hover': {
-            transform: 'scale(1.05)',
-          },
-        }}
-      >
-        <Box
+        
+        {/* Clickable text below logo */}
+        <Typography
+          variant="body1"
           sx={{
-            maxHeight: { xs: '50px', sm: '60px', md: '80px' },
-            maxWidth: { xs: '120px', sm: '140px', md: '200px' },
-            width: 'auto',
-            height: 'auto',
+            color: '#2563eb',
+            fontWeight: 500,
+            fontSize: { xs: '0.9rem', sm: '1rem' },
+            mt: 1,
+            textDecoration: 'underline',
+            textUnderlineOffset: '3px',
+            cursor: 'pointer',
+            '&:hover': {
+              color: '#1d4ed8',
+            },
           }}
         >
-          <Image
-            src="/sunnydeals.jpeg"
-            alt="SunnyDeals.com"
-            width={200}
-            height={80}
-            style={{
-              height: 'auto',
-              width: '100%',
-              objectFit: 'contain',
-            }}
-          />
-        </Box>
-      </Link>
-
-      <Link
-        href="https://pharmadeals.com"
-        target="_blank"
-        rel="noopener noreferrer"
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-          textDecoration: 'none',
-          transition: 'transform 0.2s ease',
-          scrollSnapAlign: { xs: 'start', sm: 'none' },
-          flexShrink: 0,
-          '&:hover': {
-            transform: 'scale(1.05)',
-          },
-        }}
-      >
-        <Box
-          sx={{
-            maxHeight: { xs: '50px', sm: '60px', md: '80px' },
-            maxWidth: { xs: '120px', sm: '140px', md: '200px' },
-            width: 'auto',
-            height: 'auto',
-          }}
-        >
-          <Image
-            src="/pharmadeals.jpeg"
-            alt="Pharmadeals.com"
-            width={200}
-            height={80}
-            style={{
-              height: 'auto',
-              width: '100%',
-              objectFit: 'contain',
-            }}
-          />
-        </Box>
+          Click to visit WebMall.ca
+        </Typography>
       </Link>
     </Box>
   );
