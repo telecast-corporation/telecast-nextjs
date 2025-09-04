@@ -209,7 +209,87 @@ export default function Footer() {
           </Grid>
 
           <Grid item xs={12} sm={4}>
-            <Typography variant="h6" color="text.primary" gutterBottom sx={{ fontSize: { xs: '1.1rem', sm: '1.25rem' } }}>
+            <Typography 
+              variant="h6" 
+              color="text.primary" 
+              gutterBottom 
+              sx={{ 
+                fontSize: { xs: '1.1rem', sm: '1.25rem' },
+                fontFamily: lexend.style.fontFamily,
+                fontWeight: 700
+              }}
+            >
+              Contact Us
+            </Typography>
+            <Box sx={{ mb: 2 }}>
+              <Typography 
+                variant="body2" 
+                color="text.secondary" 
+                sx={{ 
+                  fontSize: { xs: '0.9rem', sm: '1rem' },
+                  fontFamily: lexend.style.fontFamily,
+                  fontWeight: 400,
+                  mb: 1
+                }}
+              >
+                Email us by sending a quick note to:
+              </Typography>
+              <Link
+                href="mailto:admin@telecast.ca"
+                sx={{ 
+                  color: 'primary.main',
+                  fontSize: { xs: '0.9rem', sm: '1rem' },
+                  fontFamily: lexend.style.fontFamily,
+                  fontWeight: 500,
+                  textDecoration: 'none',
+                  '&:hover': {
+                    textDecoration: 'underline'
+                  }
+                }}
+              >
+                admin@telecast.ca
+              </Link>
+            </Box>
+            <Box sx={{ mb: 2 }}>
+              <Typography 
+                variant="body2" 
+                color="text.secondary" 
+                sx={{ 
+                  fontSize: { xs: '0.9rem', sm: '1rem' },
+                  fontFamily: lexend.style.fontFamily,
+                  fontWeight: 400,
+                  mb: 1
+                }}
+              >
+                Or call us at:
+              </Typography>
+              <Link
+                href="tel:1-800-905-6572"
+                sx={{ 
+                  color: 'primary.main',
+                  fontSize: { xs: '0.9rem', sm: '1rem' },
+                  fontFamily: lexend.style.fontFamily,
+                  fontWeight: 500,
+                  textDecoration: 'none',
+                  '&:hover': {
+                    textDecoration: 'underline'
+                  }
+                }}
+              >
+                1-800-905-6572
+              </Link>
+            </Box>
+            <Typography 
+              variant="h6" 
+              color="text.primary" 
+              gutterBottom 
+              sx={{ 
+                fontSize: { xs: '1.1rem', sm: '1.25rem' },
+                fontFamily: lexend.style.fontFamily,
+                fontWeight: 700,
+                mt: 3
+              }}
+            >
               Connect With Us
             </Typography>
             <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
