@@ -41,7 +41,6 @@ import {
   Delete as DeleteIcon,
   Mic as MicIcon,
   Upload as UploadIcon,
-  Radio as RadioIcon,
   Save as SaveIcon,
 } from '@mui/icons-material';
 import { useAudio } from '@/contexts/AudioContext';
@@ -104,7 +103,6 @@ export default function PodcastPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const episodesPerPage = 10;
 
-  const [isQuickBroadcasting, setIsQuickBroadcasting] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [episodeToDelete, setEpisodeToDelete] = useState<DatabaseEpisode | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -256,45 +254,6 @@ export default function PodcastPage() {
     }
   };
 
-  const handleQuickBroadcast = async (episodeId: string) => {
-    try {
-      setIsQuickBroadcasting(episodeId);
-      
-      const response = await fetch('/api/broadcast/quick', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          episodeId,
-          useRememberedPlatforms: true,
-        }),
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        
-        // Show success message with platform results
-        const successfulPlatforms = Object.entries(result.results)
-          .filter(([platform, res]) => res && (res as any).success)
-          .map(([platform]) => platform);
-        
-        if (successfulPlatforms.length > 0) {
-          alert(`Successfully broadcast to: ${successfulPlatforms.join(', ')}`);
-        } else {
-          alert('Broadcast completed but no platforms were successfully updated.');
-        }
-      } else {
-        const error = await response.json();
-        alert(`Broadcast failed: ${error.error}`);
-      }
-    } catch (error) {
-      console.error('Quick broadcast error:', error);
-      alert('Failed to perform quick broadcast');
-    } finally {
-      setIsQuickBroadcasting(null);
-    }
-  };
 
   if (loading) {
     return (
@@ -542,6 +501,15 @@ export default function PodcastPage() {
           <Typography variant="h5" gutterBottom sx={{ textAlign: 'center', mb: 0 }}>
             Published Episodes ({publishedEpisodes.length})
           </Typography>
+          <Box sx={{ display: 'flex', gap: 2 }}>
+            <Button
+              variant="outlined"
+              startIcon={<UploadIcon />}
+              onClick={() => router.push(`/podcast/${podcast?.id}/distribute`)}
+              sx={{ minWidth: 'auto' }}
+            >
+              Distribute
+            </Button>
             <Button
               variant="contained"
               startIcon={<AddIcon />}
@@ -550,6 +518,7 @@ export default function PodcastPage() {
             >
               Add Episode
             </Button>
+          </Box>
         </Box>
         
         {publishedEpisodes.length === 0 && draftEpisodes.length === 0 ? (
@@ -679,28 +648,6 @@ export default function PodcastPage() {
                         }
                       />
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Tooltip title="Quick Broadcast to Connected Platforms">
-                          <IconButton
-                            size="small"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleQuickBroadcast(episode.id);
-                            }}
-                            disabled={isQuickBroadcasting === episode.id}
-                            sx={{
-                              color: 'primary.main',
-                              '&:hover': {
-                                backgroundColor: 'primary.light',
-                              }
-                            }}
-                          >
-                            {isQuickBroadcasting === episode.id ? (
-                              <CircularProgress size={16} />
-                            ) : (
-                              <RadioIcon fontSize="small" />
-                            )}
-                          </IconButton>
-                        </Tooltip>
                         <Tooltip title="Delete Episode">
                           <IconButton
                             size="small"
