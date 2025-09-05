@@ -61,6 +61,7 @@ import {
   Mic as MicIcon,
   AttachMoney as AttachMoneyIcon,
   Article as NewsIcon,
+  LiveTv as StreamingIcon,
 } from '@mui/icons-material';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -579,7 +580,8 @@ const MainNav = memo(() => {
       'Videos': 'video',
       'Music': 'music',
       'Books': 'book',
-      'News': 'news'
+      'News': 'news',
+      'Streaming': 'tv'
     };
     return typeMap[filter] || 'all';
   };
@@ -605,6 +607,7 @@ const MainNav = memo(() => {
     { value: 'All', icon: <SearchIcon /> },
     { value: 'Podcasts', icon: <HeadphonesIcon /> },
     { value: 'Videos', icon: <VideoIcon /> },
+    { value: 'Streaming', icon: <StreamingIcon /> },
     { value: 'Music', icon: <MusicIcon /> },
     { value: 'Books', icon: <BookIcon /> },
     { value: 'News', icon: <NewsIcon /> }
@@ -686,10 +689,14 @@ const MainNav = memo(() => {
         return <PodcastIcon />;
       case 'video':
         return <VideoIcon />;
+      case 'tv':
+        return <StreamingIcon />;
       case 'music':
         return <MusicIcon />;
       case 'book':
         return <BookIcon />;
+      case 'news':
+        return <NewsIcon />;
       default:
         return <SearchIcon />;
     }
@@ -1085,6 +1092,14 @@ const MainNav = memo(() => {
         >
           Videos
                     </Button>
+        <Button
+          variant="text"
+          startIcon={<StreamingIcon />}
+          onClick={() => handleFilterSelect('Streaming')}
+          sx={getFilterButtonStyles(theme, selectedFilter, 'Streaming')}
+        >
+          Streaming
+        </Button>
         <Button
           variant="text"
           startIcon={<MusicIcon />}

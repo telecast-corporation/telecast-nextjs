@@ -18,10 +18,11 @@ import {
 } from '@mui/material';
 import { useRouter } from 'next/navigation';
 import Pagination from '@/components/Pagination';
+import TVPreviewModal from '@/components/TVPreviewModal';
 
 interface TrendingItem {
   id: string;
-  type: 'video' | 'music' | 'book' | 'news';
+  type: 'video' | 'music' | 'book' | 'news' | 'tv';
   title: string;
   description?: string;
   thumbnail?: string;
@@ -35,6 +36,9 @@ interface TrendingItem {
   rating?: number;
   source?: string;
   sourceUrl?: string;
+  year?: string;
+  duration?: string;
+  previewVideo?: string;
 }
 
 interface TabPanelProps {
@@ -74,9 +78,12 @@ export default function TrendingPage() {
     music: TrendingItem[];
     books: TrendingItem[];
     news: TrendingItem[];
-  }>({ videos: [], music: [], books: [], news: [] });
+    tv: TrendingItem[];
+  }>({ videos: [], music: [], books: [], news: [], tv: [] });
   const [newsPage, setNewsPage] = useState(1);
   const [newsPagination, setNewsPagination] = useState<any>(null);
+  const [tvPreviewOpen, setTvPreviewOpen] = useState(false);
+  const [selectedTVShow, setSelectedTVShow] = useState<TrendingItem | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -120,6 +127,14 @@ export default function TrendingPage() {
           window.open(item.url, '_blank');
         }
         break;
+      case 'tv':
+        if (item.previewVideo) {
+          setSelectedTVShow(item);
+          setTvPreviewOpen(true);
+        } else if (item.url) {
+          window.open(item.url, '_blank');
+        }
+        break;
     }
   };
 
@@ -158,6 +173,7 @@ export default function TrendingPage() {
           <Tab label="Videos" />
           <Tab label="Music" />
           <Tab label="Books" />
+          <Tab label="TV" />
           <Tab label="News" />
         </Tabs>
       </Box>
@@ -263,6 +279,45 @@ export default function TrendingPage() {
 
       <TabPanel value={value} index={3}>
         <Grid container spacing={3}>
+          {trendingContent.tv.map((show) => (
+            <Grid item xs={12} sm={6} md={4} key={show.id}>
+              <Card>
+                <CardActionArea onClick={() => handleItemClick(show)}>
+                  <CardMedia
+                    component="img"
+                    height="200"
+                    image={show.thumbnail}
+                    alt={show.title}
+                  />
+                  <CardContent>
+                    <Typography gutterBottom variant="h6" component="div" noWrap>
+                      {show.title}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" noWrap>
+                      {show.description}
+                    </Typography>
+                    <Box sx={{ mt: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Typography variant="caption" color="text.secondary">
+                        {show.year}
+                      </Typography>
+                      {show.rating && (
+                        <Chip
+                          size="small"
+                          label={show.rating}
+                          variant="outlined"
+                        />
+                      )}
+                    </Box>
+                  </CardContent>
+                </CardActionArea>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      </TabPanel>
+
+      <TabPanel value={value} index={4}>
+        <Grid container spacing={3}>
           {trendingContent.news
             .slice((newsPage - 1) * 20, newsPage * 20)
             .map((article) => (
@@ -317,6 +372,16 @@ export default function TrendingPage() {
           </Box>
         )}
       </TabPanel>
+      
+      {/* TV Preview Modal */}
+      <TVPreviewModal
+        open={tvPreviewOpen}
+        onClose={() => {
+          setTvPreviewOpen(false);
+          setSelectedTVShow(null);
+        }}
+        tvShow={selectedTVShow}
+      />
     </Container>
   );
 } 

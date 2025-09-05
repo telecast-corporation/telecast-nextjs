@@ -26,11 +26,12 @@ import Image from 'next/image';
 import StarIcon from '@mui/icons-material/Star';
 import SearchParamsWrapper from '@/components/SearchParamsWrapper';
 import PartnerLogos from '@/components/PartnerLogos';
+import TVPreviewModal from '@/components/TVPreviewModal';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface TrendingItem {
     id: string;
-  type: 'video' | 'music' | 'book' | 'podcast' | 'news';
+  type: 'video' | 'music' | 'book' | 'podcast' | 'news' | 'tv';
     title: string;
     description: string;
   thumbnail: string;
@@ -46,6 +47,9 @@ interface TrendingItem {
   categories?: string[];
   source?: string;
   sourceUrl?: string;
+  year?: string;
+  duration?: string;
+  previewVideo?: string;
 }
 
 interface ContentCarouselProps {
@@ -59,6 +63,9 @@ function ContentCarousel({ title, items, onItemClick }: ContentCarouselProps) {
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('md'));
   const itemsPerPage = isSmallScreen ? 1 : 3;
+
+  // Debug logging
+  console.log(`ContentCarousel ${title}:`, { itemsLength: items?.length, items: items?.slice(0, 2) });
 
   const handlePrev = () => {
     setStartIndex((prev) => Math.max(0, prev - itemsPerPage));
@@ -160,6 +167,11 @@ function ContentCarousel({ title, items, onItemClick }: ContentCarouselProps) {
                     {item.author} • {item.source}
                   </Typography>
                 )}
+                {item.type === 'tv' && item.year && (
+                  <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.85rem', sm: '1.2vw', md: '0.9rem' }, fontWeight: 400 }}>
+                    {item.year} • {item.rating || 'TV Show'}
+                  </Typography>
+                )}
               </CardContent>
             </Card>
           </Grid>
@@ -173,18 +185,22 @@ function HomePageContent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [tvPreviewOpen, setTvPreviewOpen] = useState(false);
+  const [selectedTVShow, setSelectedTVShow] = useState<TrendingItem | null>(null);
   const [trendingContent, setTrendingContent] = useState<{
     videos: TrendingItem[];
     music: TrendingItem[];
     books: TrendingItem[];
     podcasts: TrendingItem[];
     news: TrendingItem[];
+    tv: TrendingItem[];
   }>({
     videos: [],
     music: [],
     books: [],
     podcasts: [],
     news: [],
+    tv: [],
   });
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -218,6 +234,8 @@ function HomePageContent() {
         }
         const data = await response.json();
         console.log('Fetched trending content:', data);
+        console.log('Music data:', data.music);
+        console.log('Music length:', data.music?.length);
         setTrendingContent(data);
       } catch (err) {
         console.error('Error fetching trending content:', err);
@@ -246,6 +264,14 @@ function HomePageContent() {
         break;
       case 'news':
         if (item.url) {
+          window.open(item.url, '_blank');
+        }
+        break;
+      case 'tv':
+        if (item.previewVideo) {
+          setSelectedTVShow(item);
+          setTvPreviewOpen(true);
+        } else if (item.url) {
           window.open(item.url, '_blank');
         }
         break;
@@ -378,6 +404,11 @@ function HomePageContent() {
         }
       }}>
         <ContentCarousel
+          title="Trending TV"
+          items={trendingContent.tv}
+          onItemClick={handleItemClick}
+        />
+        <ContentCarousel
           title="Trending Videos"
           items={trendingContent.videos}
           onItemClick={handleItemClick}
@@ -450,6 +481,16 @@ function HomePageContent() {
           {successMessage}
         </Alert>
       </Snackbar>
+      
+      {/* TV Preview Modal */}
+      <TVPreviewModal
+        open={tvPreviewOpen}
+        onClose={() => {
+          setTvPreviewOpen(false);
+          setSelectedTVShow(null);
+        }}
+        tvShow={selectedTVShow}
+      />
     </Container>
   );
 }
