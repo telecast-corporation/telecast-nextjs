@@ -19,6 +19,7 @@ model User {
   isPremium        Boolean         @default(false)
   premiumExpiresAt DateTime?
   usedFreeTrial    Boolean         @default(false)
+  freeTrialEndedAt DateTime?       // Track when free trial ended for discount eligibility
   auth0Id          String?         @unique
   podcasts         Podcast[]
   platformConnections PlatformConnection[]

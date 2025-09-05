@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Container,
   Typography,
@@ -16,11 +16,38 @@ import {
   Star as StarIcon,
 } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
 import StartFreeTrial from '@/components/StartFreeTrial';
 
 export default function PricingPage() {
   const theme = useTheme();
   const router = useRouter();
+  const { isAuthenticated } = useAuth();
+  const [pricingInfo, setPricingInfo] = useState<{
+    eligible: boolean;
+    price: number;
+    message: string;
+    daysSinceTrialEnd?: number;
+  } | null>(null);
+
+  // Fetch pricing information
+  useEffect(() => {
+    const fetchPricingInfo = async () => {
+      if (isAuthenticated) {
+        try {
+          const response = await fetch('/api/pricing/check-discount');
+          if (response.ok) {
+            const pricingData = await response.json();
+            setPricingInfo(pricingData);
+          }
+        } catch (error) {
+          console.error('Error fetching pricing info:', error);
+        }
+      }
+    };
+
+    fetchPricingInfo();
+  }, [isAuthenticated]);
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
@@ -321,7 +348,20 @@ export default function PricingPage() {
                 mb: 4
               }}
             >
-              <strong>Special discount</strong> for first-time subscribers within 1 month of free trial ending
+              {pricingInfo?.eligible ? (
+                <>
+                  <strong>You're eligible for our special discount!</strong> 
+                  {pricingInfo.daysSinceTrialEnd !== undefined && (
+                    <span style={{ color: theme.palette.success.main, fontWeight: 500 }}>
+                      {' '}Only {30 - pricingInfo.daysSinceTrialEnd} days left to claim this offer.
+                    </span>
+                  )}
+                </>
+              ) : (
+                <>
+                  <strong>Special discount</strong> for first-time subscribers within 1 month of free trial ending
+                </>
+              )}
             </Typography>
 
             <Box sx={{ mb: 4 }}>

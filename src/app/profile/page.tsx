@@ -71,6 +71,12 @@ function ProfilePage() {
     severity: 'success' | 'error';
   }>({ open: false, message: '', severity: 'success' });
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [pricingInfo, setPricingInfo] = useState<{
+    eligible: boolean;
+    price: number;
+    message: string;
+    daysSinceTrialEnd?: number;
+  } | null>(null);
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -100,6 +106,25 @@ function ProfilePage() {
     };
 
     fetchUserData();
+  }, [isAuthenticated]);
+
+  // Fetch pricing information
+  useEffect(() => {
+    const fetchPricingInfo = async () => {
+      if (isAuthenticated) {
+        try {
+          const response = await fetch('/api/pricing/check-discount');
+          if (response.ok) {
+            const pricingData = await response.json();
+            setPricingInfo(pricingData);
+          }
+        } catch (error) {
+          console.error('Error fetching pricing info:', error);
+        }
+      }
+    };
+
+    fetchPricingInfo();
   }, [isAuthenticated]);
 
   // Handle checkout success
@@ -445,10 +470,25 @@ function ProfilePage() {
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
                 <Box>
                   <Typography variant="h6" fontWeight={600} sx={{ color: '#FCD34D', fontSize: '1rem' }}>
-                    Just $17.99/month
+                    Just ${pricingInfo?.price || 17.99}/month
+                    {pricingInfo?.eligible && (
+                      <Typography component="span" sx={{ 
+                        color: '#10B981', 
+                        fontSize: '0.8rem', 
+                        ml: 1,
+                        fontWeight: 500
+                      }}>
+                        (Special Discount!)
+                      </Typography>
+                    )}
                   </Typography>
                   <Typography variant="caption" sx={{ opacity: 0.8, fontSize: '0.75rem' }}>
                     Cancel anytime • No setup fees
+                    {pricingInfo?.eligible && pricingInfo.daysSinceTrialEnd !== undefined && (
+                      <span style={{ color: '#10B981', fontWeight: 500 }}>
+                        {' '}• {30 - pricingInfo.daysSinceTrialEnd} days left for discount
+                      </span>
+                    )}
                   </Typography>
                 </Box>
                 <Button
