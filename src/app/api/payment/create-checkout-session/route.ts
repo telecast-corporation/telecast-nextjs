@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuth0User } from '@/lib/auth0-session';
+import { prisma } from '@/lib/prisma';
 import Stripe from 'stripe';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
@@ -7,6 +8,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
 });
 
 const PRICE_ID = process.env.STRIPE_PRICE_ID || 'price_1RkoI5L1gjoL2pfG31JiL1Ut'; // Use environment variable or fallback
+const DISCOUNTED_PRICE_ID = process.env.STRIPE_DISCOUNTED_PRICE_ID || 'price_1RkoI5L1gjoL2pfG31JiL1Ut'; // Discounted price for post-trial users
 
 export async function POST(request: NextRequest) {
   try {
@@ -20,6 +22,29 @@ export async function POST(request: NextRequest) {
     const email = user.email;
     console.log('Creating checkout session for email:', email);
 
+    // Check if user is eligible for post-trial discount
+    let priceId = PRICE_ID;
+    const dbUser = await prisma.user.findUnique({
+      where: { email },
+      select: { 
+        usedFreeTrial: true, 
+        freeTrialEndedAt: true,
+        isPremium: true 
+      }
+    });
+
+    // Check if user is eligible for discount (used free trial, trial ended within last 30 days, not currently premium)
+    if (dbUser?.usedFreeTrial && dbUser.freeTrialEndedAt && !dbUser.isPremium) {
+      const trialEndDate = new Date(dbUser.freeTrialEndedAt);
+      const now = new Date();
+      const daysSinceTrialEnd = Math.floor((now.getTime() - trialEndDate.getTime()) / (1000 * 60 * 60 * 24));
+      
+      if (daysSinceTrialEnd <= 30) {
+        priceId = DISCOUNTED_PRICE_ID;
+        console.log(`User eligible for discount: ${daysSinceTrialEnd} days since trial ended`);
+      }
+    }
+
     // Create a Checkout Session for subscription
     const checkoutSession = await stripe.checkout.sessions.create({
       mode: 'subscription',
@@ -27,7 +52,7 @@ export async function POST(request: NextRequest) {
       customer_email: email,
       line_items: [
         {
-          price: PRICE_ID,
+          price: priceId,
           quantity: 1,
         },
       ],

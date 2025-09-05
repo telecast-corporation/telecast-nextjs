@@ -127,9 +127,8 @@ export async function POST(request: NextRequest) {
           
           if (!premiumExpiresAt) {
             premiumExpiresAt = new Date();
-            // If free trial hasn't been used, give 90 days + 1 month (120 days total)
-            const daysToAdd = existingUser?.usedFreeTrial ? 30 : 120;
-            premiumExpiresAt.setDate(premiumExpiresAt.getDate() + daysToAdd);
+            // Give 30 days for all new subscriptions
+            premiumExpiresAt.setDate(premiumExpiresAt.getDate() + 30);
           }
           
           await prisma.user.upsert({

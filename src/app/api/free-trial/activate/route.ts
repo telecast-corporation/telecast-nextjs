@@ -42,6 +42,7 @@ export async function POST(request: NextRequest) {
         isPremium: true,
         premiumExpiresAt: freeTrialExpiresAt,
         usedFreeTrial: true,
+        freeTrialEndedAt: freeTrialExpiresAt, // Track when trial will end for discount eligibility
       },
     });
 
