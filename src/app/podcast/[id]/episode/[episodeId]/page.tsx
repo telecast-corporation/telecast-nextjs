@@ -21,7 +21,6 @@ import {
   Pause as PauseIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
-  Radio as RadioIcon,
 } from '@mui/icons-material';
 import { useAudio } from '@/contexts/AudioContext';
 import { enqueueSnackbar } from 'notistack';
@@ -65,7 +64,6 @@ export default function EpisodeDetailsPage() {
   const [podcast, setPodcast] = useState<Podcast | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isQuickBroadcasting, setIsQuickBroadcasting] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -139,34 +137,6 @@ export default function EpisodeDetailsPage() {
     }
   };
 
-  const handleQuickBroadcast = async () => {
-    try {
-      setIsQuickBroadcasting(true);
-      
-      const response = await fetch('/api/broadcast/quick', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          episodeId,
-          useRememberedPlatforms: true,
-        }),
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        enqueueSnackbar('Episode broadcasted successfully!', { variant: 'success' });
-      } else {
-        throw new Error('Broadcast failed');
-      }
-    } catch (error) {
-      console.error('Error broadcasting episode:', error);
-      enqueueSnackbar('Failed to broadcast episode', { variant: 'error' });
-    } finally {
-      setIsQuickBroadcasting(false);
-    }
-  };
 
   const handleDeleteEpisode = () => {
     setDeleteDialogOpen(true);
@@ -270,17 +240,6 @@ export default function EpisodeDetailsPage() {
                 </IconButton>
               </Tooltip>
               
-              {episode.isPublished && (
-                <Tooltip title="Quick Broadcast">
-                  <IconButton
-                    onClick={handleQuickBroadcast}
-                    disabled={isQuickBroadcasting}
-                    color="primary"
-                  >
-                    {isQuickBroadcasting ? <CircularProgress size={20} /> : <RadioIcon />}
-                  </IconButton>
-                </Tooltip>
-              )}
               
               <Tooltip title="Edit Episode">
                 <IconButton

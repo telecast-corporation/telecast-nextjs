@@ -20,6 +20,7 @@ import {
   SelectChangeEvent,
 } from '@mui/material';
 import { Save as SaveIcon, ArrowBack as ArrowBackIcon } from '@mui/icons-material';
+import { enqueueSnackbar } from 'notistack';
 
 interface Episode {
   id: string;
@@ -128,7 +129,8 @@ export default function FinalizeEpisodePage() {
         throw new Error('Failed to update episode');
       }
 
-      // Navigate back to podcast page
+      // Show success message and navigate back to podcast page
+      enqueueSnackbar('Episode saved as draft successfully!', { variant: 'success' });
       router.push(`/podcast/${podcastId}`);
       
     } catch (error) {
@@ -167,8 +169,9 @@ export default function FinalizeEpisodePage() {
          throw new Error('Failed to publish episode');
        }
 
-       // Navigate to distribute page
-       router.push(`/podcast/${podcastId}/episode/${episodeId}/distribute`);
+       // Show success message and navigate back to podcast page
+       enqueueSnackbar('Episode published successfully!', { variant: 'success' });
+       router.push(`/podcast/${podcastId}`);
       
     } catch (error) {
       console.error('Error publishing episode:', error);

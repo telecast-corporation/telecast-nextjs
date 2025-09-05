@@ -4,11 +4,10 @@ import { getFileReadSignedUrl } from '@/lib/storage';
 
 export async function GET(
   request: Request,
-  { params }: { params: Promise<{ id: string; platform: string }> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id, platform } = await params;
-    const normalizedPlatform = platform.toLowerCase();
+    const { id } = await params;
 
     const podcast = await prisma.podcast.findUnique({
       where: { id },
@@ -36,7 +35,7 @@ export async function GET(
     })));
 
     const siteUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://telecast.ca';
-    const atomSelfHref = `${siteUrl}/api/podcast/internal/${encodeURIComponent(podcast.id)}/rss/${normalizedPlatform}`;
+    const atomSelfHref = `${siteUrl}/api/podcast/internal/${encodeURIComponent(podcast.id)}/rss`;
 
     // Generate fresh signed URLs for all episodes (valid for 24 hours for RSS feeds)
     const episodesWithSignedUrls = await Promise.all(
