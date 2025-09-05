@@ -3,7 +3,7 @@ import { getAuth0User } from '@/lib/auth0-session';
 import Stripe from 'stripe';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-  apiVersion: '2025-06-30.basil',
+  apiVersion: '2025-08-27.basil',
 });
 
 const PRICE_ID = process.env.STRIPE_PRICE_ID || 'price_1RkoI5L1gjoL2pfG31JiL1Ut'; // Use environment variable or fallback
