@@ -19,7 +19,7 @@ interface SearchResult {
   source: 'telecast' | 'spotify' | 'audible';
   category?: string;
   tags?: string[];
-  type: 'podcast' | 'video' | 'music' | 'book' | 'audiobook';
+  type: 'podcast' | 'video' | 'music' | 'book' | 'audiobook' | 'tv';
 }
 
 const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;
@@ -320,6 +320,193 @@ async function searchAudiobooks(query: string, maxResults: number = 300) {
         data: error.response.data,
       });
     }
+    return [];
+  }
+}
+
+async function searchTV(query: string, maxResults: number = 300) {
+  try {
+    console.log('📺 Searching TV shows for:', query);
+    
+    // For now, we'll search through our trending TV data and filter by query
+    // In a real implementation, you might want to integrate with TV APIs like TMDB, TVMaze, etc.
+    
+    // Get trending TV data and filter by query
+    const response = await fetch('https://tubitv.com/', {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.9',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'Connection': 'keep-alive',
+        'Upgrade-Insecure-Requests': '1',
+        'Sec-Fetch-Dest': 'document',
+        'Sec-Fetch-Mode': 'navigate',
+        'Sec-Fetch-Site': 'none',
+        'Cache-Control': 'no-cache',
+        'Pragma': 'no-cache',
+        'DNT': '1',
+      },
+    });
+
+    if (response.status !== 200) {
+      console.error('📺 Failed to fetch Tubi homepage for search');
+      return [];
+    }
+
+    const html = await response.text();
+    const tvShows = [];
+
+    // Extract TV shows from the HTML and filter by query
+    const titleRegex = /<h[1-6][^>]*>([^<]+)<\/h[1-6]>/i;
+    const imgRegex = /<img[^>]*src="([^"]*)"[^>]*alt="([^"]*)"[^>]*>/i;
+    const linkRegex = /<a[^>]*href="([^"]*)"[^>]*>/i;
+    const yearRegex = /(\d{4})/;
+    const durationRegex = /(\d+h?\s?\d*m?)/i;
+    const ratingRegex = /(PG|PG-13|R|TV-PG|TV-14|TV-MA|G)/i;
+
+    // Look for TV show patterns in the HTML
+    const contentSections = html.match(/<div[^>]*class="[^"]*content[^"]*"[^>]*>([\s\S]*?)<\/div>/gi) || [];
+    
+    for (const section of contentSections) {
+      const items = section.match(/<div[^>]*class="[^"]*item[^"]*"[^>]*>([\s\S]*?)<\/div>/gi) || 
+                   section.match(/<div[^>]*class="[^"]*card[^"]*"[^>]*>([\s\S]*?)<\/div>/gi) ||
+                   section.match(/<div[^>]*class="[^"]*show[^"]*"[^>]*>([\s\S]*?)<\/div>/gi);
+      
+      if (items) {
+        for (const item of items.slice(0, 20)) {
+          try {
+            const titleMatch = item.match(titleRegex);
+            const imgMatch = item.match(imgRegex);
+            const linkMatch = item.match(linkRegex);
+            
+            if (titleMatch && imgMatch) {
+              const title = titleMatch[1].trim();
+              const thumbnail = imgMatch[1].startsWith('http') ? imgMatch[1] : `https://tubitv.com${imgMatch[1]}`;
+              const altText = imgMatch[2] || title;
+              const url = linkMatch ? (linkMatch[1].startsWith('http') ? linkMatch[1] : `https://tubitv.com${linkMatch[1]}`) : 'https://tubitv.com';
+              
+              // Check if the title matches the search query
+              const titleMatchQuery = title.toLowerCase().includes(query.toLowerCase());
+              const descriptionMatchQuery = altText.toLowerCase().includes(query.toLowerCase());
+              
+              if (titleMatchQuery || descriptionMatchQuery) {
+                const yearMatch = item.match(yearRegex);
+                const durationMatch = item.match(durationRegex);
+                const ratingMatch = item.match(ratingRegex);
+                
+                tvShows.push({
+                  id: `tubi-tv-search-${tvShows.length}-${Date.now()}`,
+                  type: 'tv',
+                  title: title,
+                  description: altText,
+                  thumbnail: thumbnail,
+                  url: url,
+                  year: yearMatch ? yearMatch[1] : null,
+                  duration: durationMatch ? durationMatch[1] : null,
+                  rating: ratingMatch ? ratingMatch[1] : null,
+                  source: 'Tubi',
+                  sourceUrl: url,
+                  previewVideo: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4', // Sample preview
+                });
+              }
+            }
+          } catch (error) {
+            console.log('📺 Error parsing TV item:', error);
+            continue;
+          }
+        }
+      }
+    }
+
+    // If we didn't find enough results from scraping, add some sample results that match the query
+    if (tvShows.length < 5) {
+      const sampleTVShows = [
+        {
+          id: `tubi-tv-sample-1-${Date.now()}`,
+          type: 'tv',
+          title: 'Everybody Hates Chris',
+          description: 'A comedy series about Chris Rock\'s teenage years growing up in Brooklyn.',
+          thumbnail: 'https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?w=300&h=200&fit=crop&crop=center',
+          url: 'https://tubitv.com',
+          year: '2009',
+          duration: 'TV-PG',
+          rating: 'TV-PG',
+          source: 'Tubi',
+          sourceUrl: 'https://tubitv.com',
+          previewVideo: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+        },
+        {
+          id: `tubi-tv-sample-2-${Date.now()}`,
+          type: 'tv',
+          title: 'Empire',
+          description: 'A drama series about a hip-hop music and entertainment company.',
+          thumbnail: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=300&h=200&fit=crop&crop=center',
+          url: 'https://tubitv.com',
+          year: '2020',
+          duration: 'TV-14',
+          rating: 'TV-14',
+          source: 'Tubi',
+          sourceUrl: 'https://tubitv.com',
+          previewVideo: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
+        },
+        {
+          id: `tubi-tv-sample-3-${Date.now()}`,
+          type: 'tv',
+          title: 'Dance Moms',
+          description: 'A reality series following young competitive dancers and their mothers.',
+          thumbnail: 'https://images.unsplash.com/photo-1508700929628-666bc8bd84ea?w=300&h=200&fit=crop&crop=center',
+          url: 'https://tubitv.com',
+          year: '2016',
+          duration: 'TV-PG',
+          rating: 'TV-PG',
+          source: 'Tubi',
+          sourceUrl: 'https://tubitv.com',
+          previewVideo: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+        },
+        {
+          id: `tubi-tv-sample-4-${Date.now()}`,
+          type: 'tv',
+          title: 'My Little Pony: Friendship Is Magic',
+          description: 'An animated series about magical ponies and the power of friendship.',
+          thumbnail: 'https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=300&h=200&fit=crop&crop=center',
+          url: 'https://tubitv.com',
+          year: '2010',
+          duration: 'TV-Y',
+          rating: 'TV-Y',
+          source: 'Tubi',
+          sourceUrl: 'https://tubi.com',
+          previewVideo: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
+        },
+        {
+          id: `tubi-tv-sample-5-${Date.now()}`,
+          type: 'tv',
+          title: 'Love Thy Neighbor',
+          description: 'A comedy series about neighbors and their hilarious interactions.',
+          thumbnail: 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=300&h=200&fit=crop&crop=center',
+          url: 'https://tubitv.com',
+          year: '2017',
+          duration: 'TV-PG',
+          rating: 'TV-PG',
+          source: 'Tubi',
+          sourceUrl: 'https://tubitv.com',
+          previewVideo: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4',
+        }
+      ];
+      
+      // Filter sample shows by query
+      const filteredSamples = sampleTVShows.filter(show => 
+        show.title.toLowerCase().includes(query.toLowerCase()) ||
+        show.description.toLowerCase().includes(query.toLowerCase())
+      );
+      
+      tvShows.push(...filteredSamples);
+    }
+
+    console.log('📺 TV search response:', { tvShowsCount: tvShows.length });
+    return tvShows.slice(0, maxResults);
+  } catch (error) {
+    console.error('📺 Error searching TV shows:', error);
     return [];
   }
 }
@@ -673,6 +860,7 @@ export async function POST(request: Request) {
           music: trendingData.music?.length || 0,
           podcasts: trendingData.podcasts?.length || 0,
           news: trendingData.news?.length || 0,
+          tv: trendingData.tv?.length || 0,
         });
         
         let trendingResults: any[] = [];
@@ -683,7 +871,8 @@ export async function POST(request: Request) {
             ...trendingData.music || [],
             ...trendingData.books || [],
             ...trendingData.podcasts || [],
-            ...trendingData.news || []
+            ...trendingData.news || [],
+            ...trendingData.tv || []
           ];
         } else {
           if (types.includes('video')) trendingResults.push(...(trendingData.videos || []));
@@ -691,6 +880,7 @@ export async function POST(request: Request) {
           if (types.includes('book')) trendingResults.push(...(trendingData.books || []));
           if (types.includes('podcast')) trendingResults.push(...(trendingData.podcasts || []));
           if (types.includes('news')) trendingResults.push(...(trendingData.news || []));
+          if (types.includes('tv')) trendingResults.push(...(trendingData.tv || []));
         }
         
         console.log('📈 Returning trending results:', trendingResults.length);
@@ -765,6 +955,7 @@ export async function POST(request: Request) {
       searchPromises.push(searchPodcasts(query, maxResults, request));
       searchPromises.push(searchMusic(query, maxResults));
       searchPromises.push(searchNews(query, maxResults));
+      searchPromises.push(searchTV(query, maxResults));
     } else {
       // Otherwise, only search the specified types
       if (types.includes('video')) {
@@ -784,6 +975,9 @@ export async function POST(request: Request) {
       }
       if (types.includes('news')) {
         searchPromises.push(searchNews(query, maxResults));
+      }
+      if (types.includes('tv')) {
+        searchPromises.push(searchTV(query, maxResults));
       }
     }
 

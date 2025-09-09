@@ -7,7 +7,7 @@ import UnifiedSearchResults from '@/components/UnifiedSearchResults';
 import SearchResults from './SearchResults';
 
 interface SearchResult {
-  type: 'video' | 'book' | 'podcast' | 'music';
+  type: 'video' | 'book' | 'podcast' | 'music' | 'tv';
   id: string;
   title: string;
   description?: string;

@@ -13,7 +13,7 @@ import { useAuth } from '@/contexts/AuthContext';
 
 interface SearchResult {
   id: string;
-  type: 'podcast' | 'video' | 'music' | 'book' | 'audiobook' | 'news';
+  type: 'podcast' | 'video' | 'music' | 'book' | 'audiobook' | 'news' | 'tv';
   title: string;
   description?: string;
   thumbnail?: string;
@@ -30,7 +30,7 @@ export default function SearchResults() {
   const [bookType, setBookType] = useState<'books' | 'audiobooks'>('books');
   const [pagination, setPagination] = useState<any>(null);
   const debounceTimerRef = useRef<NodeJS.Timeout>();
-  const showRecommendations = !query && ['podcast', 'video', 'music', 'book', 'news'].includes(type);
+  const showRecommendations = !query && ['podcast', 'video', 'music', 'book', 'news', 'tv'].includes(type);
   const router = useRouter();
   const currentPage = parseInt(searchParams.get('page') || '1');
   const { isAuthenticated, isLoading: authLoading } = useAuth();
@@ -43,8 +43,11 @@ export default function SearchResults() {
 
   useEffect(() => {
     const fetchResults = async () => {
+      console.log('🔍 SearchResults fetchResults called:', { query, type, showRecommendations });
+      
       // Always search if we have a query, regardless of showRecommendations
       if (!query && !showRecommendations) {
+        console.log('🔍 No query and no recommendations, returning empty results');
         setResults([]);
         setLoading(false);
         setError(null);
@@ -67,6 +70,8 @@ export default function SearchResults() {
         } else {
           searchTypes = [type];
         }
+        
+        console.log('🔍 Search types determined:', searchTypes);
 
         const response = await fetch('/api/search', {
           method: 'POST',
@@ -84,6 +89,7 @@ export default function SearchResults() {
         });
 
         const data = await response.json();
+        console.log('🔍 API response:', { status: response.status, resultsCount: data.results?.length, data });
 
         if (!response.ok) {
           throw new Error(data.error || 'Failed to fetch results');
@@ -92,9 +98,10 @@ export default function SearchResults() {
         // Ensure the results match the expected type
         const typedResults: SearchResult[] = (data.results || []).map((result: any) => ({
           ...result,
-          type: result.type as 'podcast' | 'video' | 'music' | 'book' | 'audiobook' | 'news'
+          type: result.type as 'podcast' | 'video' | 'music' | 'book' | 'audiobook' | 'news' | 'tv'
         }));
 
+        console.log('🔍 Typed results:', typedResults);
         setResults(typedResults);
         setPagination(data.pagination);
       } catch (err) {
@@ -156,6 +163,8 @@ export default function SearchResults() {
         return 'Recommended Music';
       case 'book':
         return 'Recommended Books';
+      case 'tv':
+        return 'Recommended TV Shows';
       default:
         return `Search Results for "${query}"`;
     }
