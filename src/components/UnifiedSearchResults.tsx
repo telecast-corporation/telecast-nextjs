@@ -28,6 +28,7 @@ import {
   KeyboardArrowRight as ArrowRightIcon,
   PlayArrow,
   Article as ArticleIcon,
+  LiveTv as TVIcon,
 } from '@mui/icons-material';
 import { useState } from 'react';
 import Link from 'next/link';
@@ -37,7 +38,7 @@ import React from 'react';
 import StarIcon from '@mui/icons-material/Star';
 
 interface SearchResult {
-  type: 'video' | 'book' | 'audiobook' | 'podcast' | 'music' | 'news';
+  type: 'video' | 'book' | 'audiobook' | 'podcast' | 'music' | 'news' | 'tv';
   id: string;
   title: string;
   description?: string;
@@ -63,6 +64,11 @@ interface SearchResult {
   album?: string;
   releaseDate?: string;
   previewLink?: string;
+  // TV specific
+  year?: string;
+  source?: string;
+  sourceUrl?: string;
+  previewVideo?: string;
 }
 
 interface UnifiedSearchResultsProps {
@@ -76,6 +82,7 @@ const TAGLINE_COLORS: Record<string, string> = {
   all: '#2563eb',
   podcast: '#0ea5e9',
   video: '#f59e42',
+  tv: '#8b5cf6',
   music: '#10b981',
   book: '#a855f7',
   audiobook: '#f97316',
@@ -120,6 +127,8 @@ export default function UnifiedSearchResults({ results, searchType = 'all', load
         return <MusicIcon />;
       case 'news':
         return <ArticleIcon />;
+      case 'tv':
+        return <TVIcon />;
       default:
         return null;
     }
@@ -139,13 +148,15 @@ export default function UnifiedSearchResults({ results, searchType = 'all', load
         return trending ? 'Trending Music' : 'Music';
       case 'news':
         return trending ? 'Trending News' : 'News';
+      case 'tv':
+        return trending ? 'Trending TV' : 'TV Shows';
       default:
         return type;
     }
   };
 
   // Define the order of content types
-  const CONTENT_TYPE_ORDER = ['podcast', 'video', 'music', 'book', 'audiobook', 'news'];
+  const CONTENT_TYPE_ORDER = ['podcast', 'video', 'tv', 'music', 'book', 'audiobook', 'news'];
 
   // Group results by type
   const groupedResults = results.reduce((acc, result) => {
@@ -194,6 +205,8 @@ export default function UnifiedSearchResults({ results, searchType = 'all', load
       case 'music':
         return `/music/${result.id}`;
       case 'news':
+        return result.url || '#';
+      case 'tv':
         return result.url || '#';
       default:
         return result.url || '#';
@@ -430,6 +443,53 @@ export default function UnifiedSearchResults({ results, searchType = 'all', load
             </>
           )}
           
+          {result.type === 'tv' && (
+            <>
+              {result.year && (
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  component="span"
+                  sx={{
+                    display: 'block',
+                    fontSize: { xs: '0.25rem', sm: '0.3rem', md: '0.35rem', lg: '0.4rem' },
+                    mb: 0.2,
+                  }}
+                >
+                  Year: {result.year}
+                </Typography>
+              )}
+              {result.rating && (
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  component="span"
+                  sx={{
+                    display: 'block',
+                    fontSize: { xs: '0.25rem', sm: '0.3rem', md: '0.35rem', lg: '0.4rem' },
+                    mb: 0.2,
+                  }}
+                >
+                  Rating: {result.rating}
+                </Typography>
+              )}
+              {result.source && (
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  component="span"
+                  sx={{
+                    display: 'block',
+                    fontSize: { xs: '0.25rem', sm: '0.3rem', md: '0.35rem', lg: '0.4rem' },
+                    mb: 0.2,
+                  }}
+                >
+                  Source: {result.source}
+                </Typography>
+              )}
+            </>
+          )}
+          
           <Typography 
             variant="caption" 
             color="text.secondary" 
@@ -581,6 +641,52 @@ export default function UnifiedSearchResults({ results, searchType = 'all', load
                     />
                   ))}
                 </Stack>
+              )}
+              {result.type === 'tv' && (
+                <>
+                  {result.year && (
+                    <Typography
+                      variant="caption"
+                      color="text.secondary"
+                      component="span"
+                      sx={{
+                        display: 'block',
+                        fontSize: '0.8rem',
+                        mb: 0.2,
+                      }}
+                    >
+                      Year: {result.year}
+                    </Typography>
+                  )}
+                  {result.rating && (
+                    <Typography
+                      variant="caption"
+                      color="text.secondary"
+                      component="span"
+                      sx={{
+                        display: 'block',
+                        fontSize: '0.8rem',
+                        mb: 0.2,
+                      }}
+                    >
+                      Rating: {result.rating}
+                    </Typography>
+                  )}
+                  {result.source && (
+                    <Typography
+                      variant="caption"
+                      color="text.secondary"
+                      component="span"
+                      sx={{
+                        display: 'block',
+                        fontSize: '0.8rem',
+                        mb: 0.2,
+                      }}
+                    >
+                      Source: {result.source}
+                    </Typography>
+                  )}
+                </>
               )}
               <Typography 
                 variant="caption" 
