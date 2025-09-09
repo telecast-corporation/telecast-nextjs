@@ -81,10 +81,10 @@ export default function SearchResults() {
           body: JSON.stringify({
             query: query || 'recommended',
             types: searchTypes,
-            maxResults: type === 'news' ? 500 : 300,
+            maxResults: type === 'news' ? 500 : type === 'tv' ? 100 : 300,
             trending: showRecommendations,
             page: currentPage,
-            limit: type === 'news' ? 50 : 20,
+            limit: type === 'news' ? 50 : type === 'tv' ? 20 : 20,
           }),
         });
 
