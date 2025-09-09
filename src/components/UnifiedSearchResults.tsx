@@ -36,6 +36,7 @@ import { useAudio } from '@/contexts/AudioContext';
 import { typography } from '@/styles/typography';
 import React from 'react';
 import StarIcon from '@mui/icons-material/Star';
+import TVPreviewModal from './TVPreviewModal';
 
 interface SearchResult {
   type: 'video' | 'book' | 'audiobook' | 'podcast' | 'music' | 'news' | 'tv';
@@ -92,6 +93,8 @@ const TAGLINE_COLORS: Record<string, string> = {
 export default function UnifiedSearchResults({ results, searchType = 'all', loading = false, trending = false }: UnifiedSearchResultsProps) {
   const [expandedType, setExpandedType] = useState<string | null>(null);
   const [carouselStates, setCarouselStates] = useState<Record<string, number>>({});
+  const [tvModalOpen, setTvModalOpen] = useState(false);
+  const [selectedTvShow, setSelectedTvShow] = useState<any>(null);
   const { play } = useAudio();
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('md'));
@@ -238,6 +241,35 @@ export default function UnifiedSearchResults({ results, searchType = 'all', load
       
       play(podcast, episode);
     }
+  };
+
+  const handleTvClick = (e: React.MouseEvent, result: SearchResult) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (result.type === 'tv') {
+      // Convert SearchResult to TrendingItem format for the modal
+      const tvShow = {
+        id: result.id,
+        type: result.type as 'tv',
+        title: result.title,
+        description: result.description,
+        thumbnail: result.thumbnail,
+        url: result.url,
+        year: result.year,
+        duration: result.duration,
+        source: result.source,
+        sourceUrl: result.sourceUrl,
+        previewVideo: result.previewVideo,
+      };
+      setSelectedTvShow(tvShow);
+      setTvModalOpen(true);
+    }
+  };
+
+  const handleCloseTvModal = () => {
+    setTvModalOpen(false);
+    setSelectedTvShow(null);
   };
 
   const renderCard = (result: SearchResult) => {
@@ -507,6 +539,15 @@ export default function UnifiedSearchResults({ results, searchType = 'all', load
       return cardContent;
     }
 
+    if (result.type === 'tv') {
+      console.log('🔗 Rendering TV card with modal');
+      return (
+        <Box onClick={(e) => handleTvClick(e, result)}>
+          {cardContent}
+        </Box>
+      );
+    }
+
     if (isExternal) {
       console.log('🔗 Rendering external link for:', result.title, 'URL:', contentUrl);
       return (
@@ -700,6 +741,15 @@ export default function UnifiedSearchResults({ results, searchType = 'all', load
           </Card>
         );
 
+        if (result.type === 'tv') {
+          console.log('🔗 Vertical List: Rendering TV card with modal');
+          return (
+            <Box onClick={(e) => handleTvClick(e, result)} key={result.id}>
+              {listItemContent}
+            </Box>
+          );
+        }
+
         if (isExternal) {
           console.log('🔗 Vertical List: Rendering external link for:', result.title, 'URL:', contentUrl);
           return (
@@ -857,6 +907,13 @@ export default function UnifiedSearchResults({ results, searchType = 'all', load
           )}
         </Box>
       ))}
+      
+      {/* TV Preview Modal */}
+      <TVPreviewModal 
+        open={tvModalOpen} 
+        onClose={handleCloseTvModal} 
+        tvShow={selectedTvShow} 
+      />
     </Box>
   );
 }
