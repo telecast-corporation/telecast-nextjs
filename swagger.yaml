@@ -1,0 +1,1270 @@
+openapi: 3.0.3
+info:
+  title: Telecast API
+  description: |
+    Telecast is a comprehensive media platform that allows users to search, discover, and manage various types of content including videos, books, music, podcasts, and news. The platform also provides premium subscription features, user management, and content distribution capabilities.
+    
+    ## Features
+    - **Search & Discovery**: Unified search across videos, books, music, podcasts, and news
+    - **User Management**: Authentication via Auth0, profile management, and subscription handling
+    - **Content Management**: Create and manage podcasts, episodes, and playlists
+    - **Premium Features**: Subscription management with Stripe integration
+    - **Distribution**: Multi-platform content distribution including YouTube and RSS feeds
+    
+    ## Authentication
+    Most endpoints require authentication via Auth0. Include the session token in your requests.
+    
+    ## Rate Limiting
+    API requests are subject to rate limiting based on your subscription tier.
+    
+    ## Base URL
+    All API endpoints are relative to your deployment URL (e.g., `https://your-domain.com/api`)
+  version: 1.0.0
+  contact:
+    name: Telecast Support
+    email: support@telecast.ca
+    url: https://telecast.ca
+  license:
+    name: Proprietary
+servers:
+  - url: https://telecast.ca/api
+    description: Production server
+  - url: http://localhost:3000/api
+    description: Development server
+
+security:
+  - Auth0: []
+
+paths:
+  /auth/create-user:
+    post:
+      tags:
+        - Authentication
+      summary: Create a new user
+      description: Creates a new user account in the database with Auth0 integration
+      security:
+        - Auth0: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - auth0Id
+                - email
+                - name
+              properties:
+                auth0Id:
+                  type: string
+                  description: Auth0 user ID
+                  example: "auth0|1234567890"
+                email:
+                  type: string
+                  format: email
+                  description: User email address
+                  example: "user@example.com"
+                name:
+                  type: string
+                  description: User display name
+                  example: "John Doe"
+                picture:
+                  type: string
+                  format: uri
+                  description: User profile picture URL
+                  example: "https://example.com/avatar.jpg"
+      responses:
+        '200':
+          description: User created successfully or user already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Bad request - missing required fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /profile:
+    get:
+      tags:
+        - User Profile
+      summary: Get user profile
+      description: Retrieves the current user's profile information
+      security:
+        - Auth0: []
+      responses:
+        '200':
+          description: User profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    
+    put:
+      tags:
+        - User Profile
+      summary: Update user profile
+      description: Updates the current user's profile information including name, bio, and profile image
+      security:
+        - Auth0: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                  description: User's display name
+                  example: "John Doe"
+                bio:
+                  type: string
+                  description: User's bio/description
+                  example: "Content creator and media enthusiast"
+                imageFile:
+                  type: string
+                  format: binary
+                  description: Profile image file
+      responses:
+        '200':
+          description: Profile updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Bad request - missing required fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /contact:
+    post:
+      tags:
+        - Contact
+      summary: Send contact message
+      description: Sends a contact form message to the support team
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - email
+                - message
+              properties:
+                name:
+                  type: string
+                  description: Contact person's name
+                  example: "John Doe"
+                email:
+                  type: string
+                  format: email
+                  description: Contact person's email
+                  example: "john@example.com"
+                message:
+                  type: string
+                  description: Contact message
+                  example: "I have a question about your service"
+      responses:
+        '200':
+          description: Message sent successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Message sent successfully"
+        '400':
+          description: Bad request - missing or invalid fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /autocomplete:
+    get:
+      tags:
+        - Search
+      summary: Get autocomplete suggestions
+      description: Provides autocomplete suggestions for search queries across different content types
+      parameters:
+        - name: q
+          in: query
+          required: true
+          description: Search query (minimum 2 characters)
+          schema:
+            type: string
+            minLength: 2
+            example: "podcast"
+        - name: type
+          in: query
+          required: false
+          description: Content type to search in
+          schema:
+            type: string
+            enum: [all, video, book, music, podcast]
+            default: all
+      responses:
+        '200':
+          description: Autocomplete suggestions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  suggestions:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AutocompleteResult'
+        '400':
+          description: Bad request - query too short
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /search:
+    post:
+      tags:
+        - Search
+      summary: Unified search
+      description: Performs a comprehensive search across all content types including videos, books, music, podcasts, and news
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - query
+                - types
+              properties:
+                query:
+                  type: string
+                  description: Search query
+                  example: "technology podcast"
+                types:
+                  type: array
+                  items:
+                    type: string
+                    enum: [video, book, music, podcast, news]
+                  description: Content types to search in
+                  example: ["podcast", "video"]
+                maxResults:
+                  type: integer
+                  minimum: 1
+                  maximum: 300
+                  default: 50
+                  description: Maximum number of results to return
+                trending:
+                  type: boolean
+                  default: false
+                  description: Whether to return trending content
+                page:
+                  type: integer
+                  minimum: 1
+                  default: 1
+                  description: Page number for pagination
+                limit:
+                  type: integer
+                  minimum: 1
+                  maximum: 100
+                  default: 20
+                  description: Number of results per page
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SearchResult'
+                  totalResults:
+                    type: integer
+                  page:
+                    type: integer
+                  limit:
+                    type: integer
+        '400':
+          description: Bad request - missing required fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /book:
+    get:
+      tags:
+        - Books
+      summary: Search books
+      description: Search for books using Google Books API
+      parameters:
+        - name: q
+          in: query
+          required: true
+          description: Search query for books
+          schema:
+            type: string
+            example: "javascript programming"
+        - name: maxResults
+          in: query
+          required: false
+          description: Maximum number of results
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 40
+            default: 20
+        - name: startIndex
+          in: query
+          required: false
+          description: Starting index for pagination
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        '200':
+          description: Book search results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Book'
+                  totalItems:
+                    type: integer
+                  kind:
+                    type: string
+        '400':
+          description: Bad request - missing query parameter
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Google Books API error or configuration issue
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /book/{id}:
+    get:
+      tags:
+        - Books
+      summary: Get book details
+      description: Retrieves detailed information about a specific book including related books
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Google Books volume ID
+          schema:
+            type: string
+            example: "m8dXAAAAMAAJ"
+      responses:
+        '200':
+          description: Book details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookDetail'
+        '400':
+          description: Bad request - missing book ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Book not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Google Books API error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /video:
+    get:
+      tags:
+        - Videos
+      summary: Search videos
+      description: Search for videos using YouTube API
+      parameters:
+        - name: q
+          in: query
+          required: true
+          description: Search query for videos
+          schema:
+            type: string
+            example: "music video"
+        - name: type
+          in: query
+          required: false
+          description: Video type
+          schema:
+            type: string
+            enum: [video, channel, playlist]
+            default: video
+      responses:
+        '200':
+          description: Video search results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  videoId:
+                    type: string
+                  title:
+                    type: string
+                  thumbnail:
+                    type: string
+                  channelTitle:
+                    type: string
+        '400':
+          description: Bad request - missing query parameter
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: No videos found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: YouTube API error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /video/{id}:
+    get:
+      tags:
+        - Videos
+      summary: Get video details
+      description: Retrieves detailed information about a specific video
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: YouTube video ID
+          schema:
+            type: string
+            example: "dQw4w9WgXcQ"
+      responses:
+        '200':
+          description: Video details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VideoDetail'
+        '400':
+          description: Bad request - missing video ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Video not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: YouTube API error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /music/{id}:
+    get:
+      tags:
+        - Music
+      summary: Get music track details
+      description: Retrieves detailed information about a specific music track from Spotify
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Spotify track ID
+          schema:
+            type: string
+            example: "4iV5W9uYEdYUVa79Axb7Rh"
+      responses:
+        '200':
+          description: Music track details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MusicDetail'
+        '400':
+          description: Bad request - missing track ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Track not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Spotify API error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /news:
+    post:
+      tags:
+        - News
+      summary: Search news
+      description: Search for news articles using News API
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                query:
+                  type: string
+                  description: Search query for news
+                  example: "technology"
+                location:
+                  type: string
+                  description: Location for news (e.g., "toronto", "canada")
+                  example: "toronto"
+                page:
+                  type: integer
+                  minimum: 1
+                  default: 1
+                  description: Page number for pagination
+                limit:
+                  type: integer
+                  minimum: 1
+                  maximum: 100
+                  default: 20
+                  description: Number of articles per page
+      responses:
+        '200':
+          description: News search results
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/NewsResult'
+        '400':
+          description: Bad request - missing parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: News API error or configuration issue
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /trending:
+    get:
+      tags:
+        - Trending
+      summary: Get trending content
+      description: Retrieves trending content across all media types including videos, music, books, podcasts, and TV shows
+      parameters:
+        - name: type
+          in: query
+          required: false
+          description: Type of trending content to retrieve
+          schema:
+            type: string
+            enum: [all, video, music, book, podcast, tv, news]
+            default: all
+        - name: limit
+          in: query
+          required: false
+          description: Number of trending items to return
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        '200':
+          description: Trending content
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  trending:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/TrendingItem'
+                  type:
+                    type: string
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  securitySchemes:
+    Auth0:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Auth0 JWT token for authentication
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error message
+          example: "Invalid request parameters"
+        details:
+          type: object
+          description: Additional error details
+      required:
+        - error
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique user ID
+          example: "user_123"
+        auth0Id:
+          type: string
+          description: Auth0 user ID
+          example: "auth0|1234567890"
+        email:
+          type: string
+          format: email
+          description: User email address
+          example: "user@example.com"
+        name:
+          type: string
+          description: User display name
+          example: "John Doe"
+        image:
+          type: string
+          format: uri
+          description: User profile image URL
+          example: "https://example.com/avatar.jpg"
+        isPremium:
+          type: boolean
+          description: Whether user has premium subscription
+          example: true
+        usedFreeTrial:
+          type: boolean
+          description: Whether user has used free trial
+          example: false
+        createdAt:
+          type: string
+          format: date-time
+          description: User creation timestamp
+        updatedAt:
+          type: string
+          format: date-time
+          description: User last update timestamp
+      required:
+        - id
+        - auth0Id
+        - email
+        - name
+
+    UserProfile:
+      allOf:
+        - $ref: '#/components/schemas/User'
+        - type: object
+          properties:
+            premiumExpiresAt:
+              type: string
+              format: date-time
+              description: Premium subscription expiration date
+              example: "2024-12-31T23:59:59Z"
+            bio:
+              type: string
+              description: User bio/description
+              example: "Content creator and media enthusiast"
+
+    AutocompleteResult:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier
+          example: "abc123"
+        title:
+          type: string
+          description: Display title
+          example: "The Daily Tech Podcast"
+        type:
+          type: string
+          enum: [video, book, podcast, music]
+          description: Content type
+          example: "podcast"
+        author:
+          type: string
+          description: Author/creator name
+          example: "Tech News Network"
+        thumbnail:
+          type: string
+          format: uri
+          description: Thumbnail image URL
+          example: "https://example.com/thumb.jpg"
+        url:
+          type: string
+          format: uri
+          description: Content URL
+          example: "/podcast/123"
+      required:
+        - id
+        - title
+        - type
+
+    SearchResult:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier
+          example: "result_123"
+        title:
+          type: string
+          description: Content title
+          example: "Amazing Podcast Episode"
+        description:
+          type: string
+          description: Content description
+          example: "This episode covers the latest in technology..."
+        thumbnail:
+          type: string
+          format: uri
+          description: Thumbnail image URL
+          example: "https://example.com/thumb.jpg"
+        url:
+          type: string
+          format: uri
+          description: Content URL
+          example: "/podcast/123"
+        type:
+          type: string
+          enum: [video, book, music, podcast, news, tv]
+          description: Content type
+          example: "podcast"
+        author:
+          type: string
+          description: Author/creator name
+          example: "Tech Network"
+        source:
+          type: string
+          description: Source platform
+          example: "spotify"
+        sourceUrl:
+          type: string
+          format: uri
+          description: Source URL
+          example: "https://spotify.com/episode/123"
+        publishedAt:
+          type: string
+          format: date-time
+          description: Publication date
+          example: "2024-01-15T10:00:00Z"
+        category:
+          type: string
+          description: Content category
+          example: "Technology"
+        tags:
+          type: array
+          items:
+            type: string
+          description: Content tags
+          example: ["tech", "news", "podcast"]
+      required:
+        - id
+        - title
+        - type
+
+    Book:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Google Books volume ID
+          example: "m8dXAAAAMAAJ"
+        volumeInfo:
+          type: object
+          properties:
+            title:
+              type: string
+              description: Book title
+              example: "JavaScript: The Good Parts"
+            authors:
+              type: array
+              items:
+                type: string
+              description: Book authors
+              example: ["Douglas Crockford"]
+            description:
+              type: string
+              description: Book description
+              example: "A comprehensive guide to JavaScript..."
+            imageLinks:
+              type: object
+              properties:
+                smallThumbnail:
+                  type: string
+                  format: uri
+                  description: Small thumbnail URL
+                thumbnail:
+                  type: string
+                  format: uri
+                  description: Thumbnail URL
+            publishedDate:
+              type: string
+              description: Publication date
+              example: "2008-05-01"
+            pageCount:
+              type: integer
+              description: Number of pages
+              example: 176
+            categories:
+              type: array
+              items:
+                type: string
+              description: Book categories
+              example: ["Computers", "Programming"]
+            averageRating:
+              type: number
+              description: Average rating
+              example: 4.5
+            ratingsCount:
+              type: integer
+              description: Number of ratings
+              example: 1234
+            previewLink:
+              type: string
+              format: uri
+              description: Google Books preview link
+        saleInfo:
+          type: object
+          properties:
+            buyLink:
+              type: string
+              format: uri
+              description: Purchase link
+            listPrice:
+              type: object
+              properties:
+                amount:
+                  type: number
+                  description: Price amount
+                currencyCode:
+                  type: string
+                  description: Currency code
+                  example: "USD"
+      required:
+        - id
+        - volumeInfo
+
+    BookDetail:
+      allOf:
+        - $ref: '#/components/schemas/Book'
+        - type: object
+          properties:
+            relatedBooks:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  title:
+                    type: string
+                  author:
+                    type: string
+                  thumbnail:
+                    type: string
+                  description:
+                    type: string
+              description: Related books
+
+    VideoDetail:
+      type: object
+      properties:
+        videoId:
+          type: string
+          description: YouTube video ID
+          example: "dQw4w9WgXcQ"
+        title:
+          type: string
+          description: Video title
+          example: "Amazing Music Video"
+        description:
+          type: string
+          description: Video description
+          example: "Check out this incredible music video..."
+        thumbnail:
+          type: string
+          format: uri
+          description: Video thumbnail URL
+          example: "https://img.youtube.com/vi/dQw4w9WgXcQ/maxresdefault.jpg"
+        channelTitle:
+          type: string
+          description: Channel name
+          example: "Music Channel"
+        channelId:
+          type: string
+          description: YouTube channel ID
+          example: "UCuAXFkgsw1L7xaCfnd5JJOw"
+        publishedAt:
+          type: string
+          format: date-time
+          description: Publication date
+          example: "2024-01-15T10:00:00Z"
+        duration:
+          type: string
+          description: Video duration
+          example: "PT4M13S"
+        viewCount:
+          type: string
+          description: View count
+          example: "1234567"
+        likeCount:
+          type: string
+          description: Like count
+          example: "12345"
+        categoryId:
+          type: string
+          description: YouTube category ID
+          example: "10"
+        tags:
+          type: array
+          items:
+            type: string
+          description: Video tags
+          example: ["music", "video", "entertainment"]
+      required:
+        - videoId
+        - title
+
+    MusicDetail:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Spotify track ID
+          example: "4iV5W9uYEdYUVa79Axb7Rh"
+        name:
+          type: string
+          description: Track name
+          example: "Never Gonna Give You Up"
+        artists:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              name:
+                type: string
+              external_urls:
+                type: object
+                properties:
+                  spotify:
+                    type: string
+                    format: uri
+          description: Track artists
+        album:
+          type: object
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+            images:
+              type: array
+              items:
+                type: object
+                properties:
+                  url:
+                    type: string
+                    format: uri
+                  height:
+                    type: integer
+                  width:
+                    type: integer
+            external_urls:
+              type: object
+              properties:
+                spotify:
+                  type: string
+                  format: uri
+          description: Album information
+        duration_ms:
+          type: integer
+          description: Track duration in milliseconds
+          example: 213160
+        preview_url:
+          type: string
+          format: uri
+          description: 30-second preview URL
+          example: "https://p.scdn.co/mp3-preview/abc123..."
+        external_urls:
+          type: object
+          properties:
+            spotify:
+              type: string
+              format: uri
+              description: Spotify track URL
+        popularity:
+          type: integer
+          description: Track popularity (0-100)
+          example: 85
+        explicit:
+          type: boolean
+          description: Whether track contains explicit content
+          example: false
+      required:
+        - id
+        - name
+        - artists
+        - album
+
+    NewsResult:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier
+          example: "news_123"
+        title:
+          type: string
+          description: Article title
+          example: "Breaking: Major Tech Announcement"
+        description:
+          type: string
+          description: Article description
+          example: "A major technology company announced..."
+        content:
+          type: string
+          description: Article content
+          example: "The full article content here..."
+        url:
+          type: string
+          format: uri
+          description: Article URL
+          example: "https://news.com/article/123"
+        urlToImage:
+          type: string
+          format: uri
+          description: Article image URL
+          example: "https://news.com/image.jpg"
+        publishedAt:
+          type: string
+          format: date-time
+          description: Publication date
+          example: "2024-01-15T10:00:00Z"
+        author:
+          type: string
+          description: Article author
+          example: "John Reporter"
+        source:
+          type: object
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+              example: "Tech News"
+        type:
+          type: string
+          description: Content type
+          example: "news"
+      required:
+        - id
+        - title
+        - url
+        - publishedAt
+
+    TrendingItem:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier
+          example: "trending_123"
+        title:
+          type: string
+          description: Content title
+          example: "Trending Podcast"
+        description:
+          type: string
+          description: Content description
+          example: "This podcast is trending today..."
+        thumbnail:
+          type: string
+          format: uri
+          description: Thumbnail image URL
+          example: "https://example.com/thumb.jpg"
+        url:
+          type: string
+          format: uri
+          description: Content URL
+          example: "/podcast/123"
+        type:
+          type: string
+          enum: [video, book, music, podcast, news, tv]
+          description: Content type
+          example: "podcast"
+        author:
+          type: string
+          description: Author/creator name
+          example: "Trending Creator"
+        source:
+          type: string
+          description: Source platform
+          example: "spotify"
+        sourceUrl:
+          type: string
+          format: uri
+          description: Source URL
+          example: "https://spotify.com/podcast/123"
+        year:
+          type: string
+          description: Publication year
+          example: "2024"
+        duration:
+          type: string
+          description: Content duration
+          example: "45 min"
+        rating:
+          type: string
+          description: Content rating
+          example: "TV-PG"
+        previewVideo:
+          type: string
+          format: uri
+          description: Preview video URL
+          example: "https://example.com/preview.mp4"
+        category:
+          type: string
+          description: Content category
+          example: "Technology"
+        tags:
+          type: array
+          items:
+            type: string
+          description: Content tags
+          example: ["trending", "tech", "podcast"]
+      required:
+        - id
+        - title
+        - type
+
+tags:
+  - name: Authentication
+    description: User authentication and account management
+  - name: User Profile
+    description: User profile management and settings
+  - name: Search
+    description: Content search and discovery
+  - name: Books
+    description: Book search and management via Google Books API
+  - name: Videos
+    description: Video search and management via YouTube API
+  - name: Music
+    description: Music search and management via Spotify API
+  - name: Podcasts
+    description: Podcast creation, management, and distribution
+  - name: News
+    description: News search and aggregation via News API
+  - name: Trending
+    description: Trending content discovery
+  - name: Contact
+    description: Contact form and support
+  - name: Payment
+    description: Subscription and payment management via Stripe

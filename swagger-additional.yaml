@@ -1,0 +1,693 @@
+# Additional API endpoints for Telecast
+# This file contains the remaining endpoints that couldn't fit in the main swagger.yaml
+
+paths:
+  /podcast/internal:
+    post:
+      tags:
+        - Podcasts
+      summary: Create internal podcast
+      description: Creates a new internal podcast that can be managed through the platform
+      security:
+        - Auth0: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - title
+                - description
+                - category
+                - author
+              properties:
+                title:
+                  type: string
+                  description: Podcast title
+                  example: "My Awesome Podcast"
+                description:
+                  type: string
+                  description: Podcast description
+                  example: "A podcast about interesting topics"
+                category:
+                  type: string
+                  description: Podcast category
+                  example: "Technology"
+                language:
+                  type: string
+                  default: "en"
+                  description: Podcast language
+                  example: "en"
+                explicit:
+                  type: boolean
+                  default: false
+                  description: Whether podcast contains explicit content
+                copyright:
+                  type: string
+                  description: Copyright information
+                  example: "© 2024 My Podcast"
+                website:
+                  type: string
+                  format: uri
+                  description: Podcast website URL
+                  example: "https://mypodcast.com"
+                author:
+                  type: string
+                  description: Podcast author/creator
+                  example: "John Doe"
+                tags:
+                  type: string
+                  description: Comma-separated tags
+                  example: "tech,programming,news"
+                imageFile:
+                  type: string
+                  format: binary
+                  description: Podcast cover image file
+      responses:
+        '200':
+          description: Podcast created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Podcast'
+        '400':
+          description: Bad request - missing required fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    
+    get:
+      tags:
+        - Podcasts
+      summary: Get user's internal podcasts
+      description: Retrieves all internal podcasts created by the authenticated user
+      security:
+        - Auth0: []
+      parameters:
+        - name: search
+          in: query
+          required: false
+          description: Search term to filter podcasts
+          schema:
+            type: string
+            example: "technology"
+      responses:
+        '200':
+          description: User's podcasts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Podcast'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /podcast/internal/{id}:
+    get:
+      tags:
+        - Podcasts
+      summary: Get internal podcast details
+      description: Retrieves detailed information about a specific internal podcast
+      security:
+        - Auth0: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Podcast ID
+          schema:
+            type: string
+            example: "podcast_123"
+      responses:
+        '200':
+          description: Podcast details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PodcastDetail'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Podcast not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /podcast/internal/{id}/episode:
+    post:
+      tags:
+        - Podcasts
+      summary: Add episode to podcast
+      description: Adds a new episode to an internal podcast
+      security:
+        - Auth0: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Podcast ID
+          schema:
+            type: string
+            example: "podcast_123"
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - title
+                - description
+                - audioFile
+              properties:
+                title:
+                  type: string
+                  description: Episode title
+                  example: "Episode 1: Introduction"
+                description:
+                  type: string
+                  description: Episode description
+                  example: "Welcome to our first episode..."
+                audioFile:
+                  type: string
+                  format: binary
+                  description: Audio file for the episode
+                duration:
+                  type: string
+                  description: Episode duration
+                  example: "45:30"
+                explicit:
+                  type: boolean
+                  default: false
+                  description: Whether episode contains explicit content
+      responses:
+        '200':
+          description: Episode added successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Episode'
+        '400':
+          description: Bad request - missing required fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Podcast not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /podcast/internal/{id}/rss:
+    get:
+      tags:
+        - Podcasts
+      summary: Get podcast RSS feed
+      description: Retrieves the RSS feed for an internal podcast
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Podcast ID
+          schema:
+            type: string
+            example: "podcast_123"
+      responses:
+        '200':
+          description: RSS feed XML
+          content:
+            application/rss+xml:
+              schema:
+                type: string
+                format: xml
+        '404':
+          description: Podcast not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /payment/create-checkout-session:
+    post:
+      tags:
+        - Payment
+      summary: Create Stripe checkout session
+      description: Creates a Stripe checkout session for subscription payment
+      security:
+        - Auth0: []
+      responses:
+        '200':
+          description: Checkout session created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  url:
+                    type: string
+                    format: uri
+                    description: Stripe checkout session URL
+                    example: "https://checkout.stripe.com/pay/cs_123..."
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Failed to create checkout session
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /payment/cancel-subscription:
+    post:
+      tags:
+        - Payment
+      summary: Cancel subscription
+      description: Cancels the user's premium subscription at the end of the current billing period
+      security:
+        - Auth0: []
+      responses:
+        '200':
+          description: Subscription cancelled successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Premium subscription canceled successfully. Your recurring payments have been stopped, but you will continue to have premium access until your current billing period ends."
+                  canceled:
+                    type: boolean
+                    example: true
+                  expiresAt:
+                    type: string
+                    format: date-time
+                    description: When premium access expires
+                    example: "2024-12-31T23:59:59Z"
+                  note:
+                    type: string
+                    description: Additional information about the cancellation
+                    example: "Subscription was not found in Stripe - local cancellation applied"
+        '400':
+          description: Bad request - user not premium or already cancelled
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "User is not a premium subscriber"
+                  alreadyCancelled:
+                    type: boolean
+                    example: true
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Failed to cancel subscription
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /payment/webhook:
+    post:
+      tags:
+        - Payment
+      summary: Stripe webhook handler
+      description: Handles Stripe webhook events for subscription management
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Stripe webhook event payload
+      responses:
+        '200':
+          description: Webhook processed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  received:
+                    type: boolean
+                    example: true
+        '400':
+          description: Bad request - invalid webhook signature or payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /free-trial/activate:
+    post:
+      tags:
+        - Subscription
+      summary: Activate free trial
+      description: Activates a 90-day free trial for the authenticated user
+      security:
+        - Auth0: []
+      responses:
+        '200':
+          description: Free trial activated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Free trial activated successfully! You now have access to all premium features for 90 days."
+                  expiresAt:
+                    type: string
+                    format: date-time
+                    description: When the free trial expires
+                    example: "2024-04-15T10:00:00Z"
+        '400':
+          description: Bad request - free trial already used
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Free trial already used"
+        '401':
+          description: User not authenticated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "User not authenticated"
+        '500':
+          description: Failed to activate free trial
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Failed to start free trial. Please try again."
+                  error:
+                    type: string
+                    example: "Database connection error"
+
+  /pricing/check-discount:
+    get:
+      tags:
+        - Subscription
+      summary: Check discount eligibility
+      description: Checks if the user is eligible for post-trial discount pricing
+      security:
+        - Auth0: []
+      responses:
+        '200':
+          description: Discount eligibility status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  eligible:
+                    type: boolean
+                    description: Whether user is eligible for discount
+                    example: true
+                  reason:
+                    type: string
+                    description: Reason for eligibility or ineligibility
+                    example: "Free trial ended 15 days ago"
+                  daysSinceTrialEnd:
+                    type: integer
+                    description: Days since free trial ended
+                    example: 15
+                  discountPercentage:
+                    type: integer
+                    description: Discount percentage if eligible
+                    example: 50
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /audio/test:
+    get:
+      tags:
+        - Audio
+      summary: Test audio endpoint
+      description: Simple endpoint to test audio functionality
+      responses:
+        '200':
+          description: Audio test successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Audio endpoint is working"
+
+components:
+  schemas:
+    Podcast:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique podcast ID
+          example: "podcast_123"
+        title:
+          type: string
+          description: Podcast title
+          example: "My Awesome Podcast"
+        description:
+          type: string
+          description: Podcast description
+          example: "A podcast about interesting topics"
+        category:
+          type: string
+          description: Podcast category
+          example: "Technology"
+        tags:
+          type: array
+          items:
+            type: string
+          description: Podcast tags
+          example: ["tech", "programming", "news"]
+        coverImage:
+          type: string
+          format: uri
+          description: Podcast cover image URL
+          example: "https://example.com/cover.jpg"
+        userId:
+          type: string
+          description: User ID who created the podcast
+          example: "user_123"
+        author:
+          type: string
+          description: Podcast author/creator
+          example: "John Doe"
+        published:
+          type: boolean
+          description: Whether podcast is published
+          example: false
+        language:
+          type: string
+          description: Podcast language
+          example: "en"
+        explicit:
+          type: boolean
+          description: Whether podcast contains explicit content
+          example: false
+        copyright:
+          type: string
+          description: Copyright information
+          example: "© 2024 My Podcast"
+        website:
+          type: string
+          format: uri
+          description: Podcast website URL
+          example: "https://mypodcast.com"
+        createdAt:
+          type: string
+          format: date-time
+          description: Creation timestamp
+        updatedAt:
+          type: string
+          format: date-time
+          description: Last update timestamp
+      required:
+        - id
+        - title
+        - description
+        - category
+        - author
+
+    PodcastDetail:
+      allOf:
+        - $ref: '#/components/schemas/Podcast'
+        - type: object
+          properties:
+            episodes:
+              type: array
+              items:
+                $ref: '#/components/schemas/Episode'
+              description: Podcast episodes
+            rssUrl:
+              type: string
+              format: uri
+              description: RSS feed URL
+              example: "/api/podcast/internal/123/rss"
+
+    Episode:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique episode ID
+          example: "episode_123"
+        title:
+          type: string
+          description: Episode title
+          example: "Episode 1: Introduction"
+        description:
+          type: string
+          description: Episode description
+          example: "Welcome to our first episode..."
+        audioUrl:
+          type: string
+          format: uri
+          description: Audio file URL
+          example: "https://example.com/episode1.mp3"
+        duration:
+          type: string
+          description: Episode duration
+          example: "45:30"
+        explicit:
+          type: boolean
+          description: Whether episode contains explicit content
+          example: false
+        published:
+          type: boolean
+          description: Whether episode is published
+          example: false
+        podcastId:
+          type: string
+          description: Parent podcast ID
+          example: "podcast_123"
+        createdAt:
+          type: string
+          format: date-time
+          description: Creation timestamp
+        updatedAt:
+          type: string
+          format: date-time
+          description: Last update timestamp
+      required:
+        - id
+        - title
+        - description
+        - podcastId
