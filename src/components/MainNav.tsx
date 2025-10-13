@@ -314,17 +314,16 @@ const BottomRow = styled(Box)(({ theme }) => ({
   alignItems: 'center',
   justifyContent: 'center',
   width: '100%',
-  height: '50px',
+  height: 'auto',
   [theme.breakpoints.down('lg')]: {
-    height: '40px',
+    height: 'auto',
     justifyContent: 'flex-start',
-    overflowX: 'auto',
-    WebkitOverflowScrolling: 'touch',
-    scrollbarWidth: 'none',
-    '&::-webkit-scrollbar': { display: 'none' },
+    // allow wrapping on smaller screens, no horizontal scroll
+    flexWrap: 'wrap',
+    gap: theme.spacing(0.5),
   },
   [theme.breakpoints.down('sm')]: {
-    height: '35px',
+    height: 'auto',
   },
 }));
 
@@ -447,11 +446,8 @@ const FiltersArea = styled(Box)(({ theme }) => ({
   [theme.breakpoints.down('lg')]: {
     justifyContent: 'flex-start',
     gap: theme.spacing(0.5),
-    flexWrap: 'nowrap',
-    overflowX: 'auto',
-    WebkitOverflowScrolling: 'touch',
-    scrollbarWidth: 'none',
-    '&::-webkit-scrollbar': { display: 'none' },
+    // wrap on tablet/mobile, remove horizontal scroll
+    flexWrap: 'wrap',
     '& .MuiButton-root': {
       minHeight: '28px',
       height: '28px',
@@ -463,11 +459,8 @@ const FiltersArea = styled(Box)(({ theme }) => ({
   [theme.breakpoints.down('sm')]: {
     justifyContent: 'flex-start',
     gap: theme.spacing(0.25),
-    flexWrap: 'nowrap',
-    overflowX: 'auto',
-    WebkitOverflowScrolling: 'touch',
-    scrollbarWidth: 'none',
-    '&::-webkit-scrollbar': { display: 'none' },
+    // wrap on small screens as well
+    flexWrap: 'wrap',
     '& .MuiButton-root': {
       minHeight: '26px',
       height: '26px',
@@ -1234,7 +1227,7 @@ const MainNav = memo(() => {
               <MenuIcon />
             </IconButton>
           </HamburgerArea>
-        </TopRow>
+        </TopRow> 
 
         {/* Bottom Row: Filter Buttons */}
         <BottomRow>
