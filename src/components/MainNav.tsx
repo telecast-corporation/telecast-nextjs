@@ -301,6 +301,10 @@ const TopRow = styled(Box)(({ theme }) => ({
   [theme.breakpoints.down('lg')]: {
     height: '50px',
     marginBottom: theme.spacing(0.5),
+    // ensure children don't overlap; allow search to shrink before logo
+    gap: theme.spacing(2),
+    // prevent overlap by allowing search to shrink and not overflow
+    minWidth: 0,
   },
   [theme.breakpoints.down('sm')]: {
     height: '45px',
@@ -333,7 +337,8 @@ const LogoArea = styled(Box)(({ theme }) => ({
   justifyContent: 'flex-start',
   height: '100%',
   width: 'auto',
-  minWidth: '200px',
+  minWidth: '180px',
+  flex: '0 0 auto',
   '& img': {
     maxHeight: '50px',
     maxWidth: '200px',
@@ -342,10 +347,11 @@ const LogoArea = styled(Box)(({ theme }) => ({
     objectFit: 'contain',
   },
   [theme.breakpoints.down('lg')]: {
-    minWidth: '150px',
+    minWidth: '140px',
+    flex: '0 0 auto',
     '& img': {
       maxHeight: '40px',
-      maxWidth: '150px',
+      maxWidth: '140px',
     },
   },
   [theme.breakpoints.down('sm')]: {
@@ -361,7 +367,7 @@ const SearchContainer = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
   width: '100%',
-  maxWidth: '500px',
+  maxWidth: '720px',
   height: '40px',
   backgroundColor: theme.palette.background.default,
   borderRadius: theme.shape.borderRadius,
@@ -389,6 +395,8 @@ const SearchContainer = styled(Box)(({ theme }) => ({
   [theme.breakpoints.down('lg')]: {
     maxWidth: '100%',
     height: '36px',
+    flexGrow: 1,
+    margin: `0 ${theme.spacing(2)}`,
     '& .MuiInputBase-root': {
       fontSize: '0.85rem',
     },
@@ -398,6 +406,7 @@ const SearchContainer = styled(Box)(({ theme }) => ({
   },
   [theme.breakpoints.down('sm')]: {
     height: '32px',
+    minWidth: 0,
     '& .MuiInputBase-root': {
       fontSize: '0.8rem',
     },
