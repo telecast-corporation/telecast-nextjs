@@ -267,20 +267,9 @@ interface SearchResult {
 }
 
 const GridNav = styled(Box)(({ theme }) => ({
-  display: 'grid',
-  gridTemplateColumns: 'repeat(10, 1fr)',
-  gridTemplateRows: '50% 50%',
-  gridTemplateAreas: `
-    "logo logo logo search search search search navgroup navgroup navgroup navgroup navgroup"
-    "logo logo logo filters filters filters filters navgroup navgroup navgroup navgroup navgroup"
-  `,
-  gap: '2%', // Small gap between grid components
-  padding: '0% 0%',
-  maxHeight: `${navbarSizing.height.lg} !important`,
-  minHeight: `${navbarSizing.height.lg} !important`,
-  height: `${navbarSizing.height.lg} !important`,
-  overflow: 'hidden',
-  alignItems: 'center',
+  display: 'flex',
+  flexDirection: 'column',
+  padding: theme.spacing(1, 2),
   backgroundColor: theme.palette.background.paper,
   borderBottom: `1px solid ${theme.palette.divider}`,
   marginBottom: theme.spacing(8),
@@ -291,110 +280,138 @@ const GridNav = styled(Box)(({ theme }) => ({
   width: '100%',
   zIndex: theme.zIndex.appBar,
   boxShadow: theme.shadows[1],
+  [theme.breakpoints.down('lg')]: {
+    padding: theme.spacing(1, 1.5),
+    marginBottom: theme.spacing(6),
+  },
   [theme.breakpoints.down('sm')]: {
-    gridTemplateColumns: 'repeat(6, 1fr)',
-    gridTemplateRows: '33.33% 33.33% 33.33%',
-    gridTemplateAreas: `
-      "logo logo logo logo logo hamburger"
-      "search search search search search search"
-      "filters filters filters filters filters filters"
-    `,
-    padding: '1% 1%',
-    maxHeight: `${navbarSizing.height.xs} !important`,
-    minHeight: `${navbarSizing.height.xs} !important`,
-    height: `${navbarSizing.height.xs} !important`,
-    overflow: 'hidden',
-  alignItems: 'center',
+    padding: theme.spacing(0.5, 1),
     marginBottom: theme.spacing(4),
   },
-  [theme.breakpoints.between('sm', 'lg')]: {
-    gridTemplateColumns: 'repeat(6, 1fr)',
-    gridTemplateRows: '25% 25% 25% 25%',
-    gridTemplateAreas: `
-      "logo logo logo logo logo logo"
-      "logo logo logo logo logo logo"
-      "search search search search search search"
-      "filters filters filters filters filters filters"
-    `,
-    padding: '1.5% 1.5%',
-    maxHeight: `${navbarSizing.height.md} !important`,
-    minHeight: `${navbarSizing.height.md} !important`,
-    height: `${navbarSizing.height.md} !important`,
-    overflow: 'hidden',
-    alignItems: 'center',
-    marginBottom: theme.spacing(6),
+}));
+
+// Top row container for logo, search, and navigation
+const TopRow = styled(Box)(({ theme }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  width: '100%',
+  height: '60px',
+  marginBottom: theme.spacing(1),
+  [theme.breakpoints.down('lg')]: {
+    height: '50px',
+    marginBottom: theme.spacing(0.5),
+    // ensure children don't overlap; allow search to shrink before logo
+    gap: theme.spacing(2),
+    // prevent overlap by allowing search to shrink and not overflow
+    minWidth: 0,
+  },
+  [theme.breakpoints.down('sm')]: {
+    height: '45px',
+    marginBottom: theme.spacing(0.5),
+  },
+}));
+
+// Bottom row container for filters
+const BottomRow = styled(Box)(({ theme }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  width: '100%',
+  height: 'auto',
+  [theme.breakpoints.down('lg')]: {
+    height: 'auto',
+    justifyContent: 'flex-start',
+    // allow wrapping on smaller screens, no horizontal scroll
+    flexWrap: 'wrap',
+    gap: theme.spacing(0.5),
+  },
+  [theme.breakpoints.down('sm')]: {
+    height: 'auto',
   },
 }));
 
 const LogoArea = styled(Box)(({ theme }) => ({
-  gridArea: 'logo',
   display: 'flex',
   alignItems: 'center',
-  justifyContent: 'center',
+  justifyContent: 'flex-start',
   height: '100%',
-  width: '100%',
-  overflow: 'hidden',
+  width: 'auto',
+  minWidth: '180px',
+  flex: '0 0 auto',
   '& img': {
-    maxHeight: '130%',
-    maxWidth: '100%', // Ensure logo doesn't exceed container width
+    maxHeight: '50px',
+    maxWidth: '200px',
     width: 'auto',
+    height: 'auto',
     objectFit: 'contain',
   },
   [theme.breakpoints.down('lg')]: {
-    justifyContent: 'center',
+    minWidth: '140px',
+    flex: '0 0 auto',
     '& img': {
-      maxHeight: '120%', // Slightly larger on mobile
-      maxWidth: '100%', // Leave some margin on mobile
+      maxHeight: '40px',
+      maxWidth: '140px',
     },
   },
   [theme.breakpoints.down('sm')]: {
+    minWidth: '120px',
     '& img': {
-      maxHeight: '110%', // Appropriate size on very small screens
-      maxWidth: '95%', // More space on small screens
+      maxHeight: '35px',
+      maxWidth: '120px',
     },
   },
 }));
 
 const SearchContainer = styled(Box)(({ theme }) => ({
-  gridArea: 'search',
   display: 'flex',
   alignItems: 'center',
   width: '100%',
-  maxWidth: 320,
-  margin: '0 auto',
-  height: '100%',
-  overflow: 'hidden',
+  maxWidth: '720px',
+  height: '40px',
   backgroundColor: theme.palette.background.default,
   borderRadius: theme.shape.borderRadius,
   border: `1px solid ${theme.palette.primary.main}`,
-  marginTop: theme.spacing(3),
-  marginBottom: theme.spacing(1),
+  margin: '0 auto',
   '& .search-icon': {
-    padding: '0 0.5rem',
+    padding: '0 0.75rem',
     color: theme.palette.primary.main,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
+    flexShrink: 0,
   },
   '& .MuiInputBase-root': {
-    height: '60%',
-    minHeight: 'auto',
+    height: '100%',
     fontSize: '0.9rem',
     flex: 1,
     border: 'none',
     backgroundColor: 'transparent',
   },
   '& .MuiInputBase-input': {
-    padding: '0.5% 1%',
-    textAlign: 'center',
+    padding: '0.5rem 0.25rem',
+    textAlign: 'left',
   },
   [theme.breakpoints.down('lg')]: {
-    width: '100%',
     maxWidth: '100%',
-    marginTop: theme.spacing(1),
+    height: '36px',
+    flexGrow: 1,
+    margin: `0 ${theme.spacing(2)}`,
     '& .MuiInputBase-root': {
-      height: '50%',
+      fontSize: '0.85rem',
+    },
+    '& .search-icon': {
+      padding: '0 0.5rem',
+    },
+  },
+  [theme.breakpoints.down('sm')]: {
+    height: '32px',
+    minWidth: 0,
+    '& .MuiInputBase-root': {
       fontSize: '0.8rem',
+    },
+    '& .search-icon': {
+      padding: '0 0.4rem',
     },
   },
 }));
@@ -417,34 +434,46 @@ const SearchInput = styled(Input)(({ theme }) => ({
 }));
 
 const FiltersArea = styled(Box)(({ theme }) => ({
-  gridArea: 'filters',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  gap: '1%',
+  gap: theme.spacing(0.75),
   flexWrap: 'wrap',
   width: '100%',
   height: '100%',
-  overflow: 'hidden',
   '& .MuiButton-root': {
-    minHeight: 'auto',
-    height: '70%',
-    padding: '1% 2%',
-    fontSize: '0.75rem',
-    minWidth: 'auto',
-    [theme.breakpoints.up('lg')]: {
-      fontSize: '0.7rem',
-      height: '60%',
+    minHeight: '28px',
+    height: '28px',
+    padding: theme.spacing(0.4, 1),
+    fontSize: '0.78rem',
+    minWidth: '72px',
+    borderRadius: theme.shape.borderRadius,
+    fontWeight: 500,
+    transition: 'all 0.2s ease-in-out',
+    flex: '0 0 auto',
+  },
+  [theme.breakpoints.down('lg')]: {
+    justifyContent: 'flex-start',
+    gap: theme.spacing(0.5),
+    flexWrap: 'wrap',
+    '& .MuiButton-root': {
+      minHeight: '26px',
+      height: '26px',
+      fontSize: '0.72rem',
+      padding: theme.spacing(0.3, 0.9),
+      minWidth: '68px',
     },
   },
   [theme.breakpoints.down('sm')]: {
-    gap: '0.5%',
-    justifyContent: 'space-between',
-    padding: '0 1%',
+    justifyContent: 'flex-start',
+    gap: theme.spacing(0.25),
+    flexWrap: 'wrap',
     '& .MuiButton-root': {
-      height: '60%',
-      fontSize: '0.65rem',
-      padding: '0.5% 1%',
+      minHeight: '24px',
+      height: '24px',
+      fontSize: '0.68rem',
+      padding: theme.spacing(0.25, 0.75),
+      minWidth: '64px',
     },
   },
 }));
@@ -453,13 +482,12 @@ const FiltersArea = styled(Box)(({ theme }) => ({
 
 // Add hamburger menu area
 const HamburgerArea = styled(Box)(({ theme }) => ({
-  position: 'fixed',
-  top: theme.spacing(0.5),
-  right: theme.spacing(1),
   display: 'flex',
   alignItems: 'center',
+  justifyContent: 'flex-end',
   gap: theme.spacing(1),
-  zIndex: theme.zIndex.appBar + 1,
+  height: '100%',
+  width: 'auto',
   [theme.breakpoints.up('lg')]: {
     display: 'none',
   },
@@ -501,44 +529,41 @@ const MobileLoginButton = styled(Box)(({ theme }) => ({
 
 // New NavGroup component that contains all navigation buttons
 const NavGroup = styled(Box)(({ theme }) => ({
-  gridArea: 'navgroup',
   display: 'flex',
   alignItems: 'center',
-  justifyContent: 'flex-start',
+  justifyContent: 'flex-end',
   height: '100%',
-  width: '100%',
-  gap: 8,
-  padding: '0 0.5%',
+  width: 'auto',
+  gap: theme.spacing(1),
   '& .nav-button': {
     flex: '0 0 auto',
-    minHeight: 'auto',
-    height: '2.2rem',
-    fontSize: '0.95rem',
+    minHeight: '36px',
+    height: '36px',
+    fontSize: '0.9rem',
     fontWeight: 500,
-    padding: '0.1rem 0.5rem',
-    minWidth: 60,
+    padding: theme.spacing(0.5, 1),
+    minWidth: 'auto',
     maxWidth: 'none',
     whiteSpace: 'nowrap',
-    borderRadius: '0.5rem',
+    borderRadius: theme.shape.borderRadius,
     border: 'none',
-    marginLeft: 2,
-    marginRight: 2,
+    transition: 'all 0.2s ease-in-out',
     '&:hover': {
-      backgroundColor: 'rgba(0, 0, 0, 0.04)',
+      backgroundColor: theme.palette.action.hover,
       border: 'none',
     },
   },
   '& .theme-button': {
     flex: '0 0 auto',
-    width: '2.2rem',
-    height: '2.2rem',
-    padding: '0.1rem',
-    minWidth: '2.2rem',
-    maxWidth: '2.2rem',
+    width: '36px',
+    height: '36px',
+    padding: theme.spacing(0.5),
+    minWidth: '36px',
+    maxWidth: '36px',
     borderRadius: '50%',
     border: 'none',
     '&:hover': {
-      backgroundColor: 'rgba(0, 0, 0, 0.04)',
+      backgroundColor: theme.palette.action.hover,
       border: 'none',
     },
     '& .MuiSvgIcon-root': {
@@ -546,8 +571,8 @@ const NavGroup = styled(Box)(({ theme }) => ({
     },
   },
   '& .MuiAvatar-root': {
-    width: 28,
-    height: 28,
+    width: 36,
+    height: 36,
     fontSize: '1rem',
   },
   [theme.breakpoints.down('lg')]: {
@@ -1025,33 +1050,26 @@ const MainNav = memo(() => {
   return (
     <>
       <GridNav>
-        <LogoArea>
-          <Link href="/" style={{ textDecoration: 'none' }}>
-            <Box
-              sx={{ 
-                display: 'flex',
-                alignItems: 'center',
-              }}
-            >
+        {/* Top Row: Logo, Search, Navigation */}
+        <TopRow>
+          <LogoArea>
+            <Link href="/" style={{ textDecoration: 'none' }}>
               <Image
                 src="/telecast-logo.gif"
                 alt="Telecast Logo"
-                width={500}
-                height={500}
+                width={200}
+                height={50}
                 style={{
-                  width: '100%',
+                  width: 'auto',
                   height: 'auto',
-                  maxWidth: '280px',
-                  maxHeight: '100px',
+                  maxWidth: '200px',
+                  maxHeight: '50px',
                   objectFit: 'contain',
                 }}
-                sizes="(max-width: 600px) 160px, (max-width: 900px) 220px, 280px"
+                sizes="(max-width: 600px) 120px, (max-width: 900px) 150px, 200px"
               />
-            </Box>
-          </Link>
-        </LogoArea>
-
-
+            </Link>
+          </LogoArea>
 
           <SearchContainer ref={searchBoxRef}>
             <Box className="search-icon">
@@ -1066,127 +1084,109 @@ const MainNav = memo(() => {
               onFocus={() => searchQuery.length >= 2 && setAutocompleteOpen(true)}
             />
             {renderAutocompleteResults()}
-        </SearchContainer>
+          </SearchContainer>
 
-              <FiltersArea>
-        <Button
-          variant="text"
-          onClick={() => handleFilterSelect('All')}
-          sx={getFilterButtonStyles(theme, selectedFilter, 'All')}
-        >
-          All
-        </Button>
-        <Button
-          variant="text"
-          startIcon={<PodcastIcon />}
-          onClick={() => handleFilterSelect('Podcasts')}
-          sx={getFilterButtonStyles(theme, selectedFilter, 'Podcasts')}
-        >
-          Podcasts
-        </Button>
-        <Button
-          variant="text"
-          startIcon={<VideoIcon />}
-          onClick={() => handleFilterSelect('Videos')}
-          sx={getFilterButtonStyles(theme, selectedFilter, 'Videos')}
-        >
-          Videos
-                    </Button>
-        <Button
-          variant="text"
-          startIcon={<StreamingIcon />}
-          onClick={() => handleFilterSelect('Streaming')}
-          sx={getFilterButtonStyles(theme, selectedFilter, 'Streaming')}
-        >
-          Streaming
-        </Button>
-        <Button
-          variant="text"
-          startIcon={<MusicIcon />}
-          onClick={() => handleFilterSelect('Music')}
-          sx={getFilterButtonStyles(theme, selectedFilter, 'Music')}
-        >
-          Music
-        </Button>
-                      <Button
-          variant="text"
-          startIcon={<BookIcon />}
-          onClick={() => handleFilterSelect('Books')}
-          sx={getFilterButtonStyles(theme, selectedFilter, 'Books')}
-                      >
-          Books
-                      </Button>
-        <Button
-          variant="text"
-          startIcon={<NewsIcon />}
-          onClick={() => handleFilterSelect('News')}
-          sx={getFilterButtonStyles(theme, selectedFilter, 'News')}
-        >
-          News
-        </Button>
-      </FiltersArea>
-
-        <NavGroup sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.5, sm: 1 } }}>
-
-          <Button 
-            variant="text"
-            className="nav-button"
-            onClick={() => router.push('/about')}
-            sx={getNavButtonStyles(theme, pathname, '/about')}
-          >
-            About
-          </Button>
-
-          <Button
-            variant="text"
-            className="nav-button"
-            onClick={() => router.push('/services')}
-            sx={getNavButtonStyles(theme, pathname, '/services')}
-          >
-            Services
-          </Button>
-
-          <Button 
-            variant="text"
-            className="nav-button"
-            onClick={() => router.push('/contact')}
-            sx={getNavButtonStyles(theme, pathname, '/contact')}
-          >
-            Contact
-          </Button>
-
-          <Button 
-            variant="text"
-            className="nav-button"
-            onClick={() => router.push('/pricing')}
-            sx={getNavButtonStyles(theme, pathname, '/pricing')}
-          >
-            Pricing
-          </Button>
-
-          {isAuthenticated && (
+          <NavGroup>
             <Button 
               variant="text"
               className="nav-button"
-              onClick={() => router.push('/my-podcasts')}
-              sx={getNavButtonStyles(theme, pathname, '/my-podcasts')}
+              onClick={() => router.push('/about')}
+              sx={getNavButtonStyles(theme, pathname, '/about')}
             >
-              Create
+              About
+            </Button>
+
+            <Button
+              variant="text"
+              className="nav-button"
+              onClick={() => router.push('/services')}
+              sx={getNavButtonStyles(theme, pathname, '/services')}
+            >
+              Services
+            </Button>
+
+            <Button 
+              variant="text"
+              className="nav-button"
+              onClick={() => router.push('/contact')}
+              sx={getNavButtonStyles(theme, pathname, '/contact')}
+            >
+              Contact
+            </Button>
+
+            <Button 
+              variant="text"
+              className="nav-button"
+              onClick={() => router.push('/pricing')}
+              sx={getNavButtonStyles(theme, pathname, '/pricing')}
+            >
+              Pricing
+            </Button>
+            {isAuthenticated && (
+              <Button 
+                variant="text"
+                className="nav-button"
+                onClick={() => router.push('/my-podcasts')}
+                sx={getNavButtonStyles(theme, pathname, '/my-podcasts')}
+              >
+                Create
             </Button>
           )}
 
-          {isAuthenticated ? (
-            <Tooltip title="Profile">
+
+            {isAuthenticated ? (
+              <Tooltip title="Profile">
+                <IconButton
+                  onClick={() => router.push('/profile')}
+                  sx={{
+                    p: 0.5,
+                    border: pathname === '/profile' ? `2px solid ${theme.palette.primary.main}` : '2px solid transparent',
+                    borderRadius: '50%',
+                    transition: 'all 0.2s ease-in-out',
+                    '&:hover': {
+                      border: `2px solid ${theme.palette.primary.main}`,
+                      transform: 'scale(1.05)',
+                    },
+                  }}
+                >
+                  <Avatar
+                    src={user?.image || undefined}
+                    alt={user?.name || 'Profile'}
+                    sx={{
+                      width: 36,
+                      height: 36,
+                      bgcolor: theme.palette.primary.main,
+                      color: theme.palette.primary.contrastText,
+                      fontSize: '1rem',
+                      fontWeight: 600,
+                    }}
+                  >
+                    {!user?.image && user?.name ? user.name.charAt(0).toUpperCase() : <AccountCircleIcon />}
+                  </Avatar>
+                </IconButton>
+              </Tooltip>
+            ) : (
+              <Button
+                variant="text"
+                className="nav-button"
+                onClick={() => router.push('/auth/login')}
+                sx={getNavButtonStyles(theme, pathname, '/auth/login')}
+              >
+                Sign In
+              </Button>
+            )}
+          </NavGroup>
+
+          <HamburgerArea>
+            {isAuthenticated ? (
               <IconButton
                 onClick={() => router.push('/profile')}
                 sx={{
                   p: 0.5,
-                  border: pathname === '/profile' ? `2px solid ${theme.palette.primary.main}` : '2px solid transparent',
-                  borderRadius: '50%',
-                  transition: 'all 0.2s ease-in-out',
+                  width: 36,
+                  height: 36,
                   '&:hover': {
-                    border: `2px solid ${theme.palette.primary.main}`,
-                    transform: 'scale(1.05)',
+                    backgroundColor: 'action.hover',
                   },
                 }}
               >
@@ -1194,108 +1194,120 @@ const MainNav = memo(() => {
                   src={user?.image || undefined}
                   alt={user?.name || 'Profile'}
                   sx={{
-                    width: '3rem',
-                    height: '3rem',
-                    minWidth: '3rem',
-                    minHeight: '3rem',
-                    maxWidth: '3rem',
-                    maxHeight: '3rem',
+                    width: 28,
+                    height: 28,
                     bgcolor: theme.palette.primary.main,
                     color: theme.palette.primary.contrastText,
-                    fontSize: '1rem',
-                    fontWeight: 600,
-                    ml: 0.5,
+                    fontSize: '0.9rem',
                   }}
                 >
                   {!user?.image && user?.name ? user.name.charAt(0).toUpperCase() : <AccountCircleIcon />}
                 </Avatar>
-                      </IconButton>
-            </Tooltip>
-                  ) : (
-            <Button
-              variant="text"
-              className="nav-button"
-              onClick={() => router.push('/auth/login')}
-              sx={getNavButtonStyles(theme, pathname, '/auth/login')}
-            >
-              Sign In
-            </Button>
+              </IconButton>
+            ) : (
+              <IconButton
+                onClick={() => router.push('/auth/login')}
+                sx={{
+                  p: 0.5,
+                  width: 36,
+                  height: 36,
+                  '&:hover': {
+                    backgroundColor: 'action.hover',
+                  },
+                }}
+              >
+                <AccountCircleIcon sx={{ fontSize: '1.5rem' }} />
+              </IconButton>
             )}
-        </NavGroup>
-
-              <HamburgerArea>
-        {isAuthenticated ? (
-          <IconButton
-            onClick={() => router.push('/profile')}
-            sx={{
-              p: 0.5,
-              width: 40,
-              height: 40,
-              '&:hover': {
-                backgroundColor: 'action.hover',
-              },
-            }}
-          >
-            <Avatar
-              src={user?.image || undefined}
-              alt={user?.name || 'Profile'}
-              sx={{
-                width: 32,
-                height: 32,
-                minWidth: 32,
-                minHeight: 32,
-                maxWidth: 32,
-                maxHeight: 32,
-                bgcolor: theme.palette.primary.main,
-                color: theme.palette.primary.contrastText,
-                fontSize: '1rem',
+            <IconButton
+              onClick={handleDrawerToggle}
+              color="inherit"
+              aria-label="menu"
+              sx={{ 
+                width: 36,
+                height: 36,
+                '& .MuiSvgIcon-root': {
+                  fontSize: '1.5rem'
+                }
               }}
             >
-              {!user?.image && user?.name ? user.name.charAt(0).toUpperCase() : <AccountCircleIcon />}
-            </Avatar>
-          </IconButton>
-        ) : (
-          <IconButton
-            onClick={() => router.push('/auth/login')}
-            sx={{
-              p: 0.5,
-              width: 40,
-              height: 40,
-              '&:hover': {
-                backgroundColor: 'action.hover',
-              },
-            }}
-          >
-            <AccountCircleIcon sx={{ fontSize: '1.75rem' }} />
-          </IconButton>
-        )}
-        <IconButton
-          onClick={handleDrawerToggle}
-          color="inherit"
-          aria-label="menu"
-          sx={{ 
-            width: 40,
-            height: 40,
-            '& .MuiSvgIcon-root': {
-              fontSize: '1.75rem'
-            }
-          }}
-        >
-          <MenuIcon />
-        </IconButton>
-      </HamburgerArea>
+              <MenuIcon />
+            </IconButton>
+          </HamburgerArea>
+        </TopRow> 
+
+        {/* Bottom Row: Filter Buttons */}
+        <BottomRow>
+          <FiltersArea>
+            <Button
+              variant="text"
+              onClick={() => handleFilterSelect('All')}
+              sx={getFilterButtonStyles(theme, selectedFilter, 'All')}
+            >
+              All
+            </Button>
+            <Button
+              variant="text"
+              startIcon={<PodcastIcon />}
+              onClick={() => handleFilterSelect('Podcasts')}
+              sx={getFilterButtonStyles(theme, selectedFilter, 'Podcasts')}
+            >
+              Podcasts
+            </Button>
+            <Button
+              variant="text"
+              startIcon={<VideoIcon />}
+              onClick={() => handleFilterSelect('Videos')}
+              sx={getFilterButtonStyles(theme, selectedFilter, 'Videos')}
+            >
+              Videos
+            </Button>
+            <Button
+              variant="text"
+              startIcon={<StreamingIcon />}
+              onClick={() => handleFilterSelect('Streaming')}
+              sx={getFilterButtonStyles(theme, selectedFilter, 'Streaming')}
+            >
+              Streaming
+            </Button>
+            <Button
+              variant="text"
+              startIcon={<MusicIcon />}
+              onClick={() => handleFilterSelect('Music')}
+              sx={getFilterButtonStyles(theme, selectedFilter, 'Music')}
+            >
+              Music
+            </Button>
+            <Button
+              variant="text"
+              startIcon={<BookIcon />}
+              onClick={() => handleFilterSelect('Books')}
+              sx={getFilterButtonStyles(theme, selectedFilter, 'Books')}
+            >
+              Books
+            </Button>
+            <Button
+              variant="text"
+              startIcon={<NewsIcon />}
+              onClick={() => handleFilterSelect('News')}
+              sx={getFilterButtonStyles(theme, selectedFilter, 'News')}
+            >
+              News
+            </Button>
+          </FiltersArea>
+        </BottomRow>
       </GridNav>
 
-        <Drawer
-          anchor="right"
+      <Drawer
+        anchor="right"
         open={drawerOpen}
         onClose={handleDrawerToggle}
         ModalProps={{
           keepMounted: true, // Better open performance on mobile.
-          }}
-        >
-          {drawer}
-        </Drawer>
+        }}
+      >
+        {drawer}
+      </Drawer>
     </>
   );
 });
