@@ -314,17 +314,19 @@ const TopRow = styled(Box)(({ theme }) => ({
 
 // Bottom row container for filters
 const BottomRow = styled(Box)(({ theme }) => ({
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
+  display: 'block',
   width: '100%',
   height: 'auto',
+  // make each line stretch buttons to fill available width
+  '& > *': {
+    display: 'flex',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
   [theme.breakpoints.down('lg')]: {
     height: 'auto',
-    justifyContent: 'flex-start',
-    // allow wrapping on smaller screens, no horizontal scroll
-    flexWrap: 'wrap',
-    gap: theme.spacing(0.5),
+    // spacing between rows
+    paddingTop: theme.spacing(0.25),
   },
   [theme.breakpoints.down('sm')]: {
     height: 'auto',
@@ -435,45 +437,40 @@ const SearchInput = styled(Input)(({ theme }) => ({
 
 const FiltersArea = styled(Box)(({ theme }) => ({
   display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  gap: theme.spacing(0.75),
   flexWrap: 'wrap',
+  gap: theme.spacing(0.75),
   width: '100%',
-  height: '100%',
+  // Make buttons on each line share space equally
   '& .MuiButton-root': {
+    flex: '1 1 140px',
+    maxWidth: '100%',
+    minWidth: 0,
     minHeight: '28px',
     height: '28px',
     padding: theme.spacing(0.4, 1),
     fontSize: '0.78rem',
-    minWidth: '72px',
     borderRadius: theme.shape.borderRadius,
     fontWeight: 500,
     transition: 'all 0.2s ease-in-out',
-    flex: '0 0 auto',
   },
   [theme.breakpoints.down('lg')]: {
-    justifyContent: 'flex-start',
     gap: theme.spacing(0.5),
-    flexWrap: 'wrap',
     '& .MuiButton-root': {
+      flex: '1 1 120px',
       minHeight: '26px',
       height: '26px',
       fontSize: '0.72rem',
-      padding: theme.spacing(0.3, 0.9),
-      minWidth: '68px',
+      padding: theme.spacing(0.3, 0.8),
     },
   },
   [theme.breakpoints.down('sm')]: {
-    justifyContent: 'flex-start',
-    gap: theme.spacing(0.25),
-    flexWrap: 'wrap',
+    gap: theme.spacing(0.4),
     '& .MuiButton-root': {
+      flex: '1 1 100px',
       minHeight: '24px',
       height: '24px',
       fontSize: '0.68rem',
-      padding: theme.spacing(0.25, 0.75),
-      minWidth: '64px',
+      padding: theme.spacing(0.25, 0.6),
     },
   },
 }));
