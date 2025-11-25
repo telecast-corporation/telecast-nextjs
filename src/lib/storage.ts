@@ -1,3 +1,4 @@
+
 import { Storage } from '@google-cloud/storage';
 
 // Initialize Storage client
@@ -12,6 +13,7 @@ const storage = new Storage({
 // Get bucket instances
 const podcastBucket = storage.bucket(process.env.GOOGLE_CLOUD_PODCAST_BUCKET_NAME || '');
 const profileBucket = storage.bucket(process.env.GOOGLE_CLOUD_PROFILE_BUCKET_NAME || '');
+const localNewsBucket = storage.bucket(process.env.GOOGLE_CLOUD_LOCAL_NEWS_BUCKET_NAME || '');
 
 // Helper function to generate a unique filename
 const generateUniqueFilename = (originalName: string, prefix: string): string => {
@@ -121,6 +123,29 @@ export const uploadProfileFile = async (
   const [url] = await fileUpload.getSignedUrl({
     action: 'read',
     expires: new Date('2500-03-01'), // Long expiration for profile pictures
+  });
+
+  return { url, filename };
+};
+
+// Upload file to local news bucket
+export const uploadLocalNewsFile = async (
+  file: Buffer,
+  originalName: string,
+  contentType: string
+): Promise<{ url: string; filename: string }> => {
+  const filename = generateUniqueFilename(originalName, 'local-news');
+  const fileUpload = localNewsBucket.file(filename);
+
+  await fileUpload.save(file, {
+    metadata: {
+      contentType,
+    },
+  });
+
+  const [url] = await fileUpload.getSignedUrl({
+    action: 'read',
+    expires: new Date('2500-03-01'), // Long expiration for local news videos
   });
 
   return { url, filename };

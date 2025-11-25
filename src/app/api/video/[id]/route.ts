@@ -1,62 +1,38 @@
-import { NextResponse } from 'next/server';
-import axios from 'axios';
 
-const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;
-const YOUTUBE_API_URL = 'https://www.googleapis.com/youtube/v3';
+import { NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
 
 export async function GET(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  req: Request,
+  { params }: { params: { id: string } }
 ) {
-  const { id } = await params;
-
   try {
-    // Get video details
-    const videoResponse = await axios.get(`${YOUTUBE_API_URL}/videos`, {
-      params: {
-        part: 'snippet,statistics,contentDetails',
-        id: id,
-        key: YOUTUBE_API_KEY,
+    const { id } = params;
+    const news = await prisma.localNews.findUnique({
+      where: {
+        id,
+        status: 'approved',
+      },
+      include: {
+        user: {
+          select: {
+            name: true,
+            image: true,
+          },
+        },
       },
     });
 
-    if (!videoResponse.data.items || videoResponse.data.items.length === 0) {
-      return NextResponse.json(
-        { error: 'Video not found' },
-        { status: 404 }
-      );
+    if (!news) {
+      return NextResponse.json({ error: 'News not found' }, { status: 404 });
     }
 
-    const video = videoResponse.data.items[0];
-    const snippet = video.snippet;
-    const statistics = video.statistics;
-    const contentDetails = video.contentDetails;
-
-    // Format duration from ISO 8601 to readable format
-    const duration = contentDetails.duration
-      .replace('PT', '')
-      .replace('H', ':')
-      .replace('M', ':')
-      .replace('S', '');
-
-    return NextResponse.json({
-      id: id,
-      title: snippet.title,
-      description: snippet.description,
-      thumbnail: snippet.thumbnails.high.url,
-      author: snippet.channelTitle,
-      publishedAt: snippet.publishedAt,
-      viewCount: parseInt(statistics.viewCount),
-      likeCount: parseInt(statistics.likeCount),
-      duration,
-      source: 'youtube',
-      sourceUrl: `https://www.youtube.com/watch?v=${id}`,
-    });
+    return NextResponse.json(news);
   } catch (error) {
-    console.error('Error fetching video:', error);
+    console.error('Error fetching news:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch video' },
+      { error: 'Error fetching news' },
       { status: 500 }
     );
   }
-} 
+}

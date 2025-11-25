@@ -1,43 +1,43 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 import { getOrCreateUser } from '@/lib/auth0-user';
 import { prisma } from '@/lib/prisma';
 
 export async function GET(req: Request) {
-  try {
-    const user = await getOrCreateUser(req as any);
-    if (!user || !user.isAdmin) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
+  const user = await getOrCreateUser(req as NextRequest);
 
+  // @ts-ignore
+  if (!user || !user.isAdmin) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  try {
     const news = await prisma.localNews.findMany({
-      include: { user: { select: { name: true, email: true } } },
+      where: { status: 'pending' },
+      include: { user: true },
       orderBy: { createdAt: 'desc' },
     });
-
     return NextResponse.json(news);
   } catch (error) {
-    console.error('Error fetching local news for admin:', error);
+    console.error("Error fetching pending news:", error);
     return NextResponse.json(
-      { error: 'Error fetching local news' },
+      { error: "Error fetching pending news" },
       { status: 500 }
     );
   }
 }
 
 export async function PUT(req: Request) {
+  const user = await getOrCreateUser(req as NextRequest);
+
+  // @ts-ignore
+  if (!user || !user.isAdmin) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   try {
-    const user = await getOrCreateUser(req as any);
-    if (!user || !user.isAdmin) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
-
     const { id, status } = await req.json();
-
-    if (!id || !status) {
-      return NextResponse.json(
-        { error: 'Missing id or status' },
-        { status: 400 }
-      );
+    if (!id || !status || !['approved', 'rejected'].includes(status)) {
+      return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
     }
 
     const updatedNews = await prisma.localNews.update({
@@ -47,9 +47,9 @@ export async function PUT(req: Request) {
 
     return NextResponse.json(updatedNews);
   } catch (error) {
-    console.error('Error updating local news status:', error);
+    console.error("Error updating news status:", error);
     return NextResponse.json(
-      { error: 'Error updating status' },
+      { error: "Error updating news status" },
       { status: 500 }
     );
   }

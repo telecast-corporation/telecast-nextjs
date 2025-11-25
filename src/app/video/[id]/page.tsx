@@ -1,263 +1,102 @@
-'use client';
 
+'use client';
 import React, { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import Link from 'next/link';
+import { useParams } from 'next/navigation';
 import {
   Container,
   Typography,
-  Grid,
+  Box,
+  CircularProgress,
   Card,
   CardContent,
-  CardMedia,
-  Box,
-  IconButton,
-  Chip,
-  Link as MuiLink,
-  Divider,
-  CircularProgress,
-  Paper,
-  Avatar,
-  Button,
 } from '@mui/material';
-import {
-  PlayArrow,
-  Pause,
-  VolumeUp,
-  VolumeOff,
-  Speed,
-  ThumbUp,
-  ThumbDown,
-  Share,
-  Bookmark,
-  BookmarkBorder,
-} from '@mui/icons-material';
-import { useAudio } from '@/contexts/AudioContext';
-import axios from 'axios';
 
-interface VideoDetails {
+interface LocalNews {
   id: string;
   title: string;
   description: string;
-  thumbnail: string;
-  author: string;
-  publishedAt: string;
-  viewCount: number;
-  likeCount: number;
-  duration: string;
-  source: 'youtube';
-  sourceUrl: string;
+  videoUrl: string;
+  locationCity: string;
+  locationCountry: string;
+  createdAt: string;
 }
 
-interface RelatedVideo {
-  id: string;
-  title: string;
-  thumbnail: string;
-  author: string;
-  viewCount: number;
-  publishedAt: string;
-}
-
-export default function VideoPage() {
+export default function VideoPlayerPage() {
   const params = useParams();
-  const [video, setVideo] = useState<VideoDetails | null>(null);
-  const [relatedVideos, setRelatedVideos] = useState<RelatedVideo[]>([]);
+  const [news, setNews] = useState<LocalNews | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [isMuted, setIsMuted] = useState(false);
-  const [isBookmarked, setIsBookmarked] = useState(false);
 
   useEffect(() => {
-    const fetchVideo = async () => {
+    const fetchNews = async () => {
       try {
         setLoading(true);
-        // TODO: Replace with actual API call
-        const response = await axios.get(`/api/video/${params.id}`);
-        setVideo(response.data);
+        const newsId = params.id as string;
         
-        // Fetch related videos
-        const relatedResponse = await axios.get(`/api/video/${params.id}/related`);
-        setRelatedVideos(relatedResponse.data);
+        const response = await fetch(`/api/video/${newsId}`);
+        
+        if (response.ok) {
+          const data = await response.json();
+          setNews(data);
+        } else {
+          setError('News not found');
+        }
       } catch (err) {
-        setError('Failed to load video');
-        console.error('Error fetching video:', err);
+        setError('Failed to load news');
       } finally {
         setLoading(false);
       }
     };
 
     if (params.id) {
-      fetchVideo();
+      fetchNews();
     }
   }, [params.id]);
 
-  const handlePlayPause = () => {
-    setIsPlaying(!isPlaying);
-  };
-
-  const handleMute = () => {
-    setIsMuted(!isMuted);
-  };
-
-  const handleBookmark = () => {
-    setIsBookmarked(!isBookmarked);
-  };
-
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          minHeight: '100vh',
+        }}
+      >
         <CircularProgress />
       </Box>
     );
   }
 
-  if (error || !video) {
+  if (error || !news) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
-        <Typography color="error">{error || 'Video not found'}</Typography>
-      </Box>
+      <Container maxWidth="lg" sx={{ py: 10 }}>
+        <Typography variant="h4" color="error">
+          {error || 'News not found'}
+        </Typography>
+      </Container>
     );
   }
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Grid container spacing={4}>
-        {/* Main Content */}
-        <Grid item xs={12} md={8}>
-          {/* Video Player */}
-          <Box sx={{ position: 'relative', width: '100%', paddingTop: '56.25%', mb: 3 }}>
-            <iframe
-              src={`https://www.youtube.com/embed/${video.id}?autoplay=${isPlaying ? 1 : 0}&mute=${isMuted ? 1 : 0}`}
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '100%',
-                height: '100%',
-                border: 'none',
-              }}
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            />
-          </Box>
-
-          {/* Video Details */}
-          <Card sx={{ mb: 3 }}>
-            <CardContent>
-              <Typography variant="h5" component="h1" gutterBottom>
-                {video.title}
-              </Typography>
-              
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <Typography variant="body2" color="text.secondary" sx={{ mr: 2 }}>
-                  {video.viewCount.toLocaleString()} views
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  {new Date(video.publishedAt).toLocaleDateString()}
-                </Typography>
-              </Box>
-
-              <Divider sx={{ my: 2 }} />
-
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <Avatar sx={{ mr: 2 }}>{video.author[0]}</Avatar>
-                <Box sx={{ flexGrow: 1 }}>
-                  <Typography variant="subtitle1">{video.author}</Typography>
-                </Box>
-              </Box>
-
-              <Typography variant="body1" sx={{ 
-                whiteSpace: 'pre-wrap',
-                fontSize: { xs: '0.75rem', sm: '0.85rem', md: '0.9rem' },
-                lineHeight: 1.4,
-                color: 'text.secondary'
-              }}>
-                {video.description}
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        {/* Related Videos */}
-        <Grid item xs={12} md={4}>
-          <Typography variant="h6" gutterBottom>
-            Related Videos
+      <Card sx={{ mb: 4, maxWidth: 800, mx: 'auto' }}>
+        <CardContent>
+          <Typography variant="h4" component="h1" gutterBottom>
+            {news.title}
           </Typography>
-          {relatedVideos.map((relatedVideo) => (
-            <Link 
-              key={relatedVideo.id} 
-              href={`/video/${relatedVideo.id}`}
-              style={{ textDecoration: 'none' }}
-            >
-              <Card 
-                sx={{ 
-                  mb: 2, 
-                  display: 'flex',
-                  '&:hover': {
-                    transform: 'translateY(-2px)',
-                    boxShadow: 3,
-                    transition: 'all 0.2s ease-in-out'
-                  },
-                  cursor: 'pointer'
-                }}
-              >
-                <CardMedia
-                  component="img"
-                  image={relatedVideo.thumbnail}
-                  alt={relatedVideo.title}
-                  sx={{ 
-                    width: 168,
-                    minHeight: '100%',
-                    objectFit: 'cover'
-                  }}
-                />
-                <CardContent sx={{ flex: 1, p: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                  <Typography 
-                    variant="subtitle2" 
-                    sx={{ 
-                      whiteSpace: 'normal',
-                      display: '-webkit-box',
-                      WebkitLineClamp: 2,
-                      WebkitBoxOrient: 'vertical',
-                      overflow: 'hidden',
-                      lineHeight: 1.2,
-                      mb: 0.5,
-                      fontSize: { xs: '0.8rem', sm: '0.85rem' }
-                    }}
-                  >
-                    {relatedVideo.title}
-                  </Typography>
-                  <Typography 
-                    variant="body2" 
-                    color="text.secondary"
-                    sx={{ 
-                      fontSize: { xs: '0.7rem', sm: '0.75rem' },
-                      whiteSpace: 'normal',
-                      display: '-webkit-box',
-                      WebkitLineClamp: 1,
-                      WebkitBoxOrient: 'vertical',
-                      overflow: 'hidden'
-                    }}
-                  >
-                    {relatedVideo.author}
-                  </Typography>
-                  <Typography 
-                    variant="caption" 
-                    color="text.secondary"
-                    sx={{ 
-                      fontSize: { xs: '0.65rem', sm: '0.7rem' }
-                    }}
-                  >
-                    {relatedVideo.viewCount.toLocaleString()} views •{' '}
-                    {new Date(relatedVideo.publishedAt).toLocaleDateString()}
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Link>
-          ))}
-        </Grid>
-      </Grid>
+          <video controls src={news.videoUrl} style={{ width: '100%' }} />
+          <Typography variant="body1" sx={{ mt: 2 }}>
+            {news.description}
+          </Typography>
+          <Typography variant="subtitle2" color="text.secondary" sx={{ mt: 2 }}>
+            {news.locationCity}, {news.locationCountry}
+          </Typography>
+          <Typography variant="caption" color="text.secondary">
+            {new Date(news.createdAt).toLocaleDateString()}
+          </Typography>
+        </CardContent>
+      </Card>
     </Container>
   );
-} 
+}
