@@ -1,14 +1,14 @@
 
-import { NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 import { PrismaClient } from '@prisma/client';
-import { getSession } from '@auth0/nextjs-auth0';
+import { getOrCreateUser } from '@/lib/auth0-user';
 
 const prisma = new PrismaClient();
 
 // GET all pending local news
-export async function GET(req: Request) {
-  const session = await getSession();
-  if (!session || !session.user) {
+export async function GET(req: NextRequest) {
+  const user = await getOrCreateUser(req);
+  if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
@@ -32,9 +32,9 @@ export async function GET(req: Request) {
 }
 
 // PUT to update the status of a local news item
-export async function PUT(req: Request) {
-  const session = await getSession();
-  if (!session || !session.user) {
+export async function PUT(req: NextRequest) {
+  const user = await getOrCreateUser(req);
+  if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
