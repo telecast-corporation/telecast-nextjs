@@ -48,10 +48,10 @@ export async function POST(req: NextRequest) {
       country: newLocalNews.country,
       url: newLocalNews.videoUrl,
       previewUrl: newLocalNews.videoUrl,
-      thumbnailUrl: newLocalNews.thumbnailUrl,
+      thumbnail: newLocalNews.thumbnailUrl,
       type: 'news',
       source: 'internal',
-      releaseDate: newLocalNews.createdAt.toISOString(),
+      publishedAt: newLocalNews.createdAt.toISOString(),
     };
 
     return NextResponse.json(responseItem, { status: 201 });
@@ -104,10 +104,10 @@ export async function GET(req: NextRequest) {
       country: news.country,
       url: news.videoUrl,
       previewUrl: news.videoUrl,
-      thumbnailUrl: news.thumbnailUrl,
+      thumbnail: news.thumbnailUrl,
       type: 'news',
       source: 'internal',
-      releaseDate: news.createdAt.toISOString(),
+      publishedAt: news.createdAt.toISOString(),
     }));
 
     return NextResponse.json(trendingItems);
