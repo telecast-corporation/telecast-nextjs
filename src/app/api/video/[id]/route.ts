@@ -8,10 +8,9 @@ export async function GET(
 ) {
   try {
     const { id } = params;
-    const news = await prisma.localNews.findUnique({
+    const video = await prisma.video.findUnique({
       where: {
         id,
-        status: 'approved',
       },
       include: {
         user: {
@@ -23,15 +22,15 @@ export async function GET(
       },
     });
 
-    if (!news) {
-      return NextResponse.json({ error: 'News not found' }, { status: 404 });
+    if (!video) {
+      return NextResponse.json({ error: 'Video not found' }, { status: 404 });
     }
 
-    return NextResponse.json(news);
+    return NextResponse.json(video);
   } catch (error) {
-    console.error('Error fetching news:', error);
+    console.error('Error fetching video:', error);
     return NextResponse.json(
-      { error: 'Error fetching news' },
+      { error: 'Error fetching video' },
       { status: 500 }
     );
   }
