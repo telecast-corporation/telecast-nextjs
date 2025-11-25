@@ -1,6 +1,9 @@
+
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
 generator client {
-  provider      = "prisma-client-js"
-  binaryTargets = ["native", "darwin-arm64"]
+  provider = "prisma-client-js"
 }
 
 datasource db {
@@ -9,123 +12,85 @@ datasource db {
 }
 
 model User {
-  id               String          @id @default(cuid())
-  email            String?         @unique
-  name             String?
-  createdAt        DateTime        @default(now())
-  updatedAt        DateTime        @updatedAt
-  image            String?
-  rssFeed          String?
-  isPremium        Boolean         @default(false)
-  premiumExpiresAt DateTime?
-  usedFreeTrial    Boolean         @default(false)
-  freeTrialEndedAt DateTime?       // Track when free trial ended for discount eligibility
-  auth0Id          String?         @unique
-  podcasts         Podcast[]
-  platformConnections PlatformConnection[]
-  localNews        LocalNews[]
+  id                    String    @id @default(cuid())
+  name                  String?
+  email                 String?   @unique
+  emailVerified         DateTime?
+  image                 String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  isPremium             Boolean   @default(false)
+  premiumExpiresAt      DateTime?
+  usedFreeTrial         Boolean   @default(false)
+  freeTrialEndedAt      DateTime?
+  stripeCustomerId      String?   @unique
+  stripeSubscriptionId  String?   @unique
+  stripePriceId         String?
+  stripeCurrentPeriodEnd DateTime?
+  isAdmin               Boolean   @default(false)
+  podcasts              Podcast[]
+  localNews             LocalNews[]
 }
 
 model Podcast {
-  id             String          @id @default(cuid())
+  id             String    @id @default(cuid())
   title          String
-  description    String?
-  userId         String
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
-  published      Boolean         @default(false)
-  tags           String[]
-  category       String
-  language       String          @default("en")
-  explicit       Boolean         @default(false)
-  copyright      String?
-  website        String?
+  description    String
   author         String
-  coverImage     String?
-  isPublic       Boolean         @default(false)
-  rssFeed        String?
+  coverImage     String
+  category       String
+  tags           String[]
+  explicit       Boolean
+  userId         String
+  user           User      @relation(fields: [userId], references: [id])
   episodes       Episode[]
-  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([title])
-  @@index([category])
-  @@index([tags])
+  isExternal     Boolean   @default(false)
+  externalId     String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  platformLinks  Json?
+  youtubePlaylistId String?
+  isProcessing   Boolean   @default(false)
+  isAvailable    Boolean   @default(false)
 }
 
 model Episode {
-  id            String    @id @default(cuid())
-  podcastId     String
-  audioUrl      String    // Required - stores file path in Google Cloud Storage
-  
-  // Optional metadata (filled during finalization)
-  title         String?   // Episode title
-  description   String?   // Episode description
-  episodeNumber Int?      // Episode number in series
-  seasonNumber  Int?      // Season number
-  explicit      Boolean   @default(false)
-  keywords      String[]  @default([])
-  
-  // Publishing info
-  publishedAt   DateTime? // When episode was finalized/published
-  isPublished   Boolean   @default(false) // Whether episode is finalized
-  isFinal       Boolean   @default(false) // Whether episode has been finalized with metadata
-  
-  // File metadata
-  duration      Int?      // Audio duration in seconds
-  fileSize      Int?      // File size in bytes
-  
-  // Analytics
-  views         Int       @default(0)
-  likes         Int       @default(0)
-  
-  // Timestamps
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  
-  // Relations
-  podcast       Podcast   @relation(fields: [podcastId], references: [id], onDelete: Cascade)
-
-  @@index([podcastId])
-  @@index([isPublished])
-  @@index([publishedAt])
-  @@index([isFinal])
+  id             String    @id @default(cuid())
+  title          String
+  description    String
+  audioUrl       String
+  duration       Int
+  isPublished    Boolean   @default(false)
+  podcastId      String
+  podcast        Podcast   @relation(fields: [podcastId], references: [id])
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  isProcessing   Boolean   @default(false)
+  isAvailable    Boolean   @default(false)
+  draft          Draft?
 }
 
-model PlatformConnection {
-  id           String    @id @default(cuid())
-  userId       String
-  platform     String    // 'spotify', 'apple', 'google'
-  accessToken  String
-  refreshToken String?
-  expiresAt    DateTime?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-  
-  // Relations
-  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, platform])
-  @@index([userId])
-  @@index([platform])
+model Draft {
+  id         String   @id @default(cuid())
+  episodeId  String   @unique
+  episode    Episode  @relation(fields: [episodeId], references: [id])
+  videoUrl   String?
+  isFinal    Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }
 
 model LocalNews {
-  id            String   @id @default(cuid())
-  title         String
-  description   String
-  city          String
-  country       String
-  videoUrl      String
-  thumbnailUrl  String
-  userId        String
-  status        String   @default("pending") // pending, approved, rejected
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([city])
-  @@index([country])
-  @@index([status])
+  id              String   @id @default(cuid())
+  title           String
+  description     String
+  category        String
+  videoUrl        String
+  locationCity    String
+  locationCountry String
+  status          String   @default("pending") // "pending", "approved", "rejected"
+  userId          String
+  user            User     @relation(fields: [userId], references: [id])
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }

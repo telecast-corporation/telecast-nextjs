@@ -1,118 +1,77 @@
-
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { getOrCreateUser } from '@/lib/auth0-user';
 import { prisma } from '@/lib/prisma';
-import { uploadPodcastFile } from '@/lib/storage';
-import { TrendingItem } from '@/types';
+import { uploadLocalNewsFile } from '@/lib/storage';
 
-export async function POST(req: NextRequest) {
+export async function POST(req: Request) {
   try {
-    const user = await getOrCreateUser(req);
+    const user = await getOrCreateUser(req as any);
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
     const formData = await req.formData();
-    const file = formData.get('file') as File;
     const title = formData.get('title') as string;
     const description = formData.get('description') as string;
-    const city = formData.get('city') as string;
-    const country = formData.get('country') as string;
+    const category = formData.get('category') as string;
+    const locationCity = formData.get('locationCity') as string;
+    const locationCountry = formData.get('locationCountry') as string;
+    const videoFile = formData.get('video') as File;
 
-    if (!file || !title || !description || !city || !country) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    if (!title || !description || !category || !locationCity || !locationCountry || !videoFile) {
+        return NextResponse.json({ message: 'Missing required fields' }, { status: 400 });
     }
 
-    const fileBuffer = Buffer.from(await file.arrayBuffer());
-    const { url: videoUrl } = await uploadPodcastFile(fileBuffer, file.name, file.type);
+    // Upload video to storage
+    const videoBuffer = Buffer.from(await videoFile.arrayBuffer());
+    const { url: videoUrl } = await uploadLocalNewsFile(videoBuffer, videoFile.name, videoFile.type);
 
-    const newLocalNews = await prisma.localNews.create({
+    const newNews = await prisma.localNews.create({
       data: {
         title,
         description,
-        city,
-        country,
+        category,
+        locationCity,
+        locationCountry,
         videoUrl,
-        thumbnailUrl: '', // You can add thumbnail generation later
         userId: user.id,
-        status: 'pending', // Default status
       },
     });
 
-    const responseItem: TrendingItem = {
-      id: newLocalNews.id,
-      title: newLocalNews.title,
-      description: newLocalNews.description,
-      author: user.name || 'Anonymous',
-      city: newLocalNews.city,
-      country: newLocalNews.country,
-      url: newLocalNews.videoUrl,
-      previewUrl: newLocalNews.videoUrl,
-      thumbnail: newLocalNews.thumbnailUrl,
-      type: 'news',
-      source: 'internal',
-      publishedAt: newLocalNews.createdAt.toISOString(),
-    };
+    // Simulate sending an alert to the admin
+    console.log(`
+      New local news submission requires review:
+      Title: ${title}
+      Category: ${category}
+      Location: ${locationCity}, ${locationCountry}
+    `);
 
-    return NextResponse.json(responseItem, { status: 201 });
+    return NextResponse.json(newNews, { status: 201 });
   } catch (error) {
-    console.error('Error uploading local news:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    console.error('Error creating local news:', error);
+    return NextResponse.json({ message: 'Failed to create local news' }, { status: 500 });
   }
 }
 
-export async function GET(req: NextRequest) {
+export async function GET(req: Request) {
+  const { searchParams } = new URL(req.url);
+  const city = searchParams.get('city');
+  const country = searchParams.get('country');
+
   try {
-    const { searchParams } = new URL(req.url);
-    const city = searchParams.get('city');
-    const country = searchParams.get('country');
+    const where: any = { status: 'approved' };
+    if (city) where.locationCity = { contains: city, mode: 'insensitive' };
+    if (country) where.locationCountry = { contains: country, mode: 'insensitive' };
 
-    const where: any = {
-      status: 'approved',
-    };
-
-    if (city) {
-      where.city = {
-        equals: city,
-        mode: 'insensitive',
-      };
-    }
-
-    if (country) {
-      where.country = {
-        equals: country,
-        mode: 'insensitive',
-      };
-    }
-
-    const localNews = await prisma.localNews.findMany({
+    const news = await prisma.localNews.findMany({
       where,
-      include: {
-        user: true,
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
+      include: { user: { select: { name: true, image: true } } },
+      orderBy: { createdAt: 'desc' },
     });
 
-    const trendingItems: TrendingItem[] = localNews.map(news => ({
-      id: news.id,
-      title: news.title,
-      description: news.description,
-      author: news.user?.name || 'Anonymous',
-      city: news.city,
-      country: news.country,
-      url: news.videoUrl,
-      previewUrl: news.videoUrl,
-      thumbnail: news.thumbnailUrl,
-      type: 'news',
-      source: 'internal',
-      publishedAt: news.createdAt.toISOString(),
-    }));
-
-    return NextResponse.json(trendingItems);
+    return NextResponse.json(news, { status: 200 });
   } catch (error) {
     console.error('Error fetching local news:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ message: 'Failed to fetch local news' }, { status: 500 });
   }
 }

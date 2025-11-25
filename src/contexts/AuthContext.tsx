@@ -12,6 +12,7 @@ interface User {
   isPremium?: boolean;
   premiumExpiresAt?: Date;
   usedFreeTrial?: boolean;
+  isAdmin?: boolean;
 }
 
 interface AuthState {
@@ -50,6 +51,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           isPremium: auth0User['https://telecast.com/premium'] || false,
           premiumExpiresAt: auth0User['https://telecast.com/premium_expires_at'] ? new Date(auth0User['https://telecast.com/premium_expires_at']) : undefined,
           usedFreeTrial: auth0User['https://telecast.com/used_free_trial'] || false,
+          isAdmin: auth0User['https://telecast.com/roles']?.includes('admin') || false,
         },
             isLoading: false,
             isAuthenticated: true,
@@ -138,4 +140,4 @@ export function useAuth() {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
-} 
+}

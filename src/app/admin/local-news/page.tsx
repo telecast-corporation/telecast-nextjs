@@ -1,181 +1,146 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useUser } from '@auth0/nextjs-auth0';
-import {
-  Box,
-  Container,
-  Typography,
-  Button,
-  Grid,
-  Card,
-  CardContent,
-  CardActions,
-  CircularProgress,
-  Alert,
-  Chip,
-} from '@mui/material';
+import { useAuth } from '@/contexts/AuthContext';
 
-interface LocalNews {
+interface News {
   id: string;
   title: string;
   description: string;
   videoUrl: string;
-  city: string;
-  country: string;
+  locationCity: string;
+  locationCountry: string;
   status: string;
-  createdAt: string;
+  user: {
+    name: string;
+    email: string;
+  };
 }
 
-export default function AdminLocalNews() {
-  const { user, isLoading } = useUser();
-  const [newsItems, setNewsItems] = useState<LocalNews[]>([]);
+export default function AdminLocalNewsPage() {
+  const { user, isLoading: authLoading } = useAuth();
+  const [news, setNews] = useState<News[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!isLoading && user) {
-      fetchPendingNews();
-    }
-  }, [isLoading, user]);
+    const fetchNews = async () => {
+      if (!user) return;
 
-  const fetchPendingNews = async () => {
-    try {
-      const response = await fetch('/api/admin/local-news');
-      if (!response.ok) {
-        throw new Error('Failed to fetch pending news');
+      try {
+        const response = await fetch('/api/admin/local-news');
+        if (!response.ok) {
+          throw new Error('Failed to fetch news');
+        }
+        const data = await response.json();
+        setNews(data);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'An error occurred');
+      } finally {
+        setLoading(false);
       }
-      const data = await response.json();
-      setNewsItems(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load pending news');
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
 
-  const handleUpdateStatus = async (id: string, status: 'approved' | 'rejected') => {
+    if (!authLoading) {
+      fetchNews();
+    }
+  }, [user, authLoading]);
+
+  const handleUpdateStatus = async (id: string, status: string) => {
     try {
       const response = await fetch('/api/admin/local-news', {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id, status }),
       });
 
       if (!response.ok) {
-        const data = await response.json().catch(() => ({}));
-        throw new Error(data.error || 'Failed to update news status');
+        throw new Error('Failed to update status');
       }
 
-      setNewsItems(newsItems.filter(item => item.id !== id));
+      setNews(news.map(item => item.id === id ? { ...item, status } : item));
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update status');
+      setError(err instanceof Error ? err.message : 'Failed to update');
     }
   };
 
-  if (isLoading || loading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
-        <CircularProgress />
-      </Box>
-    );
+  if (authLoading || loading) {
+    return <p>Loading...</p>;
   }
 
-  if (!user) {
-    // In a real app, you might redirect to a login page or show an unauthorized message.
-    // For now, we'll just return null if the user is not authenticated.
-    return null;
+  if (error) {
+    return <p className="text-red-500">{error}</p>;
+  }
+
+  if (!user || !user.isAdmin) {
+    return <p>You are not authorized to view this page.</p>;
   }
 
   return (
-    <Container maxWidth="lg" sx={{ py: 3 }}>
-      <Box sx={{ textAlign: 'center', mb: 6 }}>
-        <Typography 
-          variant="h3" 
-          sx={{ 
-            fontWeight: 700,
-            mb: 2,
-            background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
-            backgroundClip: 'text',
-            textFillColor: 'transparent',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-          }}
-        >
-          Admin Moderation
-        </Typography>
-        <Typography 
-          variant="h6" 
-          sx={{ 
-            color: '#6c757d',
-            maxWidth: '600px',
-            mx: 'auto',
-            mb: 4,
-          }}
-        >
-          Review and approve local news submissions.
-        </Typography>
-      </Box>
+    <div className="container mx-auto px-4 py-8">
+      <h1 className="text-2xl font-bold mb-6">Moderate Local News</h1>
 
-      {error && (
-        <Alert severity="error" sx={{ mb: 4 }}>
-          {error}
-        </Alert>
-      )}
-
-      <Grid container spacing={4}>
-        {newsItems.map((item) => (
-          <Grid item xs={12} sm={6} md={4} key={item.id}>
-            <Card
-              sx={{
-                height: '100%',
-                display: 'flex',
-                flexDirection: 'column',
-              }}
-            >
-              <CardContent sx={{ flexGrow: 1 }}>
-                <Typography gutterBottom variant="h6" component="h2">
-                  {item.title}
-                </Typography>
-                <Typography
-                  variant="body2"
-                  color="text.secondary"
-                  sx={{
-                    display: '-webkit-box',
-                    WebkitLineClamp: 3,
-                    WebkitBoxOrient: 'vertical',
-                    overflow: 'hidden',
-                  }}
-                >
-                  {item.description}
-                </Typography>
-                <Box sx={{ mt: 2 }}>
-                  <Chip label={`${item.city}, ${item.country}`} size="small" />
-                </Box>
-                <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-                  Submitted: {new Date(item.createdAt).toLocaleDateString()}
-                </Typography>
-              </CardContent>
-              <CardActions>
-                <Button size="small" color="success" onClick={() => handleUpdateStatus(item.id, 'approved')}>
-                  Approve
-                </Button>
-                <Button size="small" color="error" onClick={() => handleUpdateStatus(item.id, 'rejected')}>
-                  Reject
-                </Button>
-              </CardActions>
-            </Card>
-          </Grid>
-        ))}
-      </Grid>
-
-      {newsItems.length === 0 && !loading && (
-        <Typography sx={{ textAlign: 'center', mt: 4, color: 'text.secondary' }}>
-          No pending news items to review.
-        </Typography>
-      )}
-    </Container>
+      <div className="bg-white shadow-md rounded-lg overflow-hidden">
+        <table className="min-w-full leading-normal">
+          <thead>
+            <tr>
+              <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                Submission
+              </th>
+              <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                Author
+              </th>
+              <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                Status
+              </th>
+              <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {news.map((item) => (
+              <tr key={item.id}>
+                <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+                  <p className="text-gray-900 whitespace-no-wrap font-bold">
+                    {item.title}
+                  </p>
+                  <p className="text-gray-600 whitespace-no-wrap">{item.description}</p>
+                  <a href={item.videoUrl} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
+                    Watch Video
+                  </a>
+                </td>
+                <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+                  <p className="text-gray-900 whitespace-no-wrap">{item.user.name}</p>
+                  <p className="text-gray-600 whitespace-no-wrap">{item.user.email}</p>
+                </td>
+                <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+                  <span
+                    className={`relative inline-block px-3 py-1 font-semibold leading-tight ${item.status === 'approved' ? 'text-green-900' : item.status === 'rejected' ? 'text-red-900' : 'text-yellow-900'}`}>
+                    <span aria-hidden className={`absolute inset-0 ${item.status === 'approved' ? 'bg-green-200' : item.status === 'rejected' ? 'bg-red-200' : 'bg-yellow-200'} opacity-50 rounded-full`}></span>
+                    <span className="relative">{item.status}</span>
+                  </span>
+                </td>
+                <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm text-right">
+                  {item.status === 'pending' && (
+                    <>
+                      <button
+                        onClick={() => handleUpdateStatus(item.id, 'approved')}
+                        className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-full mr-2">
+                        Approve
+                      </button>
+                      <button
+                        onClick={() => handleUpdateStatus(item.id, 'rejected')}
+                        className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-full">
+                        Reject
+                      </button>
+                    </>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
   );
 }

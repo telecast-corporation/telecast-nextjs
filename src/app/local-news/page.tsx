@@ -1,162 +1,124 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { 
-  Container, 
-  Typography, 
-  Grid, 
-  Card, 
-  CardMedia, 
-  CardContent, 
-  CircularProgress, 
-  Box, 
-  TextField, 
-  Button, 
-  Alert, 
-  FormControl, 
-  InputLabel, 
-  Select, 
-  MenuItem 
-} from '@mui/material';
-import { countries } from '@/lib/countries';
+import { useRouter, useSearchParams } from 'next/navigation';
 
-interface LocalNewsItem {
+interface News {
   id: string;
   title: string;
-  city: string;
-  country: string;
-  thumbnailUrl?: string;
+  description: string;
+  category: string;
+  videoUrl: string;
+  locationCity: string;
+  locationCountry: string;
+  user: {
+    name: string;
+    image: string;
+  };
 }
 
 export default function LocalNewsPage() {
-  const [news, setNews] = useState<LocalNewsItem[]>([]);
+  const [news, setNews] = useState<News[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [city, setCity] = useState('');
   const [country, setCountry] = useState('');
   const router = useRouter();
-
-  const fetchNews = async (filterCity = '', filterCountry = '') => {
-    setLoading(true);
-    try {
-      const query = new URLSearchParams({
-        ...(filterCity && { city: filterCity }),
-        ...(filterCountry && { country: filterCountry }),
-      }).toString();
-      
-      const response = await fetch(`/api/local-news?${query}`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch news');
-      }
-      const data = await response.json();
-      setNews(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load news');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const searchParams = useSearchParams();
 
   useEffect(() => {
+    const fetchNews = async () => {
+      setLoading(true);
+      const params = new URLSearchParams();
+      if (searchParams.get('city')) {
+        params.append('city', searchParams.get('city') as string);
+      }
+      if (searchParams.get('country')) {
+        params.append('country', searchParams.get('country') as string);
+      }
+
+      try {
+        const response = await fetch(`/api/local-news?${params.toString()}`);
+        const data = await response.json();
+        setNews(data);
+      } catch (error) {
+        console.error('Failed to fetch news:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchNews();
-  }, []);
+  }, [searchParams]);
 
-  const handleFilter = () => {
-    fetchNews(city, country);
+  const handleFilterChange = () => {
+    const params = new URLSearchParams();
+    if (city) {
+      params.set('city', city);
+    }
+    if (country) {
+      params.set('country', country);
+    }
+    router.push(`/local-news?${params.toString()}`);
   };
-
-  const handleItemClick = (item: LocalNewsItem) => {
-    router.push(`/video/${item.id}`);
-  };
-
-  if (loading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
-        <CircularProgress />
-      </Box>
-    );
-  }
-
-  if (error) {
-    return (
-      <Container sx={{ mt: 4 }}>
-        <Alert severity="error">{error}</Alert>
-      </Container>
-    );
-  }
-
-  const cities = countries.find(c => c.name === country)?.cities || [];
 
   return (
-    <Container sx={{ py: 4 }}>
-      <Typography variant="h4" component="h1" gutterBottom>
-        Local News
-      </Typography>
-      <Box sx={{ display: 'flex', gap: 2, mb: 4, alignItems: 'center' }}>
-        <FormControl sx={{ minWidth: 120 }}>
-          <InputLabel id="country-filter-label">Country</InputLabel>
-          <Select
-            labelId="country-filter-label"
-            value={country}
-            label="Country"
-            onChange={(e) => {
-              setCountry(e.target.value as string);
-              setCity('');
-            }}
-          >
-            <MenuItem value=""><em>All</em></MenuItem>
-            {countries.map((c) => (
-              <MenuItem key={c.code} value={c.name}>
-                {c.name}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-        <FormControl sx={{ minWidth: 120 }}>
-          <InputLabel id="city-filter-label">City</InputLabel>
-          <Select
-            labelId="city-filter-label"
+    <div className="container mx-auto px-4 py-8">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold">Local News</h1>
+        <button
+          onClick={() => router.push('/local-news/upload')}
+          className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700"
+        >
+          Upload News
+        </button>
+      </div>
+
+      {/* Filter Section */}
+      <div className="mb-8 p-4 border rounded-lg">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <input
+            type="text"
+            placeholder="City"
             value={city}
-            label="City"
-            onChange={(e) => setCity(e.target.value as string)}
-            disabled={!country}
+            onChange={(e) => setCity(e.target.value)}
+            className="border-gray-300 rounded-md shadow-sm"
+          />
+          <input
+            type="text"
+            placeholder="Country"
+            value={country}
+            onChange={(e) => setCountry(e.target.value)}
+            className="border-gray-300 rounded-md shadow-sm"
+          />
+          <button
+            onClick={handleFilterChange}
+            className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
           >
-            <MenuItem value=""><em>All</em></MenuItem>
-            {cities.map((cityName) => (
-              <MenuItem key={cityName} value={cityName}>
-                {cityName}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-        <Button variant="contained" onClick={handleFilter}>Filter</Button>
-      </Box>
-      <Grid container spacing={3}>
-        {news.map((item) => (
-          <Grid item xs={12} sm={6} md={4} key={item.id}>
-            <Card 
-              sx={{ height: '100%', cursor: 'pointer' }}
-              onClick={() => handleItemClick(item)}
-            >
-              <CardMedia
-                component="img"
-                height="140"
-                image={item.thumbnailUrl || 'https://via.placeholder.com/150'}
-                alt={item.title}
-              />
-              <CardContent>
-                <Typography gutterBottom variant="h6" component="div">
-                  {item.title}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  {item.city}, {item.country}
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-        ))}
-      </Grid>
-    </Container>
+            Apply Filters
+          </button>
+        </div>
+      </div>
+
+      {/* News Grid */}
+      {loading ? (
+        <p>Loading...</p>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {news.map((item) => (
+            <div key={item.id} className="border rounded-lg overflow-hidden shadow-lg">
+              <video controls src={item.videoUrl} className="w-full h-48 object-cover"></video>
+              <div className="p-4">
+                <h3 className="text-xl font-semibold mb-2">{item.title}</h3>
+                <p className="text-gray-600 mb-2">{item.description}</p>
+                <div className="text-sm text-gray-500">
+                  <span>{item.locationCity}, {item.locationCountry}</span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }

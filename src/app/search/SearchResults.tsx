@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Container, Typography, Box, CircularProgress, Button } from '@mui/material';
+import { Container, Typography, Box, CircularProgress, Button, TextField } from '@mui/material';
 import UnifiedSearchResults from '@/components/UnifiedSearchResults';
 import BookTypeToggle from '@/components/BookTypeToggle';
 import PartnerLogos from '@/components/PartnerLogos';
@@ -34,6 +34,8 @@ export default function SearchResults() {
   const router = useRouter();
   const currentPage = parseInt(searchParams.get('page') || '1');
   const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const [city, setCity] = useState('');
+  const [country, setCountry] = useState('');
 
   const handlePageChange = (page: number) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -85,6 +87,8 @@ export default function SearchResults() {
             trending: showRecommendations,
             page: currentPage,
             limit: type === 'news' ? 50 : type === 'tv' ? 20 : 20,
+            city: city,
+            country: country,
           }),
         });
 
@@ -129,7 +133,7 @@ export default function SearchResults() {
         clearTimeout(debounceTimerRef.current);
       }
     };
-  }, [query, type, bookType, showRecommendations, currentPage]);
+  }, [query, type, bookType, showRecommendations, currentPage, city, country]);
 
   if (!query && !showRecommendations) {
     return (
@@ -247,6 +251,24 @@ export default function SearchResults() {
       {/* Show book type toggle when searching for books */}
       {type === 'book' && (
         <BookTypeToggle value={bookType} onChange={setBookType} />
+      )}
+
+      {/* Location filter for news */}
+      {type === 'news' && (
+        <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+          <TextField
+            label="City"
+            variant="outlined"
+            value={city}
+            onChange={(e) => setCity(e.target.value)}
+          />
+          <TextField
+            label="Country"
+            variant="outlined"
+            value={country}
+            onChange={(e) => setCountry(e.target.value)}
+          />
+        </Box>
       )}
       
       <UnifiedSearchResults results={results} searchType={type} loading={loading} trending={showRecommendations} />

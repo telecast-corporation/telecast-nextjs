@@ -1,8 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Container, Typography, Box, CircularProgress, Alert } from '@mui/material';
+import { Container, Typography, Box, CircularProgress, Alert, FormControl, InputLabel, Select, MenuItem, Button } from '@mui/material';
 import { useLocation } from '@/hooks/useLocation';
+import { countries } from '@/lib/countries';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 interface NewsArticle {
   id: string;
@@ -19,12 +21,19 @@ export default function NewsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { location, loading: locationLoading } = useLocation();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const [selectedCountry, setSelectedCountry] = useState(searchParams.get('country') || '');
+  const [selectedCity, setSelectedCity] = useState(searchParams.get('city') || '');
 
   useEffect(() => {
     const fetchNews = async () => {
       try {
         setLoading(true);
         setError(null);
+
+        const locationQuery = selectedCity || selectedCountry || '';
 
         const response = await fetch('/api/news', {
           method: 'POST',
@@ -33,6 +42,7 @@ export default function NewsPage() {
           },
           body: JSON.stringify({
             limit: 20,
+            location: locationQuery,
           }),
         });
 
@@ -52,7 +62,35 @@ export default function NewsPage() {
     if (!locationLoading) {
       fetchNews();
     }
-  }, [location, locationLoading]);
+  }, [location, locationLoading, selectedCity, selectedCountry]);
+
+  const handleCountryChange = (event: any) => {
+    const country = event.target.value;
+    setSelectedCountry(country);
+    setSelectedCity('');
+    updateURL(country, '');
+  };
+
+  const handleCityChange = (event: any) => {
+    const city = event.target.value;
+    setSelectedCity(city);
+    updateURL(selectedCountry, city);
+  };
+
+  const handleClear = () => {
+    setSelectedCountry('');
+    setSelectedCity('');
+    updateURL('', '');
+  };
+
+  const updateURL = (country: string, city: string) => {
+    const params = new URLSearchParams();
+    if (country) params.set('country', country);
+    if (city) params.set('city', city);
+    router.push(`/news?${params.toString()}`);
+  };
+
+  const cities = countries.find(c => c.name === selectedCountry)?.cities || [];
 
   if (locationLoading || loading) {
     return (
@@ -74,9 +112,38 @@ export default function NewsPage() {
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Typography variant="h4" component="h1" gutterBottom>
-        Latest Global News
-      </Typography>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+        <Typography variant="h4" component="h1">
+          {selectedCity || selectedCountry ? `News from ${selectedCity || selectedCountry}` : 'Latest Global News'}
+        </Typography>
+        <Button variant="contained" onClick={() => router.push('/local-news/upload')}>
+          Upload News
+        </Button>
+      </Box>
+
+      <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+        <FormControl sx={{ minWidth: 200 }}>
+          <InputLabel>Country</InputLabel>
+          <Select value={selectedCountry} onChange={handleCountryChange}>
+            {countries.map((c) => (
+              <MenuItem key={c.code} value={c.name}>
+                {c.name}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+        <FormControl sx={{ minWidth: 200 }} disabled={!selectedCountry}>
+          <InputLabel>City</InputLabel>
+          <Select value={selectedCity} onChange={handleCityChange}>
+            {cities.map((cityName) => (
+              <MenuItem key={cityName} value={cityName}>
+                {cityName}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+        <Button onClick={handleClear} variant="outlined">Clear</Button>
+      </Box>
       
       {articles.length === 0 ? (
         <Typography variant="body1" color="text.secondary">
