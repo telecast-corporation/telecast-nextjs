@@ -13,29 +13,7 @@ import {
   LinearProgress,
 } from '@mui/material';
 import { Close as CloseIcon, PlayArrow as PlayIcon, Pause as PauseIcon } from '@mui/icons-material';
-
-interface TrendingItem {
-  id: string;
-  type: 'video' | 'music' | 'book' | 'podcast' | 'news' | 'tv';
-  title: string;
-  description?: string;
-  thumbnail?: string;
-  url?: string;
-  views?: string;
-  publishedAt?: string;
-  artist?: string;
-  album?: string;
-  author?: string;
-  publishedDate?: string;
-  rating?: number;
-  episodeCount?: number;
-  categories?: string[];
-  source?: string;
-  sourceUrl?: string;
-  year?: string;
-  duration?: string;
-  previewVideo?: string;
-}
+import { TrendingItem } from '@/types';
 
 interface TVPreviewModalProps {
   open: boolean;

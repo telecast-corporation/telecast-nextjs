@@ -19,27 +19,7 @@ import {
 import { useRouter } from 'next/navigation';
 import Pagination from '@/components/Pagination';
 import TVPreviewModal from '@/components/TVPreviewModal';
-
-interface TrendingItem {
-  id: string;
-  type: 'video' | 'music' | 'book' | 'news' | 'tv';
-  title: string;
-  description?: string;
-  thumbnail?: string;
-  url?: string;
-  views?: string;
-  publishedAt?: string;
-  artist?: string;
-  album?: string;
-  author?: string;
-  publishedDate?: string;
-  rating?: number;
-  source?: string;
-  sourceUrl?: string;
-  year?: string;
-  duration?: string;
-  previewVideo?: string;
-}
+import { TrendingItem } from '@/types';
 
 interface TabPanelProps {
   children?: React.ReactNode;

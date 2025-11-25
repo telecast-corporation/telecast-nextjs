@@ -28,29 +28,7 @@ import SearchParamsWrapper from '@/components/SearchParamsWrapper';
 import PartnerLogos from '@/components/PartnerLogos';
 import TVPreviewModal from '@/components/TVPreviewModal';
 import { useAuth } from '@/contexts/AuthContext';
-
-interface TrendingItem {
-    id: string;
-  type: 'video' | 'music' | 'book' | 'podcast' | 'news' | 'tv';
-    title: string;
-    description: string;
-  thumbnail: string;
-  url: string;
-  views?: string;
-  publishedAt?: string;
-  artist?: string;
-  album?: string;
-    author?: string;
-  publishedDate?: string;
-  rating?: number;
-    episodeCount?: number;
-  categories?: string[];
-  source?: string;
-  sourceUrl?: string;
-  year?: string;
-  duration?: string;
-  previewVideo?: string;
-}
+import { TrendingItem } from '@/types';
 
 interface ContentCarouselProps {
       title: string;
