@@ -1,19 +1,25 @@
-\'use client\';
+'use client';
 
-import { useState, useEffect } from \'react\';
-import { Container, Typography, Box, CircularProgress, Alert, FormControl, InputLabel, Select, MenuItem, Button } from \'@mui/material\';
-import { useLocation } from \'@/hooks/useLocation\';
-import { countries } from \'@/lib/countries\';
-import { useRouter, useSearchParams } from \'next/navigation\';
+import { useState, useEffect } from 'react';
+import { Container, Typography, Box, CircularProgress, Alert, FormControl, InputLabel, Select, MenuItem, Button } from '@mui/material';
+import { useLocation } from '@/hooks/useLocation';
+import { countries } from '@/lib/countries';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 interface NewsArticle {
+  type: 'news' | 'local';
   id: string;
   title: string;
-  description: string;
   url: string;
-  thumbnail?: string;
+  description: string;
   author: string;
+  source: string;
+  sourceUrl: string;
+  thumbnail?: string;
   publishedAt: string;
+  location?: string;
+  status?: 'pending' | 'approved' | 'rejected';
+  rejectionReason?: string;
 }
 
 export default function NewsPage() {
@@ -24,8 +30,8 @@ export default function NewsPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const [selectedCountry, setSelectedCountry] = useState(searchParams.get(\'country\') || \'\');
-  const [selectedCity, setSelectedCity] = useState(searchParams.get(\'city\') || \'\');
+  const [selectedCountry, setSelectedCountry] = useState(searchParams.get('country') || '');
+  const [selectedCity, setSelectedCity] = useState(searchParams.get('city') || '');
 
   useEffect(() => {
     const fetchNews = async () => {
@@ -33,12 +39,12 @@ export default function NewsPage() {
         setLoading(true);
         setError(null);
 
-        const locationQuery = selectedCity || selectedCountry || \'\';
+        const locationQuery = selectedCity || selectedCountry || '';
 
-        const response = await fetch(\'/api/news\', {
-          method: \'POST\',
+        const response = await fetch('/api/news', {
+          method: 'POST',
           headers: {
-            \'Content-Type\': \'application/json\',
+            'Content-Type': 'application/json',
           },
           body: JSON.stringify({
             limit: 20,
@@ -47,13 +53,13 @@ export default function NewsPage() {
         });
 
         if (!response.ok) {
-          throw new Error(\'Failed to fetch news\');
+          throw new Error('Failed to fetch news');
         }
 
         const data = await response.json();
         setArticles(data.results || []);
       } catch (err) {
-        setError(err instanceof Error ? err.message : \'An error occurred\');
+        setError(err instanceof Error ? err.message : 'An error occurred');
       } finally {
         setLoading(false);
       }
@@ -67,8 +73,8 @@ export default function NewsPage() {
   const handleCountryChange = (event: any) => {
     const country = event.target.value;
     setSelectedCountry(country);
-    setSelectedCity(\'\');
-    updateURL(country, \'\');
+    setSelectedCity('');
+    updateURL(country, '');
   };
 
   const handleCityChange = (event: any) => {
@@ -78,15 +84,15 @@ export default function NewsPage() {
   };
 
   const handleClear = () => {
-    setSelectedCountry(\'\');
-    setSelectedCity(\'\');
-    updateURL(\'\', \'\');
+    setSelectedCountry('');
+    setSelectedCity('');
+    updateURL('', '');
   };
 
   const updateURL = (country: string, city: string) => {
     const params = new URLSearchParams();
-    if (country) params.set(\'country\', country);
-    if (city) params.set(\'city\', city);
+    if (country) params.set('country', country);
+    if (city) params.set('city', city);
     router.push(`/news?${params.toString()}`);
   };
 
@@ -94,8 +100,8 @@ export default function NewsPage() {
 
   if (locationLoading || loading) {
     return (
-      <Container maxWidth=\"lg\" sx={{ py: 4 }}>
-        <Box display=\"flex\" justifyContent=\"center\" alignItems=\"center\" minHeight=\"200px\">
+      <Container maxWidth="lg" sx={{ py: 4 }}>
+        <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
           <CircularProgress />
         </Box>
       </Container>
@@ -104,29 +110,29 @@ export default function NewsPage() {
 
   if (error) {
     return (
-      <Container maxWidth=\"lg\" sx={{ py: 4 }}>
-        <Alert severity=\"error\">{error}</Alert>
+      <Container maxWidth="lg" sx={{ py: 4 }}>
+        <Alert severity="error">{error}</Alert>
       </Container>
     );
   }
 
   return (
-    <Container maxWidth=\"lg\" sx={{ py: 4 }}>
-      <Box sx={{ display: \'flex\', justifyContent: \'space-between\', alignItems: \'center\', mb: 2 }}>
-        <Typography variant=\"h4\" component=\"h1\">
-          {selectedCity || selectedCountry ? `News from ${selectedCity || selectedCountry}` : \'Latest Global News\'}
+    <Container maxWidth="lg" sx={{ py: 4 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+        <Typography variant="h4" component="h1">
+          {selectedCity || selectedCountry ? `News from ${selectedCity || selectedCountry}` : 'Latest Global News'}
         </Typography>
         <Box>
-          <Button variant=\"contained\" onClick={() => router.push(\'/local-news\')} sx={{ mr: 1 }}>
+          <Button variant="contained" onClick={() => router.push('/local-news')} sx={{ mr: 1 }}>
             Local News
           </Button>
-          <Button variant=\"contained\" onClick={() => router.push(\'/local-news/upload\')}>
+          <Button variant="contained" onClick={() => router.push('/local-news/upload')}>
             Upload News
           </Button>
         </Box>
       </Box>
 
-      <Box sx={{ display: \'flex\', gap: 2, mb: 2 }}>
+      <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
         <FormControl sx={{ minWidth: 200 }}>
           <InputLabel>Country</InputLabel>
           <Select value={selectedCountry} onChange={handleCountryChange}>
@@ -144,49 +150,49 @@ export default function NewsPage() {
               <MenuItem key={cityName} value={cityName}>
                 {cityName}
               </MenuItem>
-            ))}\
+            ))}
           </Select>
         </FormControl>
-        <Button onClick={handleClear} variant=\"outlined\">Clear</Button>
+        <Button onClick={handleClear} variant="outlined">Clear</Button>
       </Box>
       
       {articles.length === 0 ? (
-        <Typography variant=\"body1\" color=\"text.secondary\">
+        <Typography variant="body1" color="text.secondary">
           No news articles found.
         </Typography>
       ) : (
-        <Box sx={{ display: \'grid\', gap: 2 }}>
+        <Box sx={{ display: 'grid', gap: 2 }}>
           {articles.map((article) => (
             <Box
               key={article.id}
               sx={{
                 p: 2,
-                border: \'1px solid\',
-                borderColor: \'divider\',
+                border: '1px solid',
+                borderColor: 'divider',
                 borderRadius: 1,
-                \'&:hover\': {
-                  backgroundColor: \'action.hover\',
+                '&:hover': {
+                  backgroundColor: 'action.hover',
                 },
               }}
             >
-              <Typography variant=\"h6\" component=\"h2\" gutterBottom>
+              <Typography variant="h6" component="h2" gutterBottom>
                 <a
                   href={article.url}
-                  target=\"_blank\"
-                  rel=\"noopener noreferrer\"
-                  style={{ textDecoration: \'none\', color: \'inherit\' }}\'
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ textDecoration: 'none', color: 'inherit' }}
                 >
                   {article.title}
                 </a>
               </Typography>
-              <Typography variant=\"body2\" color=\"text.secondary\" gutterBottom>
+              <Typography variant="body2" color="text.secondary" gutterBottom>
                 {article.description}
               </Typography>
-              <Box sx={{ display: \'flex\', justifyContent: \'space-between\', alignItems: \'center\' }}>
-                <Typography variant=\"caption\" color=\"text.secondary\">
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Typography variant="caption" color="text.secondary">
                   {article.author}
                 </Typography>
-                <Typography variant=\"caption\" color=\"text.secondary\">
+                <Typography variant="caption" color="text.secondary">
                   {new Date(article.publishedAt).toLocaleDateString()}
                 </Typography>
               </Box>
