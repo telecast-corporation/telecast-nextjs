@@ -236,30 +236,31 @@ async function getTrendingPodcasts() {
 
 async function getTrendingTV() {
   try {
-    console.log('📺 Fetching trending TV from database...');
-    const allStreamingContent = await prisma.streamingContent.findMany({
-        take: 200, // Limit to a reasonable number for trending
+    console.log('📺 Fetching trending local news from database...');
+    const allLocalNews = await prisma.localNews.findMany({
+        where: { status: 'approved' },
+        take: 200,
+        orderBy: { createdAt: 'desc' },
     });
 
-    // Shuffle the array to get a random assortment
-    const shuffledContent = allStreamingContent.sort(() => 0.5 - Math.random());
+    const shuffledContent = allLocalNews.sort(() => 0.5 - Math.random());
 
     return shuffledContent.map((item: any) => ({
       id: item.id,
-      type: 'tv', // Keep the type consistent for the frontend
+      type: 'tv',
       title: item.title,
       description: item.description,
-      thumbnail: item.thumbnail,
-      url: `/tv/${item.id}`,
-      year: item.year,
-      duration: item.duration,
-      rating: item.rating,
-      source: item.source,
-      sourceUrl: item.sourceUrl,
-      previewVideo: item.previewVideo,
+      thumbnail: 'https://via.placeholder.com/300x200?text=Local+News', // Placeholder
+      url: `/local-news/${item.id}`,
+      year: new Date(item.createdAt).getFullYear(),
+      duration: null,
+      rating: null,
+      source: `${item.locationCity}, ${item.locationCountry}`,
+      sourceUrl: item.videoUrl,
+      previewVideo: item.videoUrl,
     }));
   } catch (error) {
-    console.error('📺 Error fetching trending TV from database:', error);
+    console.error('📺 Error fetching trending local news from database:', error);
     return [];
   }
 }

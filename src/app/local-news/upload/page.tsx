@@ -1,6 +1,6 @@
 
 "use client";
-import React, { useState, useMemo } from ''';
+import React, { useState, useMemo } from 'react';
 import {
   Box,
   Button,
@@ -9,6 +9,7 @@ import {
   InputLabel,
   MenuItem,
   Select,
+  SelectChangeEvent,
   TextField,
   Typography,
 } from "@mui/material";
@@ -27,12 +28,12 @@ const LocalNewsUploadPage = () => {
     return selectedCountry ? selectedCountry.cities : [];
   }, [country]);
 
-  const handleCountryChange = (event: React.ChangeEvent<{ value: unknown }>) => {
+  const handleCountryChange = (event: SelectChangeEvent) => {
     setCountry(event.target.value as string);
     setCity("");
   };
 
-  const handleCityChange = (event: React.ChangeEvent<{ value: unknown }>) => {
+  const handleCityChange = (event: SelectChangeEvent) => {
     setCity(event.target.value as string);
   };
 
