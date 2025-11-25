@@ -6,6 +6,7 @@ export interface TrendingItem {
   description: string;
   thumbnail: string;
   url: string;
+  previewUrl?: string;
   views?: string;
   publishedAt?: string;
   artist?: string;
