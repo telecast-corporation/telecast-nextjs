@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -9,17 +10,41 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  --background-start-rgb: 245, 245, 245;
+  --background-end-rgb: 255, 255, 255;
+  --foreground-rgb: 33, 33, 33;
 }
 
-a {
-  font-weight: 500;
-  text-decoration: inherit;
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background-start-rgb: 23, 23, 23;
+    --background-end-rgb: 42, 42, 42;
+    --foreground-rgb: 245, 245, 245;
+  }
 }
 
 body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
+  color: rgb(var(--foreground-rgb));
+  background: linear-gradient(
+to bottom,
+    rgb(var(--background-start-rgb)),
+    rgb(var(--background-end-rgb))
+  );
+  transition: background-color 0.5s ease-in-out, color 0.5s ease-in-out;
+}
+
+a {
+  font-weight: 500;
+  text-decoration: none;
+  color: #3b82f6; /* Blue-500 */
+  transition: color 0.2s ease-in-out;
+}
+
+a:hover {
+  color: #2563eb; /* Blue-600 */
 }
 
 h1 {
@@ -30,12 +55,18 @@ h1 {
 button {
   border-radius: 8px;
   border: 1px solid transparent;
-  padding: 0.6em 1.2em;
+  padding: 0.8em 1.4em;
   font-size: 1em;
-  font-weight: 500;
+  font-weight: 600;
   font-family: inherit;
   cursor: pointer;
-  transition: border-color 0.25s;
+  transition: all 0.3s ease-in-out;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
 button:focus,
@@ -43,46 +74,27 @@ button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
 
-/* Global Lexend font override for ALL text elements */
-* {
-  font-family: 'Lexend', system-ui, Avenir, Helvetica, Arial, sans-serif !important;
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-/* Ensure Material-UI components use Lexend */
-.MuiTypography-root,
-.MuiButton-root,
-.MuiInputBase-root,
-.MuiInputBase-input,
-.MuiFormLabel-root,
-.MuiMenuItem-root,
-.MuiListItemText-primary,
-.MuiListItemText-secondary,
-.MuiTab-root,
-.MuiChip-root,
-.MuiAlert-root,
-.MuiDialog-root,
-.MuiTooltip-tooltip,
-.MuiSnackbar-root,
-.MuiCard-root,
-.MuiCardContent-root,
-.MuiAppBar-root,
-.MuiToolbar-root {
-  font-family: 'Lexend', system-ui, Avenir, Helvetica, Arial, sans-serif !important;
+.fade-in {
+  animation: fadeIn 0.6s cubic-bezier(0.390, 0.575, 0.565, 1.000) both;
 }
 
-/* Ensure all text inputs use Lexend */
-input,
-textarea,
-select {
-  font-family: 'Lexend', system-ui, Avenir, Helvetica, Arial, sans-serif !important;
+.stagger-fade-in {
+  animation: fadeIn 0.6s cubic-bezier(0.390, 0.575, 0.565, 1.000) both;
+  animation-fill-mode: both;
 }
 
-/* Ensure all headings use Lexend */
-h1, h2, h3, h4, h5, h6 {
-  font-family: 'Lexend', system-ui, Avenir, Helvetica, Arial, sans-serif !important;
-}
-
-/* Ensure paragraphs and spans use Lexend */
-p, span, div, label {
-  font-family: 'Lexend', system-ui, Avenir, Helvetica, Arial, sans-serif !important;
+/* Global font override for ALL text elements */
+body, input, textarea, select, button, h1, h2, h3, h4, h5, h6, p, span, div, label, a {
+  font-family: 'Lexend', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif !important;
 }
