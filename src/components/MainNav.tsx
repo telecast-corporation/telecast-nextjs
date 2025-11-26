@@ -277,7 +277,7 @@ const GridNav = styled(Box)(({ theme }) => ({
   top: 0,
   left: 0,
   right: 0,
-  width: '100%',
+  width: '80%',
   zIndex: theme.zIndex.appBar,
   boxShadow: theme.shadows[1],
   [theme.breakpoints.down('lg')]: {
@@ -1032,13 +1032,13 @@ const MainNav = memo(() => {
     return (
       <GridNav>
         <LogoArea>
-          <Box sx={{ width: '240px', height: '50px', bgcolor: 'action.hover', borderRadius: 1, opacity: 0.3 }} />
+          <Box sx={{ width: '200px', height: '50px', bgcolor: 'action.hover', borderRadius: 1, opacity: 0.3 }} />
         </LogoArea>
         <SearchContainer>
           <Box sx={{ flexGrow: 1, mx: 2, height: '80px', bgcolor: 'action.hover', borderRadius: 1, opacity: 0.3 }} />
         </SearchContainer>
         <FiltersArea>
-          <Box sx={{ width: '200px', height: '50px', bgcolor: 'action.hover', borderRadius: 1, opacity: 0.3 }} />
+          <Box sx={{ width: '170px', height: '50px', bgcolor: 'action.hover', borderRadius: 1, opacity: 0.3 }} />
         </FiltersArea>
       </GridNav>
     );
@@ -1054,8 +1054,8 @@ const MainNav = memo(() => {
               <Image
                 src="/telecast-logo.gif"
                 alt="Telecast Logo"
-                width={200}
-                height={50}
+                width={170}
+                height={45}
                 style={{
                   width: 'auto',
                   height: 'auto',
