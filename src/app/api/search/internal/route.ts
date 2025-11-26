@@ -112,7 +112,6 @@ export async function GET(request: Request) {
         seasonNumber: episode.seasonNumber ?? undefined,
         publishedAt: episode.publishedAt,
         duration: episode.duration ?? undefined,
-        likes: episode.likes,
       })));
     }
 
@@ -136,4 +135,4 @@ export async function GET(request: Request) {
       { status: 500 }
     );
   }
-} 
+}

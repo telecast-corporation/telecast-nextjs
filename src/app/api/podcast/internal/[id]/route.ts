@@ -20,13 +20,10 @@ export async function GET(
             duration: true,
             publishedAt: true,
             isPublished: true,
-            isFinal: true,
             episodeNumber: true,
             seasonNumber: true,
             explicit: true,
             keywords: true,
-            views: true,
-            likes: true,
             createdAt: true,
             updatedAt: true,
             fileSize: true,
@@ -53,4 +50,4 @@ export async function GET(
       { status: 500 }
     );
   }
-} 
+}

@@ -167,8 +167,8 @@ async function searchPodcasts(query: string, maxResults: number = 300, request?:
                 AND: [
                   {
                     OR: [
-                      { published: true }, // Include published podcasts
-                      { published: false } // Also include unpublished podcasts for the owner
+                      { isAvailable: true }, // Include published podcasts
+                      { isAvailable: false } // Also include unpublished podcasts for the owner
                     ]
                   },
                   {

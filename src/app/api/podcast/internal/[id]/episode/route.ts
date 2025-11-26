@@ -77,8 +77,10 @@ export async function POST(
     const episode = await prisma.episode.create({
       data: {
         podcastId,
+        title: "Untitled Episode",
+        description: "",
+        duration: 0,
         audioUrl: '', // Will be updated after upload
-        isFinal: false,
         isPublished: false,
         fileSize: audioFile.size,
       }
@@ -135,4 +137,4 @@ export async function POST(
       { status: 500 }
     );
   }
-} 
+}

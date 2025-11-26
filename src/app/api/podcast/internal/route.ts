@@ -25,34 +25,30 @@ export async function POST(req: Request) {
     const category = formData.get('category') as string;
     const language = formData.get('language') as string || 'en';
     const explicit = formData.get('explicit') === 'true';
-    const copyright = formData.get('copyright') as string || null;
-    const website = formData.get('website') as string || null;
+    const copyright = formData.get('copyright') as string | null;
+    const website = formData.get('website') as string | null;
     const author = formData.get('author') as string;
     const tagsString = formData.get('tags') as string || '';
     const tags = tagsString ? tagsString.split(',').map(tag => tag.trim()).filter(tag => tag) : [];
     const imageFile = formData.get('imageFile') as File;
 
-    if (!title || !description || !category || !author) {
+    if (!title || !description || !category || !author || !imageFile) {
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
       );
     }
+    
+    // Convert image to buffer
+    const imageBuffer = Buffer.from(await imageFile.arrayBuffer());
 
-    let coverImage = null;
-    if (imageFile) {
-      // Convert image to buffer
-      const imageBuffer = Buffer.from(await imageFile.arrayBuffer());
-
-      // Upload image to bucket
-      const { url } = await uploadPodcastFile(
-        imageBuffer,
-        imageFile.name,
-        imageFile.type,
-        true // Set isImage to true for podcast cover images
-      );
-      coverImage = url;
-    }
+    // Upload image to bucket
+    const { url: coverImage } = await uploadPodcastFile(
+      imageBuffer,
+      imageFile.name,
+      imageFile.type,
+      true // Set isImage to true for podcast cover images
+    );
 
     // Create podcast in database
     const podcast = await prisma.podcast.create({
@@ -61,10 +57,9 @@ export async function POST(req: Request) {
         description,
         category,
         tags,
-        coverImage: imageFile ? coverImage : null,
+        coverImage,
         userId: dbUser.id,
         author,
-        published: false,
         language,
         explicit,
         copyright,
@@ -126,4 +121,4 @@ export async function GET(req: Request) {
       { status: 500 }
     );
   }
-} 
+}
