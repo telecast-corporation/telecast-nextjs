@@ -160,7 +160,7 @@ export default function UnifiedSearchResults({ results, searchType = 'all', load
     e.preventDefault();
     e.stopPropagation();
     if (result.type === 'podcast') {
-      play({ id: result.id, title: result.title, author: result.author || '', image: result.thumbnail || '', url: result.url || '' }, { id: result.id, title: result.title, audioUrl: result.url || '', duration: Number(result.duration) || 0 });
+      play({ id: result.id, title: result.title, author: result.author || '', description: result.description || '', image: result.thumbnail || '', url: result.url || '' }, { id: result.id, title: result.title, description: result.description || '', audioUrl: result.url || '', duration: Number(result.duration) || 0, publishDate: result.publishedAt || result.publishedDate || '', imageUrl: result.thumbnail || '' });
     }
   };
 
