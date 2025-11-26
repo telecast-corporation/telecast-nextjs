@@ -18,6 +18,8 @@ import {
   TextField,
   Alert,
   Snackbar,
+  useMediaQuery,
+  useTheme as useMuiTheme,
 } from '@mui/material';
 import { 
   LogoutOutlined as LogoutIcon,
@@ -46,6 +48,8 @@ export default function ProfilePageWrapper() {
 function ProfilePage() {
   const { user: authUser, isAuthenticated, isLoading, logout } = useAuth();
   const router = useRouter();
+  const muiTheme = useMuiTheme();
+  const isMobile = useMediaQuery(muiTheme.breakpoints.down('sm'));
   const searchParams = useSearchParams();
   const [user, setUser] = useState<any>(null);
   const [userLoading, setUserLoading] = useState(true);
@@ -137,12 +141,10 @@ function ProfilePage() {
         severity: 'success',
       });
       
-      // Clear the URL parameter to prevent infinite reload
       const url = new URL(window.location.href);
       url.searchParams.delete('checkout');
       window.history.replaceState({}, '', url.toString());
       
-      // Refresh user data instead of reloading the page
       setTimeout(async () => {
         try {
           const response = await fetch('/api/profile');
@@ -160,7 +162,6 @@ function ProfilePage() {
   const handleRefreshSession = async () => {
     setIsRefreshing(true);
     try {
-      // Fetch fresh user data from API
       const response = await fetch('/api/profile');
       if (response.ok) {
         const userData = await response.json();
@@ -187,8 +188,6 @@ function ProfilePage() {
       setIsRefreshing(false);
     }
   };
-
-
 
   const validatePasswordForm = () => {
     const errors = {
@@ -272,9 +271,6 @@ function ProfilePage() {
     }
   };
 
-
-
-
   const handleDeleteAccount = async () => {
     if (deleteConfirmation !== 'DELETE') {
       return;
@@ -330,250 +326,233 @@ function ProfilePage() {
   }
 
   return (
-    <Container maxWidth="md" sx={{ mt: 4 }}>
-      <Paper sx={{ p: 4 }}>
-        <Grid container spacing={4}>
-          <Grid item xs={12} md={4} sx={{ display: 'flex', justifyContent: 'center' }}>
+    <Container maxWidth="md" sx={{ mt: isMobile ? 2 : 4, px: isMobile ? 2 : 3 }}>
+      <Paper sx={{ p: isMobile ? 2 : 4, borderRadius: borderRadius.large }}>
+        <Grid container spacing={isMobile ? 2 : 4}>
+          <Grid item xs={12} md={4} sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column' }}>
             <Avatar
               src={user?.image}
               alt={user?.name}
-              sx={{ width: 200, height: 200 }}
+              sx={{ width: isMobile ? 120 : 200, height: isMobile ? 120 : 200, mb: 2 }}
             />
-          </Grid>
-          <Grid item xs={12} md={8}>
-            <Typography variant="h5" gutterBottom sx={{ fontSize: '1.5rem' }}>
+            <Typography variant={isMobile ? "h6" : "h5"} gutterBottom sx={{ textAlign: 'center', ...typography.heading }}>
               {user?.name}
             </Typography>
-            <Typography variant="body2" color="text.secondary" gutterBottom sx={{ fontSize: '0.875rem' }}>
+            <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', ...typography.body }}>
               {user?.email}
             </Typography>
-            <Box sx={{ mt: 4 }}>
-              <Typography variant="h6" gutterBottom sx={{ fontSize: '1.1rem' }}>
-                Account Information
-              </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.8rem' }}>
-                Member since: {new Date().toLocaleDateString()}
-              </Typography>
-            </Box>
+          </Grid>
+          <Grid item xs={12} md={8}>
+            <Typography variant={isMobile ? "h6" : "h5"} gutterBottom sx={{ ...typography.heading }}>
+              Account Information
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ ...typography.body }}>
+              Member since: {new Date().toLocaleDateString()}
+            </Typography>
+            
+            <Divider sx={{ my: 3 }} />
+
+            <Paper 
+              sx={{ 
+                p: 3, 
+                background: 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)',
+                color: 'white',
+                position: 'relative',
+                overflow: 'hidden',
+                borderRadius: borderRadius.medium,
+              }}
+            >
+              <Box
+                sx={{
+                  position: 'absolute',
+                  top: -20,
+                  right: -20,
+                  width: 100,
+                  height: 100,
+                  borderRadius: '50%',
+                  background: 'rgba(255,255,255,0.08)',
+                }}
+              />
+              <Box
+                sx={{
+                  position: 'absolute',
+                  bottom: -30,
+                  left: -30,
+                  width: 80,
+                  height: 80,
+                  borderRadius: '50%',
+                  background: 'rgba(255,255,255,0.04)',
+                }}
+              />
+              
+              <Box sx={{ position: 'relative', zIndex: 1 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                  <DiamondIcon sx={{ fontSize: 28, color: '#FCD34D' }} />
+                  <Box>
+                    <Typography variant="h6" sx={{ ...typography.heading, fontSize: '1.2rem' }}>
+                      Upgrade to Premium
+                    </Typography>
+                    <Typography variant="body2" sx={{ opacity: 0.9, ...typography.body }}>
+                      Unlock exclusive features and enhance your experience.
+                    </Typography>
+                    {user?.isPremium && (
+                      <Typography variant="caption" sx={{ color: '#10B981', ...typography.caption, fontWeight: 'bold' }}>
+                        ✓ Premium Active
+                      </Typography>
+                    )}
+                    {!user?.isPremium && (
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Typography variant="caption" sx={{ color: '#EF4444', ...typography.caption, fontWeight: 'bold' }}>
+                          ⚠️ Premium Inactive
+                        </Typography>
+                        <Button
+                          size="small"
+                          startIcon={<RefreshIcon />}
+                          onClick={handleRefreshSession}
+                          disabled={isRefreshing}
+                          sx={{
+                            minWidth: 'auto',
+                            px: 1,
+                            py: 0.5,
+                            ...typography.button,
+                            color: '#EF4444',
+                            borderColor: '#EF4444',
+                            '&:hover': {
+                              backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                            },
+                          }}
+                        >
+                          {isRefreshing ? 'Refreshing...' : 'Refresh'}
+                        </Button>
+                      </Box>
+                    )}
+                  </Box>
+                </Box>
+                
+                <Grid container spacing={1} sx={{ mb: 2 }}>
+                  <Grid item xs={12} sm={6}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <CheckCircleIcon sx={{ fontSize: 16, color: '#10B981' }} />
+                      <Typography variant="body2" sx={{ ...typography.body, fontSize: '0.8rem' }}>
+                        Unlimited podcast uploads
+                      </Typography>
+                    </Box>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <CheckCircleIcon sx={{ fontSize: 16, color: '#10B981' }} />
+                      <Typography variant="body2" sx={{ ...typography.body, fontSize: '0.8rem' }}>
+                        Unlimited editing tools
+                      </Typography>
+                    </Box>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <CheckCircleIcon sx={{ fontSize: 16, color: '#10B981' }} />
+                      <Typography variant="body2" sx={{ ...typography.body, fontSize: '0.8rem' }}>
+                        Broadcast to other podcast platforms
+                      </Typography>
+                    </Box>
+                  </Grid>
+                </Grid>
+                
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
+                    <Box>
+                      <Typography variant="h6" sx={{ color: '#FCD34D', fontSize: '1rem' }}>
+                        Just ${pricingInfo?.price || 17.99}/month
+                        {pricingInfo?.eligible && (
+                          <Typography component="span" sx={{ 
+                            color: '#10B981', 
+                            fontSize: '0.8rem', 
+                            ml: 1,
+                            fontWeight: 'bold'
+                          }}>
+                            (Special Discount!)
+                          </Typography>
+                        )}
+                      </Typography>
+                      <Typography variant="caption" sx={{ opacity: 0.8, fontSize: '0.75rem' }}>
+                        Cancel anytime • No setup fees
+                        {pricingInfo?.eligible && pricingInfo.daysSinceTrialEnd !== undefined && (
+                          <span style={{ color: '#10B981', fontWeight: 'bold' }}>
+                            {' '}• {30 - pricingInfo.daysSinceTrialEnd} days left for discount
+                          </span>
+                        )}
+                      </Typography>
+                    </Box>
+                    <Button
+                      variant="contained"
+                      startIcon={<StarIcon />}
+                      onClick={() => user?.isPremium ? setSubscriptionDialogOpen(true) : router.push('/payment')}
+                      sx={{
+                        background: user?.isPremium ? '#10B981' : '#F59E0B',
+                        color: 'white',
+                        ...typography.button,
+                        borderRadius: borderRadius.medium,
+                        textTransform: 'none',
+                        boxShadow: user?.isPremium 
+                          ? '0 2px 8px rgba(16, 185, 129, 0.3)' 
+                          : '0 2px 8px rgba(245, 158, 11, 0.3)',
+                        '&:hover': {
+                          background: user?.isPremium ? '#059669' : '#D97706',
+                          boxShadow: user?.isPremium 
+                            ? '0 4px 12px rgba(16, 185, 129, 0.4)' 
+                            : '0 4px 12px rgba(245, 158, 11, 0.4)',
+                          transform: 'translateY(-1px)',
+                        },
+                        transition: 'all 0.2s ease',
+                      }}
+                    >
+                      {user?.isPremium ? 'My Subscription' : 'Upgrade Now'}
+                    </Button>
+                    {user?.usedFreeTrial ? (
+                      <Button
+                        variant="outlined"
+                        disabled
+                        startIcon={<CheckCircleIcon />}
+                        sx={{
+                          color: '#10B981',
+                          borderColor: '#10B981',
+                          backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                          ...typography.button,
+                          borderRadius: borderRadius.medium,
+                          textTransform: 'none',
+                          cursor: 'not-allowed',
+                          boxShadow: '0 2px 8px rgba(16, 185, 129, 0.2)',
+                          '&:disabled': {
+                            color: '#10B981',
+                            borderColor: '#10B981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                          },
+                          '& .MuiButton-startIcon': {
+                            color: '#10B981',
+                          },
+                        }}
+                      >
+                        Free Trial Used ✓
+                      </Button>
+                    ) : (
+                      <StartFreeTrial
+                        variant="outlined"
+                        children="Start Free Trial (90 Days)"
+                      />
+                    )}
+                  </Box>
+              </Box>
+            </Paper>
           </Grid>
         </Grid>
         
         <Divider sx={{ my: 4 }} />
         
-        {/* Premium Upgrade Section */}
-        <Paper 
-          sx={{ 
-            mt: 4, 
-            p: 3, 
-            background: '#2563EB',
-            color: 'white',
-            position: 'relative',
-            overflow: 'hidden',
-            borderRadius: 3,
-          }}
-        >
-          {/* Decorative background elements */}
-          <Box
-            sx={{
-              position: 'absolute',
-              top: -20,
-              right: -20,
-              width: 100,
-              height: 100,
-              borderRadius: '50%',
-              background: 'rgba(255,255,255,0.08)',
-            }}
-          />
-          <Box
-            sx={{
-              position: 'absolute',
-              bottom: -30,
-              left: -30,
-              width: 80,
-              height: 80,
-              borderRadius: '50%',
-              background: 'rgba(255,255,255,0.04)',
-            }}
-          />
-          
-          <Box sx={{ position: 'relative', zIndex: 1 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-              <DiamondIcon sx={{ fontSize: 24, color: '#FCD34D' }} />
-              <Box>
-                <Typography variant="h6" fontWeight={600} sx={{ mb: 0.5, fontSize: '1.1rem' }}>
-                  Upgrade to Premium
-                </Typography>
-                <Typography variant="body2" sx={{ opacity: 0.9, fontSize: '0.875rem' }}>
-                  Unlock unlimited features and enhance your podcasting experience
-                </Typography>
-                {user?.isPremium && (
-                  <Typography variant="caption" sx={{ color: '#10B981', fontSize: '0.75rem', fontWeight: 600 }}>
-                    ✓ Premium Active
-                  </Typography>
-                )}
-                {!user?.isPremium && (
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Typography variant="caption" sx={{ color: '#EF4444', fontSize: '0.75rem', fontWeight: 600 }}>
-                      ⚠️ Premium Inactive
-                    </Typography>
-                    <Button
-                      size="small"
-                      startIcon={<RefreshIcon />}
-                      onClick={handleRefreshSession}
-                      disabled={isRefreshing}
-                      sx={{
-                        minWidth: 'auto',
-                        px: 1,
-                        py: 0.5,
-                        fontSize: '0.7rem',
-                        color: '#EF4444',
-                        borderColor: '#EF4444',
-                        '&:hover': {
-                          backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                        },
-                      }}
-                    >
-                      {isRefreshing ? 'Refreshing...' : 'Refresh'}
-                    </Button>
-                  </Box>
-                )}
-              </Box>
-            </Box>
-            
-            <Grid container spacing={2} sx={{ mb: 3 }}>
-              <Grid item xs={12} sm={6}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                  <CheckCircleIcon sx={{ fontSize: 16, color: '#10B981' }} />
-                  <Typography variant="body2" sx={{ fontWeight: 500, fontSize: '0.8rem' }}>
-                    Unlimited podcast uploads
-                  </Typography>
-                </Box>
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                  <CheckCircleIcon sx={{ fontSize: 16, color: '#10B981' }} />
-                  <Typography variant="body2" sx={{ fontWeight: 500, fontSize: '0.8rem' }}>
-                    Unlimited editing tools
-                  </Typography>
-                </Box>
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                  <CheckCircleIcon sx={{ fontSize: 16, color: '#10B981' }} />
-                  <Typography variant="body2" sx={{ fontWeight: 500, fontSize: '0.8rem' }}>
-                    Broadcast to other podcast platforms
-                  </Typography>
-                </Box>
-              </Grid>
-            </Grid>
-            
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
-                <Box>
-                  <Typography variant="h6" fontWeight={600} sx={{ color: '#FCD34D', fontSize: '1rem' }}>
-                    Just ${pricingInfo?.price || 17.99}/month
-                    {pricingInfo?.eligible && (
-                      <Typography component="span" sx={{ 
-                        color: '#10B981', 
-                        fontSize: '0.8rem', 
-                        ml: 1,
-                        fontWeight: 500
-                      }}>
-                        (Special Discount!)
-                      </Typography>
-                    )}
-                  </Typography>
-                  <Typography variant="caption" sx={{ opacity: 0.8, fontSize: '0.75rem' }}>
-                    Cancel anytime • No setup fees
-                    {pricingInfo?.eligible && pricingInfo.daysSinceTrialEnd !== undefined && (
-                      <span style={{ color: '#10B981', fontWeight: 500 }}>
-                        {' '}• {30 - pricingInfo.daysSinceTrialEnd} days left for discount
-                      </span>
-                    )}
-                  </Typography>
-                </Box>
-                <Button
-                  variant="contained"
-                  startIcon={<StarIcon />}
-                  onClick={() => user?.isPremium ? setSubscriptionDialogOpen(true) : router.push('/payment')}
-                  sx={{
-                    background: user?.isPremium ? '#10B981' : '#F59E0B',
-                    color: 'white',
-                    fontWeight: 600,
-                    px: 3,
-                    py: 1,
-                    borderRadius: 2,
-                    textTransform: 'none',
-                    fontSize: '0.875rem',
-                    boxShadow: user?.isPremium 
-                      ? '0 2px 8px rgba(16, 185, 129, 0.3)' 
-                      : '0 2px 8px rgba(245, 158, 11, 0.3)',
-                    '&:hover': {
-                      background: user?.isPremium ? '#059669' : '#D97706',
-                      boxShadow: user?.isPremium 
-                        ? '0 4px 12px rgba(16, 185, 129, 0.4)' 
-                        : '0 4px 12px rgba(245, 158, 11, 0.4)',
-                      transform: 'translateY(-1px)',
-                    },
-                    transition: 'all 0.2s ease',
-                  }}
-                >
-                  {user?.isPremium ? 'My Subscription' : 'Upgrade Now'}
-                </Button>
-                {user?.usedFreeTrial ? (
-                  <Button
-                    variant="outlined"
-                    disabled
-                    startIcon={<CheckCircleIcon />}
-                    sx={{
-                      color: '#10B981',
-                      borderColor: '#10B981',
-                      backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                      fontWeight: 600,
-                      px: 3,
-                      py: 1,
-                      borderRadius: 2,
-                      textTransform: 'none',
-                      fontSize: '0.875rem',
-                      cursor: 'not-allowed',
-                      boxShadow: '0 2px 8px rgba(16, 185, 129, 0.2)',
-                      '&:disabled': {
-                        color: '#10B981',
-                        borderColor: '#10B981',
-                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                      },
-                      '& .MuiButton-startIcon': {
-                        color: '#10B981',
-                      },
-                    }}
-                  >
-                    Free Trial Used ✓
-                  </Button>
-                ) : (
-                  <StartFreeTrial
-                    variant="outlined"
-                    children="Start Free Trial (90 Days)"
-                  />
-                )}
-              </Box>
-          </Box>
-        </Paper>
-        
-        <Divider sx={{ my: 4 }} />
-        
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
-          <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2, flexDirection: isMobile ? 'column-reverse' : 'row' }}>
+          <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', width: isMobile ? '100%' : 'auto' }}>
             <Button
               variant="outlined"
               startIcon={<SettingsIcon />}
               onClick={() => router.push('/settings')}
-              sx={{
-                borderRadius: 2,
-                px: 3,
-                py: 1.5,
-                textTransform: 'none',
-                fontWeight: 600,
-                fontSize: '0.875rem',
-              }}
+              fullWidth={isMobile}
+              sx={{ ...typography.button, borderRadius: borderRadius.medium, textTransform: 'none' }}
             >
               Settings
             </Button>
@@ -582,14 +561,8 @@ function ProfilePage() {
               variant="outlined"
               startIcon={<LockIcon />}
               onClick={() => setChangePasswordDialogOpen(true)}
-              sx={{
-                borderRadius: 2,
-                px: 3,
-                py: 1.5,
-                textTransform: 'none',
-                fontWeight: 600,
-                fontSize: '0.875rem',
-              }}
+              fullWidth={isMobile}
+              sx={{ ...typography.button, borderRadius: borderRadius.medium, textTransform: 'none' }}
             >
               Change Password
             </Button>
@@ -597,57 +570,49 @@ function ProfilePage() {
           <Button
             variant="outlined"
             color="error"
-              startIcon={<DeleteIcon />}
-              onClick={() => setDeleteDialogOpen(true)}
+            startIcon={<DeleteIcon />}
+            onClick={() => setDeleteDialogOpen(true)}
+            fullWidth={isMobile}
             sx={{
-              borderRadius: 2,
-              px: 3,
-              py: 1.5,
+              ...typography.button,
+              borderRadius: borderRadius.medium,
               textTransform: 'none',
-              fontWeight: 600,
-              fontSize: '0.875rem',
               '&:hover': {
                 backgroundColor: 'error.main',
                 color: 'white',
                 borderColor: 'error.main',
               },
-              }}
+            }}
             >
               Delete Account
             </Button>
           </Box>
 
           <Button
-            variant="outlined"
+            variant="contained"
             startIcon={<LogoutIcon />}
             onClick={logout}
-            sx={{
-              borderRadius: 2,
-              px: 3,
-              py: 1.5,
-              textTransform: 'none',
-              fontWeight: 600,
-              fontSize: '0.875rem',
-            }}
+            fullWidth={isMobile}
+            sx={{ ...typography.button, borderRadius: borderRadius.medium, textTransform: 'none' }}
           >
             Sign Out
           </Button>
         </Box>
       </Paper>
 
-      {/* Change Password Dialog */}
       <Dialog 
         open={changePasswordDialogOpen} 
         onClose={() => setChangePasswordDialogOpen(false)}
         maxWidth="sm"
         fullWidth
+        PaperProps={{ sx: { borderRadius: borderRadius.large } }}
       >
-        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1, ...typography.title, fontWeight: 700, fontSize: '1.1rem' }}>
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1, ...typography.title }}>
           <LockIcon />
           Change Password
         </DialogTitle>
         <DialogContent>
-          <Typography variant="body2" sx={{ mb: 3, ...typography.body, fontSize: '0.875rem' }}>
+          <Typography variant="body2" sx={{ mb: 3, ...typography.body }}>
             Enter your current password and choose a new password.
           </Typography>
           
@@ -659,19 +624,7 @@ function ProfilePage() {
             onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
             error={!!passwordErrors.currentPassword}
             helperText={passwordErrors.currentPassword}
-            sx={{
-              mb: 2,
-              '& .MuiOutlinedInput-root': {
-                borderRadius: borderRadius.medium,
-                ...typography.input,
-              },
-              '& .MuiInputLabel-root': {
-                ...typography.label,
-              },
-              '& .MuiOutlinedInput-input': {
-                padding: spacing.input,
-              },
-            }}
+            sx={{ mb: 2, '& .MuiOutlinedInput-root': { borderRadius: borderRadius.medium } }}
           />
           
           <TextField
@@ -682,19 +635,7 @@ function ProfilePage() {
             onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
             error={!!passwordErrors.newPassword}
             helperText={passwordErrors.newPassword}
-            sx={{
-              mb: 2,
-              '& .MuiOutlinedInput-root': {
-                borderRadius: borderRadius.medium,
-                ...typography.input,
-              },
-              '& .MuiInputLabel-root': {
-                ...typography.label,
-              },
-              '& .MuiOutlinedInput-input': {
-                padding: spacing.input,
-              },
-            }}
+            sx={{ mb: 2, '& .MuiOutlinedInput-root': { borderRadius: borderRadius.medium } }}
           />
           
           <TextField
@@ -705,18 +646,7 @@ function ProfilePage() {
             onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
             error={!!passwordErrors.confirmPassword}
             helperText={passwordErrors.confirmPassword}
-            sx={{
-              '& .MuiOutlinedInput-root': {
-                borderRadius: borderRadius.medium,
-                ...typography.input,
-              },
-              '& .MuiInputLabel-root': {
-                ...typography.label,
-              },
-              '& .MuiOutlinedInput-input': {
-                padding: spacing.input,
-              },
-            }}
+            sx={{ '& .MuiOutlinedInput-root': { borderRadius: borderRadius.medium } }}
           />
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2 }}>
@@ -724,13 +654,7 @@ function ProfilePage() {
             onClick={() => setChangePasswordDialogOpen(false)}
             disabled={isChangingPassword}
             variant="outlined"
-            sx={{
-              ...typography.button,
-              padding: spacing.button,
-              borderRadius: borderRadius.medium,
-              textTransform: 'none',
-              fontWeight: 600,
-            }}
+            sx={{ ...typography.button, borderRadius: borderRadius.medium, textTransform: 'none' }}
           >
             Cancel
           </Button>
@@ -738,163 +662,79 @@ function ProfilePage() {
             onClick={handleChangePassword}
             disabled={isChangingPassword}
             variant="contained"
-            sx={{
-              ...typography.button,
-              padding: spacing.button,
-              borderRadius: borderRadius.medium,
-              textTransform: 'none',
-              fontWeight: 600,
-            }}
+            sx={{ ...typography.button, borderRadius: borderRadius.medium, textTransform: 'none' }}
           >
             {isChangingPassword ? 'Changing...' : 'Change Password'}
           </Button>
         </DialogActions>
       </Dialog>
 
-      {/* Subscription Dialog */}
       <Dialog 
         open={subscriptionDialogOpen} 
         onClose={() => setSubscriptionDialogOpen(false)}
         maxWidth="xs"
         fullWidth
-        PaperProps={{
-          sx: {
-            borderRadius: 3,
-            background: '#ffffff',
-            boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
-            border: '1px solid #e5e7eb',
-          }
-        }}
+        PaperProps={{ sx: { borderRadius: borderRadius.large, border: '1px solid #e5e7eb' } }}
       >
         <DialogContent sx={{ p: 4, textAlign: 'center' }}>
-          <Box sx={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: 48,
-            height: 48,
-            borderRadius: '50%',
-            background: '#10B981',
-            mb: 2,
-          }}>
+          <Box sx={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 48, height: 48, borderRadius: '50%', background: '#10B981', mb: 2 }}>
             <DiamondIcon sx={{ fontSize: 24, color: 'white' }} />
           </Box>
           
-          <Typography variant="h6" sx={{ 
-            mb: 2, 
-            color: '#1F2937', 
-            fontWeight: 600,
-            fontSize: '1.1rem'
-          }}>
+          <Typography variant="h6" sx={{ mb: 2, color: '#1F2937', ...typography.heading, fontSize: '1.2rem' }}>
             Premium Subscription
           </Typography>
           
           {user?.premiumExpiresAt && (
-            <Box sx={{ 
-              p: 3, 
-              background: '#FEF3C7',
-              borderRadius: 2,
-              border: '1px solid #F59E0B',
-              mb: 3
-            }}>
-              <Typography variant="body2" sx={{ 
-                mb: 1, 
-                fontWeight: 600, 
-                color: '#92400E',
-                fontSize: '0.875rem'
-              }}>
+            <Box sx={{ p: 2, background: '#FEF3C7', borderRadius: borderRadius.medium, border: '1px solid #F59E0B', mb: 3 }}>
+              <Typography variant="body2" sx={{ mb: 1, color: '#92400E', ...typography.body, fontSize: '0.8rem', fontWeight: 'bold' }}>
                 Subscription ends
               </Typography>
-              <Typography variant="h6" sx={{ 
-                fontWeight: 700, 
-                color: '#92400E',
-                fontSize: '1.1rem'
-              }}>
-                {new Date(user.premiumExpiresAt).toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric'
-                })}
+              <Typography variant="h6" sx={{ color: '#92400E', fontSize: '1rem' }}>
+                {new Date(user.premiumExpiresAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
               </Typography>
             </Box>
           )}
           
-          <Typography variant="body2" sx={{ 
-            color: '#6B7280', 
-            fontSize: '0.875rem', 
-            mb: 3,
-            lineHeight: 1.5
-          }}>
+          <Typography variant="body2" sx={{ color: '#6B7280', ...typography.body, lineHeight: 1.5, mb: 3 }}>
             Your subscription will automatically renew unless canceled.
           </Typography>
         </DialogContent>
         
-        <DialogActions sx={{ 
-          px: 4, 
-          pb: 3, 
-          gap: 2,
-          justifyContent: 'center'
-        }}>
+        <DialogActions sx={{ px: 4, pb: 3, gap: 2, justifyContent: 'center' }}>
           <Button 
             onClick={() => setSubscriptionDialogOpen(false)}
             variant="outlined"
-            sx={{
-              px: 3,
-              py: 1,
-              borderRadius: 2,
-              textTransform: 'none',
-              fontWeight: 600,
-              fontSize: '0.875rem',
-              borderColor: '#D1D5DB',
-              color: '#6B7280',
-              '&:hover': {
-                borderColor: '#9CA3AF',
-                backgroundColor: 'rgba(156, 163, 175, 0.04)',
-              },
-            }}
+            sx={{ ...typography.button, borderRadius: borderRadius.medium, textTransform: 'none', borderColor: '#D1D5DB', color: '#6B7280', '&:hover': { borderColor: '#9CA3AF', backgroundColor: 'rgba(156, 163, 175, 0.04)' } }}
           >
             Close
           </Button>
           <Button
-            onClick={() => {
-              setSubscriptionDialogOpen(false);
-              router.push('/settings');
-            }}
+            onClick={() => { setSubscriptionDialogOpen(false); router.push('/settings'); }}
             variant="contained"
-            sx={{
-              px: 3,
-              py: 1,
-              borderRadius: 2,
-              textTransform: 'none',
-              fontWeight: 600,
-              fontSize: '0.875rem',
-              background: '#10B981',
-              '&:hover': {
-                background: '#059669',
-              },
-            }}
+            sx={{ ...typography.button, borderRadius: borderRadius.medium, textTransform: 'none', background: '#10B981', '&:hover': { background: '#059669' } }}
           >
             Manage
           </Button>
         </DialogActions>
       </Dialog>
 
-      {/* Delete Account Dialog */}
       <Dialog 
         open={deleteDialogOpen} 
         onClose={() => setDeleteDialogOpen(false)}
         maxWidth="sm"
         fullWidth
+        PaperProps={{ sx: { borderRadius: borderRadius.large } }}
       >
-        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1, ...typography.title, color: 'error.main', fontWeight: 700, fontSize: '1.1rem' }}>
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1, ...typography.title, color: 'error.main' }}>
           <WarningIcon color="error" />
           Delete Account
         </DialogTitle>
         <DialogContent>
-          <Alert severity="warning" sx={{ mb: 2 }}>
+          <Alert severity="warning" sx={{ mb: 2, borderRadius: borderRadius.medium }}>
             This action cannot be undone. All your data will be permanently deleted.
           </Alert>
-          <Typography variant="body2" sx={{ mb: 2, ...typography.body, fontSize: '0.875rem' }}>
+          <Typography variant="body2" sx={{ mb: 2, ...typography.body }}>
             To confirm deletion, please type <strong>DELETE</strong> in the field below:
           </Typography>
           <TextField
@@ -903,25 +743,8 @@ function ProfilePage() {
             value={deleteConfirmation}
             onChange={(e) => setDeleteConfirmation(e.target.value)}
             error={deleteConfirmation !== '' && deleteConfirmation !== 'DELETE'}
-            helperText={
-              deleteConfirmation !== '' && deleteConfirmation !== 'DELETE'
-                ? 'Please type DELETE exactly as shown'
-                : ''
-            }
-            sx={{
-              mt: 1,
-              mb: 1,
-              '& .MuiOutlinedInput-root': {
-                borderRadius: borderRadius.medium,
-                ...typography.input,
-              },
-              '& .MuiInputLabel-root': {
-                ...typography.label,
-              },
-              '& .MuiOutlinedInput-input': {
-                padding: spacing.input,
-              },
-            }}
+            helperText={deleteConfirmation !== '' && deleteConfirmation !== 'DELETE' ? 'Please type DELETE exactly as shown' : ''}
+            sx={{ mt: 1, mb: 1, '& .MuiOutlinedInput-root': { borderRadius: borderRadius.medium } }}
           />
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2 }}>
@@ -929,13 +752,7 @@ function ProfilePage() {
             onClick={() => setDeleteDialogOpen(false)}
             disabled={isDeleting}
             variant="outlined"
-            sx={{
-              ...typography.button,
-              padding: spacing.button,
-              borderRadius: borderRadius.medium,
-              textTransform: 'none',
-              fontWeight: 600,
-            }}
+            sx={{ ...typography.button, borderRadius: borderRadius.medium, textTransform: 'none' }}
           >
             Cancel
           </Button>
@@ -944,69 +761,23 @@ function ProfilePage() {
             disabled={deleteConfirmation !== 'DELETE' || isDeleting}
             color="error"
             variant="contained"
-            sx={{
-              ...typography.button,
-              padding: spacing.button,
-              borderRadius: borderRadius.medium,
-              textTransform: 'none',
-              fontWeight: 600,
-            }}
+            sx={{ ...typography.button, borderRadius: borderRadius.medium, textTransform: 'none' }}
           >
             {isDeleting ? 'Deleting...' : 'Delete Account'}
           </Button>
         </DialogActions>
       </Dialog>
 
-      {/* Snackbar for notifications */}
       <Snackbar
         open={snackbar.open}
         autoHideDuration={6000}
         onClose={() => setSnackbar({ ...snackbar, open: false })}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-        sx={{
-          '& .MuiSnackbarContent-root': {
-            borderRadius: borderRadius.large,
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)',
-            border: '1px solid',
-            borderColor: 'divider',
-          },
-        }}
       >
         <Alert
           onClose={() => setSnackbar({ ...snackbar, open: false })}
           severity={snackbar.severity}
-          sx={{
-            width: '100%',
-            fontFamily: "'Open Sans', Arial, sans-serif",
-            fontSize: '0.95rem',
-            fontWeight: 500,
-            borderRadius: borderRadius.large,
-            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
-            border: '1px solid',
-            borderColor: 'divider',
-            '& .MuiAlert-icon': {
-              fontSize: '1.25rem',
-            },
-            '& .MuiAlert-message': {
-              padding: '8px 0',
-            },
-            '&.MuiAlert-standardSuccess': {
-              backgroundColor: '#f0fdf4',
-              color: '#166534',
-              borderColor: '#bbf7d0',
-              '& .MuiAlert-icon': {
-                color: '#16a34a',
-              },
-            },
-            '&.MuiAlert-standardError': {
-              backgroundColor: '#fef2f2',
-              color: '#991b1b',
-              borderColor: '#fecaca',
-              '& .MuiAlert-icon': {
-                color: '#dc2626',
-              },
-            },
-          }}
+          sx={{ width: '100%', borderRadius: borderRadius.medium, ...typography.body, fontWeight: 'bold' }}
         >
           {snackbar.message}
         </Alert>

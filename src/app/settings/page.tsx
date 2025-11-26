@@ -50,23 +50,16 @@ function SettingsPage() {
     }
   }, [isLoading, isAuthenticated, router]);
 
-  // Check if user has already cancelled in current period
   useEffect(() => {
     if (user?.isPremium && user?.premiumExpiresAt) {
       const now = new Date();
       const expiryDate = new Date(user.premiumExpiresAt);
-      // If premium expires within 24 hours, consider it as cancelled in current period
       const cancelled = expiryDate < new Date(now.getTime() + 24 * 60 * 60 * 1000);
       setHasCancelledInCurrentPeriod(cancelled);
     }
   }, [user]);
 
   const handleBack = () => {
-    router.push('/profile');
-  };
-
-  const handleCancel = () => {
-    // For now, just go back to profile
     router.push('/profile');
   };
 
@@ -85,11 +78,7 @@ function SettingsPage() {
           message: data.message, 
           severity: 'success' 
         });
-        
-        // Update local state to reflect cancellation
         setHasCancelledInCurrentPeriod(true);
-        
-        // Refresh session to get updated user data
         setTimeout(async () => {
           try {
             await fetch('/api/auth/session', { method: 'GET' });
@@ -118,7 +107,7 @@ function SettingsPage() {
 
   if (isLoading) {
     return (
-      <Container maxWidth="lg" sx={{ py: isMobile ? 2 : 4, px: isMobile ? 2 : 3 }}>
+      <Container maxWidth="lg" sx={{ py: isMobile ? spacing.component.xs : spacing.component.md, px: isMobile ? spacing.component.xs : spacing.component.sm }}>
         <Typography>Loading...</Typography>
       </Container>
     );
@@ -129,9 +118,8 @@ function SettingsPage() {
   }
 
   return (
-    <Container maxWidth="lg" sx={{ py: isMobile ? 2 : 4, px: isMobile ? 2 : 3 }}>
-      {/* Header */}
-      <Box sx={{ display: 'flex', alignItems: 'center', mb: isMobile ? 3 : 4 }}>
+    <Container maxWidth="lg" sx={{ py: isMobile ? spacing.section.xs : spacing.section.md, px: isMobile ? spacing.component.xs : spacing.component.sm }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', mb: isMobile ? spacing.gap.xs : spacing.gap.sm }}>
         <IconButton 
           onClick={handleBack}
           sx={{ 
@@ -147,37 +135,32 @@ function SettingsPage() {
         <Typography 
           variant={isMobile ? "h5" : "h4"}
           component="h1"
-          sx={{ 
+          sx={{
             ...typography.heading,
             color: 'text.primary',
-            fontWeight: 700,
           }}
         >
           Settings
         </Typography>
       </Box>
 
-      {/* Settings Content */}
       <Paper 
         elevation={2}
         sx={{ 
-          p: isMobile ? 3 : 4,
+          p: isMobile ? spacing.component.xs : spacing.component.sm,
           borderRadius: borderRadius.large,
           background: 'background.paper',
         }}
       >
         
-        {/* Premium Subscription Settings */}
-        <Box sx={{ mb: isMobile ? 3 : 4 }}>
+        <Box sx={{ mb: isMobile ? spacing.gap.sm : spacing.gap.md }}>
           <Typography 
             variant="h6" 
             component="h2"
             sx={{ 
               ...typography.subheading,
               color: 'text.primary',
-              fontWeight: 600,
               mb: 2,
-              fontSize: isMobile ? '1.1rem' : '1.25rem',
             }}
           >
             Subscription
@@ -210,8 +193,7 @@ function SettingsPage() {
                   sx={{ 
                     ...typography.body,
                     color: 'text.primary',
-                    fontWeight: 500,
-                    fontSize: isMobile ? '0.95rem' : '1rem',
+                    fontWeight: 500, // Emphasis
                   }}
                 >
                   Premium Subscription
@@ -219,9 +201,8 @@ function SettingsPage() {
                 <Typography 
                   variant="body2"
                   sx={{ 
-                    ...typography.body,
+                    ...typography.caption,
                     color: 'text.secondary',
-                    fontSize: isMobile ? '0.85rem' : '0.875rem',
                   }}
                 >
                   {user?.isPremium 
@@ -239,14 +220,11 @@ function SettingsPage() {
                 disabled={isCancelingPremium}
                 fullWidth={isMobile}
                 sx={{
+                  ...typography.button,
                   color: '#EF4444',
                   borderColor: '#EF4444',
-                  fontWeight: 600,
-                  px: isMobile ? 2 : 3,
-                  py: isMobile ? 1 : 1.5,
                   borderRadius: borderRadius.medium,
                   textTransform: 'none',
-                  fontSize: isMobile ? '0.8rem' : '0.875rem',
                   '&:hover': {
                     backgroundColor: '#EF4444',
                     color: 'white',
@@ -266,9 +244,8 @@ function SettingsPage() {
               <Typography 
                 variant="body2" 
                 sx={{ 
+                  ...typography.body,
                   color: '#10B981', 
-                  fontWeight: 500,
-                  fontSize: isMobile ? '0.8rem' : '0.875rem',
                   fontStyle: 'italic',
                   textAlign: isMobile ? 'center' : 'left',
                   width: isMobile ? '100%' : 'auto',
@@ -280,9 +257,8 @@ function SettingsPage() {
           </Box>
         </Box>
 
-        <Divider sx={{ my: isMobile ? 2 : 3 }} />
+        <Divider sx={{ my: isMobile ? spacing.gap.sm : spacing.gap.md }} />
 
-        {/* Action Buttons */}
         <Box sx={{ 
           display: 'flex', 
           justifyContent: 'flex-end',
@@ -291,16 +267,13 @@ function SettingsPage() {
         }}>
           <Button
             variant="outlined"
-            onClick={handleCancel}
+            onClick={handleBack}
             fullWidth={isMobile}
             sx={{
               ...typography.button,
-              px: isMobile ? 2 : 3,
-              py: isMobile ? 1 : 1.5,
               borderRadius: borderRadius.medium,
               borderColor: 'primary.main',
               color: 'primary.main',
-              fontSize: isMobile ? '0.9rem' : '1rem',
               '&:hover': {
                 backgroundColor: 'primary.main',
                 color: 'primary.contrastText',
@@ -313,55 +286,21 @@ function SettingsPage() {
         </Box>
       </Paper>
 
-      {/* Snackbar for notifications */}
       <Snackbar
         open={snackbar.open}
         autoHideDuration={6000}
         onClose={() => setSnackbar({ ...snackbar, open: false })}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-        sx={{
-          '& .MuiSnackbarContent-root': {
-            borderRadius: borderRadius.large,
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)',
-            border: '1px solid',
-            borderColor: 'divider',
-          },
-        }}
       >
         <Alert
           onClose={() => setSnackbar({ ...snackbar, open: false })}
           severity={snackbar.severity}
           sx={{
             width: '100%',
-            fontFamily: "'Open Sans', Arial, sans-serif",
-            fontSize: isMobile ? '0.9rem' : '0.95rem',
-            fontWeight: 500,
+            ...typography.body,
             borderRadius: borderRadius.large,
-            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
             border: '1px solid',
             borderColor: 'divider',
-            '& .MuiAlert-icon': {
-              fontSize: isMobile ? '1.1rem' : '1.25rem',
-            },
-            '& .MuiAlert-message': {
-              padding: '8px 0',
-            },
-            '&.MuiAlert-standardSuccess': {
-              backgroundColor: '#f0fdf4',
-              color: '#166534',
-              borderColor: '#bbf7d0',
-              '& .MuiAlert-icon': {
-                color: '#16a34a',
-              },
-            },
-            '&.MuiAlert-standardError': {
-              backgroundColor: '#fef2f2',
-              color: '#991b1b',
-              borderColor: '#fecaca',
-              '& .MuiAlert-icon': {
-                color: '#dc2626',
-              },
-            },
           }}
         >
           {snackbar.message}

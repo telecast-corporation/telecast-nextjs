@@ -2,14 +2,14 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Container, Typography, Box, CircularProgress, Button, TextField } from '@mui/material';
+import { Container, Typography, Box, CircularProgress, TextField, useTheme, useMediaQuery } from '@mui/material';
 import UnifiedSearchResults from '@/components/UnifiedSearchResults';
 import BookTypeToggle from '@/components/BookTypeToggle';
 import PartnerLogos from '@/components/PartnerLogos';
 import Pagination from '@/components/Pagination';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-
+import { typography, spacing, borderRadius } from '@/styles/typography';
 
 interface SearchResult {
   id: string;
@@ -30,12 +30,15 @@ export default function SearchResults() {
   const [bookType, setBookType] = useState<'books' | 'audiobooks'>('books');
   const [pagination, setPagination] = useState<any>(null);
   const debounceTimerRef = useRef<NodeJS.Timeout>();
-  const showRecommendations = !query && ['podcast', 'video', 'music', 'book', 'news', 'tv'].includes(type);
   const router = useRouter();
   const currentPage = parseInt(searchParams.get('page') || '1');
-  const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const { isAuthenticated } = useAuth();
   const [city, setCity] = useState('');
   const [country, setCountry] = useState('');
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
+  const showRecommendations = !query && ['podcast', 'video', 'music', 'book', 'news', 'tv'].includes(type);
 
   const handlePageChange = (page: number) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -45,68 +48,40 @@ export default function SearchResults() {
 
   useEffect(() => {
     const fetchResults = async () => {
-      console.log('🔍 SearchResults fetchResults called:', { query, type, showRecommendations });
-      
-      // Always search if we have a query, regardless of showRecommendations
       if (!query && !showRecommendations) {
-        console.log('🔍 No query and no recommendations, returning empty results');
         setResults([]);
         setLoading(false);
-        setError(null);
         return;
       }
 
-      try {
-        // Determine search types based on the main type and book type
-        let searchTypes: string[] = [];
-        
-        if (type === 'all') {
-          searchTypes = ['all'];
-        } else if (type === 'book') {
-          // Handle book type toggle
-          if (bookType === 'books') {
-            searchTypes = ['book'];
-          } else if (bookType === 'audiobooks') {
-            searchTypes = ['audiobook'];
-          }
-        } else {
-          searchTypes = [type];
-        }
-        
-        console.log('🔍 Search types determined:', searchTypes);
+      setLoading(true);
+      setError(null);
 
+      try {
+        const searchTypes = type === 'all' ? ['all'] : type === 'book' ? [bookType] : [type];
+        
         const response = await fetch('/api/search', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             query: query || 'recommended',
             types: searchTypes,
-            maxResults: type === 'news' ? 500 : type === 'tv' ? 100 : 300,
+            maxResults: 500,
             trending: showRecommendations,
             page: currentPage,
-            limit: type === 'news' ? 50 : type === 'tv' ? 20 : 20,
-            city: city,
-            country: country,
+            limit: 20,
+            city,
+            country,
           }),
         });
 
         const data = await response.json();
-        console.log('🔍 API response:', { status: response.status, resultsCount: data.results?.length, data });
 
         if (!response.ok) {
           throw new Error(data.error || 'Failed to fetch results');
         }
 
-        // Ensure the results match the expected type
-        const typedResults: SearchResult[] = (data.results || []).map((result: any) => ({
-          ...result,
-          type: result.type as 'podcast' | 'video' | 'music' | 'book' | 'audiobook' | 'news' | 'tv'
-        }));
-
-        console.log('🔍 Typed results:', typedResults);
-        setResults(typedResults);
+        setResults(data.results || []);
         setPagination(data.pagination);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'An error occurred');
@@ -119,14 +94,7 @@ export default function SearchResults() {
       clearTimeout(debounceTimerRef.current);
     }
 
-    // Set loading immediately when query changes or when we should show recommendations
-    if (query || showRecommendations) {
-      setLoading(true);
-      setError(null);
-      setPagination(null); // Reset pagination when search changes
-    }
-
-    debounceTimerRef.current = setTimeout(fetchResults, 500);
+    debounceTimerRef.current = setTimeout(fetchResults, 300);
 
     return () => {
       if (debounceTimerRef.current) {
@@ -137,10 +105,10 @@ export default function SearchResults() {
 
   if (!query && !showRecommendations) {
     return (
-      <Container maxWidth="lg" sx={{ py: 4 }}>
-        <Box sx={{ textAlign: 'center', py: 8 }}>
-          <Typography variant="h5" color="text.secondary">
-            Enter a search term in the navigation bar to find content
+      <Container maxWidth="lg" sx={{ py: spacing.section.md }}>
+        <Box sx={{ textAlign: 'center', py: spacing.component.lg }}>
+          <Typography variant="h5" color="text.secondary" sx={typography.heading}>
+            Search for your favorite content.
           </Typography>
         </Box>
       </Container>
@@ -149,131 +117,62 @@ export default function SearchResults() {
 
   if (error) {
     return (
-      <Container maxWidth="lg" sx={{ py: 4 }}>
-        <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
-          <Typography color="error">{error}</Typography>
+      <Container maxWidth="lg" sx={{ py: spacing.section.md }}>
+        <Box sx={{ textAlign: 'center', py: spacing.component.lg }}>
+          <Typography color="error" sx={typography.heading}>An error occurred while fetching results.</Typography>
         </Box>
       </Container>
     );
   }
 
-  const getRecommendationTitle = () => {
-    switch (type) {
-      case 'podcast':
-        return 'Recommended Podcasts';
-      case 'video':
-        return 'Recommended Videos';
-      case 'music':
-        return 'Recommended Music';
-      case 'book':
-        return 'Recommended Books';
-      case 'tv':
-        return 'Recommended TV Shows';
-      default:
-        return `Search Results for "${query}"`;
-    }
-  };
-
   return (
-    <Container maxWidth="lg" sx={{ py: { xs: 1, sm: 1.5 } }}>
-      {/* CTA for podcast recording */}
+    <Container maxWidth="lg" sx={{ py: isMobile ? spacing.section.xs : spacing.section.sm }}>
       {type === 'podcast' && (
-        <Box sx={{ 
-          display: 'flex', 
-          flexDirection: 'column', 
-          alignItems: 'center', 
-          mb: 2,
-          px: { xs: 2, sm: 0 }
-        }}>
-            <a 
-            href={isAuthenticated ? "/my-podcasts" : "/auth/login"} 
-            style={{ textDecoration: 'none' }}
-          >
-
-            <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 1,
-                color: '#ff6b35',
-                fontWeight: 600,
-                fontSize: { xs: '1rem', sm: '1.1rem' },
-                textDecoration: 'underline',
-                textUnderlineOffset: '3px',
-                textDecorationThickness: '2px',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-                '&:hover': {
-                  color: '#e55a2b',
-                  transform: 'translateY(-1px)',
-                  '& span:last-child': {
-                    transform: 'translateX(2px)',
-                  },
-                },
-              }}
-            >
-              <span>Create your own podcast</span>
-              <span style={{ 
-                fontSize: '0.9em',
-                display: 'inline-block',
-                marginLeft: '6px',
-                color: '#e55a2b',
-                fontWeight: 'bold',
-                transition: 'transform 0.2s ease'
-              }}>
-                ↗
-              </span>
-            </Box>
+        <Box sx={{ textAlign: 'center', mb: spacing.gap.md, px: isMobile ? spacing.component.xs : 0 }}>
+          <a href={isAuthenticated ? "/my-podcasts" : "/auth/login"} style={{ textDecoration: 'none' }}>
+            <Typography sx={{ ...typography.button, color: '#ff6b35', textDecoration: 'underline', '&:hover': { color: '#e55a2b' } }}>
+              Create your own podcast ↗
+            </Typography>
           </a>
-          <Box sx={{ 
-            textAlign: 'center', 
-            color: '#ff6b35', 
-            fontWeight: 500, 
-            fontSize: { xs: '0.8rem', sm: '0.9rem' }, 
-            mt: 1, 
-            letterSpacing: 0.2,
-            opacity: 0.8
-          }}>
+          <Typography sx={{ ...typography.caption, color: '#ff6b35', opacity: 0.8, mt: 1 }}>
             ✨ No experience needed • One click to start!
-          </Box>
+          </Typography>
         </Box>
       )}
       
-      {/* Partner Logos */}
       <PartnerLogos />
+
       {query && (
-        <Typography variant="h4" component="h1" gutterBottom>
+        <Typography variant="h4" component="h1" gutterBottom sx={{ ...typography.title, mb: spacing.gap.md }}>
           Search Results for "{query}"
         </Typography>
       )}
       
-      {/* Show book type toggle when searching for books */}
       {type === 'book' && (
         <BookTypeToggle value={bookType} onChange={setBookType} />
       )}
 
-      {/* Location filter for news */}
       {type === 'news' && (
-        <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+        <Box sx={{ display: 'flex', gap: 2, mb: spacing.gap.md, flexDirection: isMobile ? 'column' : 'row' }}>
           <TextField
             label="City"
             variant="outlined"
             value={city}
             onChange={(e) => setCity(e.target.value)}
+            fullWidth={isMobile}
           />
           <TextField
             label="Country"
             variant="outlined"
             value={country}
             onChange={(e) => setCountry(e.target.value)}
+            fullWidth={isMobile}
           />
         </Box>
       )}
       
       <UnifiedSearchResults results={results} searchType={type} loading={loading} trending={showRecommendations} />
       
-      {/* Pagination */}
       {pagination && pagination.totalPages > 1 && !loading && (
         <Pagination
           currentPage={pagination.page}
