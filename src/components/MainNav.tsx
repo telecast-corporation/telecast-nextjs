@@ -277,7 +277,7 @@ const GridNav = styled(Box)(({ theme }) => ({
   top: 0,
   left: 0,
   right: 0,
-  width: '80%',
+  width: '98%',
   zIndex: theme.zIndex.appBar,
   boxShadow: theme.shadows[1],
   [theme.breakpoints.down('lg')]: {

@@ -11,7 +11,7 @@ export default function PartnerLogos() {
         display: 'flex',
         flexDirection: { xs: 'row', sm: 'row' },
         alignItems: 'center',
-        justifyContent: { xs: 'flex-start', sm: 'center' },
+        justifyContent: 'center', 
         gap: { xs: 8, sm: 10, md: 15 },
         py: { xs: 2, sm: 3 },
         px: { xs: 2, sm: 3 },
@@ -136,4 +136,4 @@ export default function PartnerLogos() {
       </Link>
     </Box>
   );
-} 
+}
