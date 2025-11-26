@@ -1127,8 +1127,21 @@ const MainNav = memo(() => {
                 sx={getNavButtonStyles(theme, pathname, '/my-podcasts')}
               >
                 Create
-            </Button>
-          )}
+              </Button>
+             )}
+
+             {isAuthenticated && (
+                  <Button 
+                      variant="text"
+                          className="nav-button"
+                              onClick={() => router.push('/upload')}
+                                  sx={getNavButtonStyles(theme, pathname, '/upload')}
+                                      >
+                                          Upload
+                                              </Button>
+                                              )}
+
+             
 
 
             {isAuthenticated ? (
