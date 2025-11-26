@@ -2,15 +2,12 @@
 
 import { Suspense } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useTheme } from '@/contexts/ThemeContext';
 import { 
   Box, 
   Container, 
   Typography, 
   Paper, 
   Button, 
-  Switch,
-  FormControlLabel,
   Divider,
   IconButton,
   Snackbar,
@@ -20,8 +17,6 @@ import {
 } from '@mui/material';
 import { 
   ArrowBack as ArrowBackIcon,
-  DarkMode as DarkModeIcon,
-  LightMode as LightModeIcon,
   Star as StarIcon,
 } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
@@ -38,7 +33,6 @@ export default function SettingsPageWrapper() {
 
 function SettingsPage() {
   const { user, isAuthenticated, isLoading } = useAuth();
-  const { isDarkMode, toggleDarkMode } = useTheme();
   const router = useRouter();
   const muiTheme = useMuiTheme();
   const isMobile = useMediaQuery(muiTheme.breakpoints.down('sm'));
@@ -172,92 +166,7 @@ function SettingsPage() {
           background: 'background.paper',
         }}
       >
-        {/* Theme Settings */}
-        <Box sx={{ mb: isMobile ? 3 : 4 }}>
-          <Typography 
-            variant="h6" 
-            component="h2"
-            sx={{ 
-              ...typography.subheading,
-              color: 'text.primary',
-              fontWeight: 600,
-              mb: 2,
-              fontSize: isMobile ? '1.1rem' : '1.25rem',
-            }}
-          >
-            Appearance
-          </Typography>
-          
-          <Box sx={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: 'space-between',
-            p: isMobile ? 2 : 3,
-            borderRadius: borderRadius.medium,
-            border: '1px solid',
-            borderColor: 'divider',
-            backgroundColor: 'background.default',
-            flexDirection: isMobile ? 'column' : 'row',
-            gap: isMobile ? 2 : 0,
-          }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', width: isMobile ? '100%' : 'auto' }}>
-              <Box sx={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                mr: 2,
-                color: 'primary.main',
-              }}>
-                {isDarkMode ? <DarkModeIcon /> : <LightModeIcon />}
-              </Box>
-              <Box sx={{ flex: 1 }}>
-                <Typography 
-                  variant="body1"
-                  sx={{ 
-                    ...typography.body,
-                    color: 'text.primary',
-                    fontWeight: 500,
-                    fontSize: isMobile ? '0.95rem' : '1rem',
-                  }}
-                >
-                  Dark Mode
-                </Typography>
-                <Typography 
-                  variant="body2"
-                  sx={{ 
-                    ...typography.body,
-                    color: 'text.secondary',
-                    fontSize: isMobile ? '0.85rem' : '0.875rem',
-                  }}
-                >
-                  Switch between light and dark themes
-                </Typography>
-              </Box>
-            </Box>
-            
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={isDarkMode}
-                  onChange={toggleDarkMode}
-                  sx={{
-                    '& .MuiSwitch-switchBase.Mui-checked': {
-                      color: 'primary.main',
-                      '&:hover': {
-                        backgroundColor: 'primary.main',
-                        opacity: 0.1,
-                      },
-                    },
-                    '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
-                      backgroundColor: 'primary.main',
-                    },
-                  }}
-                />
-              }
-              label=""
-            />
-          </Box>
-        </Box>
-
+        
         {/* Premium Subscription Settings */}
         <Box sx={{ mb: isMobile ? 3 : 4 }}>
           <Typography 
@@ -460,4 +369,4 @@ function SettingsPage() {
       </Snackbar>
     </Container>
   );
-} 
+}
