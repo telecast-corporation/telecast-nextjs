@@ -155,7 +155,7 @@ const FilterButton = styled(Button)(({ theme }) => ({
   '&.MuiButton-contained': {
     backgroundColor: theme.palette.primary.main,
     color: theme.palette.primary.contrastText,
-  '&:hover': {
+    '&:hover': {
       backgroundColor: theme.palette.primary.dark,
     },
   },
@@ -652,7 +652,7 @@ const MainNav = memo(() => {
 
   const submitSearch = useCallback(() => {
     if (!searchQuery.trim()) return;
-    
+
     const type = getApiType(selectedFilter);
     const searchUrl = `/search?q=${encodeURIComponent(searchQuery)}${type !== 'all' ? `&type=${type}` : ''}`;
     router.push(searchUrl);
@@ -669,7 +669,7 @@ const MainNav = memo(() => {
 
   const handleFilterSelect = useCallback((filter: string) => {
     setSelectedFilter(filter);
-    
+
     // If it's not "All", navigate to search page with the filter
     if (filter !== 'All') {
       const filterType = getApiType(filter);
@@ -698,7 +698,7 @@ const MainNav = memo(() => {
   const handleKeyPress = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
     // First, let the autocomplete handle the key press
     const handled = handleAutocompleteKeyDown(e);
-    
+
     if (!handled && e.key === 'Enter' && searchQuery.trim()) {
       e.preventDefault();
       submitSearch();
@@ -768,8 +768,8 @@ const MainNav = memo(() => {
     if (!isAutocompleteOpen || !searchQuery) return null;
 
     return (
-      <Paper 
-        sx={{ 
+      <Paper
+        sx={{
           position: 'absolute',
           top: '100%',
           left: 0,
@@ -791,15 +791,15 @@ const MainNav = memo(() => {
         ) : suggestions.length > 0 ? (
           <List sx={{ py: 0 }}>
             {suggestions.map((suggestion, index) => (
-              <ListItem 
+              <ListItem
                 key={`${suggestion.type}-${suggestion.id}`}
-                button 
+                button
                 selected={index === selectedIndex}
                 onClick={() => {
                   handleSuggestionClick(suggestion);
                   handleAutocompleteSelect(suggestion);
                 }}
-                sx={{ 
+                sx={{
                   cursor: 'pointer',
                   '&:hover': {
                     backgroundColor: 'action.hover',
@@ -813,14 +813,14 @@ const MainNav = memo(() => {
                 }}
               >
                 <ListItemAvatar>
-                  <Avatar 
-                    src={suggestion.thumbnail} 
+                  <Avatar
+                    src={suggestion.thumbnail}
                     sx={{ width: 32, height: 32 }}
                   >
                     {getIconForType(suggestion.type)}
                   </Avatar>
                 </ListItemAvatar>
-                <ListItemText 
+                <ListItemText
                   primary={
                     <Typography variant="body2" component="div" noWrap>
                       {suggestion.title}
@@ -893,14 +893,14 @@ const MainNav = memo(() => {
 
   const drawer = (
     <Box sx={{ width: { xs: '100%', sm: 280 } }} role="presentation">
-      <Box sx={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center', 
+      <Box sx={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
         p: { xs: 1.5, sm: 2 },
         borderBottom: `1px solid ${theme.palette.divider}`
       }}>
-        <Typography variant="h6" sx={{ 
+        <Typography variant="h6" sx={{
           fontFamily: lexend.style.fontFamily,
           fontWeight: 700,
           fontSize: { xs: '1.1rem', sm: '1.25rem' }
@@ -916,112 +916,112 @@ const MainNav = memo(() => {
           <ListItemIcon sx={{ minWidth: 40 }}>
             <HomeIcon />
           </ListItemIcon>
-          <ListItemText 
-            primary="Home" 
-            primaryTypographyProps={{ 
+          <ListItemText
+            primary="Home"
+            primaryTypographyProps={{
               fontFamily: lexend.style.fontFamily,
               ...typography.nav
-            }} 
+            }}
           />
         </ListItem>
-        
+
         <ListItem button onClick={() => { handleDrawerToggle(); router.push('/about'); }} sx={{ py: 1.5 }}>
           <ListItemIcon sx={{ minWidth: 40 }}>
             <InfoIcon />
           </ListItemIcon>
-          <ListItemText 
-            primary="About" 
-            primaryTypographyProps={{ 
+          <ListItemText
+            primary="About"
+            primaryTypographyProps={{
               fontFamily: lexend.style.fontFamily,
               ...typography.nav
-            }} 
+            }}
           />
         </ListItem>
-        
+
         <ListItem button onClick={() => { handleDrawerToggle(); router.push('/services'); }} sx={{ py: 1.5 }}>
           <ListItemIcon sx={{ minWidth: 40 }}>
             <BuildIcon />
           </ListItemIcon>
-          <ListItemText 
-            primary="Services" 
-            primaryTypographyProps={{ 
+          <ListItemText
+            primary="Services"
+            primaryTypographyProps={{
               fontFamily: lexend.style.fontFamily,
               ...typography.nav
-            }} 
+            }}
           />
         </ListItem>
-        
+
         <ListItem button onClick={() => { handleDrawerToggle(); router.push('/contact'); }} sx={{ py: 1.5 }}>
           <ListItemIcon sx={{ minWidth: 40 }}>
             <EmailIcon />
           </ListItemIcon>
-          <ListItemText 
-            primary="Contact" 
-            primaryTypographyProps={{ 
+          <ListItemText
+            primary="Contact"
+            primaryTypographyProps={{
               fontFamily: lexend.style.fontFamily,
               ...typography.nav
-            }} 
+            }}
           />
         </ListItem>
-        
+
         <ListItem button onClick={() => { handleDrawerToggle(); router.push('/faq'); }} sx={{ py: 1.5 }}>
           <ListItemIcon sx={{ minWidth: 40 }}>
             <HelpIcon />
           </ListItemIcon>
-          <ListItemText 
-            primary="FAQ" 
-            primaryTypographyProps={{ 
+          <ListItemText
+            primary="FAQ"
+            primaryTypographyProps={{
               fontFamily: lexend.style.fontFamily,
               ...typography.nav
-            }} 
+            }}
           />
         </ListItem>
-        
+
         <ListItem button onClick={() => { handleDrawerToggle(); router.push('/pricing'); }} sx={{ py: 1.5 }}>
           <ListItemIcon sx={{ minWidth: 40 }}>
             <AttachMoneyIcon />
           </ListItemIcon>
-          <ListItemText 
-            primary="Pricing" 
-            primaryTypographyProps={{ 
+          <ListItemText
+            primary="Pricing"
+            primaryTypographyProps={{
               fontFamily: lexend.style.fontFamily,
               ...typography.nav
-            }} 
+            }}
           />
         </ListItem>
-        
-                  {isAuthenticated && (
-                            <ListItem button onClick={() => { handleDrawerToggle(); router.push('/my-podcasts'); }} sx={{ py: 1.5 }}>
-              <ListItemIcon sx={{ minWidth: 40 }}>
-                <CreateIcon />
-              </ListItemIcon>
-              <ListItemText 
-                                  primary="Create" 
-                primaryTypographyProps={{ 
-                  fontFamily: lexend.style.fontFamily,
-                  ...typography.nav
-                }} 
-              />
-            </ListItem>
-          )}
-          
-          {isAuthenticated && (
-            <ListItem button onClick={() => { handleDrawerToggle(); router.push('/settings'); }} sx={{ py: 1.5 }}>
-              <ListItemIcon sx={{ minWidth: 40 }}>
-                <SettingsIcon />
-              </ListItemIcon>
-              <ListItemText 
-                primary="Settings" 
-                primaryTypographyProps={{ 
-                  fontFamily: lexend.style.fontFamily,
-                  ...typography.nav
-                }} 
-              />
-            </ListItem>
-          )}
-        
+
+        {isAuthenticated && (
+          <ListItem button onClick={() => { handleDrawerToggle(); router.push('/my-podcasts'); }} sx={{ py: 1.5 }}>
+            <ListItemIcon sx={{ minWidth: 40 }}>
+              <CreateIcon />
+            </ListItemIcon>
+            <ListItemText
+              primary="Create"
+              primaryTypographyProps={{
+                fontFamily: lexend.style.fontFamily,
+                ...typography.nav
+              }}
+            />
+          </ListItem>
+        )}
+
+        {isAuthenticated && (
+          <ListItem button onClick={() => { handleDrawerToggle(); router.push('/settings'); }} sx={{ py: 1.5 }}>
+            <ListItemIcon sx={{ minWidth: 40 }}>
+              <SettingsIcon />
+            </ListItemIcon>
+            <ListItemText
+              primary="Settings"
+              primaryTypographyProps={{
+                fontFamily: lexend.style.fontFamily,
+                ...typography.nav
+              }}
+            />
+          </ListItem>
+        )}
+
         <Divider sx={{ my: 1 }} />
-        
+
 
       </List>
     </Box>
@@ -1084,7 +1084,7 @@ const MainNav = memo(() => {
           </SearchContainer>
 
           <NavGroup>
-            <Button 
+            <Button
               variant="text"
               className="nav-button"
               onClick={() => router.push('/about')}
@@ -1102,7 +1102,7 @@ const MainNav = memo(() => {
               Services
             </Button>
 
-            <Button 
+            <Button
               variant="text"
               className="nav-button"
               onClick={() => router.push('/contact')}
@@ -1111,7 +1111,7 @@ const MainNav = memo(() => {
               Contact
             </Button>
 
-            <Button 
+            <Button
               variant="text"
               className="nav-button"
               onClick={() => router.push('/pricing')}
@@ -1119,29 +1119,19 @@ const MainNav = memo(() => {
             >
               Pricing
             </Button>
+
             {isAuthenticated && (
-              <Button 
+              <Button
                 variant="text"
                 className="nav-button"
-                onClick={() => router.push('/my-podcasts')}
-                sx={getNavButtonStyles(theme, pathname, '/my-podcasts')}
+                onClick={() => router.push('/upload')}
+                sx={getNavButtonStyles(theme, pathname, '/upload')}
               >
-                Create
+                Upload
               </Button>
-             )}
+            )}
 
-             {isAuthenticated && (
-                  <Button 
-                      variant="text"
-                          className="nav-button"
-                              onClick={() => router.push('/upload')}
-                                  sx={getNavButtonStyles(theme, pathname, '/upload')}
-                                      >
-                                          Upload
-                                              </Button>
-                                              )}
 
-             
 
 
             {isAuthenticated ? (
@@ -1233,7 +1223,7 @@ const MainNav = memo(() => {
               onClick={handleDrawerToggle}
               color="inherit"
               aria-label="menu"
-              sx={{ 
+              sx={{
                 width: 36,
                 height: 36,
                 '& .MuiSvgIcon-root': {
@@ -1244,7 +1234,7 @@ const MainNav = memo(() => {
               <MenuIcon />
             </IconButton>
           </HamburgerArea>
-        </TopRow> 
+        </TopRow>
 
         {/* Bottom Row: Filter Buttons */}
         <BottomRow>
