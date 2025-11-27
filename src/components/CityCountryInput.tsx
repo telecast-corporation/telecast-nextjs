@@ -2,6 +2,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { Button, Dialog, DialogTitle, DialogContent, List, ListItem, ListItemText, TextField, InputAdornment } from '@mui/material';
+import { Filter, Search } from 'lucide-react';
 import { countries, cities } from '../lib/locations';
 
 interface CityCountryInputProps {
@@ -17,92 +19,139 @@ export default function CityCountryInput({
   initialCity = '',
   initialCountry = '',
 }: CityCountryInputProps) {
-  const [country, setCountry] = useState(initialCountry);
-  const [city, setCity] = useState(initialCity);
-  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [country, setCountry] = useState<string | null>(initialCountry);
+  const [city, setCity] = useState<string | null>(initialCity);
+  const [cityOptions, setCityOptions] = useState<string[]>([]);
+  const [countrySearch, setCountrySearch] = useState('');
+  const [citySearch, setCitySearch] = useState('');
+
+  const [openCountry, setOpenCountry] = useState(false);
+  const [openCity, setOpenCity] = useState(false);
 
   useEffect(() => {
-    onCountryChange(country);
-    if (country && cities[country]) {
-      setSuggestions(cities[country]);
+    if (country) {
+      onCountryChange(country);
+      setCityOptions(cities[country] || []);
     } else {
-      setSuggestions([]);
+        onCountryChange('');
+        setCityOptions([]);
     }
   }, [country, onCountryChange]);
 
   useEffect(() => {
-    onCityChange(city);
+    if (city) {
+        onCityChange(city);
+    } else {
+        onCityChange('');
+    }
   }, [city, onCityChange]);
 
-  const handleCountryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setCountry(value);
-    if (value) {
-      const filteredCountries = countries.filter((c) =>
-        c.toLowerCase().startsWith(value.toLowerCase())
-      );
-      setSuggestions(filteredCountries);
-    } else {
-      setSuggestions([]);
-    }
-  };
+  const filteredCountries = countries.filter((c) =>
+    c.toLowerCase().includes(countrySearch.toLowerCase())
+  );
 
-  const handleCityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setCity(value);
-    if (country && cities[country]) {
-      const filteredCities = cities[country].filter((c) =>
-        c.toLowerCase().startsWith(value.toLowerCase())
-      );
-      setSuggestions(filteredCities);
-    } else {
-      setSuggestions([]);
-    }
-  };
+  const filteredCities = cityOptions.filter((c) =>
+    c.toLowerCase().includes(citySearch.toLowerCase())
+  );
 
-  const handleSuggestionClick = (value: string) => {
-    if (countries.includes(value)) {
-      setCountry(value);
-      setCity(''); // Reset city when a new country is selected
-      setSuggestions(cities[value] || []);
-    } else {
-      setCity(value);
-      setSuggestions([]);
-    }
+  const buttonSx = {
+    borderRadius: '9999px',
+    padding: '10px 20px',
+    backgroundColor: 'black',
+    color: 'white',
+    '&:hover': {
+      backgroundColor: '#333',
+    },
+    '&.Mui-disabled': {
+        backgroundColor: '#555',
+        color: '#aaa'
+    },
+    display: 'flex',
+    justifyContent: 'space-between',
+    width: '100%',
   };
 
   return (
-    <div className="relative">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <input
-          type="text"
-          placeholder="Country"
-          value={country}
-          onChange={handleCountryChange}
-          className="border-gray-300 rounded-md shadow-sm w-full"
-        />
-        <input
-          type="text"
-          placeholder="City"
-          value={city}
-          onChange={handleCityChange}
-          className="border-gray-300 rounded-md shadow-sm w-full"
-          disabled={!country}
-        />
-      </div>
-      {suggestions.length > 0 && (
-        <ul className="absolute z-10 w-full bg-white border border-gray-300 rounded-md mt-1">
-          {suggestions.map((suggestion) => (
-            <li
-              key={suggestion}
-              onClick={() => handleSuggestionClick(suggestion)}
-              className="p-2 cursor-pointer hover:bg-gray-100"
-            >
-              {suggestion}
-            </li>
-          ))}
-        </ul>
-      )}
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <Button
+        onClick={() => setOpenCountry(true)}
+        sx={buttonSx}
+        startIcon={<Filter />}
+      >
+        {country || 'Country'}
+      </Button>
+      <Dialog open={openCountry} onClose={() => setOpenCountry(false)} fullWidth maxWidth="xs">
+        <DialogTitle>Select Country</DialogTitle>
+        <DialogContent>
+          <TextField
+            fullWidth
+            variant="outlined"
+            placeholder="Search country..."
+            value={countrySearch}
+            onChange={(e) => {setCountrySearch(e.target.value)}}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <Search />
+                </InputAdornment>
+              ),
+            }}
+            sx={{ mb: 2 }}
+          />
+          <List>
+            {filteredCountries.map((c) => (
+              <ListItem button key={c} onClick={() => {
+                setCountry(c);
+                setCity(null); // Reset city when country changes
+                setOpenCountry(false);
+                setCountrySearch('');
+              }}>
+                <ListItemText primary={c} />
+              </ListItem>
+            ))}
+          </List>
+        </DialogContent>
+      </Dialog>
+
+      <Button
+        onClick={() => setOpenCity(true)}
+        disabled={!country}
+        sx={buttonSx}
+        startIcon={<Filter />}
+      >
+        {city || 'City'}
+      </Button>
+      <Dialog open={openCity} onClose={() => setOpenCity(false)} fullWidth maxWidth="xs">
+        <DialogTitle>Select City</DialogTitle>
+        <DialogContent>
+          <TextField
+            fullWidth
+            variant="outlined"
+            placeholder="Search city..."
+            value={citySearch}
+            onChange={(e) => {setCitySearch(e.target.value)}}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <Search />
+                </InputAdornment>
+              ),
+            }}
+            sx={{ mb: 2 }}
+          />
+          <List>
+            {filteredCities.map((c) => (
+              <ListItem button key={c} onClick={() => {
+                setCity(c);
+                setOpenCity(false);
+                setCitySearch('');
+              }}>
+                <ListItemText primary={c} />
+              </ListItem>
+            ))}
+          </List>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
