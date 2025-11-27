@@ -991,7 +991,7 @@ const MainNav = memo(() => {
         </ListItem>
 
         {isAuthenticated && (
-          <ListItem button onClick={() => { handleDrawerToggle(); router.push('/upload'); }} sx={{ py: 1.5 }}>
+          <ListItem button onClick={() => { handleDrawerToggle(); router.push('/local-news/upload'); }} sx={{ py: 1.5 }}>
             <ListItemIcon sx={{ minWidth: 40 }}>
               <CreateIcon />
             </ListItemIcon>
