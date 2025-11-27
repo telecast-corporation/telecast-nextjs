@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Container, Typography, Box, CircularProgress, TextField, useTheme, useMediaQuery } from '@mui/material';
+import { Container, Typography, Box, CircularProgress, TextField, useTheme, useMediaQuery, Button, Modal, Paper, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import UnifiedSearchResults from '@/components/UnifiedSearchResults';
 import BookTypeToggle from '@/components/BookTypeToggle';
 import PartnerLogos from '@/components/PartnerLogos';
@@ -10,6 +10,8 @@ import Pagination from '@/components/Pagination';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { typography, spacing, borderRadius } from '@/styles/typography';
+import { FilterList as FilterIcon } from '@mui/icons-material';
+import { countries } from '@/lib/countries';
 
 interface SearchResult {
   id: string;
@@ -33,10 +35,13 @@ export default function SearchResults() {
   const router = useRouter();
   const currentPage = parseInt(searchParams.get('page') || '1');
   const { isAuthenticated } = useAuth();
-  const [city, setCity] = useState('');
-  const [country, setCountry] = useState('');
+  const [city, setCity] = useState(searchParams.get('city') || '');
+  const [country, setCountry] = useState(searchParams.get('country') || '');
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const [modalOpen, setModalOpen] = useState(false);
+  const [countrySearch, setCountrySearch] = useState('');
+
 
   const showRecommendations = !query && ['podcast', 'video', 'music', 'book', 'news', 'tv'].includes(type);
 
@@ -103,6 +108,31 @@ export default function SearchResults() {
     };
   }, [query, type, bookType, showRecommendations, currentPage, city, country]);
 
+  const handleApplyFilter = () => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (country) params.set('country', country);
+    else params.delete('country')
+    if (city) params.set('city', city);
+    else params.delete('city')
+
+    router.push(`/search?${params.toString()}`);
+    setModalOpen(false);
+  };
+
+  const handleClear = () => {
+    setCountry('');
+    setCity('');
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete('country');
+    params.delete('city');
+    router.push(`/search?${params.toString()}`);
+    setModalOpen(false);
+  };
+
+  const filteredCountries = countries.filter(c => c.name.toLowerCase().includes(countrySearch.toLowerCase()));
+  const cities = countries.find(c => c.name === country)?.cities || [];
+
+
   if (!query && !showRecommendations) {
     return (
       <Container maxWidth="lg" sx={{ py: spacing.section.md }}>
@@ -153,24 +183,56 @@ export default function SearchResults() {
       )}
 
       {type === 'news' && (
-        <Box sx={{ display: 'flex', gap: 2, mb: spacing.gap.md, flexDirection: isMobile ? 'column' : 'row' }}>
-          <TextField
-            label="City"
-            variant="outlined"
-            value={city}
-            onChange={(e) => setCity(e.target.value)}
-            fullWidth={isMobile}
-          />
-          <TextField
-            label="Country"
-            variant="outlined"
-            value={country}
-            onChange={(e) => setCountry(e.target.value)}
-            fullWidth={isMobile}
-          />
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: spacing.gap.md }}>
+        <Button
+          variant="contained"
+          startIcon={<FilterIcon />}
+          onClick={() => setModalOpen(true)}
+          sx={{ borderRadius: '20px', textTransform: 'none' }}
+        >
+          All
+        </Button>
         </Box>
       )}
       
+       <Modal open={modalOpen} onClose={() => setModalOpen(false)}>
+        <Paper sx={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 400, p: 4 }}>
+          <Typography variant="h6" gutterBottom>Filter News</Typography>
+          <TextField
+            label="Search Country"
+            variant="outlined"
+            fullWidth
+            value={countrySearch}
+            onChange={(e) => setCountrySearch(e.target.value)}
+            sx={{ mb: 2 }}
+          />
+          <FormControl fullWidth sx={{ mb: 2 }}>
+            <InputLabel>Country</InputLabel>
+            <Select value={country} onChange={(e) => setCountry(e.target.value)}>
+              {filteredCountries.map((c) => (
+                <MenuItem key={c.code} value={c.name}>
+                  {c.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <FormControl fullWidth disabled={!country} sx={{ mb: 2 }}>
+            <InputLabel>City</InputLabel>
+            <Select value={city} onChange={(e) => setCity(e.target.value)}>
+              {cities.map((cityName) => (
+                <MenuItem key={cityName} value={cityName}>
+                  {cityName}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+            <Button onClick={handleClear} variant="text">Clear</Button>
+            <Button onClick={handleApplyFilter} variant="contained">Apply</Button>
+          </Box>
+        </Paper>
+      </Modal>
+
       <UnifiedSearchResults results={results} searchType={type} loading={loading} trending={showRecommendations} />
       
       {pagination && pagination.totalPages > 1 && !loading && (
