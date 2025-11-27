@@ -1,6 +1,6 @@
 
 "use client";
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Box,
   Button,
@@ -12,6 +12,7 @@ import {
   SelectChangeEvent,
   TextField,
   Typography,
+  CircularProgress,
 } from "@mui/material";
 import { countries } from "@/lib/countries";
 
@@ -21,12 +22,23 @@ const LocalNewsUploadPage = () => {
   const [country, setCountry] = useState("");
   const [city, setCity] = useState("");
   const [file, setFile] = useState<File | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [videoPreviewUrl, setVideoPreviewUrl] = useState<string | null>(null);
 
   const cities = useMemo(() => {
     if (!country) return [];
     const selectedCountry = countries.find((c) => c.name === country);
     return selectedCountry ? selectedCountry.cities : [];
   }, [country]);
+
+  useEffect(() => {
+    // Clean up the object URL to avoid memory leaks
+    return () => {
+      if (videoPreviewUrl) {
+        URL.revokeObjectURL(videoPreviewUrl);
+      }
+    };
+  }, [videoPreviewUrl]);
 
   const handleCountryChange = (event: SelectChangeEvent) => {
     setCountry(event.target.value as string);
@@ -38,8 +50,13 @@ const LocalNewsUploadPage = () => {
   };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files) {
-      setFile(event.target.files[0]);
+    if (event.target.files && event.target.files[0]) {
+      const selectedFile = event.target.files[0];
+      setFile(selectedFile);
+      setVideoPreviewUrl(URL.createObjectURL(selectedFile));
+    } else {
+      setFile(null);
+      setVideoPreviewUrl(null);
     }
   };
 
@@ -51,6 +68,7 @@ const LocalNewsUploadPage = () => {
       return;
     }
 
+    setIsSubmitting(true);
     const formData = new FormData();
     formData.append('file', file);
     formData.append('title', title);
@@ -73,6 +91,8 @@ const LocalNewsUploadPage = () => {
       }
     } catch (error) {
       console.error("An error occurred during upload:", error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -146,9 +166,16 @@ const LocalNewsUploadPage = () => {
             </label>
             {file && <Typography variant="body1" sx={{ display: 'inline', ml: 2 }}>{file.name}</Typography>}
           </Box>
+
+          {videoPreviewUrl && (
+            <Box sx={{ mt: 2, border: '1px solid lightgray', borderRadius: '4px' }}>
+              <video controls width="100%" src={videoPreviewUrl} />
+            </Box>
+          )}
+
           <Box sx={{ mt: 3 }}>
-            <Button type="submit" variant="contained" color="primary">
-              Submit
+            <Button type="submit" variant="contained" color="primary" disabled={isSubmitting}>
+              {isSubmitting ? <CircularProgress size={24} /> : "Submit"}
             </Button>
           </Box>
         </form>
