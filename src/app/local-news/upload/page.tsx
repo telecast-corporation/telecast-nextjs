@@ -13,6 +13,8 @@ import {
   TextField,
   Typography,
   CircularProgress,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 import { countries } from "@/lib/countries";
 
@@ -24,6 +26,8 @@ const LocalNewsUploadPage = () => {
   const [file, setFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [videoPreviewUrl, setVideoPreviewUrl] = useState<string | null>(null);
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+
 
   const cities = useMemo(() => {
     if (!country) return [];
@@ -85,6 +89,7 @@ const LocalNewsUploadPage = () => {
       if (response.ok) {
         // Handle success, e.g., show a success message or redirect
         console.log("Upload successful!");
+        setOpenSnackbar(true);
       } else {
         // Handle error
         console.error("Upload failed.");
@@ -94,6 +99,13 @@ const LocalNewsUploadPage = () => {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleCloseSnackbar = (event?: React.SyntheticEvent | Event, reason?: string) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setOpenSnackbar(false);
   };
 
   return (
@@ -180,6 +192,11 @@ const LocalNewsUploadPage = () => {
           </Box>
         </form>
       </Box>
+      <Snackbar open={openSnackbar} autoHideDuration={6000} onClose={handleCloseSnackbar}>
+        <Alert onClose={handleCloseSnackbar} severity="success" sx={{ width: '100%' }}>
+          Your news have been submitted for review
+        </Alert>
+      </Snackbar>
     </Container>
   );
 };
