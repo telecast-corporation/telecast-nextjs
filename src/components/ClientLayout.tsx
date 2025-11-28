@@ -5,18 +5,19 @@ import MainNav from './MainNav';
 import Footer from './Footer';
 import FloatingPlayer from './FloatingPlayer';
 import { navbarSizing } from '@/styles/typography';
+import { ThemeProvider } from '@mui/material/styles';
+import theme from '@/theme';
 
 export default function ClientLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.only('xs'));
   const isTablet = useMediaQuery(theme.breakpoints.only('sm'));
 
   return (
-    <>
+    <ThemeProvider theme={theme}>
       <MainNav />
       <Box 
         component="main" 
@@ -38,6 +39,6 @@ export default function ClientLayout({
       </Box>
       <Footer />
       <FloatingPlayer />
-    </>
+    </ThemeProvider>
   );
 } 
