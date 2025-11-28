@@ -63,8 +63,8 @@ export default function CityCountryInput({
       backgroundColor: '#015f9b',
     },
     '&.Mui-disabled': {
-        backgroundColor: '#555',
-        color: '#aaa'
+        backgroundColor: '#a4c3e2',
+        color: '#e0e0e0'
     },
     display: 'flex',
     justifyContent: 'space-between',
