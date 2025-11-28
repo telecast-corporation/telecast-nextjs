@@ -290,7 +290,7 @@ function HomePageContent() {
         <Typography variant="h4" component="h2" sx={{ mb: 2, fontSize: { xs: '1.5rem', sm: '2rem' } }}>
           Local News
         </Typography>
-        <Image src="/telecast-logo.gif" alt="Local News" width={800} height={100} />
+        <Image src="/telecast-logo.gif" alt="Local News" width={300} height={100} />
         <Typography variant="body1" sx={{ my: 2, textAlign: 'center' }}>
           View local news events or upload your own video news events.
         </Typography>
