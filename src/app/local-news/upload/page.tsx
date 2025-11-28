@@ -5,18 +5,15 @@ import {
   Box,
   Button,
   Container,
-  FormControl,
-  InputLabel,
-  MenuItem,
-  Select,
-  SelectChangeEvent,
   TextField,
   Typography,
   CircularProgress,
   Snackbar,
   Alert,
 } from "@mui/material";
-import { countries } from "@/lib/countries";
+import CityCountryInput from '@/components/CityCountryInput'; // Import the new component
+import { useAuth } from '@/contexts/AuthContext'; // To get user location
+import { getOrCreateUser } from '@/lib/auth0-user';
 
 const LocalNewsUploadPage = () => {
   const [title, setTitle] = useState("");
@@ -27,13 +24,22 @@ const LocalNewsUploadPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [videoPreviewUrl, setVideoPreviewUrl] = useState<string | null>(null);
   const [openSnackbar, setOpenSnackbar] = useState(false);
+  const { user } = useAuth(); // Get user from auth context
 
-
-  const cities = useMemo(() => {
-    if (!country) return [];
-    const selectedCountry = countries.find((c) => c.name === country);
-    return selectedCountry ? selectedCountry.cities : [];
-  }, [country]);
+  // Geo-location: Set initial country and city based on user's profile
+  useEffect(() => {
+    const fetchUser = async () => {
+      if (user) {
+        const response = await fetch('/api/profile');
+        const profile = await response.json();
+        if (profile) {
+          setCountry(profile.country || '');
+          setCity(profile.city || '');
+        }
+      }
+    };
+    fetchUser();
+  }, [user]);
 
   useEffect(() => {
     // Clean up the object URL to avoid memory leaks
@@ -43,15 +49,6 @@ const LocalNewsUploadPage = () => {
       }
     };
   }, [videoPreviewUrl]);
-
-  const handleCountryChange = (event: SelectChangeEvent) => {
-    setCountry(event.target.value as string);
-    setCity("");
-  };
-
-  const handleCityChange = (event: SelectChangeEvent) => {
-    setCity(event.target.value as string);
-  };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
@@ -133,36 +130,15 @@ const LocalNewsUploadPage = () => {
             value={description}
             onChange={(e) => setDescription(e.target.value)}
           />
-          <FormControl fullWidth margin="normal" required>
-            <InputLabel id="country-select-label">Country</InputLabel>
-            <Select
-              labelId="country-select-label"
-              value={country}
-              onChange={handleCountryChange}
-              label="Country"
-            >
-              {countries.map((c) => (
-                <MenuItem key={c.code} value={c.name}>
-                  {c.name}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <FormControl fullWidth margin="normal" required disabled={!country}>
-            <InputLabel id="city-select-label">City</InputLabel>
-            <Select
-              labelId="city-select-label"
-              value={city}
-              onChange={handleCityChange}
-              label="City"
-            >
-              {cities.map((cityName) => (
-                <MenuItem key={cityName} value={cityName}>
-                  {cityName}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+          
+          {/* Replace the old dropdowns with the CityCountryInput component */}
+          <CityCountryInput
+            onCountryChange={setCountry}
+            onCityChange={setCity}
+            initialCountry={country}
+            initialCity={city}
+          />
+
           <Box sx={{ mt: 2 }}>
             <input
               accept="video/*"

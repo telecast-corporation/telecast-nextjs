@@ -277,6 +277,36 @@ function HomePageContent() {
       py: { xs: 1, sm: 1.5 },
       px: { xs: 1, sm: 2 }
     }}>
+        <Box sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        mb: 4,
+        p: 2,
+        border: '1px solid',
+        borderColor: 'divider',
+        borderRadius: 2,
+      }}>
+        <Typography variant="h4" component="h2" sx={{ mb: 2, fontSize: { xs: '1.5rem', sm: '2rem' } }}>
+          Local News
+        </Typography>
+        <Image src="/telecast-logo.gif" alt="Local News" width={100} height={100} />
+        <Typography variant="body1" sx={{ my: 2, textAlign: 'center' }}>
+          View local news events or upload your own video news events.
+        </Typography>
+        <Grid container spacing={2} justifyContent="center">
+          <Grid item>
+            <Button variant="contained" component="a" href="/local-news" startIcon={<VideoIcon />}>
+              View News
+            </Button>
+          </Grid>
+          <Grid item>
+            <Button variant="outlined" component="a" href="/local-news/upload" startIcon={<MicIcon />}>
+              Upload News
+            </Button>
+          </Grid>
+        </Grid>
+      </Box>
       {/* CTA for podcast recording */}
       <Box sx={{ 
         display: 'flex', 
