@@ -57,10 +57,10 @@ export default function CityCountryInput({
   const buttonSx = {
     borderRadius: '9999px',
     padding: '10px 20px',
-    backgroundColor: 'black',
+    backgroundColor: '#0279c3',
     color: 'white',
     '&:hover': {
-      backgroundColor: '#333',
+      backgroundColor: '#015f9b',
     },
     '&.Mui-disabled': {
         backgroundColor: '#555',
@@ -68,11 +68,11 @@ export default function CityCountryInput({
     },
     display: 'flex',
     justifyContent: 'space-between',
-    width: '100%',
+    minWidth: '200px',
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className="flex flex-col md:flex-row gap-4">
       <Button
         onClick={() => setOpenCountry(true)}
         sx={buttonSx}
