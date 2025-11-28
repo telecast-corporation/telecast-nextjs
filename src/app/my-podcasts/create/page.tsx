@@ -119,7 +119,7 @@ export default function CreatePodcastPage() {
         >
           Back to My Podcasts
         </Button>
-        <Typography variant="h3" sx={{ fontWeight: 700, mb: 1 }}>
+        <Typography variant="h3">
           Create New Podcast
         </Typography>
         <Typography variant="body1" color="text.secondary">

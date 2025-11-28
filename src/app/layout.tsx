@@ -4,6 +4,8 @@ import { Box } from '@mui/material';
 import { AuthSessionProvider } from './providers';
 import ClientLayout from '@/components/ClientLayout';
 import { AudioProvider } from '@/contexts/AudioContext';
+import { ThemeProvider } from '@mui/material/styles';
+import theme from '@/theme';
 
 const lexend = Lexend({ 
   subsets: ["latin"],
@@ -40,9 +42,11 @@ export default function RootLayout({
       <body className={lexend.className}>
         <AuthSessionProvider>
             <AudioProvider>
+              <ThemeProvider theme={theme}>
                 <ClientLayout>
                   {children}
                 </ClientLayout>
+              </ThemeProvider>
             </AudioProvider>
         </AuthSessionProvider>
       </body>

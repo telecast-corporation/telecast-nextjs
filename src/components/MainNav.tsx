@@ -1294,6 +1294,14 @@ const MainNav = memo(() => {
             >
               News
             </Button>
+            <Button
+              variant="text"
+              startIcon={<NewsIcon />}
+              onClick={() => router.push('/local-news')}
+              sx={getFilterButtonStyles(theme, selectedFilter, 'LocalNews')}
+            >
+              Local News
+            </Button>
           </FiltersArea>
         </BottomRow>
       </GridNav>
