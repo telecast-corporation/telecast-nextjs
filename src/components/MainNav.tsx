@@ -1297,10 +1297,10 @@ const MainNav = memo(() => {
             <Button
               variant="text"
               startIcon={<NewsIcon />}
-              onClick={() => router.push('/local-news')}
+              onClick={() => router.push('/local-news/upload')}
               sx={getFilterButtonStyles(theme, selectedFilter, 'LocalNews')}
             >
-              Local News
+              Upload News
             </Button>
           </FiltersArea>
         </BottomRow>
