@@ -2,58 +2,58 @@
 // Use these consistent font sizes across all components
 
 export const typography = {
-  // Main headings (page titles) - reduced by half
+  // Main headings (page titles)
   title: {
-    fontSize: { xs: '5vw', sm: '4vw', md: '3vw', lg: '2vw' },
+    fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem', lg: '3.5rem' },
     fontWeight: 700,
     lineHeight: 1.2,
   },
   
-  // Section headings - reduced by half
+  // Section headings
   heading: {
-    fontSize: { xs: '3.5vw', sm: '2.8vw', md: '2vw', lg: '1.5vw' },
+    fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2rem', lg: '2.25rem' },
     fontWeight: 600,
     lineHeight: 1.3,
   },
   
-  // Subheadings - reduced by half
+  // Subheadings
   subheading: {
-    fontSize: { xs: '2.5vw', sm: '2vw', md: '1.5vw', lg: '1vw' },
+    fontSize: { xs: '1.25rem', sm: '1.375rem', md: '1.5rem', lg: '1.625rem' },
     fontWeight: 500,
     lineHeight: 1.4,
   },
   
-  // Body text (paragraphs, descriptions) - increased size
+  // Body text (paragraphs, descriptions)
   body: {
-    fontSize: { xs: '1vw', sm: '1.5vw', md: '1vw', lg: '0.9vw' },
+    fontSize: { xs: '1rem', sm: '1rem', md: '1.125rem', lg: '1.125rem' },
     fontWeight: 400,
     lineHeight: 1.6,
   },
   
-  // Button text - reduced by half
+  // Button text
   button: {
-    fontSize: { xs: '2vw', sm: '1.5vw', md: '1vw', lg: '0.9vw' },
+    fontSize: { xs: '1rem', sm: '1rem', md: '1.125rem', lg: '1.125rem' },
     fontWeight: 600,
     lineHeight: 1.2,
   },
   
-  // Form labels - reduced by half
+  // Form labels
   label: {
-    fontSize: { xs: '1.8vw', sm: '1.3vw', md: '1vw', lg: '0.8vw' },
+    fontSize: { xs: '0.875rem', sm: '0.875rem', md: '1rem', lg: '1rem' },
     fontWeight: 600,
     lineHeight: 1.4,
   },
   
-  // Form inputs - reduced by half
+  // Form inputs
   input: {
-    fontSize: { xs: '1.8vw', sm: '1.3vw', md: '1vw', lg: '0.8vw' },
+    fontSize: { xs: '1rem', sm: '1rem', md: '1.125rem', lg: '1.125rem' },
     fontWeight: 400,
     lineHeight: 1.4,
   },
   
-  // Small text (captions, helper text) - reduced by half
+  // Small text (captions, helper text)
   caption: {
-    fontSize: { xs: '1.2vw', sm: '1vw', md: '0.8vw', lg: '0.7vw' },
+    fontSize: { xs: '0.75rem', sm: '0.75rem', md: '0.875rem', lg: '0.875rem' },
     fontWeight: 400,
     lineHeight: 1.5,
   },
@@ -69,20 +69,46 @@ export const typography = {
 // Spacing system for consistent margins and padding
 export const spacing = {
   // Component padding
-  component: { xs: 3, sm: 4, md: 6, lg: 8 },
+  component: {
+    xs: '0.5rem',
+    sm: '0.75rem',
+    md: '1rem',
+    lg: '1.25rem',
+  },
   
   // Section margins
-  section: { xs: 4, sm: 5, md: 6, lg: 8 },
+  section: {
+    xs: '1rem',
+    sm: '1.5rem',
+    md: '2rem',
+    lg: '2.5rem',
+  },
   
   // Element gaps
-  gap: { xs: 2, sm: 3, md: 4, lg: 5 },
+  gap: {
+    xs: '0.5rem',
+    sm: '0.75rem',
+    md: '1rem',
+    lg: '1.25rem',
+  },
   
   // Button padding
-  button: { xs: '1rem 1.5rem', sm: '1.25rem 2rem', md: '1.5rem 2.5rem', lg: '1.75rem 3rem' },
+  button: {
+    xs: '0.5rem 1rem',
+    sm: '0.75rem 1.25rem',
+    md: '1rem 1.5rem',
+    lg: '1.25rem 1.75rem',
+  },
   
   // Input padding
-  input: { xs: '1rem', sm: '1.25rem', md: '1.5rem', lg: '1.75rem' },
+  input: {
+    xs: '0.5rem',
+    sm: '0.75rem',
+    md: '1rem',
+    lg: '1.25rem',
+  },
 };
+
 
 // Border radius system
 export const borderRadius = {
@@ -107,4 +133,4 @@ export const navbarSizing = {
     sm: 'calc(20vh + 5vh)',  // 25vh total
     xs: 'calc(20vh + 5vh)',  // 25vh total
   }
-}; 
+};

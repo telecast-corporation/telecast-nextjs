@@ -5,8 +5,9 @@ import MainNav from './MainNav';
 import Footer from './Footer';
 import FloatingPlayer from './FloatingPlayer';
 import { navbarSizing } from '@/styles/typography';
-import { ThemeProvider } from '@mui/material/styles';
-import theme from '@/theme';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
+
+const theme = createTheme();
 
 export default function ClientLayout({
   children,
@@ -24,10 +25,10 @@ export default function ClientLayout({
         sx={{ 
           flexGrow: 1,
           pt: { 
-            xs: navbarSizing.pagePadding.xs, // Automatically calculated: navbar height + 5vh
-            sm: navbarSizing.pagePadding.sm, // Automatically calculated: navbar height + 5vh
-            md: navbarSizing.pagePadding.md, // Automatically calculated: navbar height + 5vh
-            lg: navbarSizing.pagePadding.lg  // Automatically calculated: navbar height + 5vh
+            xs: '12rem', 
+            sm: '12rem', 
+            md: '10rem', 
+            lg: '10rem'  
           },
           pb: { xs: 8, sm: 9 },   // Keep bottom padding for floating player
           minHeight: '100vh',     // Ensure minimum full viewport height
@@ -41,4 +42,4 @@ export default function ClientLayout({
       <FloatingPlayer />
     </ThemeProvider>
   );
-} 
+}
