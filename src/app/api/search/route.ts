@@ -45,22 +45,22 @@ async function getSpotifyAccessToken() {
   }
 
   try {
-  const response = await fetch('https://accounts.spotify.com/api/token', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
+    const response = await fetch('https://accounts.spotify.com/api/token', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
         'Authorization': `Basic ${Buffer.from(`${clientId}:${clientSecret}`).toString('base64')}`,
-    },
-    body: 'grant_type=client_credentials',
-  });
+      },
+      body: 'grant_type=client_credentials',
+    });
 
-  if (!response.ok) {
+    if (!response.ok) {
       console.warn('Failed to get Spotify access token:', await response.text());
       return null;
-  }
+    }
 
-  const data = await response.json();
-  return data.access_token;
+    const data = await response.json();
+    return data.access_token;
   } catch (error) {
     console.error('Error getting Spotify access token:', error);
     return null;
@@ -112,7 +112,7 @@ async function searchBooks(query: string, maxResults: number = 300) {
   try {
     // Ensure maxResults doesn't exceed Google Books API limit of 40
     const safeMaxResults = Math.min(maxResults, 40);
-    
+
     const response = await axios.get('https://www.googleapis.com/books/v1/volumes', {
       params: {
         q: query,
@@ -122,32 +122,54 @@ async function searchBooks(query: string, maxResults: number = 300) {
       },
     });
 
-    return response.data.items.map((item: any) => ({
-      type: 'book',
-      id: item.id,
-      title: truncateText(item.volumeInfo.title, 50),
-      description: truncateText(item.volumeInfo.description, 100),
-      thumbnail: ensureHttps(item.volumeInfo.imageLinks?.thumbnail),
-      url: `/book/${item.id}`, // Link to our internal book page
-      author: truncateText(item.volumeInfo.authors?.join(', ') || 'Unknown Author', 30),
-      publishedDate: item.volumeInfo.publishedDate,
-      categories: item.volumeInfo.categories,
-      rating: item.volumeInfo.averageRating,
-      ratingsCount: item.volumeInfo.ratingsCount,
-      source: 'google_books',
-      sourceUrl: item.volumeInfo.infoLink,
-    }));
+    if (response.data.items && response.data.items.length > 0) {
+      return response.data.items.map((item: any) => ({
+        type: 'book',
+        id: item.id,
+        title: truncateText(item.volumeInfo.title, 50),
+        description: truncateText(item.volumeInfo.description, 100),
+        thumbnail: ensureHttps(item.volumeInfo.imageLinks?.thumbnail),
+        url: `/book/${item.id}`, // Link to our internal book page
+        author: truncateText(item.volumeInfo.authors?.join(', ') || 'Unknown Author', 30),
+        publishedDate: item.volumeInfo.publishedDate,
+        categories: item.volumeInfo.categories,
+        rating: item.volumeInfo.averageRating,
+        ratingsCount: item.volumeInfo.ratingsCount,
+        source: 'google_books',
+        sourceUrl: item.volumeInfo.infoLink,
+      }));
+    } else {
+      throw new Error("No books found from API");
+    }
   } catch (error) {
     console.error('Books search error:', error);
-    return [];
+    // Fallback to a sample book
+    return [
+      {
+        type: 'book',
+        id: 'fallback-book-1',
+        title: truncateText('The Great Gatsby', 50),
+        description: truncateText('The story of the fabulously wealthy Jay Gatsby and his love for the beautiful Daisy Buchanan.', 100),
+        thumbnail: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=300&h=200&fit=crop&crop=center',
+        url: '/book/fallback-book-1',
+        author: truncateText('F. Scott Fitzgerald', 30),
+        publishedDate: '1925-04-10',
+        categories: ['Fiction'],
+        rating: 4.5,
+        ratingsCount: 1000,
+        source: 'google_books',
+        sourceUrl: 'https://www.google.com/books/edition/The_Great_Gatsby/xxxxxxxxxxxx',
+      }
+    ];
   }
 }
+                                                                                                                                                                                                                                                                                                                                                    
 
 async function searchPodcasts(query: string, maxResults: number = 300, request?: Request) {
   try {
     const podcastIndex = new PodcastIndex();
     const externalResults = await podcastIndex.search(query);
-    
+
     // Get user from request context to search internal podcasts
     let internalResults: any[] = [];
     try {
@@ -208,7 +230,7 @@ async function searchPodcasts(query: string, maxResults: number = 300, request?:
       console.error('Error searching internal podcasts:', error);
       // Continue with external results only if internal search fails
     }
-    
+
     // Combine external and internal results
     const externalMapped = externalResults.slice(0, maxResults - internalResults.length).map((podcast: Podcast) => ({
       type: 'podcast',
@@ -228,7 +250,7 @@ async function searchPodcasts(query: string, maxResults: number = 300, request?:
 
     // Combine results with internal podcasts first (to prioritize user content)
     const combinedResults = [...internalResults, ...externalMapped];
-    
+
     return combinedResults.slice(0, maxResults);
   } catch (error) {
     console.error('Podcast search error:', error);
@@ -237,16 +259,16 @@ async function searchPodcasts(query: string, maxResults: number = 300, request?:
 }
 
 async function searchMusic(query: string, maxResults: number = 300) {
-      try {
-        const accessToken = await getSpotifyAccessToken();
+  try {
+    const accessToken = await getSpotifyAccessToken();
     if (!accessToken) {
       return [];
     }
 
     const response = await axios.get('https://api.spotify.com/v1/search', {
-            headers: {
+      headers: {
         'Authorization': `Bearer ${accessToken}`,
-            },
+      },
       params: {
         q: query,
         type: 'track',
@@ -276,17 +298,17 @@ async function searchMusic(query: string, maxResults: number = 300) {
 async function searchAudiobooks(query: string, maxResults: number = 300) {
   try {
     console.log('🎧 Searching audiobooks for query:', query);
-    
+
     // Call the searchAudible function directly
     const books = await searchAudible(query, maxResults);
-    
+
     console.log('🎧 Raw audiobooks from searchAudible:', books.map(book => ({
       title: book.title,
       url: book.url,
       audibleUrl: book.audibleUrl,
       id: book.id
     })));
-    
+
     const mappedBooks = books.map((item: any) => ({
       type: 'audiobook',
       id: item.id,
@@ -303,13 +325,13 @@ async function searchAudiobooks(query: string, maxResults: number = 300) {
       sourceUrl: item.sourceUrl,
     }));
 
-    console.log('🎧 Mapped audiobooks:', mappedBooks.map(book => ({ 
-      title: book.title, 
-      url: book.url, 
+    console.log('🎧 Mapped audiobooks:', mappedBooks.map(book => ({
+      title: book.title,
+      url: book.url,
       audibleUrl: book.audibleUrl,
-      id: book.id 
+      id: book.id
     })));
-    
+
     return mappedBooks;
   } catch (error: any) {
     console.error('🎧 Audiobook search error:', error);
@@ -327,10 +349,10 @@ async function searchAudiobooks(query: string, maxResults: number = 300) {
 async function searchTV(query: string, maxResults: number = 300) {
   try {
     console.log('📺 Searching TV shows for:', query);
-    
+
     // For now, we'll search through our trending TV data and filter by query
     // In a real implementation, you might want to integrate with TV APIs like TMDB, TVMaze, etc.
-    
+
     // Get trending TV data and filter by query
     const response = await fetch('https://tubitv.com/', {
       headers: {
@@ -367,34 +389,34 @@ async function searchTV(query: string, maxResults: number = 300) {
 
     // Look for TV show patterns in the HTML
     const contentSections = html.match(/<div[^>]*class="[^"]*content[^"]*"[^>]*>([\s\S]*?)<\/div>/gi) || [];
-    
+
     for (const section of contentSections) {
-      const items = section.match(/<div[^>]*class="[^"]*item[^"]*"[^>]*>([\s\S]*?)<\/div>/gi) || 
-                   section.match(/<div[^>]*class="[^"]*card[^"]*"[^>]*>([\s\S]*?)<\/div>/gi) ||
-                   section.match(/<div[^>]*class="[^"]*show[^"]*"[^>]*>([\s\S]*?)<\/div>/gi);
-      
+      const items = section.match(/<div[^>]*class="[^"]*item[^"]*"[^>]*>([\s\S]*?)<\/div>/gi) ||
+        section.match(/<div[^>]*class="[^"]*card[^"]*"[^>]*>([\s\S]*?)<\/div>/gi) ||
+        section.match(/<div[^>]*class="[^"]*show[^"]*"[^>]*>([\s\S]*?)<\/div>/gi);
+
       if (items) {
         for (const item of items.slice(0, 20)) {
           try {
             const titleMatch = item.match(titleRegex);
             const imgMatch = item.match(imgRegex);
             const linkMatch = item.match(linkRegex);
-            
+
             if (titleMatch && imgMatch) {
               const title = titleMatch[1].trim();
               const thumbnail = imgMatch[1].startsWith('http') ? imgMatch[1] : `https://tubitv.com${imgMatch[1]}`;
               const altText = imgMatch[2] || title;
               const url = linkMatch ? (linkMatch[1].startsWith('http') ? linkMatch[1] : `https://tubitv.com${linkMatch[1]}`) : 'https://tubitv.com';
-              
+
               // Check if the title matches the search query
               const titleMatchQuery = title.toLowerCase().includes(query.toLowerCase());
               const descriptionMatchQuery = altText.toLowerCase().includes(query.toLowerCase());
-              
+
               if (titleMatchQuery || descriptionMatchQuery) {
                 const yearMatch = item.match(yearRegex);
                 const durationMatch = item.match(durationRegex);
                 const ratingMatch = item.match(ratingRegex);
-                
+
                 tvShows.push({
                   id: `tubi-tv-search-${tvShows.length}-${Date.now()}`,
                   type: 'tv',
@@ -1823,34 +1845,34 @@ async function searchTV(query: string, maxResults: number = 300) {
           previewVideo: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WeAreGoingOnBullrun.mp4',
         }
       ];
-      
+
       // For TV searches, show more results even if they don't match the query exactly
       // This ensures the streaming tab has plenty of content
       let filteredSamples: any[];
       if (query && query.trim() !== '') {
         // If there's a specific query, try to match it but be more lenient
         const queryLower = query.toLowerCase();
-        filteredSamples = sampleTVShows.filter(show => 
+        filteredSamples = sampleTVShows.filter(show =>
           show.title.toLowerCase().includes(queryLower) ||
           show.description.toLowerCase().includes(queryLower) ||
           show.title.toLowerCase().split(' ').some(word => word.includes(queryLower)) ||
           show.description.toLowerCase().split(' ').some(word => word.includes(queryLower))
         );
-        
+
         // If we don't have enough matches, add more shows
         if (filteredSamples.length < 20) {
           // Add shows that contain any word from the query
           const queryWords = queryLower.split(' ').filter(word => word.length > 2);
-          const additionalShows = sampleTVShows.filter(show => 
-            !filteredSamples.includes(show) && 
-            queryWords.some(word => 
-              show.title.toLowerCase().includes(word) || 
+          const additionalShows = sampleTVShows.filter(show =>
+            !filteredSamples.includes(show) &&
+            queryWords.some(word =>
+              show.title.toLowerCase().includes(word) ||
               show.description.toLowerCase().includes(word)
             )
           );
           filteredSamples.push(...additionalShows.slice(0, 20 - filteredSamples.length));
         }
-        
+
         // If still not enough, add random shows to reach at least 50
         if (filteredSamples.length < 50) {
           const remainingShows = sampleTVShows.filter(show => !filteredSamples.includes(show));
@@ -1861,13 +1883,13 @@ async function searchTV(query: string, maxResults: number = 300) {
         // If no query, show all shows
         filteredSamples = sampleTVShows;
       }
-      
+
       tvShows.push(...filteredSamples);
     }
 
-    console.log('📺 TV search response:', { 
-      tvShowsCount: tvShows.length, 
-      query: query, 
+    console.log('📺 TV search response:', {
+      tvShowsCount: tvShows.length,
+      query: query,
       maxResults: maxResults,
       finalCount: Math.min(tvShows.length, maxResults, 100)
     });
@@ -1881,7 +1903,7 @@ async function searchTV(query: string, maxResults: number = 300) {
 async function searchNews(query: string, maxResults: number = 300) {
   try {
     console.log('📰 Searching Canadian news for:', query);
-    
+
     // Try multiple Canadian news sources
     const newsSources = [
       'https://globalnews.ca/feed/',
@@ -1895,9 +1917,9 @@ async function searchNews(query: string, maxResults: number = 300) {
       'https://www.cbc.ca/webfeed/rss/rss-sports',
       'https://www.cbc.ca/webfeed/rss/rss-arts'
     ];
-    
+
     let allArticles = [];
-    
+
     for (const source of newsSources) {
       try {
         console.log(`📰 Trying source: ${source}`);
@@ -1906,14 +1928,14 @@ async function searchNews(query: string, maxResults: number = 300) {
             'User-Agent': 'Mozilla/5.0 (compatible; Telecast/1.0)'
           }
         });
-        
+
         if (!response.ok) {
           console.log(`📰 Source failed: ${source} - ${response.status}`);
           continue;
         }
-        
+
         const xmlText = await response.text();
-        
+
         // Parse RSS feed - handle CDATA sections
         const itemRegex = /<item>([\s\S]*?)<\/item>/g;
         const titleRegex = /<title>(?:<!\[CDATA\[)?(.*?)(?:\]\]>)?<\/title>/;
@@ -1922,66 +1944,66 @@ async function searchNews(query: string, maxResults: number = 300) {
         const pubDateRegex = /<pubDate>(.*?)<\/pubDate>/;
         const creatorRegex = /<dc:creator>(?:<!\[CDATA\[)?(.*?)(?:\]\]>)?<\/dc:creator>/;
         const mediaThumbnailRegex = /<media:thumbnail url="(.*?)"/;
-        
-                 let match;
-         let itemCount = 0;
-         while ((match = itemRegex.exec(xmlText)) !== null) {
-           itemCount++;
-           const itemContent = match[1];
-           
-           const title = itemContent.match(titleRegex)?.[1] || 'No title';
-           const description = itemContent.match(descriptionRegex)?.[1] || 'No description';
-           const link = itemContent.match(linkRegex)?.[1] || '';
-           const pubDate = itemContent.match(pubDateRegex)?.[1] || '';
-           const creator = itemContent.match(creatorRegex)?.[1] || 'Unknown Author';
-           const thumbnail = itemContent.match(mediaThumbnailRegex)?.[1] || 'https://via.placeholder.com/300x200?text=Canadian+News';
-           
-           console.log(`📰 Parsed item ${itemCount}:`, { title: title.substring(0, 50) + '...', hasDescription: !!description, hasLink: !!link });
-           
-           // Filter by query if provided (but be less strict for news)
-           if (query && query.trim() !== '') {
-             const queryLower = query.toLowerCase();
-             const titleLower = title.toLowerCase();
-             const descriptionLower = description.toLowerCase();
-             
-             // For news, be more lenient - show articles if they match OR if query is general
-             const isGeneralQuery = ['canada', 'canadian', 'news', 'latest', 'update', 'today'].some(term => 
-               queryLower.includes(term)
-             );
-             
-             if (!isGeneralQuery && !titleLower.includes(queryLower) && !descriptionLower.includes(queryLower)) {
-               console.log(`📰 Item filtered out by query: "${query}"`);
-               continue;
-             }
-           }
-           
-           allArticles.push({
-             type: 'news',
-             id: `news-${allArticles.length}-${Date.now()}`,
-             title: title,
-             description: description,
-             thumbnail: thumbnail,
-             url: link,
-             author: creator,
-             publishedAt: pubDate,
-             source: source.includes('globalnews') ? 'globalnews' : 
-                    source.includes('cbc') ? 'cbc' : 'ctv',
-             sourceUrl: link,
-           });
-         }
-         
-         console.log(`📰 Total items parsed from ${source}: ${itemCount}, articles added: ${allArticles.length}`);
-        
+
+        let match;
+        let itemCount = 0;
+        while ((match = itemRegex.exec(xmlText)) !== null) {
+          itemCount++;
+          const itemContent = match[1];
+
+          const title = itemContent.match(titleRegex)?.[1] || 'No title';
+          const description = itemContent.match(descriptionRegex)?.[1] || 'No description';
+          const link = itemContent.match(linkRegex)?.[1] || '';
+          const pubDate = itemContent.match(pubDateRegex)?.[1] || '';
+          const creator = itemContent.match(creatorRegex)?.[1] || 'Unknown Author';
+          const thumbnail = itemContent.match(mediaThumbnailRegex)?.[1] || 'https://via.placeholder.com/300x200?text=Canadian+News';
+
+          console.log(`📰 Parsed item ${itemCount}:`, { title: title.substring(0, 50) + '...', hasDescription: !!description, hasLink: !!link });
+
+          // Filter by query if provided (but be less strict for news)
+          if (query && query.trim() !== '') {
+            const queryLower = query.toLowerCase();
+            const titleLower = title.toLowerCase();
+            const descriptionLower = description.toLowerCase();
+
+            // For news, be more lenient - show articles if they match OR if query is general
+            const isGeneralQuery = ['canada', 'canadian', 'news', 'latest', 'update', 'today'].some(term =>
+              queryLower.includes(term)
+            );
+
+            if (!isGeneralQuery && !titleLower.includes(queryLower) && !descriptionLower.includes(queryLower)) {
+              console.log(`📰 Item filtered out by query: "${query}"`);
+              continue;
+            }
+          }
+
+          allArticles.push({
+            type: 'news',
+            id: `news-${allArticles.length}-${Date.now()}`,
+            title: title,
+            description: description,
+            thumbnail: thumbnail,
+            url: link,
+            author: creator,
+            publishedAt: pubDate,
+            source: source.includes('globalnews') ? 'globalnews' :
+              source.includes('cbc') ? 'cbc' : 'ctv',
+            sourceUrl: link,
+          });
+        }
+
+        console.log(`📰 Total items parsed from ${source}: ${itemCount}, articles added: ${allArticles.length}`);
+
         console.log(`📰 Found ${allArticles.length} articles from ${source}`);
-        
+
         // Continue fetching from all sources
-        
-             } catch (error: any) {
-         console.log(`📰 Error with source ${source}:`, error.message);
-         continue;
-       }
+
+      } catch (error: any) {
+        console.log(`📰 Error with source ${source}:`, error.message);
+        continue;
+      }
     }
-    
+
     // If no articles found from RSS feeds, add some fallback Canadian news
     if (allArticles.length === 0) {
       console.log('📰 No RSS articles found, adding fallback Canadian news');
@@ -2048,12 +2070,12 @@ async function searchNews(query: string, maxResults: number = 300) {
         }
       ];
     }
-    
+
     const articles = allArticles;
     return articles;
   } catch (error: any) {
     console.error('📰 Error searching Canadian news:', error.message);
-    
+
     // Fallback: return some sample Canadian news
     return [
       {
@@ -2166,12 +2188,12 @@ export async function POST(request: Request) {
     // If trending is true and query is 'recommended', fetch trending content
     if (trending && query === 'recommended') {
       console.log('📈 Fetching trending content for types:', types);
-      
+
       // For audiobooks, just fall back to regular search since trending doesn't support audiobooks yet
       if (types.includes('audiobook')) {
         console.log('🎧 Falling back to regular search for audiobooks');
         const fallbackResults = await searchAudiobooks('fiction', Math.min(maxResults, 300));
-        
+
         // Apply pagination
         const startIndex = (page - 1) * limit;
         const endIndex = startIndex + limit;
@@ -2192,12 +2214,12 @@ export async function POST(request: Request) {
           },
         });
       }
-      
+
       // For other types, try to get trending content
       try {
         // Use axios for server-side request to trending API
         let baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
-        
+
         // If no base URL is configured, try to construct one from the request
         if (!baseUrl) {
           // In production, we can use the request headers to get the host
@@ -2211,15 +2233,15 @@ export async function POST(request: Request) {
             throw new Error('No base URL configured');
           }
         }
-        
+
         const trendingResponse = await axios.get(`${baseUrl}/api/trending`);
-        
+
         console.log('📈 Trending API response status:', trendingResponse.status);
-        
+
         if (trendingResponse.status !== 200) {
           throw new Error(`Trending API returned ${trendingResponse.status}`);
         }
-        
+
         const trendingData = trendingResponse.data;
         console.log('📈 Trending data received:', {
           videos: trendingData.videos?.length || 0,
@@ -2229,9 +2251,9 @@ export async function POST(request: Request) {
           news: trendingData.news?.length || 0,
           tv: trendingData.tv?.length || 0,
         });
-        
+
         let trendingResults: any[] = [];
-        
+
         if (types.includes('all')) {
           trendingResults = [
             ...trendingData.videos || [],
@@ -2249,9 +2271,9 @@ export async function POST(request: Request) {
           if (types.includes('news')) trendingResults.push(...(trendingData.news || []));
           if (types.includes('tv')) trendingResults.push(...(trendingData.tv || []));
         }
-        
+
         console.log('📈 Returning trending results:', trendingResults.length);
-        
+
         // Apply pagination
         const startIndex = (page - 1) * limit;
         const endIndex = startIndex + limit;
@@ -2278,7 +2300,7 @@ export async function POST(request: Request) {
         if (types.includes('book')) {
           console.log('📚 Falling back to fiction search for books');
           const fallbackResults = await searchBooks('fiction', Math.min(maxResults, 300));
-          
+
           // Apply pagination
           const startIndex = (page - 1) * limit;
           const endIndex = startIndex + limit;
@@ -2356,31 +2378,31 @@ export async function POST(request: Request) {
 
     // Enhanced relevance scoring and sorting
     const queryWords = query.toLowerCase().split(/\s+/).filter(word => word.length > 0);
-    
+
     const calculateRelevanceScore = (item: any) => {
       const title = (item.title || '').toLowerCase();
       const description = (item.description || '').toLowerCase();
       const author = (item.author || '').toLowerCase();
-      
+
       let score = 0;
-      
+
       // Exact title match (highest priority)
       if (title === query.toLowerCase()) {
         score += 1000;
       }
-      
+
       // Title starts with query
       if (title.startsWith(query.toLowerCase())) {
         score += 500;
       }
-      
+
       // All query words found in title (in order)
       const titleWords = title.split(/\s+/);
       let allWordsInOrder = true;
       let wordIndex = 0;
-      
+
       for (const queryWord of queryWords) {
-        const foundIndex = titleWords.findIndex((titleWord: string, index: number) => 
+        const foundIndex = titleWords.findIndex((titleWord: string, index: number) =>
           index >= wordIndex && titleWord.includes(queryWord)
         );
         if (foundIndex === -1) {
@@ -2389,20 +2411,20 @@ export async function POST(request: Request) {
         }
         wordIndex = foundIndex + 1;
       }
-      
+
       if (allWordsInOrder) {
         score += 300;
       }
-      
+
       // All query words found in title (any order)
-      const allWordsFound = queryWords.every(queryWord => 
+      const allWordsFound = queryWords.every(queryWord =>
         titleWords.some((titleWord: string) => titleWord.includes(queryWord))
       );
-      
+
       if (allWordsFound) {
         score += 200;
       }
-      
+
       // Query words found in title (partial matches)
       let titleWordMatches = 0;
       for (const queryWord of queryWords) {
@@ -2414,12 +2436,12 @@ export async function POST(request: Request) {
         }
       }
       score += titleWordMatches * 50;
-      
+
       // Author matches
       if (author.includes(query.toLowerCase())) {
         score += 150;
       }
-      
+
       // Description matches
       const descWords = description.split(/\s+/);
       let descWordMatches = 0;
@@ -2432,32 +2454,32 @@ export async function POST(request: Request) {
         }
       }
       score += descWordMatches * 10;
-      
+
       // Boost for shorter titles (more specific)
       score += Math.max(0, 50 - titleWords.length * 2);
-      
+
       // Boost for recent content (if available)
       if (item.publishedAt || item.publishedDate || item.releaseDate) {
         score += 5;
       }
-      
+
       // Boost for high ratings (if available)
       if (item.rating && item.rating >= 4) {
         score += 20;
       }
-      
+
       return score;
     };
-    
+
     // Sort by relevance score (highest first)
     searchResults.sort((a, b) => {
       const scoreA = calculateRelevanceScore(a);
       const scoreB = calculateRelevanceScore(b);
-      
+
       if (scoreA !== scoreB) {
         return scoreB - scoreA; // Higher score first
       }
-      
+
       // If scores are equal, prefer shorter titles
       return a.title.length - b.title.length;
     });
@@ -2470,7 +2492,7 @@ export async function POST(request: Request) {
     });
 
     console.log('🔍 Search completed, returning results:', searchResults.length);
-    
+
     // Log audiobook data specifically
     const audiobooks = searchResults.filter(result => result.type === 'audiobook');
     if (audiobooks.length > 0) {
@@ -2481,7 +2503,7 @@ export async function POST(request: Request) {
         id: book.id
       })));
     }
-    
+
     // Apply pagination
     const startIndex = (page - 1) * limit;
     const endIndex = startIndex + limit;
