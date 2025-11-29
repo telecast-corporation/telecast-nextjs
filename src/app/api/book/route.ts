@@ -57,7 +57,6 @@ export async function GET(request: Request) {
         langRestrict: 'en',
         printType: 'books',
         orderBy: 'relevance',
-        country: 'CA',
         key: process.env.GOOGLE_BOOKS_API_KEY
       },
       timeout: 10000, // 10 second timeout
@@ -131,4 +130,4 @@ export async function GET(request: Request) {
       { status: 500 }
     );
   }
-} 
+}
