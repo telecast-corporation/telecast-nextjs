@@ -32,7 +32,7 @@ async function getNewsByLocation(location: string, page: number = 1, limit: numb
     const url = `${NEWS_API_URL}/everything?q=${encodeURIComponent(location)}&language=en&sortBy=publishedAt&page=${page}&pageSize=${limit}&apiKey=${NEWS_API_KEY}`;
     console.log('📰 Request URL:', url.replace(NEWS_API_KEY || '', '***'));
     
-    const response = await fetch(url);
+    const response = await fetch(url, { signal: AbortSignal.timeout(10000) });
 
     console.log('📰 Response status:', response.status);
     console.log('📰 Response ok:', response.ok);
@@ -66,7 +66,7 @@ async function getGeneralNews(page: number = 1, limit: number = 20) {
     const url = `${NEWS_API_URL}/top-headlines?country=us&page=${page}&pageSize=${limit}&apiKey=${NEWS_API_KEY}`;
     console.log('📰 Request URL:', url.replace(NEWS_API_KEY || '', '***'));
     
-    const response = await fetch(url);
+    const response = await fetch(url, { signal: AbortSignal.timeout(10000) });
 
     console.log('📰 Response status:', response.status);
     console.log('📰 Response ok:', response.ok);
@@ -94,7 +94,8 @@ async function getGeneralNews(page: number = 1, limit: number = 20) {
 async function searchNews(query: string, page: number = 1, limit: number = 20) {
   try {
     const response = await fetch(
-      `${NEWS_API_URL}/everything?q=${encodeURIComponent(query)}&language=en&sortBy=publishedAt&page=${page}&pageSize=${limit}&apiKey=${NEWS_API_KEY}`
+      `${NEWS_API_URL}/everything?q=${encodeURIComponent(query)}&language=en&sortBy=publishedAt&page=${page}&pageSize=${limit}&apiKey=${NEWS_API_KEY}`,
+      { signal: AbortSignal.timeout(10000) }
     );
 
     if (!response.ok) {
@@ -111,42 +112,40 @@ async function searchNews(query: string, page: number = 1, limit: number = 20) {
 
 export async function POST(request: Request) {
   try {
-    console.log('📰 News API POST request received');
+    console.log('=== NEWS SEARCH DEBUG INFO ===');
+    console.log('Environment:', {
+      nodeEnv: process.env.NODE_ENV,
+      vercelEnv: process.env.VERCEL_ENV,
+      hasApiKey: !!NEWS_API_KEY,
+      apiKeyLength: NEWS_API_KEY?.length,
+    });
+    console.log('Request URL:', request.url);
     
     const body: NewsRequest = await request.json();
     const { location, query, page = 1, limit = 20 } = body;
 
-    console.log('📰 Request parameters:', { location, query, page, limit });
+    console.log('Search params:', { location, query, page, limit });
 
     if (!NEWS_API_KEY) {
-      console.error('📰 News API key not configured');
+      console.error('❌ News API key not configured');
       return NextResponse.json(
         { error: 'News API key not configured' },
         { status: 500 }
       );
     }
 
-    console.log('📰 News API key is configured');
-
     let articles: NewsArticle[] = [];
 
     if (query) {
-      console.log('📰 Searching for query:', query);
-      // Search for specific query
       articles = await searchNews(query, page, limit);
     } else if (location) {
-      console.log('📰 Getting news for location:', location);
-      // Get news for specific location
       articles = await getNewsByLocation(location, page, limit);
     } else {
-      console.log('📰 Getting general Canadian news');
-      // Fallback to general Canadian news (Toronto focus)
       articles = await getGeneralNews(page, limit);
     }
 
-    console.log('📰 Articles found:', articles.length);
+    console.log('✅ News API response articles count:', articles.length);
 
-    // Transform articles to match our search result format
     const transformedResults = articles.map((article, index) => ({
       type: 'news',
       id: `news-${index}-${Date.now()}`,
@@ -160,13 +159,6 @@ export async function POST(request: Request) {
       sourceUrl: article.url,
     }));
 
-    console.log('📰 Transformed results:', transformedResults.length);
-    console.log('📰 Sample article:', transformedResults[0] ? {
-      title: transformedResults[0].title,
-      author: transformedResults[0].author,
-      url: transformedResults[0].url
-    } : 'No articles');
-
     return NextResponse.json({
       results: transformedResults,
       pagination: {
@@ -178,8 +170,11 @@ export async function POST(request: Request) {
         hasPrevPage: page > 1,
       },
     });
-  } catch (error) {
-    console.error('News API error:', error);
+  } catch (error: any) {
+    console.error('❌ News search error:', {
+      message: error.message,
+      code: error.code,
+    });
     return NextResponse.json(
       { error: 'Failed to fetch news' },
       { status: 500 }
@@ -189,13 +184,25 @@ export async function POST(request: Request) {
 
 export async function GET(request: Request) {
   try {
+    console.log('=== NEWS SEARCH DEBUG INFO ===');
+    console.log('Environment:', {
+      nodeEnv: process.env.NODE_ENV,
+      vercelEnv: process.env.VERCEL_ENV,
+      hasApiKey: !!NEWS_API_KEY,
+      apiKeyLength: NEWS_API_KEY?.length,
+    });
+    console.log('Request URL:', request.url);
+
     const { searchParams } = new URL(request.url);
     const location = searchParams.get('location');
     const query = searchParams.get('q');
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '20');
 
+    console.log('Search params:', { location, query, page, limit });
+
     if (!NEWS_API_KEY) {
+      console.error('❌ News API key not configured');
       return NextResponse.json(
         { error: 'News API key not configured' },
         { status: 500 }
@@ -211,6 +218,8 @@ export async function GET(request: Request) {
     } else {
       articles = await getGeneralNews(page, limit);
     }
+
+    console.log('✅ News API response articles count:', articles.length);
 
     const transformedResults = articles.map((article, index) => ({
       type: 'news',
@@ -236,8 +245,11 @@ export async function GET(request: Request) {
         hasPrevPage: page > 1,
       },
     });
-  } catch (error) {
-    console.error('News API error:', error);
+  } catch (error: any) {
+    console.error('❌ News search error:', {
+      message: error.message,
+      code: error.code,
+    });
     return NextResponse.json(
       { error: 'Failed to fetch news' },
       { status: 500 }
