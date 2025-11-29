@@ -124,7 +124,6 @@ export async function GET(request: Request) {
     const requestUrl = `${GOOGLE_BOOKS_API_URL}?q=${query}&maxResults=${maxResults}&startIndex=${startIndex}&langRestrict=en&printType=books&orderBy=relevance`;
     console.log('Making request to:', requestUrl);
     console.log('API Key present:', !!process.env.GOOGLE_BOOKS_API_KEY);
-
     const response = await axios.get(GOOGLE_BOOKS_API_URL, {
       params: {
         q: query,
