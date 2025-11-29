@@ -2,7 +2,7 @@
 const { Client } = require('pg');
 
 // --- CONFIGURATION ---
-const DATABASE_URL = "postgres://neondb_owner:npg_Weo52GpMCTYr@ep-green-silence-a4p23dst-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require";
+const DATABASE_URL = process.env.DATABASE_URL;
 
 // The names of the migrations that failed and were deleted.
 const MIGRATIONS_TO_MARK_APPLIED = [
