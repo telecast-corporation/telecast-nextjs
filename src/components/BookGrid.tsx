@@ -15,7 +15,7 @@ import {
 // Helper function to ensure HTTPS
 const ensureHttps = (url: string | undefined): string => {
   if (!url) return '/book-placeholder.png';
-  return url.replace(/^http:/, 'https:');
+  return url.replace(/^http:/, 'https');
 };
 
 interface Book {
@@ -57,7 +57,7 @@ export default function BookGrid({ searchQuery }: BookGridProps) {
         const response = await fetch(`/api/book?q=${encodeURIComponent(searchQuery)}`);
         const data = await response.json();
         
-        if (!response.ok) {
+        if (!response.ok && !data.items) {
           throw new Error(data.error || 'Failed to fetch books');
         }
         
@@ -179,4 +179,4 @@ export default function BookGrid({ searchQuery }: BookGridProps) {
       </Grid>
     </>
   );
-} 
+}
