@@ -66,7 +66,7 @@ import {
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
-import useDebounce from '@/hooks/useDebounce';
+import {useDebounce} from '@/hooks/useDebounce';
 import { useAutocomplete } from '@/hooks/useAutocomplete';
 import { useAuth } from '@/contexts/AuthContext';
 import { typography, spacing, borderRadius, navbarSizing } from '@/styles/typography';
