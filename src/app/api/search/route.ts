@@ -109,10 +109,10 @@ function ensureHttps(url: string | undefined): string | undefined {
 }
 
 async function searchBooks(query: string, maxResults: number = 40) {
-      // If no query is provided, fall back to a popular search term like "fiction"
-        if (!query) {
-            query = 'fiction';
-              }
+  // If no query is provided, fall back to a popular search term like "fiction"
+  if (!query) {
+    query = 'fiction';
+  }
 
   try {
     const safeMaxResults = Math.min(maxResults, 40);
@@ -310,65 +310,108 @@ async function searchAudiobooks(query: string, maxResults: number = 30) {
   }
 }
 
-
 async function searchTV(query: string, maxResults: number = 100) {
   try {
-    // If there's no query, return a list of popular/sample TV shows
+    // If there is a query, first try the scraper
+    if (query && query.trim() !== '') {
+      try {
+        const url = `https://tubitv.com/search/${encodeURIComponent(query)}`;
+        const response = await fetch(url, {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+          }
+        });
+
+        if (response.status === 200) {
+          const html = await response.text();
+          const scriptRegex = /<script id=\"__NEXT_DATA__\" type=\"application\\/json\\\">(.+?)<\\/script>/;
+          const match = html.match(scriptRegex);
+
+          if (match && match[1]) {
+            const data = JSON.parse(match[1]);
+            const results = data.props?.pageProps?.searchResult?.titles || [];
+            if (results && results.length > 0) {
+              const tvShows = results.map((item: any) => ({
+                id: `tubi-${item.id}`,
+                type: 'tv',
+                title: item.title,
+                description: item.description,
+                thumbnail: item.thumbnail,
+                url: `https://tubitv.com/tv-shows/${item.id}`,
+                year: item.year,
+                duration: item.duration,
+                rating: item.rating,
+                source: 'Tubi',
+                sourceUrl: `https://tubitv.com/tv-shows/${item.id}`,
+                previewVideo: item.preview?.url,
+              }));
+              console.log(`📺 Tubi scraper found ${tvShows.length} results for query: "${query}"`);
+              return tvShows.slice(0, maxResults);
+            }
+          }
+        }
+        console.log(`Tubi scraper returned no results for query: "${query}". Falling back to database.`);
+      } catch (scraperError) {
+        console.error('Tubi scraper failed, falling back to database search:', scraperError);
+      }
+    }
+
+    // Fallback to database search if scraper fails, returns no results, or if there is no query.
+    console.log('📺 Searching database for TV shows with query:', query);
+    const whereCondition = query && query.trim() !== ''
+      ? {
+        type: 'tv',
+        OR: [
+          { title: { contains: query, mode: 'insensitive' } },
+          { description: { contains: query, mode: 'insensitive' } },
+          { genres: { has: query.toLowerCase() } },
+        ],
+      }
+      : { type: 'tv' };
+
+    const dbTVShows = await prisma.streamingContent.findMany({
+      where: whereCondition,
+      take: maxResults,
+      orderBy: {
+        year: 'desc',
+      },
+    });
+
+    if (dbTVShows.length > 0) {
+      console.log(`📺 Found ${dbTVShows.length} TV shows in the database.`);
+      return dbTVShows.map((item: any) => ({
+        id: item.id,
+        type: 'tv',
+        title: item.title,
+        description: item.description,
+        thumbnail: item.thumbnail,
+        url: item.url,
+        year: item.year,
+        duration: item.duration,
+        rating: item.rating,
+        source: item.source,
+        sourceUrl: item.sourceUrl,
+        previewVideo: item.previewVideo,
+        genres: item.genres,
+      }));
+    }
+
+    // If there's no query and the database is also empty, return the hardcoded sample shows as a final fallback.
     if (!query || query.trim() === '') {
-      // You can create a predefined list of sample TV shows here
+      console.log('📺 No TV content in database for empty query, returning sample shows.');
       return sampleTVShows.slice(0, maxResults);
     }
 
-    // If there is a query, proceed with the search
-    const url = `https://tubitv.com/search/${encodeURIComponent(query)}`;
-    const response = await fetch(url, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-      }
-    });
-
-    if (response.status !== 200) {
-      console.error(`Failed to fetch Tubi search results for query: ${query}`);
-      return [];
-    }
-
-    const html = await response.text();
-
-    // Find the script tag containing the initial state
-    const scriptRegex = /<script id=\"__NEXT_DATA__\" type=\"application\/json\">(.+?)<\/script>/;
-    const match = html.match(scriptRegex);
-
-    if (!match || !match[1]) {
-      console.error('Could not find __NEXT_DATA__ script tag in Tubi response');
-      return [];
-    }
-
-    const data = JSON.parse(match[1]);
-    const results = data.props?.pageProps?.searchResult?.titles || [];
-
-    if (!results || results.length === 0) {
-      return [];
-    }
-
-    const tvShows = results.map((item: any) => ({
-      id: `tubi-${item.id}`,
-      type: 'tv',
-      title: item.title,
-      description: item.description,
-      thumbnail: item.thumbnail,
-      url: `https://tubitv.com/tv-shows/${item.id}`,
-      year: item.year,
-      duration: item.duration,
-      rating: item.rating,
-      source: 'Tubi',
-      sourceUrl: `https://tubitv.com/tv-shows/${item.id}`,
-      previewVideo: item.preview?.url,
-    }));
-
-    return tvShows.slice(0, maxResults);
+    // If there was a query and nothing was found in the scraper or database, return empty.
+    console.log(`📺 No results found for query: "${query}" in scraper or database.`);
+    return [];
 
   } catch (error) {
     console.error('Error searching TV shows:', error);
+    // If all else fails, and there's no query, return sample shows as a last resort.
+    if (!query || query.trim() === '') {
+      return sampleTVShows.slice(0, maxResults);
+    }
     return [];
   }
 }
@@ -2206,7 +2249,17 @@ export async function POST(request: Request) {
     }
 
     // For news searches, allow empty query to get general news
-  
+    // For some types, an empty query is allowed to fetch general or trending data.
+    const allowedEmptyQueryTypes = ['news', 'book', 'audiobook', 'tv', 'all'];
+    const allowsEmptyQuery = types.some(type => allowedEmptyQueryTypes.includes(type));
+
+    if (!query && !allowsEmptyQuery) {
+      return NextResponse.json(
+        { error: 'Query parameter is required for the selected search types.' },
+        { status: 400 }
+      );
+    }
+
 
     console.log('🔍 Performing regular search for query:', query);
 

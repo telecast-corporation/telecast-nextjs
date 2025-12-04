@@ -1,16 +1,17 @@
+
 import React from 'react';
 import { Box, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material';
 import { MenuBook as BookIcon, Headphones as AudiobookIcon } from '@mui/icons-material';
 
 interface BookTypeToggleProps {
-  value: 'books' | 'audiobooks';
-  onChange: (value: 'books' | 'audiobooks') => void;
+  value: 'book' | 'audiobook';
+  onChange: (value: 'book' | 'audiobook') => void;
 }
 
 export default function BookTypeToggle({ value, onChange }: BookTypeToggleProps) {
   const handleChange = (
     _event: React.MouseEvent<HTMLElement>,
-    newValue: 'books' | 'audiobooks' | null,
+    newValue: 'book' | 'audiobook' | null,
   ) => {
     if (newValue !== null) {
       onChange(newValue);
@@ -18,47 +19,22 @@ export default function BookTypeToggle({ value, onChange }: BookTypeToggleProps)
   };
 
   return (
-    <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
-      <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.875rem' }}>
-        Show:
-      </Typography>
+    <Box sx={{ display: 'flex', justifyContent: 'center', my: 2 }}>
       <ToggleButtonGroup
         value={value}
         exclusive
         onChange={handleChange}
-        aria-label="book type selection"
-        size="small"
-        sx={{
-          '& .MuiToggleButton-root': {
-            px: 1.5,
-            py: 0.5,
-            fontSize: '0.8rem',
-            minHeight: '32px',
-            border: '1px solid',
-            borderColor: 'divider',
-            '&.Mui-selected': {
-              backgroundColor: 'action.selected',
-              color: 'text.primary',
-            },
-            '&:hover': {
-              backgroundColor: 'action.hover',
-            },
-          },
-        }}
+        aria-label="Book type"
       >
-        <ToggleButton value="books" aria-label="books only">
-          <BookIcon sx={{ mr: 0.5, fontSize: 14 }} />
-          <Typography variant="caption" sx={{ fontSize: '0.75rem' }}>
-            Books
-          </Typography>
+        <ToggleButton value="book" aria-label="books">
+          <BookIcon sx={{ mr: 1 }} />
+          <Typography>Books</Typography>
         </ToggleButton>
-        <ToggleButton value="audiobooks" aria-label="audiobooks only">
-          <AudiobookIcon sx={{ mr: 0.5, fontSize: 14 }} />
-          <Typography variant="caption" sx={{ fontSize: '0.75rem' }}>
-            Audiobooks
-          </Typography>
+        <ToggleButton value="audiobook" aria-label="audiobooks">
+          <AudiobookIcon sx={{ mr: 1 }} />
+          <Typography>Audiobooks</Typography>
         </ToggleButton>
       </ToggleButtonGroup>
     </Box>
   );
-} 
+}

@@ -29,7 +29,7 @@ export default function SearchResults() {
   const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [bookType, setBookType] = useState<'books' | 'audiobooks'>('books');
+  const [bookType, setBookType] = useState<'book' | 'audiobook'>('book');
   const [pagination, setPagination] = useState<any>(null);
   const debounceTimerRef = useRef<NodeJS.Timeout>();
   const router = useRouter();
