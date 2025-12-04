@@ -2206,12 +2206,7 @@ export async function POST(request: Request) {
     }
 
     // For news searches, allow empty query to get general news
-    if (!query && !types.includes('news')) {
-      return NextResponse.json(
-        { error: 'Query parameter is required' },
-        { status: 400 }
-      );
-    }
+  
 
     console.log('🔍 Performing regular search for query:', query);
 
