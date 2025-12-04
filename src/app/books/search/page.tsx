@@ -1,15 +1,34 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Container, TextField, Box, Typography } from '@mui/material';
 import BookGrid from '@/components/BookGrid';
+import { TrendingItem } from '@/types';
+import { useDebounce } from '@/hooks/useDebounce';
 
 export default function BookSearchPage() {
   const [searchQuery, setSearchQuery] = useState('');
+  const [books, setBooks] = useState<TrendingItem[]>([]);
+  const debouncedSearchQuery = useDebounce(searchQuery, 500);
 
-  const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(event.target.value);
-  };
+  useEffect(() => {
+    const fetchBooks = async () => {
+      if (debouncedSearchQuery.trim() !== '') {
+        try {
+          const response = await fetch(`/api/book?q=${debouncedSearchQuery}`);
+          const data = await response.json();
+          setBooks(data || []);
+        } catch (error) {
+          console.error('Failed to fetch books:', error);
+          setBooks([]);
+        }
+      } else {
+        setBooks([]);
+      }
+    };
+
+    fetchBooks();
+  }, [debouncedSearchQuery]);
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
@@ -23,12 +42,12 @@ export default function BookSearchPage() {
           label="Search books"
           variant="outlined"
           value={searchQuery}
-          onChange={handleSearch}
+          onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Enter book title, author, or ISBN..."
         />
       </Box>
 
-      {searchQuery && <BookGrid searchQuery={searchQuery} />}
+      <BookGrid books={books} />
     </Container>
   );
-} 
+}
