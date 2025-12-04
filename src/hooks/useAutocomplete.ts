@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useDebounce } from './useDebounce';
 
@@ -166,5 +167,5 @@ export function useAutocomplete(
     handleKeyDown,
     handleSuggestionClick,
     clearSuggestions,
-  };
+  }
 }
