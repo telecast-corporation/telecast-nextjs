@@ -1,27 +1,10 @@
+
 import React from 'react';
 import Link from 'next/link';
-
-interface Book {
-  id: string;
-  title: string;
-  author?: string;
-  authors?: string[];
-  description?: string;
-  imageUrl?: string;
-  imageLinks?: {
-    thumbnail?: string;
-  };
-  rating?: number;
-  ratingsCount?: number;
-  categories?: string[];
-  duration?: string;
-  narrator?: string;
-  audibleUrl?: string;
-  kindleUrl?: string;
-}
+import { TrendingItem } from '../types';
 
 interface BookCardProps {
-  book: Book;
+  book: TrendingItem;
 }
 
 const BookCard: React.FC<BookCardProps> = ({ book }) => {
@@ -42,7 +25,7 @@ const BookCard: React.FC<BookCardProps> = ({ book }) => {
     <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
       <div className="relative">
         <img
-          src={book.imageUrl || book.imageLinks?.thumbnail}
+          src={book.thumbnail}
           alt={book.title}
           className="w-full h-48 object-cover"
           onError={(e) => {
@@ -63,7 +46,7 @@ const BookCard: React.FC<BookCardProps> = ({ book }) => {
         </h3>
         
         <p className="text-gray-600 mb-2">
-          by {book.author || book.authors?.join(', ')}
+          by {book.author}
         </p>
         
         {book.description && (
@@ -155,4 +138,4 @@ const BookCard: React.FC<BookCardProps> = ({ book }) => {
   );
 };
 
-export default BookCard; 
+export default BookCard;
