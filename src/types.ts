@@ -14,6 +14,10 @@ export interface TrendingItem {
   author?: string;
   publishedDate?: string;
   rating?: number;
+  ratingsCount?: number;
+  narrator?: string;
+  audibleUrl?: string;
+  kindleUrl?: string;
   episodeCount?: number;
   categories?: string[];
   source?: string;
