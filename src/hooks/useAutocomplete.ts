@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import useDebounce from './useDebounce';
+import { useDebounce } from './useDebounce';
 
 interface AutocompleteResult {
   id: string;
@@ -167,4 +167,4 @@ export function useAutocomplete(
     handleSuggestionClick,
     clearSuggestions,
   };
-} 
+}
