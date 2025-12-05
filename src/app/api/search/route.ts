@@ -282,6 +282,9 @@ async function searchMusic(query: string, maxResults: number = 300) {
 }
 
 async function searchAudiobooks(query: string, maxResults: number = 30) {
+  if (!query) {
+    query = 'bestsellers';
+  }
   try {
     const books = await searchAudible(query, maxResults);
 
@@ -309,6 +312,7 @@ async function searchAudiobooks(query: string, maxResults: number = 30) {
     return [];
   }
 }
+
 
 async function searchTV(query: string, maxResults: number = 100) {
   try {
@@ -358,7 +362,7 @@ async function searchTV(query: string, maxResults: number = 100) {
 
     // Fallback to database search if scraper fails, returns no results, or if there is no query.
     console.log('📺 Searching database for TV shows with query:', query);
-    const whereCondition:any = query && query.trim() !== ''
+    const whereCondition: any = query && query.trim() !== ''
       ? {
         type: 'tv',
         OR: [
@@ -2294,9 +2298,11 @@ export async function POST(request: Request) {
       if (types.includes('news')) {
         searchPromises.push(searchNews(query, maxResults));
       }
-      if (types.includes('tv')) {
+      if (types.includes('tv') || types.includes('streaming')) {
         searchPromises.push(searchTV(query, maxResults));
       }
+
+
     }
 
     const results = await Promise.allSettled(searchPromises);
