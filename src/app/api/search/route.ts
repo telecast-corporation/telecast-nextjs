@@ -324,7 +324,7 @@ async function searchTV(query: string, maxResults: number = 100) {
 
         if (response.status === 200) {
           const html = await response.text();
-          const scriptRegex = /<script id=\"__NEXT_DATA__\" type=\"application\\/json\\\">(.+?)<\\/script>/;
+          const scriptRegex = /<script id="__NEXT_DATA__" type="application\/json">(.+?)<\/script>/;
           const match = html.match(scriptRegex);
 
           if (match && match[1]) {
@@ -358,7 +358,7 @@ async function searchTV(query: string, maxResults: number = 100) {
 
     // Fallback to database search if scraper fails, returns no results, or if there is no query.
     console.log('📺 Searching database for TV shows with query:', query);
-    const whereCondition = query && query.trim() !== ''
+    const whereCondition:any = query && query.trim() !== ''
       ? {
         type: 'tv',
         OR: [
