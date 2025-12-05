@@ -111,7 +111,7 @@ function ensureHttps(url: string | undefined): string | undefined {
 async function searchBooks(query: string, maxResults: number = 40) {
   // If no query is provided, fall back to a popular search term like "fiction"
   if (!query) {
-    query = 'fiction';
+    query = 'recommended';
   }
 
   try {
@@ -283,7 +283,7 @@ async function searchMusic(query: string, maxResults: number = 300) {
 
 async function searchAudiobooks(query: string, maxResults: number = 30) {
   if (!query) {
-    query = 'bestsellers';
+    query = 'recommended';
   }
   try {
     const books = await searchAudible(query, maxResults);
