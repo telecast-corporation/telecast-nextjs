@@ -9,6 +9,7 @@ const GOOGLE_BOOKS_API_KEY = process.env.GOOGLE_BOOKS_API_KEY;
 const PODCASTINDEX_API_KEY = process.env.PODCASTINDEX_API_KEY;
 const PODCASTINDEX_API_SECRET = process.env.PODCASTINDEX_API_SECRET;
 const NEWS_API_KEY = process.env.NEWS_API_KEY;
+const RAPIDAPI_KEY_TRENDING_MOVIES = process.env.RAPIDAPI_KEY_TRENDING_MOVIES;
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -236,31 +237,40 @@ async function getTrendingPodcasts() {
 
 async function getTrendingTV() {
   try {
-    console.log('📺 Fetching trending local news from database...');
-    const allLocalNews = await prisma.localNews.findMany({
-        where: { status: 'approved' },
-        take: 200,
-        orderBy: { createdAt: 'desc' },
-    });
+    console.log('📺 Fetching trending movies from RapidAPI (trending-movie1)...');
+    if (!RAPIDAPI_KEY_TRENDING_MOVIES) {
+      console.error('Missing RAPIDAPI_KEY_TRENDING_MOVIES');
+      return [];
+    }
 
-    const shuffledContent = allLocalNews.sort(() => 0.5 - Math.random());
+    const options = {
+      method: 'GET',
+      url: 'https://trending-movie1.p.rapidapi.com/trending',
+      headers: {
+        'x-rapidapi-host': 'trending-movie1.p.rapidapi.com',
+        'x-rapidapi-key': RAPIDAPI_KEY_TRENDING_MOVIES,
+      },
+    };
 
-    return shuffledContent.map((item: any) => ({
-      id: item.id,
-      type: 'tv',
+    const response = await axios.request(options);
+
+    console.log('Trending movies response:', response.data);
+    return response.data.map((item: any) => ({
+      id: item.imdbid,
+      type: 'tv', // Keeping type as 'tv' for now to fit existing structure, but content is movies.
       title: item.title,
-      description: item.description,
-      thumbnail: 'https://via.placeholder.com/300x200?text=Local+News', // Placeholder
-      url: `/local-news/${item.id}`,
-      year: new Date(item.createdAt).getFullYear(),
-      duration: null,
-      rating: null,
-      source: `${item.locationCity}, ${item.locationCountry}`,
-      sourceUrl: item.videoUrl,
-      previewVideo: item.videoUrl,
+      description: item.plot || item.fullplot || 'No description available.',
+      thumbnail: item.image,
+      url: `https://www.imdb.com/title/${item.imdbid}`,
+      year: item.year,
+      duration: item.runtime,
+      rating: item.imvdb_rating,
+      source: 'RapidAPI Trending Movies',
+      sourceUrl: `https://www.imdb.com/title/${item.imdbid}`,
+      previewVideo: null,
     }));
   } catch (error) {
-    console.error('📺 Error fetching trending local news from database:', error);
+    console.error('📺 Error fetching trending movies from RapidAPI:', error);
     return [];
   }
 }

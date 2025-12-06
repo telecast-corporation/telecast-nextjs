@@ -16,15 +16,16 @@ interface SearchResult {
   description: string;
   imageUrl: string;
   author: string;
-  source: 'telecast' | 'spotify' | 'audible';
+  source: 'telecast' | 'spotify' | 'audible' | 'google_books' | 'youtube' | 'podcastindex' | 'internal' | 'RapidAPI Trending Movies';
   category?: string;
   tags?: string[];
-  type: 'podcast' | 'video' | 'music' | 'book' | 'audiobook';
+  type: 'podcast' | 'video' | 'music' | 'book' | 'audiobook' | 'tv';
 }
 
 const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;
 const YOUTUBE_API_URL = 'https://www.googleapis.com/youtube/v3';
 const GOOGLE_BOOKS_API_URL = 'https://www.googleapis.com/books/v1/volumes';
+const RAPIDAPI_KEY_TRENDING_MOVIES = process.env.RAPIDAPI_KEY_TRENDING_MOVIES;
 
 interface SearchRequest {
   query: string;
@@ -325,6 +326,51 @@ async function searchAudiobooks(query: string, maxResults: number = 300) {
   }
 }
 
+async function searchTV(query: string, maxResults: number = 300) {
+  try {
+    console.log('📺 Searching TV (movies) from RapidAPI (trending-movie1)...');
+    if (!RAPIDAPI_KEY_TRENDING_MOVIES) {
+      console.error('Missing RAPIDAPI_KEY_TRENDING_MOVIES');
+      return [];
+    }
+
+    const options = {
+      method: 'GET',
+      url: 'https://trending-movie1.p.rapidapi.com/search',
+      params: {
+        query: query,
+        limit: maxResults, // Use limit for search results if available
+      },
+      headers: {
+        'x-rapidapi-host': 'trending-movie1.p.rapidapi.com',
+        'x-rapidapi-key': RAPIDAPI_KEY_TRENDING_MOVIES,
+      },
+    };
+
+    const response = await axios.request(options);
+
+    console.log('TV (movies) search response:', response.data);
+    return response.data.map((item: any) => ({
+      id: item.imdbid,
+      type: 'tv', // Keeping type as 'tv' to fit existing structure, but content is movies.
+      title: truncateText(item.title, 50),
+      description: truncateText(item.plot || item.fullplot || 'No description available.', 100),
+      thumbnail: item.image,
+      url: `https://www.imdb.com/title/${item.imdbid}`,
+      author: truncateText(item.actors?.split(',')[0] || 'Unknown', 30), // Taking first actor as author
+      year: item.year,
+      duration: item.runtime,
+      rating: item.imvdb_rating,
+      source: 'RapidAPI Trending Movies',
+      sourceUrl: `https://www.imdb.com/title/${item.imdbid}`,
+      previewVideo: null,
+    }));
+  } catch (error) {
+    console.error('📺 Error searching TV (movies) from RapidAPI:', error);
+    return [];
+  }
+}
+
 export async function POST(request: Request) {
   try {
     const body: SearchRequest = await request.json();
@@ -395,6 +441,7 @@ export async function POST(request: Request) {
           books: trendingData.books?.length || 0,
           music: trendingData.music?.length || 0,
           podcasts: trendingData.podcasts?.length || 0,
+          tv: trendingData.tv?.length || 0, // Include TV
         });
         
         let trendingResults: any[] = [];
@@ -404,13 +451,15 @@ export async function POST(request: Request) {
             ...trendingData.videos || [],
             ...trendingData.music || [],
             ...trendingData.books || [],
-            ...trendingData.podcasts || []
+            ...trendingData.podcasts || [],
+            ...trendingData.tv || [], // Include TV
           ];
         } else {
           if (types.includes('video')) trendingResults.push(...(trendingData.videos || []));
           if (types.includes('music')) trendingResults.push(...(trendingData.music || []));
           if (types.includes('book')) trendingResults.push(...(trendingData.books || []));
           if (types.includes('podcast')) trendingResults.push(...(trendingData.podcasts || []));
+          if (types.includes('tv')) trendingResults.push(...(trendingData.tv || [])); // Include TV
         }
         
         console.log('📈 Returning trending results:', trendingResults.length);
@@ -483,6 +532,7 @@ export async function POST(request: Request) {
       searchPromises.push(searchAudiobooks(query, Math.min(maxResults, 300)));
       searchPromises.push(searchPodcasts(query, maxResults, request));
       searchPromises.push(searchMusic(query, maxResults));
+      searchPromises.push(searchTV(query, maxResults)); // Add searchTV here
     } else {
       // Otherwise, only search the specified types
       if (types.includes('video')) {
@@ -499,6 +549,9 @@ export async function POST(request: Request) {
       }
       if (types.includes('music')) {
         searchPromises.push(searchMusic(query, maxResults));
+      }
+      if (types.includes('tv')) { // Add tv type handling
+        searchPromises.push(searchTV(query, maxResults));
       }
     }
 
@@ -590,7 +643,7 @@ export async function POST(request: Request) {
       score += Math.max(0, 50 - titleWords.length * 2);
       
       // Boost for recent content (if available)
-      if (item.publishedAt || item.publishedDate || item.releaseDate) {
+      if (item.publishedAt || item.publishedDate || item.releaseDate || item.year) { // Added item.year for TV/movies
         score += 5;
       }
       
@@ -662,4 +715,4 @@ export async function POST(request: Request) {
       { status: 500 }
     );
   }
-} 
+}
