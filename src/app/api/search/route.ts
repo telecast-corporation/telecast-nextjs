@@ -193,7 +193,8 @@ async function searchPodcasts(query: string, maxResults: number = 300, request?:
               thumbnail: podcast.coverImage || 'https://via.placeholder.com/150',
               url: `/podcast/${podcast.id}`, // Link to our internal podcast page
               author: truncateText(podcast.author || 'Unknown Author', 30),
-              duration: podcast.isAvailable ? 'User uploaded' : 'Draft (unpublished)',
+              duration: podcast.isAvailable
+               ? 'User uploaded' : 'Draft (unpublished)',
               categories: podcast.tags || [],
               language: podcast.language || 'en',
               explicit: podcast.explicit || false,
