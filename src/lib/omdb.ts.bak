@@ -68,22 +68,14 @@ function transformOMDbMovie(data: any): Movie {
     };
 }
 
-export async function getMovies(query: string, maxResults: number = 10, type?: 'movie' | 'series' | 'tv' | 'video'): Promise<Movie[]> {
-    const typesToFetch: string[] = [];
+export async function getMovies(query: string, maxResults: number = 10): Promise<Movie[]> {
+    const movieData = await fetchFromOMDb({ s: query.trim(), type: "movie" });
+    const seriesData = await fetchFromOMDb({ s: query.trim(), type: "series" });
 
-    if (type === 'tv') {
-        typesToFetch.push('series');
-    } else if (type === 'movie') {
-        typesToFetch.push('movie');
-    } else { // 'video' or undefined
-        typesToFetch.push('movie');
-        typesToFetch.push('series');
-    }
+    const movieResults = movieData.Search || [];
+    const seriesResults = seriesData.Search || [];
 
-    const promises = typesToFetch.map(t => fetchFromOMDb({ s: query.trim(), type: t }));
-    const settledPromises = await Promise.all(promises);
-
-    const combinedResults = settledPromises.flatMap(result => result.Search || []);
+    const combinedResults = [...movieResults, ...seriesResults];
 
     if (combinedResults.length === 0) {
         return [];
