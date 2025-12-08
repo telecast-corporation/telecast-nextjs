@@ -1,11 +1,11 @@
 
 import type { Movie } from "../types";
 
-const OMDB_API_KEY = process.env.OMDB_API_KEY || "your_omdb_api_key";
+const OMDB_API_KEY = "1d81fa6";
 const OMDB_BASE_URL = "https://www.omdbapi.com";
 
 async function fetchFromOMDb(params: Record<string, string>): Promise<any> {
-    if (!OMDB_API_KEY || OMDB_API_KEY === "your_omdb_api_key") {
+    if (!OMDB_API_KEY) {
         console.warn("OMDB_API_KEY is not configured. Movie search will be disabled.");
         return { Search: [] };
     }
@@ -54,7 +54,7 @@ function transformOMDbMovie(data: any): Movie {
         releaseDate: data.Released !== "N/A" ? data.Released : "",
         runtime: data.Runtime !== "N/A" ? data.Runtime : "",
         genres: data.Genre !== "N/A" ? data.Genre.split(", ") : [],
-        voteCount: data.imdbVotes !== "N/A" ? parseInt(data.imdbVotes.replace(/,/g, "")) : 0,
+        voteCount: data.imdbVotes !== "NA" ? parseInt(data.imdbVotes.replace(/,/g, "")) : 0,
         language: data.Language !== "N/A" ? data.Language.split(", ")[0] : "English",
         director: data.Director !== "N/A" ? data.Director : "",
         cast: data.Actors !== "N/A"

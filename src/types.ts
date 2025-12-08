@@ -42,4 +42,6 @@ export interface TrendingItem {
   categories?: string[];
   audibleUrl?: string;
   kindleUrl?: string;
+  type?: string;
+  views?: string;
 }
