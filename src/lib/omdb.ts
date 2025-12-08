@@ -1,7 +1,7 @@
 
 import type { Movie } from "../types";
 
-const OMDB_API_KEY = "1d81fa6";
+const OMDB_API_KEY = process.env.OMDB_API_KEY;
 const OMDB_BASE_URL = "https://www.omdbapi.com";
 
 async function fetchFromOMDb(params: Record<string, string>): Promise<any> {
