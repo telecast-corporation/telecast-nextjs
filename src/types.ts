@@ -44,4 +44,6 @@ export interface TrendingItem {
   kindleUrl?: string;
   type?: string;
   views?: string;
+  artist?: string;
+  album?: string;
 }
