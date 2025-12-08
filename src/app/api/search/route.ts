@@ -6,6 +6,7 @@ import { prisma } from '@/lib/prisma';
 import axios from 'axios';
 import { PodcastIndex, Podcast } from '@/lib/podcast-index';
 import { searchAudible } from '@/lib/audible-search';
+import { getMovies } from '@/lib/omdb';
 
 // Import trending functions directly
 // import { getTrendingVideos, getTrendingMusic, getTrendingBooks, getTrendingPodcasts } from '../trending/route';
@@ -14,9 +15,9 @@ interface SearchResult {
   id: number | string;
   title: string;
   description: string;
-  imageUrl: string;
+  thumbnail: string;
   author: string;
-  source: 'telecast' | 'spotify' | 'audible' | 'google_books' | 'youtube' | 'podcastindex' | 'internal' | 'RapidAPI Trending Movies';
+  source: 'telecast' | 'spotify' | 'audible' | 'google_books' | 'youtube' | 'podcastindex' | 'internal' | 'OMDb';
   category?: string;
   tags?: string[];
   type: 'podcast' | 'video' | 'music' | 'book' | 'audiobook' | 'tv';
@@ -25,7 +26,6 @@ interface SearchResult {
 const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;
 const YOUTUBE_API_URL = 'https://www.googleapis.com/youtube/v3';
 const GOOGLE_BOOKS_API_URL = 'https://www.googleapis.com/books/v1/volumes';
-const RAPIDAPI_KEY_TRENDING_MOVIES = process.env.RAPIDAPI_KEY_TRENDING_MOVIES;
 
 interface SearchRequest {
   query: string;
@@ -106,7 +106,7 @@ async function searchYouTube(query: string, maxResults: number = 300) {
 
 function ensureHttps(url: string | undefined): string | undefined {
   if (!url) return url;
-  return url.replace(/^http:/, 'https:');
+  return url.replace(/^http:/, 'https');
 }
 
 async function searchBooks(query: string, maxResults: number = 300) {
@@ -326,47 +326,28 @@ async function searchAudiobooks(query: string, maxResults: number = 300) {
   }
 }
 
-async function searchTV(query: string, maxResults: number = 300) {
+async function searchTV(query: string, maxResults: number = 10) {
   try {
-    console.log('📺 Searching TV (movies) from RapidAPI (trending-movie1)...');
-    if (!RAPIDAPI_KEY_TRENDING_MOVIES) {
-      console.error('Missing RAPIDAPI_KEY_TRENDING_MOVIES');
-      return [];
-    }
+    console.log('📺 Searching TV (movies) from OMDb...');
+    const movies = await getMovies(query, maxResults);
 
-    const options = {
-      method: 'GET',
-      url: 'https://trending-movie1.p.rapidapi.com/search',
-      params: {
-        query: query,
-        limit: maxResults, // Use limit for search results if available
-      },
-      headers: {
-        'x-rapidapi-host': 'trending-movie1.p.rapidapi.com',
-        'x-rapidapi-key': RAPIDAPI_KEY_TRENDING_MOVIES,
-      },
-    };
-
-    const response = await axios.request(options);
-
-    console.log('TV (movies) search response:', response.data);
-    return response.data.map((item: any) => ({
-      id: item.imdbid,
-      type: 'tv', // Keeping type as 'tv' to fit existing structure, but content is movies.
-      title: truncateText(item.title, 50),
-      description: truncateText(item.plot || item.fullplot || 'No description available.', 100),
-      thumbnail: item.image,
-      url: `https://www.imdb.com/title/${item.imdbid}`,
-      author: truncateText(item.actors?.split(',')[0] || 'Unknown', 30), // Taking first actor as author
-      year: item.year,
-      duration: item.runtime,
-      rating: item.imvdb_rating,
-      source: 'RapidAPI Trending Movies',
-      sourceUrl: `https://www.imdb.com/title/${item.imdbid}`,
+    return movies.map((movie) => ({
+      id: movie.id,
+      type: 'tv',
+      title: truncateText(movie.title, 50),
+      description: truncateText(movie.overview || 'No description available.', 100),
+      thumbnail: movie.poster,
+      url: `/movie/${movie.id}`, // Assuming a movie detail page route
+      author: truncateText(movie.director || 'Unknown', 30),
+      year: movie.year,
+      duration: movie.runtime,
+      rating: movie.rating,
+      source: 'OMDb',
+      sourceUrl: `https://www.imdb.com/title/${movie.id}`,
       previewVideo: null,
     }));
   } catch (error) {
-    console.error('📺 Error searching TV (movies) from RapidAPI:', error);
+    console.error('📺 Error searching TV (movies) from OMDb:', error);
     return [];
   }
 }
@@ -561,7 +542,7 @@ export async function POST(request: Request) {
       .flatMap(result => result.value);
 
     // Enhanced relevance scoring and sorting
-    const queryWords = query.toLowerCase().split(/\s+/).filter(word => word.length > 0);
+    const queryWords = query.toLowerCase().split(/s+/).filter(word => word.length > 0);
     
     const calculateRelevanceScore = (item: any) => {
       const title = item.title.toLowerCase();
@@ -581,7 +562,7 @@ export async function POST(request: Request) {
       }
       
       // All query words found in title (in order)
-      const titleWords = title.split(/\s+/);
+      const titleWords = title.split(/s+/);
       let allWordsInOrder = true;
       let wordIndex = 0;
       
@@ -627,7 +608,7 @@ export async function POST(request: Request) {
       }
       
       // Description matches
-      const descWords = description.split(/\s+/);
+      const descWords = description.split(/s+/);
       let descWordMatches = 0;
       for (const queryWord of queryWords) {
         for (const descWord of descWords) {

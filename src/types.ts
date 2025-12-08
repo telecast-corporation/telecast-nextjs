@@ -1,41 +1,30 @@
 
-export interface TrendingItem {
-  id: string;
-  type: 'video' | 'music' | 'book' | 'podcast' | 'news' | 'tv' | 'local-news';
-  title: string;
-  description: string;
-  thumbnail: string;
-  url: string;
-  previewUrl?: string;
-  views?: string;
-  publishedAt?: string;
-  artist?: string;
-  album?: string;
-  author?: string;
-  publishedDate?: string;
-  rating?: number;
-  ratingsCount?: number;
-  narrator?: string;
-  audibleUrl?: string;
-  kindleUrl?: string;
-  episodeCount?: number;
-  categories?: string[];
-  source?: string;
-  sourceUrl?: string;
-  year?: string;
-  duration?: string;
-  previewVideo?: string;
-  city?: string;
-  country?: string;
-  status?: 'pending' | 'approved' | 'rejected';
+export interface Movie {
+    id: string;
+    title: string;
+    year: string;
+    rating: string;
+    poster: string;
+    backdrop: string;
+    overview: string;
+    releaseDate: string;
+    runtime: string;
+    genres: string[];
+    voteCount: number;
+    language: string;
+    director: string;
+    cast: CastMember[];
 }
 
-export interface TrendingContent {
-  videos: TrendingItem[];
-  music: TrendingItem[];
-  books: TrendingItem[];
-  podcasts: TrendingItem[];
-  news: TrendingItem[];
-  tv: TrendingItem[];
-  localNews: TrendingItem[];
+export interface MovieApiResponse {
+    movies: Movie[];
+    totalPages: number;
+    currentPage: number;
+}
+
+export interface CastMember {
+    id: string;
+    name: string;
+    character: string;
+    profilePath: string;
 }
