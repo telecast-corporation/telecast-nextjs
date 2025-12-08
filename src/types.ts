@@ -46,4 +46,6 @@ export interface TrendingItem {
   views?: string;
   artist?: string;
   album?: string;
+  episodeCount?: number;
+  source?: string;
 }
