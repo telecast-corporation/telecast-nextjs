@@ -49,4 +49,6 @@ export interface TrendingItem {
   episodeCount?: number;
   source?: string;
   year?: string;
+  url?: string;
+  previewVideo?: string;
 }
