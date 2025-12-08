@@ -46,22 +46,22 @@ async function getSpotifyAccessToken() {
   }
 
   try {
-  const response = await fetch('https://accounts.spotify.com/api/token', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
+    const response = await fetch('https://accounts.spotify.com/api/token', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
         'Authorization': `Basic ${Buffer.from(`${clientId}:${clientSecret}`).toString('base64')}`,
-    },
-    body: 'grant_type=client_credentials',
-  });
+      },
+      body: 'grant_type=client_credentials',
+    });
 
-  if (!response.ok) {
+    if (!response.ok) {
       console.warn('Failed to get Spotify access token:', await response.text());
       return null;
-  }
+    }
 
-  const data = await response.json();
-  return data.access_token;
+    const data = await response.json();
+    return data.access_token;
   } catch (error) {
     console.error('Error getting Spotify access token:', error);
     return null;
@@ -113,7 +113,7 @@ async function searchBooks(query: string, maxResults: number = 300) {
   try {
     // Ensure maxResults doesn't exceed Google Books API limit of 40
     const safeMaxResults = Math.min(maxResults, 40);
-    
+
     const response = await axios.get('https://www.googleapis.com/books/v1/volumes', {
       params: {
         q: query,
@@ -148,7 +148,7 @@ async function searchPodcasts(query: string, maxResults: number = 300, request?:
   try {
     const podcastIndex = new PodcastIndex();
     const externalResults = await podcastIndex.search(query);
-    
+
     // Get user from request context to search internal podcasts
     let internalResults: any[] = [];
     try {
@@ -195,7 +195,7 @@ async function searchPodcasts(query: string, maxResults: number = 300, request?:
               url: `/podcast/${podcast.id}`, // Link to our internal podcast page
               author: truncateText(podcast.author || 'Unknown Author', 30),
               duration: podcast.isAvailable
-               ? 'User uploaded' : 'Draft (unpublished)',
+                ? 'User uploaded' : 'Draft (unpublished)',
               categories: podcast.tags || [],
               language: podcast.language || 'en',
               explicit: podcast.explicit || false,
@@ -210,7 +210,7 @@ async function searchPodcasts(query: string, maxResults: number = 300, request?:
       console.error('Error searching internal podcasts:', error);
       // Continue with external results only if internal search fails
     }
-    
+
     // Combine external and internal results
     const externalMapped = externalResults.slice(0, maxResults - internalResults.length).map((podcast: Podcast) => ({
       type: 'podcast',
@@ -230,7 +230,7 @@ async function searchPodcasts(query: string, maxResults: number = 300, request?:
 
     // Combine results with internal podcasts first (to prioritize user content)
     const combinedResults = [...internalResults, ...externalMapped];
-    
+
     return combinedResults.slice(0, maxResults);
   } catch (error) {
     console.error('Podcast search error:', error);
@@ -239,16 +239,16 @@ async function searchPodcasts(query: string, maxResults: number = 300, request?:
 }
 
 async function searchMusic(query: string, maxResults: number = 300) {
-      try {
-        const accessToken = await getSpotifyAccessToken();
+  try {
+    const accessToken = await getSpotifyAccessToken();
     if (!accessToken) {
       return [];
     }
 
     const response = await axios.get('https://api.spotify.com/v1/search', {
-            headers: {
+      headers: {
         'Authorization': `Bearer ${accessToken}`,
-            },
+      },
       params: {
         q: query,
         type: 'track',
@@ -278,17 +278,17 @@ async function searchMusic(query: string, maxResults: number = 300) {
 async function searchAudiobooks(query: string, maxResults: number = 300) {
   try {
     console.log('🎧 Searching audiobooks for query:', query);
-    
+
     // Call the searchAudible function directly
     const books = await searchAudible(query, maxResults);
-    
+
     console.log('🎧 Raw audiobooks from searchAudible:', books.map(book => ({
       title: book.title,
       url: book.url,
       audibleUrl: book.audibleUrl,
       id: book.id
     })));
-    
+
     const mappedBooks = books.map((item: any) => ({
       type: 'audiobook',
       id: item.id,
@@ -305,13 +305,13 @@ async function searchAudiobooks(query: string, maxResults: number = 300) {
       sourceUrl: item.sourceUrl,
     }));
 
-    console.log('🎧 Mapped audiobooks:', mappedBooks.map(book => ({ 
-      title: book.title, 
-      url: book.url, 
+    console.log('🎧 Mapped audiobooks:', mappedBooks.map(book => ({
+      title: book.title,
+      url: book.url,
       audibleUrl: book.audibleUrl,
-      id: book.id 
+      id: book.id
     })));
-    
+
     return mappedBooks;
   } catch (error: any) {
     console.error('🎧 Audiobook search error:', error);
@@ -362,12 +362,12 @@ export async function POST(request: Request) {
     // If trending is true and query is 'recommended', fetch trending content
     if (trending && query === 'recommended') {
       console.log('📈 Fetching trending content for types:', types);
-      
+
       // For audiobooks, just fall back to regular search since trending doesn't support audiobooks yet
       if (types.includes('audiobook')) {
         console.log('🎧 Falling back to regular search for audiobooks');
         const fallbackResults = await searchAudiobooks('fiction', Math.min(maxResults, 300));
-        
+
         // Apply pagination
         const startIndex = (page - 1) * limit;
         const endIndex = startIndex + limit;
@@ -388,12 +388,12 @@ export async function POST(request: Request) {
           },
         });
       }
-      
+
       // For other types, try to get trending content
       try {
         // Use axios for server-side request to trending API
         let baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
-        
+
         // If no base URL is configured, try to construct one from the request
         if (!baseUrl) {
           // In production, we can use the request headers to get the host
@@ -407,15 +407,15 @@ export async function POST(request: Request) {
             throw new Error('No base URL configured');
           }
         }
-        
+
         const trendingResponse = await axios.get(`${baseUrl}/api/trending`);
-        
+
         console.log('📈 Trending API response status:', trendingResponse.status);
-        
+
         if (trendingResponse.status !== 200) {
           throw new Error(`Trending API returned ${trendingResponse.status}`);
         }
-        
+
         const trendingData = trendingResponse.data;
         console.log('📈 Trending data received:', {
           videos: trendingData.videos?.length || 0,
@@ -424,9 +424,9 @@ export async function POST(request: Request) {
           podcasts: trendingData.podcasts?.length || 0,
           tv: trendingData.tv?.length || 0, // Include TV
         });
-        
+
         let trendingResults: any[] = [];
-        
+
         if (types.includes('all')) {
           trendingResults = [
             ...trendingData.videos || [],
@@ -442,9 +442,9 @@ export async function POST(request: Request) {
           if (types.includes('podcast')) trendingResults.push(...(trendingData.podcasts || []));
           if (types.includes('tv')) trendingResults.push(...(trendingData.tv || [])); // Include TV
         }
-        
+
         console.log('📈 Returning trending results:', trendingResults.length);
-        
+
         // Apply pagination
         const startIndex = (page - 1) * limit;
         const endIndex = startIndex + limit;
@@ -471,7 +471,7 @@ export async function POST(request: Request) {
         if (types.includes('book')) {
           console.log('📚 Falling back to fiction search for books');
           const fallbackResults = await searchBooks('fiction', Math.min(maxResults, 300));
-          
+
           // Apply pagination
           const startIndex = (page - 1) * limit;
           const endIndex = startIndex + limit;
@@ -543,31 +543,31 @@ export async function POST(request: Request) {
 
     // Enhanced relevance scoring and sorting
     const queryWords = query.toLowerCase().split(/s+/).filter(word => word.length > 0);
-    
+
     const calculateRelevanceScore = (item: any) => {
       const title = item.title.toLowerCase();
       const description = (item.description || '').toLowerCase();
       const author = (item.author || '').toLowerCase();
-      
+
       let score = 0;
-      
+
       // Exact title match (highest priority)
       if (title === query.toLowerCase()) {
         score += 1000;
       }
-      
+
       // Title starts with query
       if (title.startsWith(query.toLowerCase())) {
         score += 500;
       }
-      
+
       // All query words found in title (in order)
       const titleWords = title.split(/s+/);
       let allWordsInOrder = true;
       let wordIndex = 0;
-      
+
       for (const queryWord of queryWords) {
-        const foundIndex = titleWords.findIndex((titleWord: string, index: number) => 
+        const foundIndex = titleWords.findIndex((titleWord: string, index: number) =>
           index >= wordIndex && titleWord.includes(queryWord)
         );
         if (foundIndex === -1) {
@@ -576,20 +576,20 @@ export async function POST(request: Request) {
         }
         wordIndex = foundIndex + 1;
       }
-      
+
       if (allWordsInOrder) {
         score += 300;
       }
-      
+
       // All query words found in title (any order)
-      const allWordsFound = queryWords.every(queryWord => 
+      const allWordsFound = queryWords.every(queryWord =>
         titleWords.some((titleWord: string) => titleWord.includes(queryWord))
       );
-      
+
       if (allWordsFound) {
         score += 200;
       }
-      
+
       // Query words found in title (partial matches)
       let titleWordMatches = 0;
       for (const queryWord of queryWords) {
@@ -601,12 +601,12 @@ export async function POST(request: Request) {
         }
       }
       score += titleWordMatches * 50;
-      
+
       // Author matches
       if (author.includes(query.toLowerCase())) {
         score += 150;
       }
-      
+
       // Description matches
       const descWords = description.split(/s+/);
       let descWordMatches = 0;
@@ -619,32 +619,32 @@ export async function POST(request: Request) {
         }
       }
       score += descWordMatches * 10;
-      
+
       // Boost for shorter titles (more specific)
       score += Math.max(0, 50 - titleWords.length * 2);
-      
+
       // Boost for recent content (if available)
       if (item.publishedAt || item.publishedDate || item.releaseDate || item.year) { // Added item.year for TV/movies
         score += 5;
       }
-      
+
       // Boost for high ratings (if available)
       if (item.rating && item.rating >= 4) {
         score += 20;
       }
-      
+
       return score;
     };
-    
+
     // Sort by relevance score (highest first)
     searchResults.sort((a, b) => {
       const scoreA = calculateRelevanceScore(a);
       const scoreB = calculateRelevanceScore(b);
-      
+
       if (scoreA !== scoreB) {
         return scoreB - scoreA; // Higher score first
       }
-      
+
       // If scores are equal, prefer shorter titles
       return a.title.length - b.title.length;
     });
@@ -658,7 +658,7 @@ export async function POST(request: Request) {
     });
 
     console.log('🔍 Search completed, returning results:', searchResults.length);
-    
+
     // Log audiobook data specifically
     const audiobooks = searchResults.filter(result => result.type === 'audiobook');
     if (audiobooks.length > 0) {
@@ -669,7 +669,7 @@ export async function POST(request: Request) {
         id: book.id
       })));
     }
-    
+
     // Apply pagination
     const startIndex = (page - 1) * limit;
     const endIndex = startIndex + limit;

@@ -28,3 +28,18 @@ export interface CastMember {
     character: string;
     profilePath: string;
 }
+
+export interface TrendingItem {
+  id: string;
+  thumbnail: string;
+  title: string;
+  rating?: number;
+  author: string;
+  description?: string;
+  duration?: string;
+  narrator?: string;
+  ratingsCount?: number;
+  categories?: string[];
+  audibleUrl?: string;
+  kindleUrl?: string;
+}
