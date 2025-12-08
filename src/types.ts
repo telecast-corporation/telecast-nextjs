@@ -48,4 +48,5 @@ export interface TrendingItem {
   album?: string;
   episodeCount?: number;
   source?: string;
+  year?: string;
 }
