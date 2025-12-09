@@ -326,10 +326,10 @@ async function searchAudiobooks(query: string, maxResults: number = 300) {
   }
 }
 
-async function searchTV(query: string, maxResults: number = 10) {
+async function searchTV(query: string, maxResults: number = 30) {
   try {
     console.log('📺 Searching TV (movies) from OMDb...');
-    const movies = await getMovies(query, maxResults);
+    const movies = await getMovies('popular', maxResults);
 
     return movies.map((movie) => ({
       id: movie.id,
@@ -351,6 +351,7 @@ async function searchTV(query: string, maxResults: number = 10) {
     return [];
   }
 }
+
 
 export async function POST(request: Request) {
   try {

@@ -66,7 +66,7 @@ import {
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
-import {useDebounce} from '@/hooks/useDebounce';
+import { useDebounce } from '@/hooks/useDebounce';
 import { useAutocomplete } from '@/hooks/useAutocomplete';
 import { useAuth } from '@/contexts/AuthContext';
 import { typography, spacing, borderRadius, navbarSizing } from '@/styles/typography';
@@ -1297,7 +1297,10 @@ const MainNav = memo(() => {
             <Button
               variant="text"
               startIcon={<NewsIcon />}
-              onClick={() => router.push('/local-news/upload')}
+              onClick={() => {
+                router.push('/local-news/upload')
+                handleFilterSelect('LocalNews')
+              }}
               sx={getFilterButtonStyles(theme, selectedFilter, 'LocalNews')}
             >
               Upload News
