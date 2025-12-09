@@ -6,7 +6,8 @@ import { prisma } from '@/lib/prisma';
 import axios from 'axios';
 import { PodcastIndex, Podcast } from '@/lib/podcast-index';
 import { searchAudible } from '@/lib/audible-search';
-import { getMovies } from '@/lib/omdb';
+import { getTrendingMovies, searchMovies } from '@/lib/omdb';
+
 
 // Import trending functions directly
 // import { getTrendingVideos, getTrendingMusic, getTrendingBooks, getTrendingPodcasts } from '../trending/route';
@@ -326,10 +327,12 @@ async function searchAudiobooks(query: string, maxResults: number = 300) {
   }
 }
 
-async function searchTV(query: string, maxResults: number = 30) {
+async function searchTV(query: string, maxResults: number = 30, trending: boolean = false) {
   try {
-    console.log('📺 Searching TV (movies) from OMDb...');
-    const movies = await getMovies('popular', maxResults);
+    console.log(`📺 Searching TV (movies) from OMDb... Query: ${query}, Trending: ${trending}`);
+
+    // If trending is true, get trending movies. Otherwise, search.
+    const movies = trending ? await getTrendingMovies() : await searchMovies(query, maxResults);
 
     return movies.map((movie) => ({
       id: movie.id,
@@ -337,7 +340,7 @@ async function searchTV(query: string, maxResults: number = 30) {
       title: truncateText(movie.title, 50),
       description: truncateText(movie.overview || 'No description available.', 100),
       thumbnail: movie.poster,
-      url: `/movie/${movie.id}`, // Assuming a movie detail page route
+      url: `/movie/${movie.id}`,
       author: truncateText(movie.director || 'Unknown', 30),
       year: movie.year,
       duration: movie.runtime,
@@ -351,6 +354,7 @@ async function searchTV(query: string, maxResults: number = 30) {
     return [];
   }
 }
+
 
 
 export async function POST(request: Request) {
@@ -514,7 +518,8 @@ export async function POST(request: Request) {
       searchPromises.push(searchAudiobooks(query, Math.min(maxResults, 300)));
       searchPromises.push(searchPodcasts(query, maxResults, request));
       searchPromises.push(searchMusic(query, maxResults));
-      searchPromises.push(searchTV(query, maxResults)); // Add searchTV here
+      searchPromises.push(searchTV(query, maxResults, trending && query === 'recommended'));
+; // Add searchTV here
     } else {
       // Otherwise, only search the specified types
       if (types.includes('video')) {
@@ -533,7 +538,7 @@ export async function POST(request: Request) {
         searchPromises.push(searchMusic(query, maxResults));
       }
       if (types.includes('tv')) { // Add tv type handling
-        searchPromises.push(searchTV(query, maxResults));
+        searchPromises.push(searchTV(query, maxResults, trending && query === 'recommended'));
       }
     }
 
