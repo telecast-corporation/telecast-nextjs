@@ -1,3 +1,4 @@
+
 export const dynamic = 'force-dynamic';
 
 import { NextResponse } from 'next/server';
@@ -6,8 +7,7 @@ import { prisma } from '@/lib/prisma';
 import axios from 'axios';
 import { PodcastIndex, Podcast } from '@/lib/podcast-index';
 import { searchAudible } from '@/lib/audible-search';
-import { getTrendingMovies, searchMovies } from '@/lib/omdb';
-
+import { getTrendingMovies, searchMovies } from '@/lib/omdb'; // Updated import
 
 // Import trending functions directly
 // import { getTrendingVideos, getTrendingMusic, getTrendingBooks, getTrendingPodcasts } from '../trending/route';
@@ -327,16 +327,16 @@ async function searchAudiobooks(query: string, maxResults: number = 300) {
   }
 }
 
+// Updated searchTV function
 async function searchTV(query: string, maxResults: number = 30, trending: boolean = false) {
   try {
     console.log(`📺 Searching TV (movies) from OMDb... Query: ${query}, Trending: ${trending}`);
 
-    // If trending is true, get trending movies. Otherwise, search.
     const movies = trending ? await getTrendingMovies() : await searchMovies(query, maxResults);
 
     return movies.map((movie) => ({
       id: movie.id,
-      type: 'tv',
+      type: 'tv' as const,
       title: truncateText(movie.title, 50),
       description: truncateText(movie.overview || 'No description available.', 100),
       thumbnail: movie.poster,
@@ -345,7 +345,7 @@ async function searchTV(query: string, maxResults: number = 30, trending: boolea
       year: movie.year,
       duration: movie.runtime,
       rating: movie.rating,
-      source: 'OMDb',
+      source: 'OMDb' as const,
       sourceUrl: `https://www.imdb.com/title/${movie.id}`,
       previewVideo: null,
     }));
@@ -356,7 +356,6 @@ async function searchTV(query: string, maxResults: number = 30, trending: boolea
 }
 
 
-
 export async function POST(request: Request) {
   try {
     const body: SearchRequest = await request.json();
@@ -364,140 +363,33 @@ export async function POST(request: Request) {
 
     console.log('🔍 Search API called:', { query, types, maxResults, trending, page, limit });
 
-    // If trending is true and query is 'recommended', fetch trending content
     if (trending && query === 'recommended') {
-      console.log('📈 Fetching trending content for types:', types);
+      let trendingResults: any[] = [];
 
-      // For audiobooks, just fall back to regular search since trending doesn't support audiobooks yet
-      if (types.includes('audiobook')) {
-        console.log('🎧 Falling back to regular search for audiobooks');
-        const fallbackResults = await searchAudiobooks('fiction', Math.min(maxResults, 300));
-
-        // Apply pagination
-        const startIndex = (page - 1) * limit;
-        const endIndex = startIndex + limit;
-        const paginatedResults = fallbackResults.slice(startIndex, endIndex);
-        const totalPages = Math.ceil(fallbackResults.length / limit);
-
-        return NextResponse.json({
-          results: paginatedResults,
-          pagination: {
-            page,
-            limit,
-            total: fallbackResults.length,
-            totalPages,
-            hasNextPage: page < totalPages,
-            hasPrevPage: page > 1,
-            startIndex: startIndex + 1,
-            endIndex: Math.min(endIndex, fallbackResults.length),
-          },
-        });
+      if (types.includes('tv')) {
+        const tvResults = await searchTV('', maxResults, true);
+        trendingResults.push(...tvResults);
       }
+      // ... other trending types can be handled here in the future
 
-      // For other types, try to get trending content
-      try {
-        // Use axios for server-side request to trending API
-        let baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+      const startIndex = (page - 1) * limit;
+      const endIndex = startIndex + limit;
+      const paginatedResults = trendingResults.slice(startIndex, endIndex);
+      const totalPages = Math.ceil(trendingResults.length / limit);
 
-        // If no base URL is configured, try to construct one from the request
-        if (!baseUrl) {
-          // In production, we can use the request headers to get the host
-          const host = request.headers.get('host');
-          const protocol = request.headers.get('x-forwarded-proto') || 'https';
-          if (host) {
-            baseUrl = `${protocol}://${host}`;
-            console.log('📈 Constructed base URL from request headers:', baseUrl);
-          } else {
-            console.log('📈 No base URL configured and cannot construct from headers, skipping trending content');
-            throw new Error('No base URL configured');
-          }
-        }
-
-        const trendingResponse = await axios.get(`${baseUrl}/api/trending`);
-
-        console.log('📈 Trending API response status:', trendingResponse.status);
-
-        if (trendingResponse.status !== 200) {
-          throw new Error(`Trending API returned ${trendingResponse.status}`);
-        }
-
-        const trendingData = trendingResponse.data;
-        console.log('📈 Trending data received:', {
-          videos: trendingData.videos?.length || 0,
-          books: trendingData.books?.length || 0,
-          music: trendingData.music?.length || 0,
-          podcasts: trendingData.podcasts?.length || 0,
-          tv: trendingData.tv?.length || 0, // Include TV
-        });
-
-        let trendingResults: any[] = [];
-
-        if (types.includes('all')) {
-          trendingResults = [
-            ...trendingData.videos || [],
-            ...trendingData.music || [],
-            ...trendingData.books || [],
-            ...trendingData.podcasts || [],
-            ...trendingData.tv || [], // Include TV
-          ];
-        } else {
-          if (types.includes('video')) trendingResults.push(...(trendingData.videos || []));
-          if (types.includes('music')) trendingResults.push(...(trendingData.music || []));
-          if (types.includes('book')) trendingResults.push(...(trendingData.books || []));
-          if (types.includes('podcast')) trendingResults.push(...(trendingData.podcasts || []));
-          if (types.includes('tv')) trendingResults.push(...(trendingData.tv || [])); // Include TV
-        }
-
-        console.log('📈 Returning trending results:', trendingResults.length);
-
-        // Apply pagination
-        const startIndex = (page - 1) * limit;
-        const endIndex = startIndex + limit;
-        const paginatedResults = trendingResults.slice(startIndex, endIndex);
-        const totalPages = Math.ceil(trendingResults.length / limit);
-
-        return NextResponse.json({
-          results: paginatedResults,
-          pagination: {
-            page,
-            limit,
-            total: trendingResults.length,
-            totalPages,
-            hasNextPage: page < totalPages,
-            hasPrevPage: page > 1,
-            startIndex: startIndex + 1,
-            endIndex: Math.min(endIndex, trendingResults.length),
-          },
-        });
-      } catch (error) {
-        console.error('❌ Error fetching trending content:', error);
-        // Fall back to regular search if trending fails
-        // For books, search for popular fiction as fallback
-        if (types.includes('book')) {
-          console.log('📚 Falling back to fiction search for books');
-          const fallbackResults = await searchBooks('fiction', Math.min(maxResults, 300));
-
-          // Apply pagination
-          const startIndex = (page - 1) * limit;
-          const endIndex = startIndex + limit;
-          const paginatedResults = fallbackResults.slice(startIndex, endIndex);
-          const totalPages = Math.ceil(fallbackResults.length / limit);
-
-          return NextResponse.json({
-            results: paginatedResults,
-            pagination: {
-              page,
-              limit,
-              total: fallbackResults.length,
-              totalPages,
-              hasNextPage: page < totalPages,
-              hasPrevPage: page > 1,
-              startIndex: startIndex + 1,
-              endIndex: Math.min(endIndex, fallbackResults.length),
-            },
-          });
-        }
-      }
+      return NextResponse.json({
+        results: paginatedResults,
+        pagination: {
+          page,
+          limit,
+          total: trendingResults.length,
+          totalPages,
+          hasNextPage: page < totalPages,
+          hasPrevPage: page > 1,
+          startIndex: startIndex + 1,
+          endIndex: Math.min(endIndex, trendingResults.length),
+        },
+      });
     }
 
     if (!query) {
@@ -507,39 +399,22 @@ export async function POST(request: Request) {
       );
     }
 
-    console.log('🔍 Performing regular search for query:', query);
-
     const searchPromises = [];
 
-    // If types includes 'all', search all types
     if (types.includes('all')) {
       searchPromises.push(searchYouTube(query, maxResults));
       searchPromises.push(searchBooks(query, Math.min(maxResults, 300)));
       searchPromises.push(searchAudiobooks(query, Math.min(maxResults, 300)));
       searchPromises.push(searchPodcasts(query, maxResults, request));
       searchPromises.push(searchMusic(query, maxResults));
-      searchPromises.push(searchTV(query, maxResults, trending && query === 'recommended'));
-; // Add searchTV here
+      searchPromises.push(searchTV(query, maxResults, false)); // Explicitly set trending to false
     } else {
-      // Otherwise, only search the specified types
-      if (types.includes('video')) {
-        searchPromises.push(searchYouTube(query, maxResults));
-      }
-      if (types.includes('book')) {
-        searchPromises.push(searchBooks(query, Math.min(maxResults, 300)));
-      }
-      if (types.includes('audiobook')) {
-        searchPromises.push(searchAudiobooks(query, Math.min(maxResults, 300)));
-      }
-      if (types.includes('podcast')) {
-        searchPromises.push(searchPodcasts(query, maxResults, request));
-      }
-      if (types.includes('music')) {
-        searchPromises.push(searchMusic(query, maxResults));
-      }
-      if (types.includes('tv')) { // Add tv type handling
-        searchPromises.push(searchTV(query, maxResults, trending && query === 'recommended'));
-      }
+      if (types.includes('video')) searchPromises.push(searchYouTube(query, maxResults));
+      if (types.includes('book')) searchPromises.push(searchBooks(query, Math.min(maxResults, 300)));
+      if (types.includes('audiobook')) searchPromises.push(searchAudiobooks(query, Math.min(maxResults, 300)));
+      if (types.includes('podcast')) searchPromises.push(searchPodcasts(query, maxResults, request));
+      if (types.includes('music')) searchPromises.push(searchMusic(query, maxResults));
+      if (types.includes('tv')) searchPromises.push(searchTV(query, maxResults, false)); // Explicitly set trending to false
     }
 
     const results = await Promise.allSettled(searchPromises);
@@ -547,8 +422,8 @@ export async function POST(request: Request) {
       .filter((result): result is PromiseFulfilledResult<any[]> => result.status === 'fulfilled')
       .flatMap(result => result.value);
 
-    // Enhanced relevance scoring and sorting
-    const queryWords = query.toLowerCase().split(/s+/).filter(word => word.length > 0);
+    // ... (rest of the sorting and pagination logic remains the same)
+    const queryWords = query.toLowerCase().split(/\s+/).filter(word => word.length > 0);
 
     const calculateRelevanceScore = (item: any) => {
       const title = item.title.toLowerCase();
@@ -568,7 +443,7 @@ export async function POST(request: Request) {
       }
 
       // All query words found in title (in order)
-      const titleWords = title.split(/s+/);
+      const titleWords = title.split(/\s+/);
       let allWordsInOrder = true;
       let wordIndex = 0;
 
@@ -614,7 +489,7 @@ export async function POST(request: Request) {
       }
 
       // Description matches
-      const descWords = description.split(/s+/);
+      const descWords = description.split(/\s+/);
       let descWordMatches = 0;
       for (const queryWord of queryWords) {
         for (const descWord of descWords) {
@@ -655,28 +530,6 @@ export async function POST(request: Request) {
       return a.title.length - b.title.length;
     });
 
-    // Log top results with their relevance scores
-    const topResults = searchResults.slice(0, 10);
-    console.log('🔍 Top results with relevance scores:');
-    topResults.forEach((result, index) => {
-      const score = calculateRelevanceScore(result);
-      console.log(`${index + 1}. [${score}pts] ${result.title} (${result.type})`);
-    });
-
-    console.log('🔍 Search completed, returning results:', searchResults.length);
-
-    // Log audiobook data specifically
-    const audiobooks = searchResults.filter(result => result.type === 'audiobook');
-    if (audiobooks.length > 0) {
-      console.log('🎧 Audiobooks being sent to frontend:', audiobooks.map(book => ({
-        title: book.title,
-        url: book.url,
-        audibleUrl: book.audibleUrl,
-        id: book.id
-      })));
-    }
-
-    // Apply pagination
     const startIndex = (page - 1) * limit;
     const endIndex = startIndex + limit;
     const paginatedResults = searchResults.slice(startIndex, endIndex);
