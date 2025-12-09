@@ -1,4 +1,3 @@
-
 import type { Movie } from "../types";
 
 const OMDB_API_KEY = process.env.OMDB_API_KEY;
@@ -118,6 +117,27 @@ export async function searchMovies(query: string, maxResults = 10): Promise<Movi
 
     return detailedMovies.filter((m): m is Movie => m !== null);
 }
+
+export async function searchTvShows(query: string, maxResults = 10): Promise<Movie[]> {
+    if (!query.trim()) return [];
+
+    const data = await fetchFromOMDb({ s: query.trim(), type: "series" });
+    const searchResults = data.Search || [];
+
+    const detailedShows = await Promise.all(
+        searchResults.slice(0, maxResults).map(async (item: any) => {
+            try {
+                const details = await fetchFromOMDb({ i: item.imdbID, plot: "short" });
+                return transformOMDbMovie(details); // Re-using the same transformer
+            } catch {
+                return null;
+            }
+        })
+    );
+
+    return detailedShows.filter((m): m is Movie => m !== null);
+}
+
 
 export async function getMovieDetails(id: string): Promise<Movie | null> {
     try {
