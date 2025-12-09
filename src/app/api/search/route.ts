@@ -424,7 +424,7 @@ async function searchTVShows(query: string, maxResults: number = 300) {
                         title: truncateText(item.Title, 50),
                         description: "",
                         thumbnail: item.Poster !== "N/A" ? item.Poster : "https://via.placeholder.com/300x450",
-                        url: `/tv/${item.imdbID}`,
+                        url: `${OMDB_BASE_URL}/tv/${item.imdbID}`,
                         author: "Unknown",
                         year: item.Year,
                         rating: "",
