@@ -47,22 +47,22 @@ async function getSpotifyAccessToken() {
   }
 
   try {
-    const response = await fetch('https://accounts.spotify.com/api/token', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
+  const response = await fetch('https://accounts.spotify.com/api/token', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
         'Authorization': `Basic ${Buffer.from(`${clientId}:${clientSecret}`).toString('base64')}`,
-      },
-      body: 'grant_type=client_credentials',
-    });
+    },
+    body: 'grant_type=client_credentials',
+  });
 
-    if (!response.ok) {
+  if (!response.ok) {
       console.warn('Failed to get Spotify access token:', await response.text());
       return null;
-    }
+  }
 
-    const data = await response.json();
-    return data.access_token;
+  const data = await response.json();
+  return data.access_token;
   } catch (error) {
     console.error('Error getting Spotify access token:', error);
     return null;
@@ -107,14 +107,14 @@ async function searchYouTube(query: string, maxResults: number = 300) {
 
 function ensureHttps(url: string | undefined): string | undefined {
   if (!url) return url;
-  return url.replace(/^http:/, 'https');
+  return url.replace(/^http:/, 'https:');
 }
 
 async function searchBooks(query: string, maxResults: number = 300) {
   try {
     // Ensure maxResults doesn't exceed Google Books API limit of 40
     const safeMaxResults = Math.min(maxResults, 40);
-
+    
     const response = await axios.get('https://www.googleapis.com/books/v1/volumes', {
       params: {
         q: query,
@@ -149,7 +149,7 @@ async function searchPodcasts(query: string, maxResults: number = 300, request?:
   try {
     const podcastIndex = new PodcastIndex();
     const externalResults = await podcastIndex.search(query);
-
+    
     // Get user from request context to search internal podcasts
     let internalResults: any[] = [];
     try {
@@ -169,8 +169,8 @@ async function searchPodcasts(query: string, maxResults: number = 300, request?:
                 AND: [
                   {
                     OR: [
-                      { isAvailable: true }, // Include published podcasts
-                      { isAvailable: false } // Also include unpublished podcasts for the owner
+                      { isAvailable: true }, // Include isAvailable podcasts
+                      { isAvailable: false } // Also include unisAvailable podcasts for the owner
                     ]
                   },
                   {
@@ -195,8 +195,7 @@ async function searchPodcasts(query: string, maxResults: number = 300, request?:
               thumbnail: podcast.coverImage || 'https://via.placeholder.com/150',
               url: `/podcast/${podcast.id}`, // Link to our internal podcast page
               author: truncateText(podcast.author || 'Unknown Author', 30),
-              duration: podcast.isAvailable
-                ? 'User uploaded' : 'Draft (unpublished)',
+              duration: podcast.isAvailable ? 'User uploaded' : 'Draft (unpublished)',
               categories: podcast.tags || [],
               language: podcast.language || 'en',
               explicit: podcast.explicit || false,
@@ -211,7 +210,7 @@ async function searchPodcasts(query: string, maxResults: number = 300, request?:
       console.error('Error searching internal podcasts:', error);
       // Continue with external results only if internal search fails
     }
-
+    
     // Combine external and internal results
     const externalMapped = externalResults.slice(0, maxResults - internalResults.length).map((podcast: Podcast) => ({
       type: 'podcast',
@@ -231,7 +230,7 @@ async function searchPodcasts(query: string, maxResults: number = 300, request?:
 
     // Combine results with internal podcasts first (to prioritize user content)
     const combinedResults = [...internalResults, ...externalMapped];
-
+    
     return combinedResults.slice(0, maxResults);
   } catch (error) {
     console.error('Podcast search error:', error);
@@ -240,16 +239,16 @@ async function searchPodcasts(query: string, maxResults: number = 300, request?:
 }
 
 async function searchMusic(query: string, maxResults: number = 300) {
-  try {
-    const accessToken = await getSpotifyAccessToken();
+      try {
+        const accessToken = await getSpotifyAccessToken();
     if (!accessToken) {
       return [];
     }
 
     const response = await axios.get('https://api.spotify.com/v1/search', {
-      headers: {
+            headers: {
         'Authorization': `Bearer ${accessToken}`,
-      },
+            },
       params: {
         q: query,
         type: 'track',
@@ -279,17 +278,17 @@ async function searchMusic(query: string, maxResults: number = 300) {
 async function searchAudiobooks(query: string, maxResults: number = 300) {
   try {
     console.log('🎧 Searching audiobooks for query:', query);
-
+    
     // Call the searchAudible function directly
     const books = await searchAudible(query, maxResults);
-
+    
     console.log('🎧 Raw audiobooks from searchAudible:', books.map(book => ({
       title: book.title,
       url: book.url,
       audibleUrl: book.audibleUrl,
       id: book.id
     })));
-
+    
     const mappedBooks = books.map((item: any) => ({
       type: 'audiobook',
       id: item.id,
@@ -306,13 +305,13 @@ async function searchAudiobooks(query: string, maxResults: number = 300) {
       sourceUrl: item.sourceUrl,
     }));
 
-    console.log('🎧 Mapped audiobooks:', mappedBooks.map(book => ({
-      title: book.title,
-      url: book.url,
+    console.log('🎧 Mapped audiobooks:', mappedBooks.map(book => ({ 
+      title: book.title, 
+      url: book.url, 
       audibleUrl: book.audibleUrl,
-      id: book.id
+      id: book.id 
     })));
-
+    
     return mappedBooks;
   } catch (error: any) {
     console.error('🎧 Audiobook search error:', error);
