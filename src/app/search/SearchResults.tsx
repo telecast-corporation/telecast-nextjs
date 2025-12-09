@@ -12,6 +12,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { typography, spacing, borderRadius } from '@/styles/typography';
 import { FilterList as FilterIcon } from '@mui/icons-material';
 import { countries } from '@/lib/countries';
+import { Toast } from '@/components/Toast';
 
 interface SearchResult {
   id: string;
@@ -41,7 +42,9 @@ export default function SearchResults() {
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [modalOpen, setModalOpen] = useState(false);
   const [countrySearch, setCountrySearch] = useState('');
-
+  const [toastOpen, setToastOpen] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastSeverity, setToastSeverity] = useState<'success' | 'info' | 'warning' | 'error'>('info');
 
   const showRecommendations = !query && ['podcast', 'video', 'music', 'book', 'news', 'tv'].includes(type);
 
@@ -84,6 +87,12 @@ export default function SearchResults() {
 
         if (!response.ok) {
           throw new Error(data.error || 'Failed to fetch results');
+        }
+
+        if (data.results.length === 0 && query) {
+          setToastMessage('No results found for your search.');
+          setToastSeverity('info');
+          setToastOpen(true);
         }
 
         setResults(data.results || []);
@@ -157,6 +166,12 @@ export default function SearchResults() {
 
   return (
     <Container maxWidth="lg" sx={{ py: isMobile ? spacing.section.xs : spacing.section.sm }}>
+      <Toast 
+        open={toastOpen} 
+        message={toastMessage} 
+        onClose={() => setToastOpen(false)} 
+        severity={toastSeverity} 
+      />
       {type === 'podcast' && (
         <Box sx={{ textAlign: 'center', mb: spacing.gap.md, px: isMobile ? spacing.component.xs : 0 }}>
           <a href={isAuthenticated ? "/my-podcasts" : "/auth/login"} style={{ textDecoration: 'none' }}>

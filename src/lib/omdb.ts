@@ -1,65 +1,71 @@
-
 import type { Movie } from "../types";
 
 const OMDB_API_KEY = process.env.OMDB_API_KEY;
 const OMDB_BASE_URL = "https://www.omdbapi.com";
 
-async function fetchFromOMDb(params: Record<string, string>): Promise<any> {
+
+function buildURL(params: Record<string, string>) {
+    return `${OMDB_BASE_URL}/?${new URLSearchParams({
+        apikey: OMDB_API_KEY || "",
+        ...params,
+    }).toString()}`;
+}
+
+
+async function fetchOMDb(params: Record<string, string>) {
     if (!OMDB_API_KEY) {
-        console.warn("OMDB_API_KEY is not configured. Movie search will be disabled.");
-        return { Search: [] };
+        console.warn("OMDB_API_KEY missing → OMDb disabled.");
+        return null;
     }
 
-    const searchParams = new URLSearchParams({ apikey: OMDB_API_KEY, ...params });
-    const url = `${OMDB_BASE_URL}/?${searchParams.toString()}`;
+    const url = buildURL(params);
 
     try {
-        const response = await fetch(url, {
-            method: "GET",
-            headers: {
-                "Accept": "application/json",
-            },
-        });
+        const res = await fetch(url);
 
-        if (!response.ok) {
-            console.error(`OMDb API request failed: ${response.status} ${response.statusText}`);
-            return { Search: [] };
+        if (!res.ok) {
+            console.error("OMDb request failed:", res.status);
+            return null;
         }
 
-        const data = await response.json();
+        const data = await res.json();
 
-        if (data.Response === "False") {
-            if (data.Error !== 'Movie not found!') {
-              console.error(`OMDb API error: ${data.Error}`);
-            }
-            return { Search: [] };
-        }
+        if (data.Response === "False") return null;
 
         return data;
-    } catch (error) {
-        console.error("Error fetching from OMDb:", error);
-        return { Search: [] };
+    } catch (err) {
+        console.error("OMDb fetch error:", err);
+        return null;
     }
 }
 
-function transformOMDbMovie(data: any): Movie {
+
+function transformMovie(data: any): Movie {
     return {
-        id: data.imdbID || "",
-        title: data.Title || "Unknown Title",
-        year: data.Year || "",
-        rating: data.imdbRating !== "N/A" ? data.imdbRating : "0",
+        id: data.imdbID ?? "",
+        title: data.Title ?? "Untitled",
+        year: data.Year ?? "",
+        rating: data.imdbRating && data.imdbRating !== "N/A"
+            ? Number(data.imdbRating)
+            : 0,
         poster: data.Poster !== "N/A" ? data.Poster : "",
         backdrop: data.Poster !== "N/A" ? data.Poster : "",
         overview: data.Plot !== "N/A" ? data.Plot : "",
         releaseDate: data.Released !== "N/A" ? data.Released : "",
         runtime: data.Runtime !== "N/A" ? data.Runtime : "",
-        genres: data.Genre !== "N/A" ? data.Genre.split(", ") : [],
-        voteCount: data.imdbVotes !== "NA" ? parseInt(data.imdbVotes.replace(/,/g, "")) : 0,
-        language: data.Language !== "N/A" ? data.Language.split(", ")[0] : "English",
+        genres: data.Genre && data.Genre !== "N/A"
+            ? data.Genre.split(", ")
+            : [],
+        voteCount: data.imdbVotes && data.imdbVotes !== "N/A"
+            ? Number(data.imdbVotes.replace(/,/g, ""))
+            : 0,
+        language: data.Language && data.Language !== "N/A"
+            ? data.Language.split(", ")[0]
+            : "English",
         director: data.Director !== "N/A" ? data.Director : "",
-        cast: data.Actors !== "N/A"
-            ? data.Actors.split(", ").map((name: string, idx: number) => ({
-                id: String(idx),
+        cast: data.Actors && data.Actors !== "N/A"
+            ? data.Actors.split(", ").map((name: string, index: number) => ({
+                id: String(index),
                 name,
                 character: "",
                 profilePath: "",
@@ -68,38 +74,48 @@ function transformOMDbMovie(data: any): Movie {
     };
 }
 
-export async function getMovies(query: string, maxResults: number = 10, type?: 'movie' | 'series' | 'tv' | 'video'): Promise<Movie[]> {
-    const typesToFetch: string[] = [];
+/**
+ * Search movies or series, return full movie objects with detail lookups.
+ */
+export async function getMovies(
+    query: string,
+    maxResults = 10,
+    type?: "movie" | "series" | "tv" | "video"
+): Promise<Movie[]> {
 
-    if (type === 'tv') {
-        typesToFetch.push('series');
-    } else if (type === 'movie') {
-        typesToFetch.push('movie');
-    } else { // 'video' or undefined
-        typesToFetch.push('movie');
-        typesToFetch.push('series');
-    }
+    if (!query.trim()) return [];
 
-    const promises = typesToFetch.map(t => fetchFromOMDb({ s: query.trim(), type: t }));
-    const settledPromises = await Promise.all(promises);
+    // OMDb only supports "movie" or "series"
+    const typesToFetch =
+        type === "movie" ? ["movie"]
+        : type === "tv" || type === "series" ? ["series"]
+        : ["movie", "series"]; // default: search everything
 
-    const combinedResults = settledPromises.flatMap(result => result.Search || []);
+    // 1) Search result pages
+    const searchResults = await Promise.all(
+        typesToFetch.map(t =>
+            fetchOMDb({ s: query.trim(), type: t })
+        )
+    );
 
-    if (combinedResults.length === 0) {
-        return [];
-    }
+    const mergedSearch = searchResults
+        .filter(Boolean)
+        .flatMap(r => r.Search ?? []);
 
-    const detailedMoviesPromises = combinedResults.slice(0, maxResults).map(async (item: any) => {
-        try {
-            const details = await fetchFromOMDb({ i: item.imdbID, plot: "short" });
-            if (details.Response === "False") return null;
-            return transformOMDbMovie(details);
-        } catch (err) {
-            console.error(`Failed to fetch movie details for ${item.imdbID}:`, err);
-            return null;
-        }
-    });
+    if (mergedSearch.length === 0) return [];
 
-    const movies = await Promise.all(detailedMoviesPromises);
-    return movies.filter((movie): movie is Movie => movie !== null);
+    const limited = mergedSearch.slice(0, maxResults);
+
+    // 2) Fetch full details for each movie (OMDb requires second call)
+    const detailResults = await Promise.all(
+        limited.map(async item => {
+            const details = await fetchOMDb({ i: item.imdbID, plot: "short" });
+            if (!details) return null;
+            return transformMovie(details);
+        })
+    );
+
+    return detailResults.filter(
+        (m): m is Movie => m !== null
+    );
 }
