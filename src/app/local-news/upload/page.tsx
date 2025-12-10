@@ -1,21 +1,30 @@
 
-"use client";
-import React, { useState, useMemo, useEffect } from 'react';
+'use client';
+
+import React, { useState, useCallback } from "react";
 import {
   Box,
   Button,
-  Container,
   TextField,
   Typography,
-  CircularProgress,
-  Snackbar,
+  Container,
   Alert,
-  Paper
+  Paper,
+  Grid,
+  CircularProgress,
+  IconButton,
 } from "@mui/material";
 import { useTheme } from '@mui/material/styles';
-import CityCountryInput from '@/components/CityCountryInput'; // Import the new component
-import { useAuth } from '@/contexts/AuthContext'; // To get user location
-import { getOrCreateUser } from '@/lib/auth0-user';
+import { useDropzone } from 'react-dropzone';
+import { FiUploadCloud, FiXCircle } from 'react-icons/fi';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
+
+import CityCountryInput from '@/components/CityCountryInput';
+import { useAuth } from '@/contexts/AuthContext';
+import { getOrCreateUserById } from '@/lib/auth0-user';
 
 const LocalNewsUploadPage = () => {
   const theme = useTheme();
@@ -26,53 +35,47 @@ const LocalNewsUploadPage = () => {
   const [file, setFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [videoPreviewUrl, setVideoPreviewUrl] = useState<string | null>(null);
-  const [openSnackbar, setOpenSnackbar] = useState(false);
-  const { user } = useAuth(); // Get user from auth context
+  const [openSuccessPopup, setOpenSuccessPopup] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // Geo-location: Set initial country and city based on user's profile
-  useEffect(() => {
-    const fetchUser = async () => {
-      if (user) {
-        const response = await fetch('/api/profile');
-        const profile = await response.json();
-        if (profile) {
-          setCountry(profile.country || '');
-          setCity(profile.city || '');
-        }
+  const { user } = useAuth();
+
+  const onDrop = useCallback((acceptedFiles: File[]) => {
+    if (acceptedFiles.length > 0) {
+      const selectedFile = acceptedFiles[0];
+      if (selectedFile.type.startsWith('video/')) {
+        setFile(selectedFile);
+        setVideoPreviewUrl(URL.createObjectURL(selectedFile));
+      } else {
+        setErrorMessage('Please upload a valid video file.');
       }
-    };
-    fetchUser();
-  }, [user]);
-
-  useEffect(() => {
-    // Clean up the object URL to avoid memory leaks
-    return () => {
-      if (videoPreviewUrl) {
-        URL.revokeObjectURL(videoPreviewUrl);
-      }
-    };
-  }, [videoPreviewUrl]);
-
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files && event.target.files[0]) {
-      const selectedFile = event.target.files[0];
-      setFile(selectedFile);
-      setVideoPreviewUrl(URL.createObjectURL(selectedFile));
-    } else {
-      setFile(null);
-      setVideoPreviewUrl(null);
     }
+  }, []);
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: {
+      'video/*': [],
+    },
+    multiple: false,
+  });
+
+  const removeFile = () => {
+    setFile(null);
+    setVideoPreviewUrl(null);
   };
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+    setIsSubmitting(true);
+    setErrorMessage(null);
+
     if (!file || !title || !description || !country || !city) {
-      console.error("All fields are required.");
-      // Here you could add user-facing feedback, e.g., a snackbar/alert
+      setErrorMessage('All required fields must be filled.');
+      setIsSubmitting(false);
       return;
     }
 
-    setIsSubmitting(true);
     const formData = new FormData();
     formData.append('file', file);
     formData.append('title', title);
@@ -81,111 +84,175 @@ const LocalNewsUploadPage = () => {
     formData.append('locationCountry', country);
 
     try {
-      const response = await fetch('/api/local-news', {
+      const authUser = await getOrCreateUserById(user?.id);
+      if (!authUser || !authUser.id) {
+        setErrorMessage("Authentication failed. Please try again.");
+        setIsSubmitting(false);
+        return;
+      }
+      formData.append('userId', authUser.id);
+
+      const uploadResponse = await fetch('/api/local-news', {
         method: 'POST',
         body: formData,
       });
 
-      if (response.ok) {
-        // Handle success, e.g., show a success message or redirect
-        console.log("Upload successful!");
-        setOpenSnackbar(true);
-        setTitle("");
-        setDescription("");
-        setFile(null);
-        setVideoPreviewUrl(null);
-        setCountry("");
-        setCity("");
-
-      } else {
-        // Handle error
-        console.error("Upload failed.");
+      if (!uploadResponse.ok) {
+        throw new Error('Failed to upload video.');
       }
+
+      const uploadData = await uploadResponse.json();
+      const { videoUrl } = uploadData;
+
+      const adminSubmissionResponse = await fetch('/api/admin/local-news', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title,
+          description,
+          videoUrl,
+          locationCity: city,
+          locationCountry: country
+        }),
+      });
+
+      if (!adminSubmissionResponse.ok) {
+        throw new Error('Failed to submit for approval.');
+      }
+
+      setOpenSuccessPopup(true);
+
+      setTitle("");
+      setDescription("");
+      setFile(null);
+      setVideoPreviewUrl(null);
+      setCountry("");
+      setCity("");
+
     } catch (error) {
-      console.error("An error occurred during upload:", error);
+      if (error instanceof Error) {
+        setErrorMessage(error.message);
+      } else {
+        setErrorMessage('An unknown error occurred.');
+      }
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleCloseSnackbar = (event?: React.SyntheticEvent | Event, reason?: string) => {
-    if (reason === 'clickaway') {
-      return;
-    }
-    setOpenSnackbar(false);
+  const handleCloseSuccessPopup = () => {
+    setOpenSuccessPopup(false);
   };
 
   return (
-    <Container maxWidth="sm">
-      <Paper elevation={3} sx={{ my: 4, p: 4, borderRadius: '16px', background: 'rgba(255, 255, 255, 0.7)', backdropFilter: 'blur(10px)' }}>
-        <Typography variant="h4" component="h1" gutterBottom align="center" sx={{ fontWeight: 700, color: 'primary.main', mb: 3 }}>
-          Upload Local News
+    <Container maxWidth="lg" sx={{ py: 5 }}>
+      <Paper elevation={12} sx={{ p: { xs: 2, sm: 4, md: 6 }, borderRadius: 4, background: 'linear-gradient(145deg, #f0f2f5, #ffffff)' }}>
+        <Typography variant="h3" component="h1" gutterBottom align="center" sx={{ fontWeight: 'bold', color: theme.palette.primary.main, mb: 2 }}>
+          Share Your Story
         </Typography>
+        <Typography variant="h6" align="center" color="text.secondary" sx={{ mb: 5 }}>
+          Become a citizen journalist and share what's happening in your community.
+        </Typography>
+
+        {errorMessage && (
+          <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>
+            {errorMessage}
+          </Alert>
+        )}
+
         <form onSubmit={handleSubmit}>
-          <Box sx={{ mb: 2 }}>
-            <TextField
-              label="Title"
-              fullWidth
-              required
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              variant="filled"
-            />
-          </Box>
-          <Box sx={{ mb: 2 }}>
-            <TextField
-              label="Description"
-              fullWidth
-              required
-              multiline
-              rows={4}
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              variant="filled"
-            />
-          </Box>
-          
-          <CityCountryInput
-            onCountryChange={setCountry}
-            onCityChange={setCity}
-            initialCountry={country}
-            initialCity={city}
-          />
-
-          <Box sx={{ mt: 2, p: 2, border: `2px dashed ${theme.palette.divider}`, borderRadius: '8px', textAlign: 'center', cursor: 'pointer' }}>
-            <input
-              accept="video/*"
-              style={{ display: 'none' }}
-              id="raised-button-file"
-              type="file"
-              onChange={handleFileChange}
-            />
-            <label htmlFor="raised-button-file">
-              <Button variant="text" component="span" sx={{ color: 'primary.main' }}>
-                Choose Video
+          <Grid container spacing={4}>
+            <Grid item xs={12} md={6}>
+              <Typography variant="h5" sx={{ mb: 2, fontWeight: 500}}>Story Details</Typography>
+              <TextField
+                label="Catchy Title"
+                fullWidth
+                margin="normal"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                required
+                variant="filled"
+              />
+              <TextField
+                label="Detailed Description"
+                fullWidth
+                margin="normal"
+                multiline
+                rows={6}
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                required
+                variant="filled"
+              />
+              <CityCountryInput
+                onCountryChange={setCountry}
+                onCityChange={setCity}
+                initialCountry={country}
+                initialCity={city}
+              />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <Typography variant="h5" sx={{ mb: 2, fontWeight: 500 }}>Upload Video</Typography>
+              {videoPreviewUrl ? (
+                <Box sx={{ position: 'relative', borderRadius: 2, overflow: 'hidden' }}>
+                  <video src={videoPreviewUrl} controls width="100%" style={{ display: 'block' }} />
+                  <IconButton
+                    onClick={removeFile}
+                    sx={{ position: 'absolute', top: 8, right: 8, background: 'rgba(0,0,0,0.6)', '&:hover': { background: 'rgba(0,0,0,0.8)' } }}
+                  >
+                    <FiXCircle color="white" />
+                  </IconButton>
+                </Box>
+              ) : (
+                <Box
+                  {...getRootProps()}
+                  sx={{
+                    border: `2px dashed ${isDragActive ? theme.palette.primary.main : theme.palette.divider}`,
+                    borderRadius: 2,
+                    p: 6,
+                    textAlign: 'center',
+                    cursor: 'pointer',
+                    transition: 'border .24s ease-in-out',
+                    backgroundColor: isDragActive ? 'rgba(0, 118, 255, 0.05)' : '#fafafa'
+                  }}
+                >
+                  <input {...getInputProps()} />
+                  <FiUploadCloud size={48} color={theme.palette.primary.main} />
+                  <Typography sx={{ mt: 2 }}>
+                    {isDragActive ? 'Drop the files here ...' : 'Drag & drop a video file here, or click to select a file'}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">Max file size: 500MB</Typography>
+                </Box>
+              )}
+            </Grid>
+            <Grid item xs={12}>
+              <Button
+                type="submit"
+                variant="contained"
+                color="primary"
+                size="large"
+                fullWidth
+                sx={{ mt: 4, py: 2, fontSize: '1.2rem', fontWeight: 'bold', borderRadius: 2 }}
+                disabled={isSubmitting || !file || !title || !description || !country || !city}
+              >
+                {isSubmitting ? <CircularProgress size={24} color="inherit" /> : 'Submit for Review'}
               </Button>
-              {file && <Typography variant="body2" sx={{ mt: 1 }}>{file.name}</Typography>}
-            </label>
-          </Box>
-
-          {videoPreviewUrl && (
-            <Box sx={{ mt: 2, borderRadius: '8px', overflow: 'hidden' }}>
-              <video controls width="100%" src={videoPreviewUrl} style={{ display: 'block' }}/>
-            </Box>
-          )}
-
-          <Box sx={{ mt: 4 }}>
-            <Button type="submit" variant="contained" color="primary" disabled={isSubmitting} fullWidth sx={{ py: 1.5, borderRadius: '25px', fontWeight: 'bold' }}>
-              {isSubmitting ? <CircularProgress size={24} sx={{ color: 'white' }} /> : "Submit"}
-            </Button>
-          </Box>
+            </Grid>
+          </Grid>
         </form>
       </Paper>
-      <Snackbar open={openSnackbar} autoHideDuration={6000} onClose={handleCloseSnackbar} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
-        <Alert onClose={handleCloseSnackbar} severity="success" sx={{ width: '100%', boxShadow: 6 }}>
-          Your news have been submitted for review
-        </Alert>
-      </Snackbar>
+
+      <Dialog open={openSuccessPopup} onClose={handleCloseSuccessPopup}>
+        <DialogTitle>Submission Successful!</DialogTitle>
+        <DialogContent dividers>
+          <Typography>Your local news item has been submitted for review. You will be notified once it has been approved.</Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseSuccessPopup}>Close</Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 };
