@@ -1299,7 +1299,6 @@ const MainNav = memo(() => {
               startIcon={<NewsIcon />}
               onClick={() => {
                 router.push('/local-news/upload')
-                handleFilterSelect('LocalNews')
               }}
               sx={getFilterButtonStyles(theme, selectedFilter, 'LocalNews')}
             >

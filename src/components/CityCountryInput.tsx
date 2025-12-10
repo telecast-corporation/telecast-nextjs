@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { Button, Dialog, DialogTitle, DialogContent, List, ListItem, ListItemText, TextField, InputAdornment } from '@mui/material';
-import { Filter, Search } from 'lucide-react';
+import { Search, ChevronDown } from 'lucide-react';
 import { countries, cities } from '../lib/locations';
 
 interface CityCountryInputProps {
@@ -55,30 +55,32 @@ export default function CityCountryInput({
   );
 
   const buttonSx = {
-    borderRadius: '9999px',
-    padding: '10px 20px',
-    backgroundColor: '#0279c3',
-    color: 'white',
-    '&:hover': {
-      backgroundColor: '#015f9b',
-    },
-    '&.Mui-disabled': {
-        backgroundColor: '#a4c3e2',
-        color: '#e0e0e0'
-    },
-    display: 'flex',
+    flexGrow: 1,
     justifyContent: 'space-between',
-    minWidth: '200px',
+    textAlign: 'left',
+    color: 'text.secondary',
+    borderColor: 'divider',
+    py: 1.5,
+    px: 2,
+    borderRadius: '8px',
+    textTransform: 'none',
+    fontSize: '1rem',
+    '&:hover': {
+      borderColor: 'primary.main',
+      backgroundColor: 'action.hover'
+    }
   };
 
+
   return (
-    <div className="flex flex-col md:flex-row gap-4">
+    <div className="flex flex-col md:flex-row gap-4 my-4">
       <Button
         onClick={() => setOpenCountry(true)}
-        sx={buttonSx}
-        startIcon={<Filter />}
+        variant="outlined"
+        endIcon={<ChevronDown size={20} />}
+        sx={{...buttonSx, color: country ? 'text.primary' : 'text.secondary'}}
       >
-        {country || 'Country'}
+        {country || 'Select Country'}
       </Button>
       <Dialog open={openCountry} onClose={() => setOpenCountry(false)} fullWidth maxWidth="xs">
         <DialogTitle>Select Country</DialogTitle>
@@ -98,7 +100,7 @@ export default function CityCountryInput({
             }}
             sx={{ mb: 2 }}
           />
-          <List>
+          <List sx={{ maxHeight: '60vh', overflow: 'auto' }}>
             {filteredCountries.map((c) => (
               <ListItem button key={c} onClick={() => {
                 setCountry(c);
@@ -116,10 +118,11 @@ export default function CityCountryInput({
       <Button
         onClick={() => setOpenCity(true)}
         disabled={!country}
-        sx={buttonSx}
-        startIcon={<Filter />}
+        variant="outlined"
+        endIcon={<ChevronDown size={20} />}
+        sx={{...buttonSx, color: city ? 'text.primary' : 'text.secondary', '&.Mui-disabled': { borderColor: 'divider' } }}
       >
-        {city || 'City'}
+        {city || 'Select City'}
       </Button>
       <Dialog open={openCity} onClose={() => setOpenCity(false)} fullWidth maxWidth="xs">
         <DialogTitle>Select City</DialogTitle>
@@ -139,7 +142,7 @@ export default function CityCountryInput({
             }}
             sx={{ mb: 2 }}
           />
-          <List>
+          <List sx={{ maxHeight: '60vh', overflow: 'auto' }}>
             {filteredCities.map((c) => (
               <ListItem button key={c} onClick={() => {
                 setCity(c);

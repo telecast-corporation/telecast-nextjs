@@ -10,12 +10,15 @@ import {
   CircularProgress,
   Snackbar,
   Alert,
+  Paper
 } from "@mui/material";
+import { useTheme } from '@mui/material/styles';
 import CityCountryInput from '@/components/CityCountryInput'; // Import the new component
 import { useAuth } from '@/contexts/AuthContext'; // To get user location
 import { getOrCreateUser } from '@/lib/auth0-user';
 
 const LocalNewsUploadPage = () => {
+  const theme = useTheme();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [country, setCountry] = useState("");
@@ -87,6 +90,13 @@ const LocalNewsUploadPage = () => {
         // Handle success, e.g., show a success message or redirect
         console.log("Upload successful!");
         setOpenSnackbar(true);
+        setTitle("");
+        setDescription("");
+        setFile(null);
+        setVideoPreviewUrl(null);
+        setCountry("");
+        setCity("");
+
       } else {
         // Handle error
         console.error("Upload failed.");
@@ -106,32 +116,35 @@ const LocalNewsUploadPage = () => {
   };
 
   return (
-    <Container maxWidth="md">
-      <Box sx={{ my: 4 }}>
-        <Typography variant="h4" component="h1" gutterBottom>
+    <Container maxWidth="sm">
+      <Paper elevation={3} sx={{ my: 4, p: 4, borderRadius: '16px', background: 'rgba(255, 255, 255, 0.7)', backdropFilter: 'blur(10px)' }}>
+        <Typography variant="h4" component="h1" gutterBottom align="center" sx={{ fontWeight: 700, color: 'primary.main', mb: 3 }}>
           Upload Local News
         </Typography>
         <form onSubmit={handleSubmit}>
-          <TextField
-            label="Title"
-            fullWidth
-            required
-            margin="normal"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-          />
-          <TextField
-            label="Description"
-            fullWidth
-            required
-            multiline
-            rows={4}
-            margin="normal"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-          />
+          <Box sx={{ mb: 2 }}>
+            <TextField
+              label="Title"
+              fullWidth
+              required
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              variant="filled"
+            />
+          </Box>
+          <Box sx={{ mb: 2 }}>
+            <TextField
+              label="Description"
+              fullWidth
+              required
+              multiline
+              rows={4}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              variant="filled"
+            />
+          </Box>
           
-          {/* Replace the old dropdowns with the CityCountryInput component */}
           <CityCountryInput
             onCountryChange={setCountry}
             onCityChange={setCity}
@@ -139,7 +152,7 @@ const LocalNewsUploadPage = () => {
             initialCity={city}
           />
 
-          <Box sx={{ mt: 2 }}>
+          <Box sx={{ mt: 2, p: 2, border: `2px dashed ${theme.palette.divider}`, borderRadius: '8px', textAlign: 'center', cursor: 'pointer' }}>
             <input
               accept="video/*"
               style={{ display: 'none' }}
@@ -148,28 +161,28 @@ const LocalNewsUploadPage = () => {
               onChange={handleFileChange}
             />
             <label htmlFor="raised-button-file">
-              <Button variant="contained" component="span">
+              <Button variant="text" component="span" sx={{ color: 'primary.main' }}>
                 Choose Video
               </Button>
+              {file && <Typography variant="body2" sx={{ mt: 1 }}>{file.name}</Typography>}
             </label>
-            {file && <Typography variant="body1" sx={{ display: 'inline', ml: 2 }}>{file.name}</Typography>}
           </Box>
 
           {videoPreviewUrl && (
-            <Box sx={{ mt: 2, border: '1px solid lightgray', borderRadius: '4px' }}>
-              <video controls width="100%" src={videoPreviewUrl} />
+            <Box sx={{ mt: 2, borderRadius: '8px', overflow: 'hidden' }}>
+              <video controls width="100%" src={videoPreviewUrl} style={{ display: 'block' }}/>
             </Box>
           )}
 
-          <Box sx={{ mt: 3 }}>
-            <Button type="submit" variant="contained" color="primary" disabled={isSubmitting}>
-              {isSubmitting ? <CircularProgress size={24} /> : "Submit"}
+          <Box sx={{ mt: 4 }}>
+            <Button type="submit" variant="contained" color="primary" disabled={isSubmitting} fullWidth sx={{ py: 1.5, borderRadius: '25px', fontWeight: 'bold' }}>
+              {isSubmitting ? <CircularProgress size={24} sx={{ color: 'white' }} /> : "Submit"}
             </Button>
           </Box>
         </form>
-      </Box>
-      <Snackbar open={openSnackbar} autoHideDuration={6000} onClose={handleCloseSnackbar}>
-        <Alert onClose={handleCloseSnackbar} severity="success" sx={{ width: '100%' }}>
+      </Paper>
+      <Snackbar open={openSnackbar} autoHideDuration={6000} onClose={handleCloseSnackbar} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
+        <Alert onClose={handleCloseSnackbar} severity="success" sx={{ width: '100%', boxShadow: 6 }}>
           Your news have been submitted for review
         </Alert>
       </Snackbar>
