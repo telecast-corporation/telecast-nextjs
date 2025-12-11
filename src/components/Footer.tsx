@@ -1,336 +1,128 @@
+
 'use client';
 
 import React from 'react';
 import {
-  Box,
   Container,
-  Grid,
   Typography,
-  Link,
+  Box,
+  Grid,
   IconButton,
   useTheme,
 } from '@mui/material';
-import {
-  Facebook as FacebookIcon,
-  Twitter as TwitterIcon,
-  Instagram as InstagramIcon,
-  LinkedIn as LinkedInIcon,
-} from '@mui/icons-material';
-import { useRouter } from 'next/navigation';
-import { Lexend } from 'next/font/google';
+import Link from 'next/link';
+import { FiFacebook, FiTwitter, FiInstagram, FiLinkedin } from 'react-icons/fi';
 
-const lexend = Lexend({ subsets: ['latin'], weight: ['400', '700', '900'] });
-
-export default function Footer() {
+const Footer = () => {
   const theme = useTheme();
-  const router = useRouter();
 
-  const handleNavigation = (path: string) => {
-    router.push(path);
-  };
+  const socialLinks = [
+    { icon: <FiFacebook />, href: '#' },
+    { icon: <FiTwitter />, href: '#' },
+    { icon: <FiInstagram />, href: '#' },
+    { icon: <FiLinkedin />, href: '#' },
+  ];
+
+  const navLinks = [
+    { title: 'About Us', href: '/about' },
+    { title: 'Our Mission', href: '/mission' },
+    { title: 'Local News', href: '/local-news' },
+    { title: 'Get Involved', href: '/local-news/upload' },
+  ];
+
+  const legalLinks = [
+    { title: 'Privacy Policy', href: '#' },
+    { title: 'Terms of Service', href: '#' },
+  ];
 
   return (
     <Box
       component="footer"
       sx={{
-        py: 6,
-        px: 2,
+        backgroundColor: '#121212',
+        color: 'white',
+        py: { xs: 4, sm: 6 },
         mt: 'auto',
-        backgroundColor: theme.palette.background.paper,
-        borderTop: `1px solid ${theme.palette.divider}`,
       }}
     >
       <Container maxWidth="lg">
-        <Grid container spacing={4}>
-          <Grid item xs={12} sm={4}>
-            <Typography variant="h6" color="text.primary" gutterBottom sx={{ fontSize: { xs: '1.1rem', sm: '1.25rem' } }}>
+        <Grid container spacing={5}>
+          <Grid item xs={12} md={5}>
+            <Typography variant="h4" component="h2" gutterBottom sx={{ fontWeight: 'bold' }}>
               Telecast
             </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.9rem', sm: '1rem' } }}>
-            Your dynamic source for podcasts, videos, live streams, books,  music, and exclusive shows. Uncover compelling stories, binge captivating content, and share your passions effortlessly.
+            <Typography variant="subtitle1" color="text.secondary" sx={{ color: '#a9a9a9'}}>
+              Your trusted source for community-driven news. We empower citizen journalists to share their stories and keep you informed.
             </Typography>
-          </Grid>
-          
-          <Grid item xs={12} sm={4}>
-            <Typography 
-              variant="h6" 
-              color="text.primary" 
-              gutterBottom 
-              sx={{ 
-                fontSize: { xs: '1.1rem', sm: '1.25rem' },
-                fontFamily: lexend.style.fontFamily,
-                fontWeight: 700
-              }}
-            >
-              Quick Links
-            </Typography>
-            <Box sx={{ 
-              display: 'grid', 
-              gridTemplateColumns: { xs: '1fr 1fr', sm: '1fr 1fr' }, 
-              gap: { xs: 1, sm: 2 },
-              maxWidth: '100%'
-            }}>
-              <Link
-                component="button"
-                variant="body2"
-                onClick={() => handleNavigation('/')}
-                sx={{ 
-                  textAlign: 'left', 
-                  color: 'text.secondary',
-                  fontSize: { xs: '0.9rem', sm: '1rem' },
-                  fontFamily: lexend.style.fontFamily,
-                  fontWeight: 400,
-                  justifyContent: 'flex-start'
-                }}
-              >
-                Home
-              </Link>
-              <Link
-                component="button"
-                variant="body2"
-                onClick={() => handleNavigation('/about')}
-                sx={{ 
-                  textAlign: 'left', 
-                  color: 'text.secondary',
-                  fontSize: { xs: '0.9rem', sm: '1rem' },
-                  fontFamily: lexend.style.fontFamily,
-                  fontWeight: 400,
-                  justifyContent: 'flex-start'
-                }}
-              >
-                About
-              </Link>
-              <Link
-                component="button"
-                variant="body2"
-                onClick={() => handleNavigation('/services')}
-                sx={{ 
-                  textAlign: 'left', 
-                  color: 'text.secondary',
-                  fontSize: { xs: '0.9rem', sm: '1rem' },
-                  fontFamily: lexend.style.fontFamily,
-                  fontWeight: 400,
-                  justifyContent: 'flex-start'
-                }}
-              >
-                Services
-              </Link>
-              <Link
-                component="button"
-                variant="body2"
-                onClick={() => handleNavigation('/contact')}
-                sx={{ 
-                  textAlign: 'left', 
-                  color: 'text.secondary',
-                  fontSize: { xs: '0.9rem', sm: '1rem' },
-                  fontFamily: lexend.style.fontFamily,
-                  fontWeight: 400,
-                  justifyContent: 'flex-start'
-                }}
-              >
-                Contact
-              </Link>
-              <Link
-                component="button"
-                variant="body2"
-                onClick={() => handleNavigation('/mission')}
-                sx={{ 
-                  textAlign: 'left', 
-                  color: 'text.secondary',
-                  fontSize: { xs: '0.9rem', sm: '1rem' },
-                  fontFamily: lexend.style.fontFamily,
-                  fontWeight: 400,
-                  justifyContent: 'flex-start'
-                }}
-              >
-                Mission
-              </Link>
-              <Link
-                component="button"
-                variant="body2"
-                onClick={() => handleNavigation('/faq')}
-                sx={{ 
-                  textAlign: 'left', 
-                  color: 'text.secondary',
-                  fontSize: { xs: '0.9rem', sm: '1rem' },
-                  fontFamily: lexend.style.fontFamily,
-                  fontWeight: 400,
-                  justifyContent: 'flex-start'
-                }}
-              >
-                FAQ
-              </Link>
-              <Link
-                component="button"
-                variant="body2"
-                onClick={() => handleNavigation('/terms')}
-                sx={{ 
-                  textAlign: 'left', 
-                  color: 'text.secondary',
-                  fontSize: { xs: '0.9rem', sm: '1rem' },
-                  fontFamily: lexend.style.fontFamily,
-                  fontWeight: 400,
-                  justifyContent: 'flex-start'
-                }}
-              >
-                Terms
-              </Link>
-              <Link
-                component="button"
-                variant="body2"
-                onClick={() => handleNavigation('/privacy')}
-                sx={{ 
-                  textAlign: 'left', 
-                  color: 'text.secondary',
-                  fontSize: { xs: '0.9rem', sm: '1rem' },
-                  fontFamily: lexend.style.fontFamily,
-                  fontWeight: 400,
-                  justifyContent: 'flex-start'
-                }}
-              >
-                Privacy
-              </Link>
-              <Link
-                component="button"
-                variant="body2"
-                onClick={() => handleNavigation('/pricing')}
-                sx={{ 
-                  textAlign: 'left', 
-                  color: 'text.secondary',
-                  fontSize: { xs: '0.9rem', sm: '1rem' },
-                  fontFamily: lexend.style.fontFamily,
-                  fontWeight: 400,
-                  justifyContent: 'flex-start'
-                }}
-              >
-                Pricing
-              </Link>
-            </Box>
           </Grid>
 
-          <Grid item xs={12} sm={4}>
-            <Typography 
-              variant="h6" 
-              color="text.primary" 
-              gutterBottom 
-              sx={{ 
-                fontSize: { xs: '1.1rem', sm: '1.25rem' },
-                fontFamily: lexend.style.fontFamily,
-                fontWeight: 700
-              }}
-            >
-              Contact Us
+          <Grid item xs={6} sm={4} md={2}>
+            <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>
+              Navigation
             </Typography>
-            <Box sx={{ mb: 2 }}>
-              <Typography 
-                variant="body2" 
-                color="text.secondary" 
-                sx={{ 
-                  fontSize: { xs: '0.9rem', sm: '1rem' },
-                  fontFamily: lexend.style.fontFamily,
-                  fontWeight: 400,
-                  mb: 1
-                }}
-              >
-                Email us by sending a quick note to:
-              </Typography>
-              <Link
-                href="mailto:admin@telecast.ca"
-                sx={{ 
-                  color: 'primary.main',
-                  fontSize: { xs: '0.9rem', sm: '1rem' },
-                  fontFamily: lexend.style.fontFamily,
-                  fontWeight: 500,
-                  textDecoration: 'none',
-                  '&:hover': {
-                    textDecoration: 'underline'
-                  }
-                }}
-              >
-                admin@telecast.ca
+            {navLinks.map((link) => (
+              <Link href={link.href} passHref key={link.title}>
+                <Typography
+                  variant="body2"
+                  sx={{ mb: 1, cursor: 'pointer', color: '#a9a9a9', '&:hover': { color: theme.palette.primary.main } }}
+                >
+                  {link.title}
+                </Typography>
               </Link>
-            </Box>
-            <Box sx={{ mb: 2 }}>
-              <Typography 
-                variant="body2" 
-                color="text.secondary" 
-                sx={{ 
-                  fontSize: { xs: '0.9rem', sm: '1rem' },
-                  fontFamily: lexend.style.fontFamily,
-                  fontWeight: 400,
-                  mb: 1
-                }}
-              >
-                Or call us at:
-              </Typography>
-              <Link
-                href="tel:1-800-905-6572"
-                sx={{ 
-                  color: 'primary.main',
-                  fontSize: { xs: '0.9rem', sm: '1rem' },
-                  fontFamily: lexend.style.fontFamily,
-                  fontWeight: 500,
-                  textDecoration: 'none',
-                  '&:hover': {
-                    textDecoration: 'underline'
-                  }
-                }}
-              >
-                1-800-905-6572
-              </Link>
-            </Box>
-            <Typography 
-              variant="h6" 
-              color="text.primary" 
-              gutterBottom 
-              sx={{ 
-                fontSize: { xs: '1.1rem', sm: '1.25rem' },
-                fontFamily: lexend.style.fontFamily,
-                fontWeight: 700,
-                mt: 3
-              }}
-            >
-              Connect With Us
+            ))}
+          </Grid>
+
+          <Grid item xs={6} sm={4} md={2}>
+            <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>
+              Legal
             </Typography>
-            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-              <IconButton
-                aria-label="Facebook"
-                sx={{ color: 'text.secondary' }}
-                onClick={() => window.open('https://facebook.com', '_blank')}
-              >
-                <FacebookIcon />
-              </IconButton>
-              <IconButton
-                aria-label="Twitter"
-                sx={{ color: 'text.secondary' }}
-                onClick={() => window.open('https://twitter.com', '_blank')}
-              >
-                <TwitterIcon />
-              </IconButton>
-              <IconButton
-                aria-label="Instagram"
-                sx={{ color: 'text.secondary' }}
-                onClick={() => window.open('https://instagram.com', '_blank')}
-              >
-                <InstagramIcon />
-              </IconButton>
-              <IconButton
-                aria-label="LinkedIn"
-                sx={{ color: 'text.secondary' }}
-                onClick={() => window.open('https://linkedin.com', '_blank')}
-              >
-                <LinkedInIcon />
-              </IconButton>
+            {legalLinks.map((link) => (
+              <Link href={link.href} passHref key={link.title}>
+                <Typography
+                  variant="body2"
+                  sx={{ mb: 1, cursor: 'pointer', color: '#a9a9a9', '&:hover': { color: theme.palette.primary.main } }}
+                >
+                  {link.title}
+                </Typography>
+              </Link>
+            ))}
+          </Grid>
+
+          <Grid item xs={12} sm={4} md={3}>
+            <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>
+              Follow Us
+            </Typography>
+            <Box>
+              {socialLinks.map((social, index) => (
+                <IconButton
+                  key={index}
+                  href={social.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  sx={{ color: 'white', backgroundColor: 'rgba(255,255,255,0.1)', mr: 1, '&:hover': { backgroundColor: theme.palette.primary.main } }}
+                >
+                  {social.icon}
+                </IconButton>
+              ))}
             </Box>
           </Grid>
         </Grid>
 
-        <Box sx={{ mt: 4, pt: 2, borderTop: `1px solid ${theme.palette.divider}` }}>
-          <Typography variant="body2" color="text.secondary" align="center" sx={{ fontSize: { xs: '0.8rem', sm: '0.95rem' } }}>
-            © {new Date().getFullYear()} Telecast. All rights reserved.
+        <Box
+          sx={{
+            mt: 5,
+            pt: 3,
+            borderTop: `1px solid ${theme.palette.divider}`,
+            textAlign: 'center',
+          }}
+        >
+          <Typography variant="body2" color="text.secondary" sx={{color: '#a9a9a9'}}>
+            &copy; {new Date().getFullYear()} Telecast. All rights reserved.
           </Typography>
         </Box>
       </Container>
     </Box>
   );
-} 
+};
+
+export default Footer;

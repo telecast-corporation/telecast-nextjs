@@ -21,10 +21,9 @@ import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
+import Link from 'next/link';
 
 import CityCountryInput from '@/components/CityCountryInput';
-import { useAuth } from '@/contexts/AuthContext';
-import { getOrCreateUserById } from '@/lib/auth0-user';
 
 const LocalNewsUploadPage = () => {
   const theme = useTheme();
@@ -37,8 +36,6 @@ const LocalNewsUploadPage = () => {
   const [videoPreviewUrl, setVideoPreviewUrl] = useState<string | null>(null);
   const [openSuccessPopup, setOpenSuccessPopup] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
-  const { user } = useAuth();
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     if (acceptedFiles.length > 0) {
@@ -84,46 +81,19 @@ const LocalNewsUploadPage = () => {
     formData.append('locationCountry', country);
 
     try {
-      const authUser = await getOrCreateUserById(user?.id);
-      if (!authUser || !authUser.id) {
-        setErrorMessage("Authentication failed. Please try again.");
-        setIsSubmitting(false);
-        return;
-      }
-      formData.append('userId', authUser.id);
-
-      const uploadResponse = await fetch('/api/local-news', {
+      const response = await fetch('/api/local-news', {
         method: 'POST',
         body: formData,
       });
 
-      if (!uploadResponse.ok) {
-        throw new Error('Failed to upload video.');
-      }
-
-      const uploadData = await uploadResponse.json();
-      const { videoUrl } = uploadData;
-
-      const adminSubmissionResponse = await fetch('/api/admin/local-news', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          title,
-          description,
-          videoUrl,
-          locationCity: city,
-          locationCountry: country
-        }),
-      });
-
-      if (!adminSubmissionResponse.ok) {
-        throw new Error('Failed to submit for approval.');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to submit news.');
       }
 
       setOpenSuccessPopup(true);
 
+      // Reset form
       setTitle("");
       setDescription("");
       setFile(null);
@@ -149,12 +119,19 @@ const LocalNewsUploadPage = () => {
   return (
     <Container maxWidth="lg" sx={{ py: 5 }}>
       <Paper elevation={12} sx={{ p: { xs: 2, sm: 4, md: 6 }, borderRadius: 4, background: 'linear-gradient(145deg, #f0f2f5, #ffffff)' }}>
-        <Typography variant="h3" component="h1" gutterBottom align="center" sx={{ fontWeight: 'bold', color: theme.palette.primary.main, mb: 2 }}>
-          Share Your Story
-        </Typography>
-        <Typography variant="h6" align="center" color="text.secondary" sx={{ mb: 5 }}>
-          Become a citizen journalist and share what's happening in your community.
-        </Typography>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 5 }}>
+          <div>
+            <Typography variant="h3" component="h1" sx={{ fontWeight: 'bold', color: theme.palette.primary.main }}>
+              Share Your Story
+            </Typography>
+            <Typography variant="h6" color="text.secondary">
+              Become a citizen journalist and share what's happening in your community.
+            </Typography>
+          </div>
+          <Link href="/local-news" passHref>
+            <Button variant="outlined" size="large">Go to News</Button>
+          </Link>
+        </Box>
 
         {errorMessage && (
           <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>
@@ -251,6 +228,9 @@ const LocalNewsUploadPage = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseSuccessPopup}>Close</Button>
+          <Link href="/local-news" passHref>
+            <Button color="primary">Go to News Page</Button>
+          </Link>
         </DialogActions>
       </Dialog>
     </Container>
