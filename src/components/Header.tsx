@@ -161,7 +161,7 @@ const Header = () => {
                 {user ? (
                   <Link href="/profile" passHref>
                     <IconButton>
-                      <Avatar alt={user.name} src={user.picture} />
+                      <Avatar alt={user.name} src={user.image} />
                     </IconButton>
                   </Link>
                 ) : (
