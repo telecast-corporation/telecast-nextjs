@@ -1,17 +1,18 @@
+'use client';
 
 import { Suspense } from 'react';
-import CreatePodcastPageContent from './CreatePodcastPageContent';
 import { Box, CircularProgress } from '@mui/material';
 
-export default function CreatePodcastPage() {
-
+export default function MyPodcastsLayout({ children }: { children: React.ReactNode }) {
   return (
-    <Suspense fallback={
+    <Suspense
+      fallback={
         <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
-            <CircularProgress />
+          <CircularProgress />
         </Box>
-    }>
-        <CreatePodcastPageContent />
+      }
+    >
+      {children}
     </Suspense>
   );
 }
