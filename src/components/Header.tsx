@@ -16,11 +16,13 @@ import {
   ListItemText,
   useTheme,
   useMediaQuery,
+  Avatar,
 } from '@mui/material';
 import { FiMenu, FiX } from 'react-icons/fi';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { headerHeight } from '@/styles/theme'; // Import headerHeight
+import { usePathname } from 'next/navigation';
 
 const Header = () => {
   const theme = useTheme();
@@ -28,6 +30,7 @@ const Header = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const { user, logout, login } = useAuth();
+  const pathname = usePathname();
 
   const handleDrawerToggle = () => {
     setDrawerOpen(!drawerOpen);
@@ -44,9 +47,13 @@ const Header = () => {
 
   const navLinks = [
     { title: 'Home', path: '/' },
+    { title: 'Podcasts', path: '/podcasts' },
+    { title: 'Books', path: '/books' },
+    { title: 'Movies', path: '/movies' },
+    { title: 'Community', path: '/community' },
+    { title: 'News', path: '/news' },
     { title: 'About', path: '/about' },
     { title: 'Mission', path: '/mission' },
-    { title: 'Local News', path: '/local-news' },
   ];
 
   const drawer = (
@@ -63,6 +70,20 @@ const Header = () => {
             <ListItemText primary={title} />
           </ListItem>
         ))}
+        {user ? (
+          <>
+            <ListItem button component={Link} href="/profile">
+              <ListItemText primary="Profile" />
+            </ListItem>
+            <ListItem button onClick={logout}>
+              <ListItemText primary="Logout" />
+            </ListItem>
+          </>
+        ) : (
+          <ListItem button onClick={() => login()}>
+            <ListItemText primary="Sign In" />
+          </ListItem>
+        )}
       </List>
     </Box>
   );
@@ -115,13 +136,19 @@ const Header = () => {
                 <FiMenu />
               </IconButton>
             ) : (
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexGrow: 1 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexGrow: 1, overflowX: 'auto' }}>
                 {navLinks.map(({ title, path }) => (
                   <Button
                     key={title}
                     component={Link}
                     href={path}
-                    sx={{ color: 'black', mx: 2, fontWeight: 500, fontSize: '1rem' }}
+                    sx={{
+                      color: pathname === path ? theme.palette.primary.main : 'black',
+                      mx: 2,
+                      fontWeight: 500,
+                      fontSize: '1rem',
+                      flexShrink: 0,
+                    }}
                   >
                     {title}
                   </Button>
@@ -132,12 +159,11 @@ const Header = () => {
             {!isMobile && (
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
                 {user ? (
-                  <>
-                    <Typography sx={{ mr: 2 }}>Welcome, {user.name}</Typography>
-                    <Button variant="outlined" color="primary" onClick={logout}>
-                      Logout
-                    </Button>
-                  </>
+                  <Link href="/profile" passHref>
+                    <IconButton>
+                      <Avatar alt={user.name} src={user.picture} />
+                    </IconButton>
+                  </Link>
                 ) : (
                   <Button
                     variant="contained"
@@ -145,7 +171,7 @@ const Header = () => {
                     onClick={() => login()}
                     sx={{ borderRadius: '50px', px: 4, fontWeight: 600 }}
                   >
-                    Get Started
+                    Sign In
                   </Button>
                 )}
               </Box>
