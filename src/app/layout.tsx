@@ -8,6 +8,7 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import MainNav from '@/components/MainNav';
 import { Box } from '@mui/material';
+import { Suspense } from 'react';
 
 const poppins = Poppins({ 
   subsets: ["latin"],
@@ -27,8 +28,10 @@ export default function RootLayout({
           <AudioProvider>
             <ThemeRegistry>
               <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-                <Header />
-                <MainNav />
+                <Suspense>
+                  <Header />
+                  <MainNav />
+                </Suspense>
                 <Box component="main" sx={{ flexGrow: 1 }}>
                   {children}
                 </Box>
