@@ -15,15 +15,15 @@ import Link from 'next/link';
 import { headerHeight } from '@/styles/theme'; // Import headerHeight
 
 const navLinks = [
-  { label: 'All Content', href: '/search?type=all' },
+  { label: 'All', href: '/search?type=all' },
   { label: 'Videos', href: '/search?type=video' },
   { label: 'Movies', href: '/search?type=movie' },
-  { label: 'TV', href: '/search?type=tv' },
+  { label: 'Videos', href: '/search?type=tv' },
   { label: 'Podcasts', href: '/search?type=podcast' },
   { label: 'Books', href: '/search?type=book' },
   { label: 'Music', href: '/search?type=music' },
-  { label: 'Community News', href: '/local-news' },
-  { label: 'Share a Story', href: '/local-news/upload' },
+  { label: 'News', href: '/local-news' },
+  { label: 'Upload News', href: '/local-news/upload' },
 ];
 
 const MainNav = () => {
@@ -87,7 +87,7 @@ const MainNav = () => {
     <Box
       sx={{
         backgroundColor: theme.palette.background.paper,
-        borderBottom: `1px solid ${theme.palette.divider}`,
+        borderBottom: `0`,
         py: isMobile ? 0.5 : 1,
         position: 'sticky',
         top: isMobile ? headerHeight.mobile : headerHeight.desktop, // Use responsive header height
@@ -98,28 +98,27 @@ const MainNav = () => {
         <Tabs
           value={activeTabIndex === -1 ? false : activeTabIndex}
           onChange={handleTabChange}
-          variant={isMobile ? 'scrollable' : 'standard'}
-          scrollButtons="auto"
+          variant={'standard'}
+          scrollButtons={false}
           aria-label="main navigation"
           sx={{
+            '& .MuiTabs-indicator': {
+              display: 'none',
+            },
             // Center the tabs on all screen sizes
             '& .MuiTabs-flexContainer': {
               justifyContent: 'center',
               alignItems: 'center', // Vertically center the tabs
-              gap: isMobile ? 1 : 2,
+              gap: isMobile ? 0.2 : 2,
+              flexWrap: 'wrap',
             },
-            // Add a more visible scrollbar for mobile
-            ...(isMobile && {
-              '& .MuiTabs-scroller': {
+            '& .MuiTabs-scroller': {
+                overflowX: 'hidden',
+                scrollbarWidth: 'none', /* Firefox */
                 '&::-webkit-scrollbar': {
-                  height: '6px',
-                },
-                '&::-webkit-scrollbar-thumb': {
-                  backgroundColor: theme.palette.primary.main, // Use main theme color
-                  borderRadius: '3px',
-                },
-              },
-            }),
+                    display: 'none' /* Safari and Chrome */
+                }
+            }
           }}
         >
           {navLinks.map((link, index) => (
@@ -130,8 +129,9 @@ const MainNav = () => {
               href={link.href}
               sx={{
                 px: isMobile ? 1.5 : 2,
-                py: isMobile ? 0.5 : 1,
+                py: isMobile ? 0.75 : 1,
                 minHeight: 'auto',
+                minWidth: 'auto',
                 borderRadius: '50px',
                 textTransform: 'none',
                 fontWeight: 600,
