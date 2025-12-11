@@ -214,7 +214,7 @@ const LocalNewsUploadPage = () => {
                 sx={{ mt: 4, py: 2, fontSize: '1.2rem', fontWeight: 'bold', borderRadius: 2 }}
                 disabled={isSubmitting || !file || !title || !description || !country || !city}
               >
-                {isSubmitting ? <CircularProgress size={24} color="inherit" /> : 'Submit for Review'}
+                {isSubmitting ? <CircularProgress size={24} color="inherit" /> : 'Upload'}
               </Button>
             </Grid>
           </Grid>
