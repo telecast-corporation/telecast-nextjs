@@ -17,8 +17,7 @@ import { headerHeight } from '@/styles/theme'; // Import headerHeight
 const navLinks = [
   { label: 'All', href: '/search?type=all' },
   { label: 'Videos', href: '/search?type=video' },
-  { label: 'Movies', href: '/search?type=movie' },
-  { label: 'Videos', href: '/search?type=tv' },
+  { label: 'Movies', href: '/search?type=tv' },
   { label: 'Podcasts', href: '/search?type=podcast' },
   { label: 'Books', href: '/search?type=book' },
   { label: 'Music', href: '/search?type=music' },
