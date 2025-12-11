@@ -28,4 +28,4 @@ const SearchTabs: React.FC<SearchTabsProps> = ({ value, onChange }) => (
   </Tabs>
 );
 
-export default SearchTabs; 
+export default SearchTabs;

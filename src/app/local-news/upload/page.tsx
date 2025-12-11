@@ -122,10 +122,10 @@ const LocalNewsUploadPage = () => {
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 5 }}>
           <div>
             <Typography variant="h3" component="h1" sx={{ fontWeight: 'bold', color: theme.palette.primary.main }}>
-              Share Your Story
+              Upload News
             </Typography>
             <Typography variant="h6" color="text.secondary">
-              Become a citizen journalist and share what's happening in your community.
+              Upload a video to share what's happening in your community.
             </Typography>
           </div>
           <Link href="/local-news" passHref>

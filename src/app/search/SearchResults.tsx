@@ -1,13 +1,12 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { Container, Typography, Box, CircularProgress, TextField, useTheme, useMediaQuery, Button, Modal, Paper, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import UnifiedSearchResults from '@/components/UnifiedSearchResults';
 import BookTypeToggle from '@/components/BookTypeToggle';
 import PartnerLogos from '@/components/PartnerLogos';
 import Pagination from '@/components/Pagination';
-import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { typography, spacing, borderRadius } from '@/styles/typography';
 import { FilterList as FilterIcon } from '@mui/icons-material';
@@ -25,6 +24,7 @@ interface SearchResult {
 
 export default function SearchResults() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const query = searchParams.get('q') || '';
   const type = searchParams.get('type') || 'all';
   const [results, setResults] = useState<SearchResult[]>([]);
@@ -33,7 +33,6 @@ export default function SearchResults() {
   const [bookType, setBookType] = useState<'book' | 'audiobook'>('book');
   const [pagination, setPagination] = useState<any>(null);
   const debounceTimerRef = useRef<NodeJS.Timeout>();
-  const router = useRouter();
   const currentPage = parseInt(searchParams.get('page') || '1');
   const { isAuthenticated } = useAuth();
   const [city, setCity] = useState(searchParams.get('city') || '');
@@ -45,6 +44,11 @@ export default function SearchResults() {
   const [toastOpen, setToastOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [toastSeverity, setToastSeverity] = useState<'success' | 'info' | 'warning' | 'error'>('info');
+
+  if (type === 'all') {
+    router.push('/');
+    return null;
+  }
 
   const showRecommendations = !query && ['podcast', 'video', 'music', 'book', 'news', 'tv'].includes(type);
 
@@ -66,7 +70,7 @@ export default function SearchResults() {
       setError(null);
 
       try {
-        const searchTypes = type === 'all' ? ['all'] : type === 'book' ? [bookType] : [type];
+        const searchTypes = type === 'book' ? [bookType] : [type];
         
         const response = await fetch('/api/search', {
           method: 'POST',
