@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
 import { useUser } from '@auth0/nextjs-auth0';
 import { useRouter } from 'next/navigation';
 import {
@@ -48,9 +48,7 @@ interface Podcast {
   published: boolean;
 }
 
-
-
-export default function MyPodcasts() {
+function MyPodcastsContent() {
   const { user, isLoading } = useUser();
   const router = useRouter();
   const [podcasts, setPodcasts] = useState<Podcast[]>([]);
@@ -284,4 +282,12 @@ export default function MyPodcasts() {
 
     </Container>
   );
-} 
+}
+
+export default function MyPodcasts() {
+  return (
+    <Suspense fallback={<CircularProgress />}>
+      <MyPodcastsContent />
+    </Suspense>
+  )
+}
