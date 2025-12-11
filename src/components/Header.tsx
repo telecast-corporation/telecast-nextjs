@@ -142,7 +142,7 @@ const Header = () => {
                   <Button
                     variant="contained"
                     color="primary"
-                    onClick={login}
+                    onClick={() => login()}
                     sx={{ borderRadius: '50px', px: 4, fontWeight: 600 }}
                   >
                     Get Started

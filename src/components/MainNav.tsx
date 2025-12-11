@@ -58,10 +58,9 @@ const MainNav = () => {
         <Tabs
           value={activeTabIndex === -1 ? false : activeTabIndex}
           onChange={handleTabChange}
-          variant={isMobile ? 'scrollable' : 'centered'}
+          variant={isMobile ? 'scrollable' : 'standard'}
           scrollButtons="auto"
           aria-label="main navigation"
-          indicatorColor="transparent"
           sx={{
             // Center the tabs on all screen sizes
             '& .MuiTabs-flexContainer': {
