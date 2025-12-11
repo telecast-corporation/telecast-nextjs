@@ -70,7 +70,7 @@ const LocalNewsPage = () => {
             </Typography>
           </div>
           <Link href="/local-news/upload" passHref>
-            <Button variant="contained" color="primary" size="large">Upload Your Story</Button>
+            <Button variant="contained" color="primary" size="large">Upload news</Button>
           </Link>
         </Box>
 
