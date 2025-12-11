@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { useUser } from '@auth0/nextjs-auth0';
 import { useRouter } from 'next/navigation';
 import {
@@ -32,7 +32,7 @@ const categories = [
   'Other',
 ];
 
-export default function CreatePodcastPage() {
+function CreatePodcastPageContent() {
   const { user, isLoading } = useUser();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -289,4 +289,16 @@ export default function CreatePodcastPage() {
       </Paper>
     </Container>
   );
-} 
+}
+
+export default function CreatePodcastPage() {
+  return (
+    <Suspense fallback={
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
+        <CircularProgress />
+      </Box>
+    }>
+      <CreatePodcastPageContent />
+    </Suspense>
+  );
+}
