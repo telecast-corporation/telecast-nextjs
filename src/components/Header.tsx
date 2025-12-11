@@ -47,13 +47,11 @@ const Header = () => {
 
   const navLinks = [
     { title: 'Home', path: '/' },
-    { title: 'Podcasts', path: '/podcasts' },
-    { title: 'Books', path: '/books' },
-    { title: 'Movies', path: '/movies' },
-    { title: 'Community', path: '/community' },
-    { title: 'News', path: '/news' },
     { title: 'About', path: '/about' },
-    { title: 'Mission', path: '/mission' },
+    { title: 'Services', path: '/services' },
+    { title: 'FAQ', path: '/faq' },
+    { title: 'Contact', path: '/contact' },
+    { title: 'Pricing', path: '/pricing' },
   ];
 
   const drawer = (

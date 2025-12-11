@@ -1,512 +1,177 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
+import Link from 'next/link';
 import {
-  Container,
   Typography,
   Box,
-  Paper,
-  Button,
-  Chip,
-  useTheme,
   Grid,
+  Card,
+  CardContent,
+  Button,
+  useTheme,
+  alpha,
 } from '@mui/material';
-import {
-  CheckCircle as CheckIcon,
-  Star as StarIcon,
-} from '@mui/icons-material';
-import { useRouter } from 'next/navigation';
-import { useAuth } from '@/contexts/AuthContext';
-import StartFreeTrial from '@/components/StartFreeTrial';
+import { typography, spacing, borderRadius } from '@/styles/typography';
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 
-export default function PricingPage() {
+const pricingTiers = [
+  {
+    title: 'Basic',
+    price: 'Free',
+    description: 'For individuals and hobbyists starting out.',
+    features: [
+      'Up to 1,000 listeners',
+      'Basic analytics',
+      'Community support',
+    ],
+  },
+  {
+    title: 'Pro',
+    price: '$25/mo',
+    description: 'For professionals and growing businesses.',
+    features: [
+      'Up to 10,000 listeners',
+      'Advanced analytics',
+      'Priority support',
+      'Monetization options',
+    ],
+  },
+  {
+    title: 'Enterprise',
+    price: 'Custom',
+    description: 'For large-scale organizations and networks.',
+    features: [
+      'Unlimited listeners',
+      'Dedicated infrastructure',
+      '24/7 priority support',
+      'Custom integrations',
+    ],
+  },
+];
+
+export default function Pricing() {
   const theme = useTheme();
-  const router = useRouter();
-  const { isAuthenticated } = useAuth();
-  const [pricingInfo, setPricingInfo] = useState<{
-    eligible: boolean;
-    price: number;
-    message: string;
-    daysSinceTrialEnd?: number;
-  } | null>(null);
-
-  // Fetch pricing information
-  useEffect(() => {
-    const fetchPricingInfo = async () => {
-      if (isAuthenticated) {
-        try {
-          const response = await fetch('/api/pricing/check-discount');
-          if (response.ok) {
-            const pricingData = await response.json();
-            setPricingInfo(pricingData);
-          }
-        } catch (error) {
-          console.error('Error fetching pricing info:', error);
-        }
-      }
-    };
-
-    fetchPricingInfo();
-  }, [isAuthenticated]);
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
-      {/* Header */}
-      <Box sx={{ textAlign: 'center', mb: 6 }}>
-        <Typography 
-          variant="h2" 
-          component="h1" 
-          gutterBottom
-          sx={{ 
-            fontWeight: 700,
-            fontSize: { xs: '2.2rem', sm: '3rem', md: '3.5rem' },
-            color: theme.palette.primary.main
-          }}
-        >
-          Simple, Transparent Pricing
-        </Typography>
-        <Typography 
-          variant="body1" 
-          color="text.secondary"
-          sx={{ 
-            maxWidth: 600, 
-            mx: 'auto',
-            fontSize: '1.2rem',
-            lineHeight: 1.7
-          }}
-        >
-          Start your podcasting journey with our generous free trial and unlock unlimited possibilities.
-        </Typography>
-      </Box>
+    <Box
+      sx={{
+        mx: 'auto',
+        p: spacing.component,
+        borderRadius: 4,
+        backgroundColor: theme.palette.background.paper,
+        boxShadow: 4,
+        fontFamily: 'Open Sans, sans-serif',
+      }}
+    >
+      <Typography
+        variant="h2"
+        align="center"
+        sx={{
+          color: theme.palette.primary.main,
+          ...typography.title,
+          mb: spacing.section,
+          fontSize: { xs: '2.2rem', sm: '3rem', md: '3.5rem' },
+          fontWeight: 700,
+        }}
+      >
+        Our Pricing Plans
+      </Typography>
 
-      {/* Free Trial Banner */}
-      <Paper 
-        elevation={3} 
+      <Grid container spacing={spacing.gap}>
+        {pricingTiers.map((tier) => (
+          <Grid item xs={12} md={4} key={tier.title}>
+            <Card 
+              sx={{ 
+                borderRadius: borderRadius.large,
+                boxShadow: 3,
+                p: spacing.gap,
+                display: 'flex',
+                flexDirection: 'column',
+                height: '100%'
+              }}
+            >
+              <CardContent sx={{ flexGrow: 1 }}>
+                <Typography variant="h4" sx={{ ...typography.subheading, fontWeight: 600, color: theme.palette.primary.main, mb: 1 }}>
+                  {tier.title}
+                </Typography>
+                <Typography variant="h5" sx={{ fontWeight: 700, fontSize: '2rem', mb: 1 }}>
+                  {tier.price}
+                </Typography>
+                <Typography variant="body1" sx={{ ...typography.body, color: theme.palette.text.secondary, mb: 3 }}>
+                  {tier.description}
+                </Typography>
+                <Box>
+                  {tier.features.map((feature) => (
+                    <Box key={feature} sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                      <CheckCircleOutlineIcon color="primary" sx={{ mr: 1 }} />
+                      <Typography variant="body2" sx={{ fontSize: '1.1rem' }}>
+                        {feature}
+                      </Typography>
+                    </Box>
+                  ))}
+                </Box>
+              </CardContent>
+              <Box sx={{ p: 2, pt: 0 }}>
+                <Link href="/auth/login?screen_hint=signup" passHref>
+                  <Button variant="contained" color="primary" fullWidth sx={{ fontWeight: 600, py: 1.5, borderRadius: '50px' }}>
+                    Get Started
+                  </Button>
+                </Link>
+              </Box>
+            </Card>
+          </Grid>
+        ))}
+      </Grid>
+
+      {/* CTA Section */}
+      <Box 
         sx={{ 
+          background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
           borderRadius: 3,
           p: 4,
-          mb: 6,
-          background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
+          textAlign: 'center',
           color: 'white',
-          textAlign: 'center'
+          mt: 6
         }}
       >
         <Typography 
-          variant="h4" 
-          component="h2" 
-          gutterBottom
+          variant="h3" 
           sx={{ 
-            fontWeight: 600,
-            fontSize: '1.8rem',
-            mb: 2
+            fontWeight: 700,
+            mb: 2,
+            fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' }
           }}
         >
-          🎉 90-Day Free Trial
+          Ready to Start Your Podcast Journey?
         </Typography>
         <Typography 
           variant="body1" 
           sx={{ 
-            fontSize: '1.1rem',
+            fontSize: '1.3rem',
             lineHeight: 1.6,
             mb: 3
           }}
         >
-          Try all premium features completely free for 90 days. No credit card required.
+          Join the Telecast community today and turn your voice into impact.
         </Typography>
-        <Chip 
-          label="Limited Time Offer" 
-          color="secondary" 
-          sx={{ 
-            fontWeight: 600,
-            fontSize: '0.9rem'
-          }}
-        />
-      </Paper>
-
-      {/* Pricing Cards */}
-      <Grid container spacing={4} sx={{ mb: 6 }}>
-        {/* Free Plan */}
-        <Grid item xs={12} md={6}>
-          <Paper 
-            elevation={2} 
-            sx={{ 
-              borderRadius: 3,
-              p: 4,
-              height: '100%',
-              border: `2px solid ${theme.palette.divider}`,
-              position: 'relative'
-            }}
-          >
-            <Typography 
-              variant="h4" 
-              component="h3" 
-              gutterBottom
-              sx={{ 
-                fontWeight: 600,
-                fontSize: '1.8rem',
-                color: theme.palette.primary.main,
-                mb: 2
-              }}
-            >
-              Free Plan
-            </Typography>
-            <Typography 
-              variant="h3" 
-              component="div" 
-              sx={{ 
-                fontWeight: 700,
-                fontSize: '2.5rem',
-                color: theme.palette.text.primary,
-                mb: 1
-              }}
-            >
-              $0
-              <Typography 
-                component="span" 
-                variant="body1" 
-                sx={{ 
-                  fontSize: '1rem',
-                  color: theme.palette.text.secondary,
-                  ml: 1
-                }}
-              >
-                /month
-              </Typography>
-            </Typography>
-            <Typography 
-              variant="body1" 
-              color="text.secondary"
-              sx={{ 
-                fontSize: '1rem',
-                lineHeight: 1.6,
-                mb: 4
-              }}
-            >
-              Perfect for getting started with podcasting
-            </Typography>
-
-            <Box sx={{ mb: 4 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <CheckIcon sx={{ color: theme.palette.success.main, mr: 2 }} />
-                <Typography variant="body1" sx={{ fontSize: '1rem' }}>
-                  <strong>2 podcasts</strong> hosted on Telecast
-                </Typography>
-              </Box>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <CheckIcon sx={{ color: theme.palette.success.main, mr: 2 }} />
-                <Typography variant="body1" sx={{ fontSize: '1rem' }}>
-                  Broadcast to Spotify, Apple Podcasts, Google Podcasts
-                </Typography>
-              </Box>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <CheckIcon sx={{ color: theme.palette.success.main, mr: 2 }} />
-                <Typography variant="body1" sx={{ fontSize: '1rem' }}>
-                  Basic recording and editing tools
-                </Typography>
-              </Box>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <CheckIcon sx={{ color: theme.palette.success.main, mr: 2 }} />
-                <Typography variant="body1" sx={{ fontSize: '1rem' }}>
-                  Standard customer support
-                </Typography>
-              </Box>
-            </Box>
-
-            <Button
-              variant="outlined" 
-              fullWidth
-              onClick={() => router.push('/profile')}
-              sx={{
-                py: 2,
-                px: 4,
-                borderRadius: 3,
-                fontWeight: 700,
-                fontSize: '1.1rem',
-                textTransform: 'none',
-                borderWidth: 2,
-                borderColor: theme.palette.primary.main,
-                color: theme.palette.primary.main,
-                background: 'linear-gradient(135deg, rgba(37, 99, 235, 0.05) 0%, rgba(59, 130, 246, 0.05) 100%)',
-                boxShadow: '0 4px 12px rgba(37, 99, 235, 0.15)',
-                transition: 'all 0.3s ease',
-                '&:hover': {
-                  background: 'linear-gradient(135deg, rgba(37, 99, 235, 0.1) 0%, rgba(59, 130, 246, 0.1) 100%)',
-                  borderColor: theme.palette.primary.dark,
-                  color: theme.palette.primary.dark,
-                  transform: 'translateY(-2px)',
-                  boxShadow: '0 8px 25px rgba(37, 99, 235, 0.25)',
-                },
-                '&:active': {
-                  transform: 'translateY(0px)',
-                },
-              }}
-            >
-              🚀 Sign Up for Free and Get Started
-            </Button>
-          </Paper>
-        </Grid>
-
-        {/* Premium Plan */}
-        <Grid item xs={12} md={6}>
-          <Paper 
-            elevation={4} 
-            sx={{ 
-              borderRadius: 3,
-              p: 4,
-              height: '100%',
-              border: `3px solid ${theme.palette.primary.main}`,
-              position: 'relative',
-              background: `linear-gradient(145deg, ${theme.palette.background.paper} 0%, ${theme.palette.grey[50]} 100%)`
-            }}
-          >
-            {/* Popular Badge */}
-            <Box sx={{ 
-              position: 'absolute', 
-              top: -12, 
-              left: '50%', 
-              transform: 'translateX(-50%)',
-              zIndex: 1
-            }}>
-              <Chip 
-                icon={<StarIcon />}
-                label="Most Popular" 
-                color="primary" 
-                sx={{ 
-                  fontWeight: 600,
-                  fontSize: '0.9rem',
-                  px: 2
-                }}
-              />
-            </Box>
-
-            <Typography 
-              variant="h4" 
-              component="h3" 
-              gutterBottom
-              sx={{ 
-                fontWeight: 600,
-                fontSize: '1.8rem',
-                color: theme.palette.primary.main,
-                mb: 2,
-                mt: 2
-              }}
-            >
-              Premium Plan
-            </Typography>
-            
-            {/* Original Price */}
-            <Box sx={{ display: 'flex', alignItems: 'baseline', mb: 1 }}>
-              <Typography 
-                variant="h5" 
-                sx={{ 
-                  textDecoration: 'line-through',
-                  color: theme.palette.text.secondary,
-                  fontSize: '1.2rem',
-                  mr: 2
-                }}
-              >
-                $17.99
-              </Typography>
-              <Chip 
-                label="Save $2" 
-                color="success" 
-                size="small"
-                sx={{ fontWeight: 600 }}
-              />
-            </Box>
-
-            <Typography 
-              variant="h3" 
-              component="div" 
-              sx={{ 
-                fontWeight: 700,
-                fontSize: '2.5rem',
-                color: theme.palette.primary.main,
-                mb: 1
-              }}
-            >
-              $15.99
-              <Typography 
-                component="span" 
-                variant="body1" 
-                sx={{ 
-                  fontSize: '1rem',
-                  color: theme.palette.text.secondary,
-                  ml: 1
-                }}
-              >
-                /month
-              </Typography>
-            </Typography>
-
-            <Typography 
-              variant="body1" 
-              color="text.secondary"
-              sx={{ 
-                fontSize: '1rem',
-                lineHeight: 1.6,
-                mb: 4
-              }}
-            >
-              {pricingInfo?.eligible ? (
-                <>
-                  <strong>You're eligible for our special discount!</strong> 
-                  {pricingInfo.daysSinceTrialEnd !== undefined && (
-                    <span style={{ color: theme.palette.success.main, fontWeight: 500 }}>
-                      {' '}Only {30 - pricingInfo.daysSinceTrialEnd} days left to claim this offer.
-                    </span>
-                  )}
-                </>
-              ) : (
-                <>
-                  <strong>Special discount</strong> for first-time subscribers within 1 month of free trial ending
-                </>
-              )}
-            </Typography>
-
-            <Box sx={{ mb: 4 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <CheckIcon sx={{ color: theme.palette.success.main, mr: 2 }} />
-                <Typography variant="body1" sx={{ fontSize: '1rem' }}>
-                  <strong>Unlimited podcasts</strong> hosted on Telecast
-                </Typography>
-              </Box>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <CheckIcon sx={{ color: theme.palette.success.main, mr: 2 }} />
-                <Typography variant="body1" sx={{ fontSize: '1rem' }}>
-                  Broadcast to all major platforms worldwide
-                </Typography>
-              </Box>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <CheckIcon sx={{ color: theme.palette.success.main, mr: 2 }} />
-                <Typography variant="body1" sx={{ fontSize: '1rem' }}>
-                  Advanced recording and editing tools
-                </Typography>
-              </Box>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <CheckIcon sx={{ color: theme.palette.success.main, mr: 2 }} />
-                <Typography variant="body1" sx={{ fontSize: '1rem' }}>
-                  Priority customer support
-                </Typography>
-              </Box>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <CheckIcon sx={{ color: theme.palette.success.main, mr: 2 }} />
-                <Typography variant="body1" sx={{ fontSize: '1rem' }}>
-                  Custom RSS feeds and advanced analytics
-                </Typography>
-              </Box>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <CheckIcon sx={{ color: theme.palette.success.main, mr: 2 }} />
-                <Typography variant="body1" sx={{ fontSize: '1rem' }}>
-                  No ads or branding on your podcasts
-                </Typography>
-              </Box>
-            </Box>
-
-            <StartFreeTrial 
-              variant="contained" 
-              fullWidth
-            >
-              Start Free Trial
-            </StartFreeTrial>
-          </Paper>
-        </Grid>
-      </Grid>
-
-      {/* Additional Info */}
-      <Paper 
-        elevation={1} 
-        sx={{ 
-          borderRadius: 3,
-          p: 4,
-          textAlign: 'center'
-        }}
-      >
-        <Typography 
-          variant="h5" 
-          component="h3" 
-          gutterBottom
-          sx={{ 
-            fontWeight: 600,
-            fontSize: '1.5rem',
+        <Link 
+          href="/auth/login?screen_hint=signup" 
+          style={{ 
+            display: 'inline-block',
+            padding: '12px 32px',
+            backgroundColor: 'white',
             color: theme.palette.primary.main,
-            mb: 3
+            fontWeight: 600,
+            borderRadius: '50px',
+            textDecoration: 'none',
+            fontSize: '1.1rem',
+            transition: 'transform 0.2s ease-in-out',
           }}
         >
-          Why Choose Telecast?
-        </Typography>
-        <Grid container spacing={3}>
-          <Grid item xs={12} md={4}>
-            <Typography 
-              variant="h6" 
-              component="h4" 
-              sx={{ 
-                fontWeight: 600,
-                fontSize: '1.2rem',
-                mb: 2
-              }}
-            >
-              🎯 Easy to Use
-            </Typography>
-            <Typography 
-              variant="body1" 
-              sx={{ 
-                fontSize: '1rem',
-                lineHeight: 1.6,
-                color: theme.palette.text.secondary
-              }}
-            >
-              Intuitive tools designed for podcasters of all experience levels
-            </Typography>
-          </Grid>
-          <Grid item xs={12} md={4}>
-            <Typography 
-              variant="h6" 
-              component="h4" 
-              sx={{ 
-                fontWeight: 600,
-                fontSize: '1.2rem',
-                mb: 2
-              }}
-            >
-              🌍 Global Reach
-            </Typography>
-            <Typography 
-              variant="body1" 
-              sx={{ 
-                fontSize: '1rem',
-                lineHeight: 1.6,
-                color: theme.palette.text.secondary
-              }}
-            >
-              Distribute your content to listeners worldwide on all major platforms
-            </Typography>
-          </Grid>
-          <Grid item xs={12} md={4}>
-            <Typography 
-              variant="h6" 
-              component="h4" 
-              sx={{ 
-                fontWeight: 600,
-                fontSize: '1.2rem',
-                mb: 2
-              }}
-            >
-              💰 No Hidden Fees
-            </Typography>
-            <Typography 
-              variant="body1" 
-              sx={{ 
-                fontSize: '1rem',
-                lineHeight: 1.6,
-                color: theme.palette.text.secondary
-              }}
-            >
-              Transparent pricing with no surprise charges or setup fees
-            </Typography>
-          </Grid>
-        </Grid>
-      </Paper>
-    </Container>
+          Get Started for Free
+        </Link>
+      </Box>
+    </Box>
   );
 }

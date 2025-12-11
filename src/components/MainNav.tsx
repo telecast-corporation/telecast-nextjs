@@ -10,7 +10,7 @@ import {
   useTheme,
   useMediaQuery,
 } from '@mui/material';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { headerHeight } from '@/styles/theme'; // Import headerHeight
 
@@ -30,14 +30,54 @@ const MainNav = () => {
   const theme = useTheme();
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   const activeTabIndex = React.useMemo(() => {
-    const matchingIndex = navLinks.findIndex(link => pathname === link.href);
-    if (matchingIndex !== -1) return matchingIndex;
-    const parentIndex = navLinks.findIndex(link => pathname.startsWith(link.href.split('?')[0]));
-    return parentIndex;
-  }, [pathname]);
+    const type = searchParams.get('type');
+    const currentPath = pathname;
+
+    let bestMatchIndex = -1;
+    let longestMatchLength = -1;
+
+    navLinks.forEach((link, index) => {
+      const linkUrl = new URL(link.href, 'http://localhost:3000'); // Dummy base URL
+      const linkType = linkUrl.searchParams.get('type');
+      const linkPath = linkUrl.pathname;
+
+      let isMatch = false;
+
+      // Prioritize exact href match
+      if (currentPath === link.href) {
+        isMatch = true;
+      } 
+      // Match search pages by type
+      else if (pathname === '/search' && linkPath === '/search' && type === linkType) {
+        isMatch = true;
+      } 
+      // Match detail pages like /book/123 to the corresponding type
+      else if (linkType && currentPath.startsWith(`/${linkType}/`)) {
+        isMatch = true;
+      } 
+      // Match non-search pages by path prefix, e.g., /local-news/upload should match /local-news/upload
+      else if (linkPath !== '/search' && currentPath.startsWith(linkPath)) {
+        isMatch = true;
+      }
+
+      // The most specific match is the one with the longest href
+      if (isMatch && link.href.length > longestMatchLength) {
+        longestMatchLength = link.href.length;
+        bestMatchIndex = index;
+      }
+    });
+    
+    // Fallback for /search page with no type to select 'All Content'
+    if (bestMatchIndex === -1 && pathname === '/search' && !type) {
+        return navLinks.findIndex(link => link.href.includes('type=all'));
+    }
+
+    return bestMatchIndex;
+  }, [pathname, searchParams]);
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     router.push(navLinks[newValue].href);
@@ -65,17 +105,18 @@ const MainNav = () => {
             // Center the tabs on all screen sizes
             '& .MuiTabs-flexContainer': {
               justifyContent: 'center',
+              alignItems: 'center', // Vertically center the tabs
               gap: isMobile ? 1 : 2,
             },
-            // Add a subtle scrollbar for mobile
+            // Add a more visible scrollbar for mobile
             ...(isMobile && {
               '& .MuiTabs-scroller': {
                 '&::-webkit-scrollbar': {
-                  height: '4px',
+                  height: '6px',
                 },
                 '&::-webkit-scrollbar-thumb': {
-                  backgroundColor: theme.palette.primary.light,
-                  borderRadius: '2px',
+                  backgroundColor: theme.palette.primary.main, // Use main theme color
+                  borderRadius: '3px',
                 },
               },
             }),
