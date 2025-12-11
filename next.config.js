@@ -9,6 +9,11 @@ const nextConfig = {
     ],
   },
   // Configure API routes to handle larger file uploads
+  api: {
+    bodyParser: {
+      sizeLimit: '100mb',
+    },
+  },
   serverExternalPackages: ['@prisma/client'],
   // Temporarily disable Turbopack to fix bootstrap issues
   // experimental: {
