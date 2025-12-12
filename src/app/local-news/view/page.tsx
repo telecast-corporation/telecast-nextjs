@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import {
   Container,
   Typography,
@@ -12,6 +12,7 @@ import {
   CardMedia,
   CardContent,
   Grid,
+  Button,
 } from '@mui/material';
 
 interface NewsArticle {
@@ -22,33 +23,39 @@ interface NewsArticle {
 }
 
 const ViewNewsPage = () => {
+  const router = useRouter();
   const searchParams = useSearchParams();
-  const id = searchParams.get('id');
+  const title = searchParams.get('title');
   const [article, setArticle] = useState<NewsArticle | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (id) {
-      const articles = JSON.parse(localStorage.getItem('newsArticles') || '[]');
-      const selectedArticle = articles.find((a: NewsArticle) => a.id === id);
+    if (title) {
+      const articles = JSON.parse(localStorage.getItem('localNews') || '[]');
+      const selectedArticle = articles.find(
+        (a: NewsArticle) => a.title === decodeURIComponent(title)
+      );
 
       if (selectedArticle) {
         setArticle(selectedArticle);
-        setLoading(false);
       } else {
         setError('News article not found in local storage.');
-        setLoading(false);
       }
     } else {
-      setError('No article ID provided.');
-      setLoading(false);
+      setError('No article title provided.');
     }
-  }, [id]);
+    setLoading(false);
+  }, [title]);
 
   if (loading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="80vh">
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        minHeight="80vh"
+      >
         <CircularProgress />
       </Box>
     );
@@ -72,6 +79,9 @@ const ViewNewsPage = () => {
 
   return (
     <Container maxWidth="lg" sx={{ py: 8 }}>
+      <Button onClick={() => router.back()} sx={{ mb: 2 }}>
+        Go Back
+      </Button>
       <Grid container spacing={4} justifyContent="center">
         <Grid item xs={12}>
           <Typography variant="h3" component="h1" align="center" gutterBottom>
@@ -95,7 +105,18 @@ const ViewNewsPage = () => {
           )}
           <Card raised>
             <CardContent>
-              <Typography variant="body1" component="p" color="text.secondary">
+              <Typography
+                variant="h5"
+                component="h2"
+                gutterBottom
+              >
+                {article.title}
+              </Typography>
+              <Typography
+                variant="body1"
+                component="p"
+                color="text.secondary"
+              >
                 {article.description}
               </Typography>
             </CardContent>
@@ -109,7 +130,12 @@ const ViewNewsPage = () => {
 const ViewNewsPageWrapper = () => (
   <Suspense
     fallback={
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="80vh">
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        minHeight="80vh"
+      >
         <CircularProgress />
       </Box>
     }

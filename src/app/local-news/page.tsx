@@ -28,27 +28,28 @@ const LocalNewsPage = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchNews = async () => {
-      try {
-        const response = await fetch('/api/local-news');
-        if (!response.ok) {
-          throw new Error('Failed to fetch local news');
-        }
-        const data = await response.json();
-        setNews(data);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'An unknown error occurred');
-      } finally {
-        setLoading(false);
+    try {
+      const localNews = localStorage.getItem('localNews');
+      if (localNews) {
+        setNews(JSON.parse(localNews));
       }
-    };
-
-    fetchNews();
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : 'An unknown error occurred'
+      );
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   if (loading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="80vh">
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        minHeight="80vh"
+      >
         <CircularProgress />
       </Box>
     );
@@ -64,18 +65,25 @@ const LocalNewsPage = () => {
 
   return (
     <Container sx={{ py: 8 }}>
-      <Typography variant="h4" component="h1" gutterBottom>
+      <Typography variant="h4" component="h1" gutterBottom align="center">
         Local News
       </Typography>
       {news.length > 0 ? (
-        <Grid container spacing={4}>
-          {news.map((article) => (
-            <Grid item key={article.id} xs={12} sm={6} md={4}>
-              <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+        <Grid container spacing={4} justifyContent="center">
+          {news.map(article => (
+            <Grid item key={article.id} xs={12} sm={8} md={6}>
+              <Card
+                sx={{
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                }}
+              >
                 <CardActionArea
                   component={Link}
-                  href={`/local-news/view?id=${article.id}`}
-                  sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}
+                  href={`/local-news/view?title=${encodeURIComponent(
+                    article.title
+                  )}`}
                 >
                   {article.videoUrl && (
                     <CardMedia
@@ -95,7 +103,7 @@ const LocalNewsPage = () => {
                       {article.title}
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
-                      {article.description && `${article.description.slice(0, 100)}...`}
+                      {`${article.description.slice(0, 100)}...`}
                     </Typography>
                   </CardContent>
                 </CardActionArea>
@@ -104,7 +112,7 @@ const LocalNewsPage = () => {
           ))}
         </Grid>
       ) : (
-        <Typography>No local news found.</Typography>
+        <Typography align="center">No local news found.</Typography>
       )}
     </Container>
   );
