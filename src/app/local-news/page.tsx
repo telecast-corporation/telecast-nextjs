@@ -33,15 +33,15 @@ const LocalNewsPage = () => {
           {news.map((article) => (
             <div
               key={article.id}
-              className="border rounded-lg overflow-hidden shadow-lg cursor-pointer hover:shadow-xl transition-shadow duration-300"
+              className="border rounded-lg overflow-hidden shadow-lg cursor-pointer hover:shadow-xl transition-shadow duration-300 flex flex-col"
               onClick={() => handleNewsClick(article.id)}
             >
               {article.videoUrl && (
                 <video src={article.videoUrl} className="w-full h-auto" controls />
               )}
-              <div className="p-4">
+              <div className="p-4 flex flex-col flex-grow">
                 <h2 className="text-xl font-semibold mb-2">{article.title}</h2>
-                <p className="text-gray-700">
+                <p className="text-gray-700 flex-grow">
                   {article.description && article.description.slice(0, 100)}...
                 </p>
               </div>
