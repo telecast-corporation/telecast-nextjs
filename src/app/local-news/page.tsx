@@ -71,18 +71,26 @@ const LocalNewsPage = () => {
         <Grid container spacing={4}>
           {news.map((article) => (
             <Grid item key={article.id} xs={12} sm={6} md={4}>
-              <Card sx={{ height: '100%' }}>
-                <CardActionArea component={Link} href={`/local-news/view?id=${article.id}`}>
+              <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                <CardActionArea
+                  component={Link}
+                  href={`/local-news/view?id=${article.id}`}
+                  sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}
+                >
                   {article.videoUrl && (
                     <CardMedia
                       component="video"
                       src={article.videoUrl}
                       title={article.title}
-                      sx={{ height: 140 }}
+                      sx={{
+                        width: '100%',
+                        height: 200,
+                        objectFit: 'cover',
+                      }}
                       controls
                     />
                   )}
-                  <CardContent>
+                  <CardContent sx={{ flexGrow: 1 }}>
                     <Typography gutterBottom variant="h5" component="div">
                       {article.title}
                     </Typography>
