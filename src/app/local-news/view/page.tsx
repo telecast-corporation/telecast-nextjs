@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useEffect, useState } from 'react';
@@ -6,20 +7,14 @@ import {
   Typography,
   Grid,
   Card,
-  CardActionArea,
   CardContent,
   CardMedia,
   Box,
   CircularProgress,
   Alert,
   Button,
-  Paper,
-  Chip,
-  Divider,
-  IconButton,
 } from '@mui/material';
 import Link from 'next/link';
-import { FiMapPin, FiTag, FiArrowLeft } from 'react-icons/fi';
 
 interface NewsItem {
   id: string;
@@ -28,109 +23,72 @@ interface NewsItem {
   videoUrl: string;
   locationCity: string;
   locationCountry: string;
-  category: string;
   status: string;
 }
 
 const ApprovedNewsPage = () => {
   const [news, setNews] = useState<NewsItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedNews, setSelectedNews] = useState<NewsItem | null>(null);
 
   useEffect(() => {
     setLoading(true);
     const localNewsData = localStorage.getItem('localNews');
     if (localNewsData) {
-      try {
-        const parsedData = JSON.parse(localNewsData);
-        setNews(parsedData);
-      } catch (error) {
-        console.error("Failed to parse local news data:", error);
-      }
+      setNews(JSON.parse(localNewsData));
     }
     setLoading(false);
   }, []);
 
-  const handleCardClick = (item: NewsItem) => {
-    setSelectedNews(item);
-  };
-
-  const handleBackToList = () => {
-    setSelectedNews(null);
-  };
-
-  if (loading) {
-    return (
-      <Container maxWidth="lg" sx={{ py: 5, textAlign: 'center' }}>
-        <CircularProgress />
-      </Container>
-    );
-  }
-
-  if (selectedNews) {
-    return (
-        <Container maxWidth="lg" sx={{ py: 5 }}>
-            <Box sx={{ mb: 4 }}>
-                <Button startIcon={<FiArrowLeft />} onClick={handleBackToList}>
-                    Back to News
-                </Button>
-            </Box>
-            <Paper elevation={12} sx={{ p: { xs: 2, sm: 4, md: 6 }, borderRadius: 4 }}>
-                <Grid container spacing={4}>
-                <Grid item xs={12}>
-                    <Typography variant="h3" component="h1" sx={{ fontWeight: 'bold', mb: 2 }}>
-                    {selectedNews.title}
-                    </Typography>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3, flexWrap: 'wrap' }}>
-                    <Chip
-                        icon={<FiMapPin />}
-                        label={`${selectedNews.locationCity}, ${selectedNews.locationCountry}`}
-                        variant="outlined"
-                    />
-                    <Chip
-                        icon={<FiTag />}
-                        label={selectedNews.category}
-                        variant="outlined"
-                        color="primary"
-                    />
-                    </Box>
-                    <Divider sx={{ mb: 3 }} />
-                </Grid>
-
-                <Grid item xs={12} md={8}>
-                    <Typography variant="h5" sx={{ mb: 2, fontWeight: 500 }}>Stream News Video</Typography>
-                    <Box sx={{
-                    position: 'relative',
-                    paddingTop: '56.25%', // 16:9 aspect ratio
-                    backgroundColor: '#000',
-                    borderRadius: 2,
-                    overflow: 'hidden'
-                    }}>
-                    <video
-                        controls
-                        src={selectedNews.videoUrl}
-                        style={{
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        width: '100%',
-                        height: '100%',
-                        }}
-                    />
-                    </Box>
-                </Grid>
-                <Grid item xs={12} md={4}>
-                    <Typography variant="h5" sx={{ mb: 2, fontWeight: 500 }}>Story Details</Typography>
-                    <Typography variant="body1" color="text.secondary" sx={{ whiteSpace: 'pre-wrap' }}>
-                    {selectedNews.description}
-                    </Typography>
-                </Grid>
-                </Grid>
-            </Paper>
-        </Container>
-    );
-  }
-
   return (
     <Container maxWidth="lg" sx={{ py: 5 }}>
-      <Box sx={{ display
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 5 }}>
+        <Typography variant="h3" component="h1" sx={{ fontWeight: 'bold' }}>
+          Local News
+        </Typography>
+        <Link href="/local-news/upload" passHref>
+          <Button variant="contained" color="primary" size="large">Upload Your News</Button>
+        </Link>
+      </Box>
+
+      {loading && (
+        <Box sx={{ display: 'flex', justifyContent: 'center', my: 5 }}>
+          <CircularProgress />
+        </Box>
+      )}
+
+      {!loading && news.length === 0 && (
+        <Typography sx={{ my: 5, textAlign: 'center' }}>
+          No local news items found. Why not upload one?
+        </Typography>
+      )}
+
+      <Grid container spacing={4}>
+        {news.map((item) => (
+          <Grid item xs={12} sm={6} md={4} key={item.id}>
+            <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+              <CardMedia
+                component="video"
+                controls
+                src={item.videoUrl}
+                sx={{ height: 200 }}
+              />
+              <CardContent sx={{ flexGrow: 1 }}>
+                <Typography gutterBottom variant="h5" component="div">
+                  {item.title}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {item.description}
+                </Typography>
+                <Typography variant="caption" color="text.secondary" sx={{ mt: 2, display: 'block' }}>
+                  {item.locationCity}, {item.locationCountry}
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+        ))}
+      </Grid>
+    </Container>
+  );
+};
+
+export default ApprovedNewsPage;
