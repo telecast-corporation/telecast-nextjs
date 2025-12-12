@@ -267,7 +267,7 @@ const LocalNewsUploadPage = () => {
         <DialogActions>
           <Button onClick={handleCloseSuccessPopup}>Close</Button>
           <Link href="/local-news" passHref>
-            <Button color="primary">Go to News Page</Button>
+            <Button color="primary">Go to Local news</Button>
           </Link>
         </DialogActions>
       </Dialog>
