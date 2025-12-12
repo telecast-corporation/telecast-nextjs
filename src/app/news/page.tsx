@@ -5,6 +5,7 @@ import { Container, Typography, Box, CircularProgress, Alert, FormControl, Input
 import { useLocation } from '@/hooks/useLocation';
 import { countries } from '@/lib/countries';
 import { useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 
 interface NewsArticle {
   type: 'news' | 'local';
@@ -176,19 +177,20 @@ export default function NewsPage() {
               }}
             >
               <Typography variant="h6" component="h2" gutterBottom>
-                <a
-                  href={article.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <Link
+                  href={`/local-news/view?id=${article.id}`}
                   style={{ textDecoration: 'none', color: 'inherit' }}
                 >
                   {article.title}
-                </a>
+                </Link>
               </Typography>
               <Typography variant="body2" color="text.secondary" gutterBottom>
-                {article.description}
+                {article.description.substring(0, 100)}{article.description.length > 100 && '...'}
               </Typography>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Button onClick={() => router.push(`/local-news/view?id=${article.id}`)} variant="outlined" size="small">
+                  See More
+              </Button>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1 }}>
                 <Typography variant="caption" color="text.secondary">
                   {article.author}
                 </Typography>

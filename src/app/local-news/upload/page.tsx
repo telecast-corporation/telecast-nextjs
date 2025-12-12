@@ -173,11 +173,13 @@ const LocalNewsUploadPage = () => {
                 fullWidth
                 margin="normal"
                 multiline
-                rows={4}
+                rows={8}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 required
                 variant="filled"
+                inputProps={{ maxLength: 1200 }}
+                helperText={`${description.length}/1200`}
               />
               <FormControl fullWidth margin="normal" required variant="filled">
                 <InputLabel>Category</InputLabel>
