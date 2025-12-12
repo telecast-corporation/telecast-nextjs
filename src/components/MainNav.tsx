@@ -21,7 +21,7 @@ const navLinks = [
   { label: 'Podcasts', href: '/search?type=podcast' },
   { label: 'Books', href: '/search?type=book' },
   { label: 'Music', href: '/search?type=music' },
-  { label: 'News', href: '/local-news' },
+  { label: 'News', href: '/search?type=news' },
   { label: 'Upload News', href: '/local-news/upload' },
 ];
 
