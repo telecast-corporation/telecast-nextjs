@@ -68,6 +68,7 @@ export default function About() {
       sx={{
         mx: 'auto',
         p: spacing.component,
+        mt: 4,
         borderRadius: 4,
         backgroundColor: theme.palette.background.paper,
         boxShadow: 4,
@@ -130,7 +131,7 @@ export default function About() {
                 </Typography>
                 <Typography variant="body1" sx={{ ...typography.body, fontSize: '1.1rem', lineHeight: 1.6 }}>
                   We believe in the power of community. Our platform isn't just a place to host podcasts; it's a thriving ecosystem where listeners can engage directly with creators and each other.
-                </Typography>
+                  </Typography>
               </CardContent>
             </Card>
           </Grid>
@@ -412,4 +413,4 @@ export default function About() {
       </Box>
     </Box>
   );
-} 
+}

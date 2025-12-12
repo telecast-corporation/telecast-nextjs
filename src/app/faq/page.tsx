@@ -71,7 +71,7 @@ export default function FAQPage() {
   };
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
+    <Container maxWidth="lg" sx={{ py: 4, mt: 4 }}>
       {/* Header */}
       <Box sx={{ textAlign: 'center', mb: 6 }}>
         <Typography 

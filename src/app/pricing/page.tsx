@@ -58,6 +58,7 @@ export default function Pricing() {
       sx={{
         mx: 'auto',
         p: spacing.component,
+        mt: 4,
         borderRadius: 4,
         backgroundColor: theme.palette.background.paper,
         boxShadow: 4,

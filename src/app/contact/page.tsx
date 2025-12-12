@@ -29,6 +29,7 @@ export default function Contacts() {
         maxWidth: { xs: '90%', sm: '500px', md: '600px', lg: '700px' },
         mx: 'auto',
         p: { xs: 2, sm: 3, md: 4 },
+        mt: 4,
         borderRadius: 4,
         backgroundColor: theme.palette.background.paper,
         boxShadow: 4,
@@ -164,4 +165,4 @@ export default function Contacts() {
       </Box>
     </Box>
   );
-} 
+}
