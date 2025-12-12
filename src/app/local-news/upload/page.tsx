@@ -112,6 +112,15 @@ const LocalNewsUploadPage = () => {
       existingNews.push(newNewsItem);
       localStorage.setItem('localNews', JSON.stringify(existingNews));
 
+      // Send email notification
+      await fetch('/api/local-news/notify', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ title, description, category, city, country }),
+      });
+
       setOpenSuccessPopup(true);
 
       // Reset form
@@ -147,11 +156,11 @@ const LocalNewsUploadPage = () => {
               Upload News
             </Typography>
             <Typography variant="h6" color="text.secondary">
-              Share what's happening in your community.
+              Share what\'s happening in your community.
             </Typography>
           </div>
           <Link href="/local-news" passHref>
-            <Button variant="outlined" size="large">Go to News</Button>
+            <Button variant="outlined" size="large">Go to Local News</Button>
           </Link>
         </Box>
 
@@ -267,7 +276,7 @@ const LocalNewsUploadPage = () => {
         <DialogActions>
           <Button onClick={handleCloseSuccessPopup}>Close</Button>
           <Link href="/local-news" passHref>
-            <Button color="primary">Go to Local news</Button>
+            <Button color="primary">Go to Local News</Button>
           </Link>
         </DialogActions>
       </Dialog>
