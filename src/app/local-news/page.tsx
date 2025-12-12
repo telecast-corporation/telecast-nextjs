@@ -70,9 +70,7 @@ const LocalNewsPage = () => {
               >
                 <CardActionArea
                   component={Link}
-                  href={`/local-news/view?title=${encodeURIComponent(
-                    article.title
-                  )}`}
+                  href={`/local-news/view?id=${article.id}`}
                 >
                   {article.videoUrl && (
                     <CardMedia

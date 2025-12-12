@@ -14,39 +14,38 @@ import {
   Grid,
   Button,
 } from '@mui/material';
-
-interface NewsArticle {
-  id: string;
-  title: string;
-  description: string;
-  videoUrl?: string;
-}
+import { db } from '@/lib/dexie';
+import { LocalNews } from '@/lib/dexie';
 
 const ViewNewsPage = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const title = searchParams.get('title');
-  const [article, setArticle] = useState<NewsArticle | null>(null);
+  const id = searchParams.get('id');
+  const [article, setArticle] = useState<LocalNews | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (title) {
-      const articles = JSON.parse(localStorage.getItem('localNews') || '[]');
-      const selectedArticle = articles.find(
-        (a: NewsArticle) => a.title === decodeURIComponent(title)
-      );
-
-      if (selectedArticle) {
-        setArticle(selectedArticle);
-      } else {
-        setError('News article not found in local storage.');
-      }
+    if (id) {
+        const articleId = parseInt(id, 10);
+        if (!isNaN(articleId)) {
+            db.localNews.get(articleId).then(foundArticle => {
+                if (foundArticle) {
+                    setArticle(foundArticle);
+                } else {
+                    setError('News article not found.');
+                }
+                setLoading(false);
+            });
+        } else {
+            setError('Invalid article ID.');
+            setLoading(false);
+        }
     } else {
-      setError('No article title provided.');
+      setError('No article ID provided.');
+      setLoading(false);
     }
-    setLoading(false);
-  }, [title]);
+  }, [id]);
 
   if (loading) {
     return (
