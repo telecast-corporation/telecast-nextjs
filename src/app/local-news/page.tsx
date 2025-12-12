@@ -14,33 +14,22 @@ import {
   CircularProgress,
   Alert,
 } from '@mui/material';
-
-interface NewsArticle {
-  id: string;
-  title: string;
-  description: string;
-  videoUrl: string;
-}
+import { useLiveQuery } from 'dexie-react-hooks';
+import { db } from '@/lib/dexie';
+import { LocalNews } from '@/lib/dexie';
 
 const LocalNewsPage = () => {
-  const [news, setNews] = useState<NewsArticle[]>([]);
+  const news = useLiveQuery(() => db.localNews.toArray(), []);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    try {
-      const localNews = localStorage.getItem('localNews');
-      if (localNews) {
-        setNews(JSON.parse(localNews));
-      }
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : 'An unknown error occurred'
-      );
-    } finally {
+    if (news) {
       setLoading(false);
+    } else {
+      setLoading(true);
     }
-  }, []);
+  }, [news]);
 
   if (loading) {
     return (
@@ -68,7 +57,7 @@ const LocalNewsPage = () => {
       <Typography variant="h4" component="h1" gutterBottom align="center">
         Local News
       </Typography>
-      {news.length > 0 ? (
+      {news && news.length > 0 ? (
         <Grid container spacing={4} justifyContent="center">
           {news.map(article => (
             <Grid item key={article.id} xs={12} sm={8} md={6}>

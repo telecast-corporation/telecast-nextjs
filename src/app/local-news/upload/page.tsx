@@ -25,6 +25,7 @@ import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
 import Link from 'next/link';
+import { db } from '@/lib/dexie';
 
 import CityCountryInput from '@/components/CityCountryInput';
 
@@ -49,7 +50,7 @@ const LocalNewsUploadPage = () => {
   const [city, setCity] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [videoPreviewUrl, setVideoPreviewUrl] = useState<string | null>(null);
+  const [videoPreviewUrl, setVideoPreviewUrl] = useState<string | null>('');
   const [openSuccessPopup, setOpenSuccessPopup] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -81,6 +82,9 @@ const LocalNewsUploadPage = () => {
 
   const removeFile = () => {
     setFile(null);
+    if (videoPreviewUrl) {
+      URL.revokeObjectURL(videoPreviewUrl);
+    }
     setVideoPreviewUrl(null);
   };
 
@@ -97,22 +101,18 @@ const LocalNewsUploadPage = () => {
 
     try {
       const newNewsItem = {
-        id: new Date().toISOString(), // Simple unique ID
         title,
         description,
         category,
-        videoUrl: videoPreviewUrl,
+        videoUrl: videoPreviewUrl || '',
         locationCity: city,
         locationCountry: country,
-        status: 'pending', // Keep the status for consistency
-        createdAt: new Date().toISOString(),
+        status: 'pending', 
+        createdAt: new Date(),
       };
 
-      const existingNews = JSON.parse(localStorage.getItem('localNews') || '[]');
-      existingNews.push(newNewsItem);
-      localStorage.setItem('localNews', JSON.stringify(existingNews));
+      await db.localNews.add(newNewsItem);
 
-      // Send email notification
       await fetch('/api/local-news/notify', {
         method: 'POST',
         headers: {
