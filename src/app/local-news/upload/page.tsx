@@ -90,27 +90,12 @@ const LocalNewsUploadPage = () => {
     }
 
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-
-      const uploadResponse = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!uploadResponse.ok) {
-        throw new Error('Failed to upload video.');
-      }
-
-      const uploadData = await uploadResponse.json();
-      const videoUrl = uploadData.videoUrl;
-
       const newNewsItem = {
         id: new Date().toISOString(), // Simple unique ID
         title,
         description,
         category,
-        videoUrl,
+        videoUrl: videoPreviewUrl,
         locationCity: city,
         locationCountry: country,
         status: 'pending', // Keep the status for consistency
