@@ -11,6 +11,7 @@ import {
   Card,
   CardMedia,
   CardContent,
+  Grid,
 } from '@mui/material';
 
 interface NewsArticle {
@@ -29,25 +30,16 @@ const ViewNewsPage = () => {
 
   useEffect(() => {
     if (id) {
-      const fetchArticle = async () => {
-        try {
-          const response = await fetch(`/api/local-news?id=${id}`);
-          if (!response.ok) {
-            throw new Error('Failed to fetch news article');
-          }
-          const data = await response.json();
-          if (data.news) {
-            setArticle(data.news);
-          } else {
-            setError('News article not found.');
-          }
-        } catch (err) {
-          setError(err instanceof Error ? err.message : 'An unknown error occurred');
-        } finally {
-          setLoading(false);
-        }
-      };
-      fetchArticle();
+      const articles = JSON.parse(localStorage.getItem('newsArticles') || '[]');
+      const selectedArticle = articles.find((a: NewsArticle) => a.id === id);
+
+      if (selectedArticle) {
+        setArticle(selectedArticle);
+        setLoading(false);
+      } else {
+        setError('News article not found in local storage.');
+        setLoading(false);
+      }
     } else {
       setError('No article ID provided.');
       setLoading(false);
@@ -79,35 +71,51 @@ const ViewNewsPage = () => {
   }
 
   return (
-    <Container sx={{ py: 8 }}>
-      <Card>
-        {article.videoUrl && (
-          <CardMedia
-            component="video"
-            src={article.videoUrl}
-            title={article.title}
-            sx={{ width: '100%', maxHeight: '70vh' }}
-            controls
-          />
-        )}
-        <CardContent>
-          <Typography variant="h4" component="h1" gutterBottom>
+    <Container maxWidth="lg" sx={{ py: 8 }}>
+      <Grid container spacing={4} justifyContent="center">
+        <Grid item xs={12}>
+          <Typography variant="h3" component="h1" align="center" gutterBottom>
             {article.title}
           </Typography>
-          <Typography variant="body1" color="text.secondary">
-            {article.description}
-          </Typography>
-        </CardContent>
-      </Card>
+        </Grid>
+        <Grid item xs={12} md={8}>
+          {article.videoUrl && (
+            <Card raised sx={{ mb: 4 }}>
+              <CardMedia
+                component="video"
+                src={article.videoUrl}
+                title={article.title}
+                sx={{
+                  width: '100%',
+                  height: 'auto',
+                }}
+                controls
+              />
+            </Card>
+          )}
+          <Card raised>
+            <CardContent>
+              <Typography variant="body1" component="p" color="text.secondary">
+                {article.description}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
     </Container>
   );
 };
 
 const ViewNewsPageWrapper = () => (
-    <Suspense fallback={<Box display="flex" justifyContent="center" alignItems="center" minHeight="80vh"><CircularProgress /></Box>}>
-        <ViewNewsPage />
-    </Suspense>
+  <Suspense
+    fallback={
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="80vh">
+        <CircularProgress />
+      </Box>
+    }
+  >
+    <ViewNewsPage />
+  </Suspense>
 );
-
 
 export default ViewNewsPageWrapper;
