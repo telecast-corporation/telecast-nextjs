@@ -1,4 +1,4 @@
-
+s
 import { NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
 
@@ -21,7 +21,7 @@ export async function POST(request: Request) {
     // Email content
     const mailOptions = {
       from: '"Telecast" <noreply@telecast.ca>', // sender address
-      to: 'admin@telecast.ca', // list of receivers
+      to: 'samueloni0987@gmail.com', // list of receivers
       subject: `New Local News Submission: ${title}`, // Subject line
       html: `
         <!DOCTYPE html>
