@@ -66,18 +66,22 @@ const ApprovedNewsPage = () => {
         {news.map((item) => (
           <Grid item xs={12} sm={6} md={4} key={item.id}>
             <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-              <CardMedia
-                component="video"
-                controls
-                src={item.videoUrl}
-                sx={{ height: 200 }}
-              />
+              {item.videoUrl && (
+                <CardMedia
+                  component="video"
+                  controls
+                  src={item.videoUrl}
+                  sx={{ height: 200 }}
+                />
+              )}
               <CardContent sx={{ flexGrow: 1 }}>
                 <Typography gutterBottom variant="h5" component="div">
                   {item.title}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  {item.description}
+                  {item.description.length > 100
+                    ? `${item.description.substring(0, 100)}...`
+                    : item.description}
                 </Typography>
                 <Typography variant="caption" color="text.secondary" sx={{ mt: 2, display: 'block' }}>
                   {item.locationCity}, {item.locationCountry}

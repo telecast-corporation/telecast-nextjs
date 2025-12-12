@@ -58,7 +58,13 @@ const LocalNewsUploadPage = () => {
       const selectedFile = acceptedFiles[0];
       if (selectedFile.type.startsWith('video/')) {
         setFile(selectedFile);
-        setVideoPreviewUrl(URL.createObjectURL(selectedFile));
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          if (event.target && typeof event.target.result === 'string') {
+            setVideoPreviewUrl(event.target.result);
+          }
+        };
+        reader.readAsDataURL(selectedFile);
       } else {
         setErrorMessage('Please upload a valid video file.');
       }

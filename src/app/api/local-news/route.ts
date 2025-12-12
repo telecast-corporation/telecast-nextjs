@@ -4,6 +4,29 @@ import { NextRequest, NextResponse } from 'next/server';
 
 // const prisma = new PrismaClient();
 
+// Dummy data for now
+const news = [
+  { id: '1', title: 'First News', content: 'This is the content of the first news.' },
+  { id: '2', title: 'Second News', content: 'This is the content of the second news.' },
+  { id: '3', title: 'Third News', content: 'This is the content of the third news.' },
+];
+
+export async function GET(req: NextRequest) {
+  const { searchParams } = new URL(req.url);
+  const id = searchParams.get('id');
+
+  if (id) {
+    const article = news.find((item) => item.id === id);
+    if (article) {
+      return NextResponse.json({ news: article });
+    } else {
+      return NextResponse.json({ error: 'Article not found' }, { status: 404 });
+    }
+  } else {
+    return NextResponse.json({ news });
+  }
+}
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
