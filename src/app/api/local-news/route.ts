@@ -6,9 +6,9 @@ import { NextRequest, NextResponse } from 'next/server';
 
 // Dummy data for now
 const news = [
-  { id: '1', title: 'First News', content: 'This is the content of the first news.' },
-  { id: '2', title: 'Second News', content: 'This is the content of the second news.' },
-  { id: '3', title: 'Third News', content: 'This is the content of the third news.' },
+  { id: '1', title: 'First News', description: 'This is the content of the first news.', videoUrl: '/videos/news1.mp4' },
+  { id: '2', title: 'Second News', description: 'This is the content of the second news.', videoUrl: '/videos/news2.mp4' },
+  { id: '3', title: 'Third News', description: 'This is the content of the third news.', videoUrl: '/videos/news3.mp4' },
 ];
 
 export async function GET(req: NextRequest) {
