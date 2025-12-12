@@ -66,15 +66,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [auth0User, auth0Loading]);
 
   // Memoize functions to prevent unnecessary re-renders
-  const login = useCallback(async (provider: 'google' | 'credentials' = 'google', credentials?: { email: string; password: string }) => {
+  const login = useCallback(async (provider?: 'google' | 'credentials', credentials?: { email: string; password: string }) => {
     try {
       // For Auth0, we redirect to the login endpoint
-      if (provider === 'credentials' && credentials) {
-        // Redirect to Auth0 login page
-        window.location.href = '/auth/login';
-      } else {
+      if (provider === 'google') {
         // Redirect to Auth0 with Google connection
         window.location.href = '/auth/login?connection=google-oauth2';
+      } else {
+        // Redirect to Auth0 login page
+        window.location.href = '/auth/login';
       }
     } catch (error) {
       console.error('Login error:', error);
