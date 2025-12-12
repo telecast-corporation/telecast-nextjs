@@ -1,7 +1,6 @@
-
 'use client';
 
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback } from 'react';
 import {
   Box,
   Button,
@@ -13,7 +12,11 @@ import {
   Grid,
   CircularProgress,
   IconButton,
-} from "@mui/material";
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+} from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { useDropzone } from 'react-dropzone';
 import { FiUploadCloud, FiXCircle } from 'react-icons/fi';
@@ -25,12 +28,25 @@ import Link from 'next/link';
 
 import CityCountryInput from '@/components/CityCountryInput';
 
+const categories = [
+  "Technology",
+  "Business",
+  "Science",
+  "Health",
+  "Education",
+  "Entertainment",
+  "Sports",
+  "News",
+  "Other",
+];
+
 const LocalNewsUploadPage = () => {
   const theme = useTheme();
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [country, setCountry] = useState("");
-  const [city, setCity] = useState("");
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [category, setCategory] = useState('');
+  const [country, setCountry] = useState('');
+  const [city, setCity] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [videoPreviewUrl, setVideoPreviewUrl] = useState<string | null>(null);
@@ -67,39 +83,54 @@ const LocalNewsUploadPage = () => {
     setIsSubmitting(true);
     setErrorMessage(null);
 
-    if (!file || !title || !description || !country || !city) {
+    if (!file || !title || !description || !country || !city || !category) {
       setErrorMessage('All required fields must be filled.');
       setIsSubmitting(false);
       return;
     }
 
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('title', title);
-    formData.append('description', description);
-    formData.append('locationCity', city);
-    formData.append('locationCountry', country);
-
     try {
-      const response = await fetch('/api/local-news', {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const uploadResponse = await fetch('/api/upload', {
         method: 'POST',
         body: formData,
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to submit news.');
+      if (!uploadResponse.ok) {
+        throw new Error('Failed to upload video.');
       }
+
+      const uploadData = await uploadResponse.json();
+      const videoUrl = uploadData.videoUrl;
+
+      const newNewsItem = {
+        id: new Date().toISOString(), // Simple unique ID
+        title,
+        description,
+        category,
+        videoUrl,
+        locationCity: city,
+        locationCountry: country,
+        status: 'pending', // Keep the status for consistency
+        createdAt: new Date().toISOString(),
+      };
+
+      const existingNews = JSON.parse(localStorage.getItem('localNews') || '[]');
+      existingNews.push(newNewsItem);
+      localStorage.setItem('localNews', JSON.stringify(existingNews));
 
       setOpenSuccessPopup(true);
 
       // Reset form
-      setTitle("");
-      setDescription("");
+      setTitle('');
+      setDescription('');
+      setCategory('');
       setFile(null);
       setVideoPreviewUrl(null);
-      setCountry("");
-      setCity("");
+      setCountry('');
+      setCity('');
 
     } catch (error) {
       if (error instanceof Error) {
@@ -125,7 +156,7 @@ const LocalNewsUploadPage = () => {
               Upload News
             </Typography>
             <Typography variant="h6" color="text.secondary">
-              Upload a video to share what's happening in your community.
+              Share what's happening in your community.
             </Typography>
           </div>
           <Link href="/local-news" passHref>
@@ -157,12 +188,26 @@ const LocalNewsUploadPage = () => {
                 fullWidth
                 margin="normal"
                 multiline
-                rows={6}
+                rows={4}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 required
                 variant="filled"
               />
+              <FormControl fullWidth margin="normal" required variant="filled">
+                <InputLabel>Category</InputLabel>
+                <Select
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  label="Category"
+                >
+                  {categories.map((cat) => (
+                    <MenuItem key={cat} value={cat}>
+                      {cat}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
               <CityCountryInput
                 onCountryChange={setCountry}
                 onCityChange={setCity}
@@ -212,7 +257,7 @@ const LocalNewsUploadPage = () => {
                 size="large"
                 fullWidth
                 sx={{ mt: 4, py: 2, fontSize: '1.2rem', fontWeight: 'bold', borderRadius: 2 }}
-                disabled={isSubmitting || !file || !title || !description || !country || !city}
+                disabled={isSubmitting || !file || !title || !description || !country || !city || !category}
               >
                 {isSubmitting ? <CircularProgress size={24} color="inherit" /> : 'Upload'}
               </Button>
@@ -224,7 +269,7 @@ const LocalNewsUploadPage = () => {
       <Dialog open={openSuccessPopup} onClose={handleCloseSuccessPopup}>
         <DialogTitle>Submission Successful!</DialogTitle>
         <DialogContent dividers>
-          <Typography>Your local news item has been submitted for review. You will be notified once it has been approved.</Typography>
+          <Typography>Your local news item has been submitted and saved locally.</Typography>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseSuccessPopup}>Close</Button>
