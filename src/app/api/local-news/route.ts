@@ -1,8 +1,9 @@
 
 import { NextRequest, NextResponse } from 'next/server';
-// import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 
-// const prisma = new PrismaClient();
+const prisma = new PrismaClient();
+
 
 // Dummy data for now
 const news = [
@@ -44,33 +45,38 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    // const newLocalNews = await prisma.localNews.create({
-    //   data: {
-    //     title,
-    //     description,
-    //     category,
-    //     videoUrl,
-    //     locationCity,
-    //     locationCountry,
-    //     status: 'pending', // Default status
-    //   },
-    // });
-
-    const newLocalNews = {
+    const newLocalNews = await prisma.localNews.create({
+      data: {
         title,
         description,
         category,
         videoUrl,
         locationCity,
         locationCountry,
-        status: 'pending',
-    };
+        status: 'pending', // Default status
+      },
+    });
+
+    // Notify admin
+    await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/local-news/notify`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            id: newLocalNews.id,
+            title: newLocalNews.title,
+            description: newLocalNews.description,
+            category: newLocalNews.category,
+            city: newLocalNews.locationCity,
+            country: newLocalNews.locationCountry,
+        }),
+    });
+
 
     return NextResponse.json(newLocalNews, { status: 201 });
   } catch (error) {
     console.error('Error creating local news:', error);
-    // return NextResponse.json({ error: 'Failed to create local news', details: error.message }, { status: 500 });
-        return NextResponse.json({ error: 'Failed to create local news', details: (error as Error).message }, { status: 500 });
-
+    return NextResponse.json({ error: 'Failed to create local news', details: (error as Error).message }, { status: 500 });
   }
 }

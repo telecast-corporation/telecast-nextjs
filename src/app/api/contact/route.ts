@@ -1,4 +1,6 @@
+
 import { NextResponse } from 'next/server';
+import nodemailer from 'nodemailer';
 
 export async function POST(request: Request) {
   try {
@@ -21,15 +23,26 @@ export async function POST(request: Request) {
       );
     }
 
-    // In production, you would:
-    // 1. Send an email to admin@telecast.ca
-    // 2. Store the message in a database
-    // 3. Set up email notifications
-    // For now, we'll just log it
-    console.log('Contact form submission:', { name, email, message });
+    // Create a transporter object using the default SMTP transport
+    let transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port: Number(process.env.SMTP_PORT),
+      secure: process.env.SMTP_SECURE === 'true',
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
+      },
+    });
 
-    // Simulate email sending
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    // Send mail with defined transport object
+    await transporter.sendMail({
+        from: `"${name}" <${email}>`,
+        to: "admin@telecast.ca",
+        subject: "New Contact Form Submission",
+        text: message,
+        html: `<p>${message}</p>`
+    });
+
 
     return NextResponse.json({
       message: 'Message sent successfully',
@@ -41,4 +54,4 @@ export async function POST(request: Request) {
       { status: 500 }
     );
   }
-} 
+}
