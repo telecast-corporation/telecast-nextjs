@@ -1,12 +1,11 @@
-
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
   try {
-    const { id } = params;
+    const { id } = context.params;
     const apiKey = process.env.YOUTUBE_API_KEY;
     
     if (!apiKey) {
