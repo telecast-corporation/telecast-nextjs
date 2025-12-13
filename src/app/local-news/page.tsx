@@ -13,10 +13,32 @@ import {
   Box,
   CircularProgress,
   Alert,
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
   TextField,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Chip,
 } from '@mui/material';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '@/lib/dexie';
+
+const categories = [
+  "Technology",
+  "Business",
+  "Science",
+  "Health",
+  "Education",
+  "Entertainment",
+  "Sports",
+  "News",
+  "Other",
+];
 
 const LocalNewsPage = () => {
   const news = useLiveQuery(() => db.localNews.toArray(), []);
@@ -25,6 +47,10 @@ const LocalNewsPage = () => {
   const [category, setCategory] = useState('');
   const [country, setCountry] = useState('');
   const [city, setCity] = useState('');
+
+  const [openCategoryDialog, setOpenCategoryDialog] = useState(false);
+  const [openCountryDialog, setOpenCountryDialog] = useState(false);
+  const [openCityDialog, setOpenCityDialog] = useState(false);
 
   useEffect(() => {
     if (news) {
@@ -47,6 +73,12 @@ const LocalNewsPage = () => {
       : true;
     return categoryMatch && countryMatch && cityMatch;
   });
+
+  const handleClearFilters = () => {
+    setCategory('');
+    setCountry('');
+    setCity('');
+  };
 
   if (loading) {
     return (
@@ -75,37 +107,78 @@ const LocalNewsPage = () => {
         Local News
       </Typography>
 
-      <Box mb={4}>
-        <Typography variant="h6" component="h2" gutterBottom align="center">
-          Search News
-        </Typography>
-        <Grid container spacing={2} justifyContent="center">
-          <Grid item xs={12} sm={4}>
-            <TextField
-              fullWidth
-              label="Category"
-              value={category}
-              onChange={e => setCategory(e.target.value)}
-            />
-          </Grid>
-          <Grid item xs={12} sm={4}>
-            <TextField
-              fullWidth
-              label="Country"
-              value={country}
-              onChange={e => setCountry(e.target.value)}
-            />
-          </Grid>
-          <Grid item xs={12} sm={4}>
-            <TextField
-              fullWidth
-              label="City"
-              value={city}
-              onChange={e => setCity(e.target.value)}
-            />
-          </Grid>
-        </Grid>
+      <Box mb={4} display="flex" justifyContent="center" gap={2} flexWrap="wrap">
+        <Button variant={!category && !country && !city ? "contained" : "outlined"} onClick={handleClearFilters}>All</Button>
+        <Button variant={category ? "contained" : "outlined"} onClick={() => setOpenCategoryDialog(true)}>Category</Button>
+        <Button variant={country ? "contained" : "outlined"} onClick={() => setOpenCountryDialog(true)}>Country</Button>
+        <Button variant={city ? "contained" : "outlined"} onClick={() => setOpenCityDialog(true)}>City</Button>
       </Box>
+
+      <Box display="flex" justifyContent="center" gap={1} mb={4} flexWrap="wrap">
+          {category && <Chip label={`Category: ${category}`} onDelete={() => setCategory('')} />}
+          {country && <Chip label={`Country: ${country}`} onDelete={() => setCountry('')} />}
+          {city && <Chip label={`City: ${city}`} onDelete={() => setCity('')} />}
+      </Box>
+
+      {/* Category Dialog */}
+      <Dialog open={openCategoryDialog} onClose={() => setOpenCategoryDialog(false)} fullWidth maxWidth="xs">
+        <DialogTitle>Select Category</DialogTitle>
+        <DialogContent>
+          <FormControl fullWidth>
+            <InputLabel>Category</InputLabel>
+            <Select
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              label="Category"
+            >
+              {categories.map((cat) => (
+                <MenuItem key={cat} value={cat}>
+                  {cat}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenCategoryDialog(false)}>Cancel</Button>
+          <Button onClick={() => setOpenCategoryDialog(false)} variant="contained">Apply</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Country Dialog */}
+      <Dialog open={openCountryDialog} onClose={() => setOpenCountryDialog(false)} fullWidth maxWidth="xs">
+        <DialogTitle>Select Country</DialogTitle>
+        <DialogContent>
+          <TextField
+            fullWidth
+            label="Country"
+            value={country}
+            onChange={e => setCountry(e.target.value)}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenCountryDialog(false)}>Cancel</Button>
+          <Button onClick={() => setOpenCountryDialog(false)} variant="contained">Apply</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* City Dialog */}
+      <Dialog open={openCityDialog} onClose={() => setOpenCityDialog(false)} fullWidth maxWidth="xs">
+        <DialogTitle>Select City</DialogTitle>
+        <DialogContent>
+          <TextField
+            fullWidth
+            label="City"
+            value={city}
+            onChange={e => setCity(e.target.value)}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenCityDialog(false)}>Cancel</Button>
+          <Button onClick={() => setOpenCityDialog(false)} variant="contained">Apply</Button>
+        </DialogActions>
+      </Dialog>
+
 
       {filteredNews && filteredNews.length > 0 ? (
         <Grid container spacing={4} justifyContent="center">
@@ -127,7 +200,7 @@ const LocalNewsPage = () => {
                       component="video"
                       src={article.videoUrl}
                       title={article.title}
-                      sx={{ 
+                      sx={{
                         width: '100%',
                         height: 200,
                         objectFit: 'cover',
