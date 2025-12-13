@@ -80,6 +80,10 @@ const LocalNewsPage = () => {
     setCity('');
   };
 
+  const countries = [...new Set(news?.map(article => article.country).filter(Boolean))];
+  const cities = [...new Set(news?.map(article => article.city).filter(Boolean))];
+
+
   if (loading) {
     return (
       <Box
@@ -149,12 +153,20 @@ const LocalNewsPage = () => {
       <Dialog open={openCountryDialog} onClose={() => setOpenCountryDialog(false)} fullWidth maxWidth="xs">
         <DialogTitle>Select Country</DialogTitle>
         <DialogContent>
-          <TextField
-            fullWidth
-            label="Country"
-            value={country}
-            onChange={e => setCountry(e.target.value)}
-          />
+          <FormControl fullWidth>
+            <InputLabel>Country</InputLabel>
+            <Select
+              value={country}
+              onChange={(e) => setCountry(e.target.value)}
+              label="Country"
+            >
+              {countries.map((c) => (
+                <MenuItem key={c} value={c}>
+                  {c}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpenCountryDialog(false)}>Cancel</Button>
@@ -166,12 +178,20 @@ const LocalNewsPage = () => {
       <Dialog open={openCityDialog} onClose={() => setOpenCityDialog(false)} fullWidth maxWidth="xs">
         <DialogTitle>Select City</DialogTitle>
         <DialogContent>
-          <TextField
-            fullWidth
-            label="City"
-            value={city}
-            onChange={e => setCity(e.target.value)}
-          />
+          <FormControl fullWidth>
+            <InputLabel>City</InputLabel>
+            <Select
+              value={city}
+              onChange={(e) => setCity(e.target.value)}
+              label="City"
+            >
+              {cities.map((c) => (
+                <MenuItem key={c} value={c}>
+                  {c}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpenCityDialog(false)}>Cancel</Button>
