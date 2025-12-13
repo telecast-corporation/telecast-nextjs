@@ -5,9 +5,9 @@ const GOOGLE_BOOKS_API_KEY = process.env.GOOGLE_BOOKS_API_KEY;
 
 export async function GET(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
-  const { id: bookId } = await params;
+  const { id: bookId } = params;
 
   if (!bookId) {
     return NextResponse.json(

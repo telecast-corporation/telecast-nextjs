@@ -80,9 +80,9 @@ function generatePreviewOptions(track: any, artist: any) {
 
 export async function GET(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
-  const { id } = await params;
+  const { id } = params;
   try {
     if (!id) {
       return NextResponse.json({ error: 'Track ID is required' }, { status: 400 });
