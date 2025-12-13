@@ -45,17 +45,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    const newLocalNews = await prisma.localNews.create({
-      data: {
-        title,
-        description,
-        category,
-        videoUrl,
-        locationCity,
-        locationCountry,
-        status: 'pending', // Default status
-      },
-    });
+    const tempId = `temp_${Date.now()}`;
 
     // Notify admin
     await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/local-news/notify`, {
@@ -64,17 +54,17 @@ export async function POST(req: NextRequest) {
             'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-            id: newLocalNews.id,
-            title: newLocalNews.title,
-            description: newLocalNews.description,
-            category: newLocalNews.category,
-            city: newLocalNews.locationCity,
-            country: newLocalNews.locationCountry,
+            id: tempId,
+            title: title,
+            description: description,
+            category: category,
+            city: locationCity,
+            country: locationCountry,
         }),
     });
 
 
-    return NextResponse.json(newLocalNews, { status: 201 });
+    return NextResponse.json({ message: "Notification sent without saving to database." }, { status: 200 });
   } catch (error) {
     console.error('Error creating local news:', error);
     return NextResponse.json({ error: 'Failed to create local news', details: (error as Error).message }, { status: 500 });
