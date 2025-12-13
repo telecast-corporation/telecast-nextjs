@@ -7,8 +7,8 @@ export interface LocalNews {
   description: string;
   category: string;
   videoUrl: string;
-  locationCity: string;
-  locationCountry: string;
+  city: string;
+  country: string;
   status: string;
   createdAt: Date;
 }
@@ -19,7 +19,7 @@ export class LocalNewsDatabase extends Dexie {
   constructor() {
     super('localNewsDatabase');
     this.version(1).stores({
-      localNews: '++id, title, category, locationCity, locationCountry, createdAt'
+      localNews: '++id, title, category, city, country, createdAt'
     });
   }
 }
