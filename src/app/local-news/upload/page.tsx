@@ -105,8 +105,8 @@ const LocalNewsUploadPage = () => {
         description,
         category,
         videoUrl: videoPreviewUrl || '',
-        locationCity: city,
-        locationCountry: country,
+        city,
+        country,
         status: 'pending', 
         createdAt: new Date(),
       };
