@@ -18,7 +18,6 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  TextField,
   Select,
   MenuItem,
   FormControl,
@@ -27,6 +26,7 @@ import {
 } from '@mui/material';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '@/lib/dexie';
+import { countries, cities as citiesData } from '@/lib/locations';
 
 const categories = [
   "Technology",
@@ -80,9 +80,7 @@ const LocalNewsPage = () => {
     setCity('');
   };
 
-  const countries = [...new Set(news?.map(article => article.country).filter(Boolean))];
-  const cities = [...new Set(news?.map(article => article.city).filter(Boolean))];
-
+  const cities = country ? citiesData[country] || [] : [];
 
   if (loading) {
     return (
@@ -157,7 +155,10 @@ const LocalNewsPage = () => {
             <InputLabel>Country</InputLabel>
             <Select
               value={country}
-              onChange={(e) => setCountry(e.target.value)}
+              onChange={(e) => {
+                setCountry(e.target.value);
+                setCity('');
+              }}
               label="Country"
             >
               {countries.map((c) => (
@@ -178,7 +179,7 @@ const LocalNewsPage = () => {
       <Dialog open={openCityDialog} onClose={() => setOpenCityDialog(false)} fullWidth maxWidth="xs">
         <DialogTitle>Select City</DialogTitle>
         <DialogContent>
-          <FormControl fullWidth>
+          <FormControl fullWidth disabled={!country}>
             <InputLabel>City</InputLabel>
             <Select
               value={city}
