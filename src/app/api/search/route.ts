@@ -943,6 +943,7 @@ export async function POST(request: Request) {
                         ...trendingData.books || [],
                         ...trendingData.podcasts || [],
                         ...trendingData.news || [],
+                        ...trendingData.tv || []
                     ];
                 } else {
                     if (types.includes('video')) trendingResults.push(...(trendingData.videos || []));
@@ -950,6 +951,7 @@ export async function POST(request: Request) {
                     if (types.includes('book')) trendingResults.push(...(trendingData.books || []));
                     if (types.includes('podcast')) trendingResults.push(...(trendingData.podcasts || []));
                     if (types.includes('news')) trendingResults.push(...(trendingData.news || []));
+                    if (types.includes('tv')) trendingResults.push(...(trendingData.tv || []));
                 }
 
                 console.log('📈 Returning trending results:', trendingResults.length);

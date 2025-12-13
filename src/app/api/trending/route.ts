@@ -9,10 +9,95 @@ const GOOGLE_BOOKS_API_KEY = process.env.GOOGLE_BOOKS_API_KEY;
 const PODCASTINDEX_API_KEY = process.env.PODCASTINDEX_API_KEY;
 const PODCASTINDEX_API_SECRET = process.env.PODCASTINDEX_API_SECRET;
 const NEWS_API_KEY = process.env.NEWS_API_KEY;
-const RAPIDAPI_KEY_TRENDING_MOVIES = process.env.RAPIDAPI_KEY_TRENDING_MOVIES;
+const OMDB_API_KEY = process.env.OMDB_API_KEY;
+const OMDB_BASE_URL = "https://www.omdbapi.com";
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
+
+// Curated list of CURRENT trending TV shows (December 2025)
+const TRENDING_TV_IDS = [
+    "tt15392100", // Dune: Prophecy (2024) - HBO Max
+    "tt11198330", // The Penguin (2024) - HBO Max
+    "tt14452776", // Skeleton Crew (2024) - Disney+
+    "tt10234724", // Yellowstone (Continuing)
+    "tt5753856",  // Dark Winds (2024)
+    "tt13622776", // Squid Game Season 2 (2024) - Netflix
+    "tt1190634",  // The Boys Season 5 (2025)
+    "tt2861424",  // Rick and Morty Season 8 (2025)
+    "tt2707408",  // Narcos (Popular rewatch)
+    "tt1831164",  // Yellowjackets Season 3 (2025)
+    "tt11198854", // The Last of Us Season 2 (2025)
+    "tt0944947",  // Game of Thrones (Timeless classic)
+];
+
+// Cache for trending TV shows
+let trendingTVCache: any[] = [];
+let tvCacheTimestamp = 0;
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
+function truncateText(text: string, maxLength: number): string {
+    if (!text) return '';
+    return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+}
+
+async function fetchFromOMDb(params: Record<string, string>): Promise<any> {
+    if (!OMDB_API_KEY) {
+        console.warn('OMDB_API_KEY is not configured');
+        return null;
+    }
+
+    const searchParams = new URLSearchParams({ apikey: OMDB_API_KEY, ...params });
+    const url = `${OMDB_BASE_URL}/?${searchParams.toString()}`;
+
+    try {
+        const response = await fetch(url, {
+            method: "GET",
+            headers: {
+                "Accept": "application/json",
+            },
+        });
+
+        if (!response.ok) {
+            console.warn(`OMDb API request failed: ${response.status} ${response.statusText}`);
+            return null;
+        }
+
+        const data = await response.json();
+
+        if (data.Error) {
+            console.warn(`OMDb API error: ${data.Error}`);
+            return null;
+        }
+
+        return data;
+    } catch (error) {
+        console.error('Error fetching from OMDb:', error);
+        return null;
+    }
+}
+
+// Transform OMDb response to our TV show format
+function transformOMDbTVShow(data: any): any {
+    return {
+        type: 'tv',
+        id: data.imdbID || "",
+        title: truncateText(data.Title || "Unknown Title", 50),
+        description: truncateText(data.Plot !== "N/A" ? data.Plot : "", 100),
+        thumbnail: data.Poster !== "N/A" ? data.Poster : "https://via.placeholder.com/300x450",
+        url: `/tv/${data.imdbID}`,
+        author: data.Director !== "N/A" ? truncateText(data.Director, 30) : "Unknown",
+        year: data.Year || "",
+        rating: data.imdbRating !== "N/A" ? data.imdbRating : "",
+        genres: data.Genre !== "N/A" ? data.Genre.split(", ") : [],
+        seasons: data.totalSeasons !== "N/A" ? `${data.totalSeasons} seasons` : "",
+        language: data.Language !== "N/A" ? data.Language.split(", ")[0] : "English",
+        source: 'omdb',
+        sourceUrl: `https://www.imdb.com/title/${data.imdbID}`,
+        releaseDate: data.Released !== "N/A" ? data.Released : data.Year,
+        cast: data.Actors !== "N/A" ? data.Actors : "",
+    };
+}
 
 async function getTrendingVideos() {
   try {
@@ -149,7 +234,7 @@ async function getTrendingMusic() {
 
 function ensureHttps(url: string | undefined): string | undefined {
   if (!url) return url;
-  return url.replace(/^http:/, 'https:');
+  return url.replace(/^http:/, 'https');
 }
 
 async function getTrendingBooks() {
@@ -235,44 +320,38 @@ async function getTrendingPodcasts() {
   }
 }
 
-async function getTrendingTV() {
-  try {
-    console.log('📺 Fetching trending movies from RapidAPI (trending-movie1)...');
-    if (!RAPIDAPI_KEY_TRENDING_MOVIES) {
-      console.error('Missing RAPIDAPI_KEY_TRENDING_MOVIES');
-      return [];
+async function getTrendingTV(maxResults: number = 20) {
+    try {
+        const now = Date.now();
+
+        if (trendingTVCache.length > 0 && (now - tvCacheTimestamp) < CACHE_DURATION) {
+            return trendingTVCache.slice(0, maxResults);
+        }
+
+        const showPromises = TRENDING_TV_IDS.map(async (imdbId) => {
+            try {
+                const data = await fetchFromOMDb({ i: imdbId, plot: "short" });
+                if (data) {
+                    return transformOMDbTVShow(data);
+                }
+                return null;
+            } catch (err) {
+                console.error(`Failed to fetch TV show ${imdbId}:`, err);
+                return null;
+            }
+        });
+
+        const results = await Promise.all(showPromises);
+        const shows = results.filter((show): show is any => show !== null);
+
+        trendingTVCache = shows;
+        tvCacheTimestamp = now;
+
+        return shows.slice(0, maxResults);
+    } catch (error) {
+        console.error('Error fetching trending TV shows:', error);
+        return [];
     }
-
-    const options = {
-      method: 'GET',
-      url: 'https://trending-movie1.p.rapidapi.com/trending',
-      headers: {
-        'x-rapidapi-host': 'trending-movie1.p.rapidapi.com',
-        'x-rapidapi-key': RAPIDAPI_KEY_TRENDING_MOVIES,
-      },
-    };
-
-    const response = await axios.request(options);
-
-    console.log('Trending movies response:', response.data);
-    return response.data.map((item: any) => ({
-      id: item.imdbid,
-      type: 'tv', // Keeping type as 'tv' for now to fit existing structure, but content is movies.
-      title: item.title,
-      description: item.plot || item.fullplot || 'No description available.',
-      thumbnail: item.image,
-      url: `https://www.imdb.com/title/${item.imdbid}`,
-      year: item.year,
-      duration: item.runtime,
-      rating: item.imvdb_rating,
-      source: 'RapidAPI Trending Movies',
-      sourceUrl: `https://www.imdb.com/title/${item.imdbid}`,
-      previewVideo: null,
-    }));
-  } catch (error) {
-    console.error('📺 Error fetching trending movies from RapidAPI:', error);
-    return [];
-  }
 }
 
 async function getTrendingNews() {
