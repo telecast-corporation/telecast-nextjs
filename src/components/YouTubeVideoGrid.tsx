@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardMedia, Typography, Grid, Box, CircularProgress } from '@mui/material';
+import Link from 'next/link';
 
 interface Video {
   id: {
@@ -81,29 +82,29 @@ export default function YouTubeVideoGrid({ searchQuery }: YouTubeVideoGridProps)
     <Grid container spacing={3}>
       {videos.map((video) => (
         <Grid item xs={12} sm={6} md={4} key={video.id.videoId}>
-          <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-            <CardMedia
-              component="img"
-              height="200"
-              image={video.snippet.thumbnails.high.url}
-              alt={video.snippet.title}
-              sx={{ cursor: 'pointer' }}
-              onClick={() => window.open(`https://www.youtube.com/watch?v=${video.id.videoId}`, '_blank')}
-            />
-            <CardContent sx={{ flexGrow: 1 }}>
-              <Typography gutterBottom variant="h6" component="div" noWrap>
-                {video.snippet.title}
-              </Typography>
-              <Typography variant="body2" color="text.secondary" noWrap>
-                {video.snippet.channelTitle}
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                {new Date(video.snippet.publishedAt).toLocaleDateString()}
-              </Typography>
-            </CardContent>
-          </Card>
+          <Link href={`/video/${video.id.videoId}`} passHref>
+            <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column', cursor: 'pointer' }}>
+              <CardMedia
+                component="img"
+                height="200"
+                image={video.snippet.thumbnails.high.url}
+                alt={video.snippet.title}
+              />
+              <CardContent sx={{ flexGrow: 1 }}>
+                <Typography gutterBottom variant="h6" component="div" noWrap>
+                  {video.snippet.title}
+                </Typography>
+                <Typography variant="body2" color="text.secondary" noWrap>
+                  {video.snippet.channelTitle}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  {new Date(video.snippet.publishedAt).toLocaleDateString()}
+                </Typography>
+              </CardContent>
+            </Card>
+          </Link>
         </Grid>
       ))}
     </Grid>
   );
-} 
+}

@@ -156,7 +156,7 @@ const LocalNewsUploadPage = () => {
               Upload News
             </Typography>
             <Typography variant="h6" color="text.secondary">
-              Share what\'s happening in your community.
+              Share what's happening in your community.
             </Typography>
           </div>
           <Link href="/local-news" passHref>

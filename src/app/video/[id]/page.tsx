@@ -9,47 +9,48 @@ import {
   CircularProgress,
   Card,
   CardContent,
-} from '@mui/material';
+  AspectRatio,
+} from '@mui/joy';
 
-interface LocalNews {
-  id: string;
-  title: string;
-  description: string;
-  videoUrl: string;
-  locationCity: string;
-  locationCountry: string;
-  createdAt: string;
+interface Video {
+    id: string;
+    title: string;
+    description: string;
+    videoUrl: string; // This will be an iframe string
+    channelTitle: string;
+    publishedAt: string;
 }
 
 export default function VideoPlayerPage() {
   const params = useParams();
-  const [news, setNews] = useState<LocalNews | null>(null);
+  const [video, setVideo] = useState<Video | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchNews = async () => {
+    const fetchVideo = async () => {
       try {
         setLoading(true);
-        const newsId = params.id as string;
+        const videoId = params.id as string;
         
-        const response = await fetch(`/api/video/${newsId}`);
+        const response = await fetch(`/api/video/${videoId}`);
         
         if (response.ok) {
           const data = await response.json();
-          setNews(data);
+          setVideo(data);
         } else {
-          setError('News not found');
+          const errorData = await response.json();
+          setError(errorData.error || 'Video not found');
         }
       } catch (err) {
-        setError('Failed to load news');
+        setError('Failed to load video');
       } finally {
         setLoading(false);
       }
     };
 
     if (params.id) {
-      fetchNews();
+      fetchVideo();
     }
   }, [params.id]);
 
@@ -68,32 +69,36 @@ export default function VideoPlayerPage() {
     );
   }
 
-  if (error || !news) {
+  if (error || !video) {
     return (
-      <Container maxWidth="lg" sx={{ py: 10 }}>
-        <Typography variant="h4" color="error">
-          {error || 'News not found'}
+      <Container sx={{ py: 10 }}>
+        <Typography level="h4" color="danger">
+          {error || 'Video not found'}
         </Typography>
       </Container>
     );
   }
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Card sx={{ mb: 4, maxWidth: 800, mx: 'auto' }}>
+    <Container sx={{ py: 4 }}>
+      <Card variant="outlined" sx={{ mb: 4, maxWidth: 800, mx: 'auto' }}>
         <CardContent>
-          <Typography variant="h4" component="h1" gutterBottom>
-            {news.title}
+          <Typography level="h4" component="h1" gutterBottom>
+            {video.title}
           </Typography>
-          <video controls src={news.videoUrl} style={{ width: '100%' }} />
-          <Typography variant="body1" sx={{ mt: 2 }}>
-            {news.description}
+        </CardContent>
+        <AspectRatio ratio="16/9">
+           <div dangerouslySetInnerHTML={{ __html: video.videoUrl }} />
+        </AspectRatio>
+        <CardContent>
+          <Typography sx={{ mt: 2 }}>
+            {video.description}
           </Typography>
-          <Typography variant="subtitle2" color="text.secondary" sx={{ mt: 2 }}>
-            {news.locationCity}, {news.locationCountry}
+          <Typography level="body-sm" sx={{ mt: 2 }}>
+            {video.channelTitle}
           </Typography>
-          <Typography variant="caption" color="text.secondary">
-            {new Date(news.createdAt).toLocaleDateString()}
+          <Typography level="body-xs" sx={{ mt: 1 }}>
+            {new Date(video.publishedAt).toLocaleDateString()}
           </Typography>
         </CardContent>
       </Card>
