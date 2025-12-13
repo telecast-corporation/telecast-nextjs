@@ -4,25 +4,26 @@ import nodemailer from 'nodemailer';
 
 export async function POST(request: Request) {
   try {
-    const { title, description, category, city, country } = await request.json();
+    const { title, description, category, city, country, id } = await request.json();
 
-    // Create a transporter object using the default SMTP transport
-    // TODO: Replace with your actual SMTP server details in a secure way (e.g., environment variables)
     const transporter = nodemailer.createTransport({
-      host: 'smtp.example.com', // Your SMTP server host
-      port: 587,
-      secure: false, // true for 465, false for other ports
+      host: process.env.SMTP_HOST,
+      port: Number(process.env.SMTP_PORT),
+      secure: process.env.SMTP_SECURE === 'true',
       auth: {
-        user: 'user@example.com', // Your SMTP username
-        pass: 'password', // Your SMTP password
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
       },
     });
 
+    const approveLink = `${process.env.NEXT_PUBLIC_BASE_URL}/api/admin/local-news/approve?id=${id}`;
+    const rejectLink = `${process.env.NEXT_PUBLIC_BASE_URL}/api/admin/local-news/reject?id=${id}`;
+
     // Email content
     const mailOptions = {
-      from: '"Telecast" <noreply@telecast.ca>', // sender address
-      to: 'samueloni0987@gmail.com', // list of receivers
-      subject: `New Local News Submission: ${title}`, // Subject line
+      from: `"Telecast" <${process.env.SMTP_FROM}>`,
+      to: 'samueloni0987@gmail.com',
+      subject: `New Local News Submission: ${title}`,
       html: `
         <!DOCTYPE html>
         <html lang="en">
@@ -48,6 +49,10 @@ export async function POST(request: Request) {
                             <li style="margin-bottom: 10px;"><strong>Category:</strong> ${category}</li>
                             <li><strong>Location:</strong> ${city}, ${country}</li>
                         </ul>
+                        <p style="margin-top: 20px;">
+                          <a href="${approveLink}" style="background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin-right: 10px;">Approve</a>
+                          <a href="${rejectLink}" style="background-color: #f44336; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Reject</a>
+                        </p>
                     </td>
                 </tr>
                 <tr>

@@ -13,15 +13,18 @@ import {
   Box,
   CircularProgress,
   Alert,
+  TextField,
 } from '@mui/material';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '@/lib/dexie';
-import { LocalNews } from '@/lib/dexie';
 
 const LocalNewsPage = () => {
   const news = useLiveQuery(() => db.localNews.toArray(), []);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [category, setCategory] = useState('');
+  const [country, setCountry] = useState('');
+  const [city, setCity] = useState('');
 
   useEffect(() => {
     if (news) {
@@ -30,6 +33,20 @@ const LocalNewsPage = () => {
       setLoading(true);
     }
   }, [news]);
+
+  const filteredNews = news?.filter(article => {
+    if (!article) return false;
+    const categoryMatch = category
+      ? article.category?.toLowerCase().includes(category.toLowerCase())
+      : true;
+    const countryMatch = country
+      ? article.country?.toLowerCase().includes(country.toLowerCase())
+      : true;
+    const cityMatch = city
+      ? article.city?.toLowerCase().includes(city.toLowerCase())
+      : true;
+    return categoryMatch && countryMatch && cityMatch;
+  });
 
   if (loading) {
     return (
@@ -57,9 +74,42 @@ const LocalNewsPage = () => {
       <Typography variant="h4" component="h1" gutterBottom align="center">
         Local News
       </Typography>
-      {news && news.length > 0 ? (
+
+      <Box mb={4}>
+        <Typography variant="h6" component="h2" gutterBottom align="center">
+          Search News
+        </Typography>
+        <Grid container spacing={2} justifyContent="center">
+          <Grid item xs={12} sm={4}>
+            <TextField
+              fullWidth
+              label="Category"
+              value={category}
+              onChange={e => setCategory(e.target.value)}
+            />
+          </Grid>
+          <Grid item xs={12} sm={4}>
+            <TextField
+              fullWidth
+              label="Country"
+              value={country}
+              onChange={e => setCountry(e.target.value)}
+            />
+          </Grid>
+          <Grid item xs={12} sm={4}>
+            <TextField
+              fullWidth
+              label="City"
+              value={city}
+              onChange={e => setCity(e.target.value)}
+            />
+          </Grid>
+        </Grid>
+      </Box>
+
+      {filteredNews && filteredNews.length > 0 ? (
         <Grid container spacing={4} justifyContent="center">
-          {news.map(article => (
+          {filteredNews.map(article => (
             <Grid item key={article.id} xs={12} sm={8} md={6}>
               <Card
                 sx={{
@@ -77,7 +127,7 @@ const LocalNewsPage = () => {
                       component="video"
                       src={article.videoUrl}
                       title={article.title}
-                      sx={{
+                      sx={{ 
                         width: '100%',
                         height: 200,
                         objectFit: 'cover',
