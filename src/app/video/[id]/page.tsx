@@ -9,8 +9,8 @@ import {
   CircularProgress,
   Card,
   CardContent,
-  AspectRatio,
 } from '@mui/material';
+import { AspectRatio } from '@mui/joy';
 
 interface Video {
     id: string;
