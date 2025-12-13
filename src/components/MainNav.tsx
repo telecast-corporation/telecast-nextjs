@@ -21,8 +21,9 @@ const navLinks = [
   { label: 'Podcasts', href: '/search?type=podcast' },
   { label: 'Books', href: '/search?type=book' },
   { label: 'Music', href: '/search?type=music' },
-  { label: 'News', href: '/search?type=news' },
-  { label: 'Upload News', href: '/local-news/upload' },
+  { label: 'Nred', href: '/search?type=news' },
+  { label: 'Search Events', href: '/events' },
+  { label: 'Upload', href: '/events/upload' },
 ];
 
 const MainNav = () => {
@@ -58,7 +59,7 @@ const MainNav = () => {
       else if (linkType && currentPath.startsWith(`/${linkType}/`)) {
         isMatch = true;
       } 
-      // Match non-search pages by path prefix, e.g., /local-news/upload should match /local-news/upload
+      // Match non-search pages by path prefix, e.g., /events/upload should match /events/upload
       else if (linkPath !== '/search' && currentPath.startsWith(linkPath)) {
         isMatch = true;
       }

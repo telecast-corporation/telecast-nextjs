@@ -41,7 +41,7 @@ const categories = [
   "Other",
 ];
 
-const LocalNewsUploadPage = () => {
+const EventUploadPage = () => {
   const theme = useTheme();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -113,7 +113,7 @@ const LocalNewsUploadPage = () => {
 
       await db.localNews.add(newNewsItem);
 
-      await fetch('/api/local-news/notify', {
+      await fetch('/api/events/notify', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -153,14 +153,14 @@ const LocalNewsUploadPage = () => {
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 5 }}>
           <div>
             <Typography variant="h3" component="h1" sx={{ fontWeight: 'bold', color: theme.palette.primary.main }}>
-              Upload News
+              Upload Event
             </Typography>
             <Typography variant="h6" color="text.secondary">
               Share what's happening in your community.
             </Typography>
           </div>
-          <Link href="/local-news" passHref>
-            <Button variant="outlined" size="large">Go to Local News</Button>
+          <Link href="/events" passHref>
+            <Button variant="outlined" size="large">Go to Events</Button>
           </Link>
         </Box>
 
@@ -271,12 +271,12 @@ const LocalNewsUploadPage = () => {
       <Dialog open={openSuccessPopup} onClose={handleCloseSuccessPopup}>
         <DialogTitle>Submission Successful!</DialogTitle>
         <DialogContent dividers>
-          <Typography>Your local news item has been submitted and saved locally.</Typography>
+          <Typography>Your event has been submitted and saved locally.</Typography>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseSuccessPopup}>Close</Button>
-          <Link href="/local-news" passHref>
-            <Button color="primary">Go to Local News</Button>
+          <Link href="/events" passHref>
+            <Button color="primary">Go to Events</Button>
           </Link>
         </DialogActions>
       </Dialog>
@@ -284,4 +284,4 @@ const LocalNewsUploadPage = () => {
   );
 };
 
-export default LocalNewsUploadPage;
+export default EventUploadPage;

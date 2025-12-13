@@ -128,7 +128,7 @@ export const uploadProfileFile = async (
   return { url, filename };
 };
 
-// Upload file to local news bucket
+// Upload file to Eventbucket
 export const uploadLocalNewsFile = async (
   file: Buffer,
   originalName: string,
@@ -145,7 +145,7 @@ export const uploadLocalNewsFile = async (
 
   const [url] = await fileUpload.getSignedUrl({
     action: 'read',
-    expires: new Date('2500-03-01'), // Long expiration for local news videos
+    expires: new Date('2500-03-01'), // Long expiration for Eventvideos
   });
 
   return { url, filename };

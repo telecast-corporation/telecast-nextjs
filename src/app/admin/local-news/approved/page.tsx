@@ -10,7 +10,7 @@ const ApprovedPage = () => {
           News Item Approved
         </Typography>
         <Typography variant="body1">
-          The local news item has been successfully approved and is now live.
+          The Eventitem has been successfully approved and is now live.
         </Typography>
       </Box>
     </Container>

@@ -10,7 +10,7 @@ import {
   Card,
   CardContent,
   AspectRatio,
-} from '@mui/joy';
+} from '@mui/material';
 
 interface Video {
     id: string;

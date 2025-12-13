@@ -58,9 +58,9 @@ export async function POST(req: NextRequest) {
     const mailOptions = {
       from: process.env.GMAIL_USER,
       to: 'admin@telecast.ca',
-      subject: 'New Local News Submission for Approval',
+      subject: 'New EventSubmission for Approval',
       html: `
-        <h1>New Local News Submission</h1>
+        <h1>New EventSubmission</h1>
         <p><strong>Title:</strong> ${title}</p>
         <p><strong>Description:</strong></p>
         <p>${description}</p>

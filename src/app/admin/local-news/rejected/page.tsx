@@ -10,7 +10,7 @@ const RejectedPage = () => {
           News Item Rejected
         </Typography>
         <Typography variant="body1">
-          The local news item has been rejected and will not be published.
+          The Eventitem has been rejected and will not be published.
         </Typography>
       </Box>
     </Container>

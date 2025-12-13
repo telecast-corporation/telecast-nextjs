@@ -49,7 +49,7 @@ const Header = () => {
     { title: 'Home', path: '/' },
     { title: 'About', path: '/about' },
     { title: 'Services', path: '/services' },
-    { title: 'Local News', path: '/local-news' },
+    { title: 'Events', path: '/events' },
     { title: 'FAQ', path: '/faq' },
     { title: 'Contact', path: '/contact' },
     { title: 'Pricing', path: '/pricing' },

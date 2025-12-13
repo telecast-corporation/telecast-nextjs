@@ -40,7 +40,7 @@ const categories = [
   "Other",
 ];
 
-const LocalNewsPage = () => {
+const EventsPage = () => {
   const news = useLiveQuery(() => db.localNews.toArray(), []);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -105,9 +105,14 @@ const LocalNewsPage = () => {
 
   return (
     <Container sx={{ py: 8 }}>
-      <Typography variant="h4" component="h1" gutterBottom align="center">
-        Local News
-      </Typography>
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={4}>
+        <Typography variant="h4" component="h1" gutterBottom>
+          Events
+        </Typography>
+        <Button component={Link} href="/events/upload" variant="contained" color="primary">
+          Upload Event
+        </Button>
+      </Box>
 
       <Box mb={4} display="flex" justifyContent="center" gap={2} flexWrap="wrap">
         <Button variant={!category && !country && !city ? "contained" : "outlined"} onClick={handleClearFilters}>All</Button>
@@ -214,7 +219,7 @@ const LocalNewsPage = () => {
               >
                 <CardActionArea
                   component={Link}
-                  href={`/local-news/view?id=${article.id}`}
+                  href={`/events/view?id=${article.id}`}
                 >
                   {article.videoUrl && (
                     <CardMedia
@@ -243,10 +248,10 @@ const LocalNewsPage = () => {
           ))}
         </Grid>
       ) : (
-        <Typography align="center">No local news found.</Typography>
+        <Typography align="center">No events found.</Typography>
       )}
     </Container>
   );
 };
 
-export default LocalNewsPage;
+export default EventsPage;

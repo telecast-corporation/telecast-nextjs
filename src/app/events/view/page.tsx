@@ -17,32 +17,32 @@ import {
 import { db } from '@/lib/dexie';
 import { LocalNews } from '@/lib/dexie';
 
-const ViewNewsPage = () => {
+const ViewEventPage = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const id = searchParams.get('id');
-  const [article, setArticle] = useState<LocalNews | null>(null);
+  const [item, setItem] = useState<LocalNews | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (id) {
-        const articleId = parseInt(id, 10);
-        if (!isNaN(articleId)) {
-            db.localNews.get(articleId).then(foundArticle => {
-                if (foundArticle) {
-                    setArticle(foundArticle);
+        const itemId = parseInt(id, 10);
+        if (!isNaN(itemId)) {
+            db.localNews.get(itemId).then(foundItem => {
+                if (foundItem) {
+                    setItem(foundItem);
                 } else {
-                    setError('News article not found.');
+                    setError('Event not found.');
                 }
                 setLoading(false);
             });
         } else {
-            setError('Invalid article ID.');
+            setError('Invalid event ID.');
             setLoading(false);
         }
     } else {
-      setError('No article ID provided.');
+      setError('No event ID provided.');
       setLoading(false);
     }
   }, [id]);
@@ -68,10 +68,10 @@ const ViewNewsPage = () => {
     );
   }
 
-  if (!article) {
+  if (!item) {
     return (
       <Container sx={{ mt: 4 }}>
-        <Alert severity="warning">News article not found.</Alert>
+        <Alert severity="warning">Event not found.</Alert>
       </Container>
     );
   }
@@ -84,16 +84,16 @@ const ViewNewsPage = () => {
       <Grid container spacing={4} justifyContent="center">
         <Grid item xs={12}>
           <Typography variant="h3" component="h1" align="center" gutterBottom>
-            {article.title}
+            {item.title}
           </Typography>
         </Grid>
         <Grid item xs={12} md={8}>
-          {article.videoUrl && (
+          {item.videoUrl && (
             <Card raised sx={{ mb: 4 }}>
               <CardMedia
                 component="video"
-                src={article.videoUrl}
-                title={article.title}
+                src={item.videoUrl}
+                title={item.title}
                 sx={{
                   width: '100%',
                   height: 'auto',
@@ -109,14 +109,14 @@ const ViewNewsPage = () => {
                 component="h2"
                 gutterBottom
               >
-                {article.title}
+                {item.title}
               </Typography>
               <Typography
                 variant="body1"
                 component="p"
                 color="text.secondary"
               >
-                {article.description}
+                {item.description}
               </Typography>
             </CardContent>
           </Card>
@@ -126,7 +126,7 @@ const ViewNewsPage = () => {
   );
 };
 
-const ViewNewsPageWrapper = () => (
+const ViewEventPageWrapper = () => (
   <Suspense
     fallback={
       <Box
@@ -139,8 +139,8 @@ const ViewNewsPageWrapper = () => (
       </Box>
     }
   >
-    <ViewNewsPage />
+    <ViewEventPage />
   </Suspense>
 );
 
-export default ViewNewsPageWrapper;
+export default ViewEventPageWrapper;
