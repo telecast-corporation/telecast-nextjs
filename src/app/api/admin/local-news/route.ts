@@ -6,12 +6,14 @@ import nodemailer from 'nodemailer';
 
 const prisma = new PrismaClient();
 
-// Nodemailer transporter using a service like Gmail
+// Nodemailer transporter
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
+  host: process.env.SMTP_HOST,
+  port: Number(process.env.SMTP_PORT),
+  secure: process.env.SMTP_SECURE === 'true',
   auth: {
-    user: process.env.GMAIL_USER,
-    pass: process.env.GMAIL_PASS,
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS,
   },
 });
 
@@ -56,8 +58,8 @@ export async function POST(req: NextRequest) {
     const rejectionUrl = `${process.env.NEXTAUTH_URL}/api/admin/local-news/reject?id=${newsItem.id}`;
 
     const mailOptions = {
-      from: process.env.GMAIL_USER,
-      to: 'admin@telecast.ca',
+      from: `"Telecast" <${process.env.SMTP_FROM}>`,
+      to: 'samueloni0987@gmail.com',
       subject: 'New EventSubmission for Approval',
       html: `
         <h1>New EventSubmission</h1>

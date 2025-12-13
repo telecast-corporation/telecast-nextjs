@@ -2,10 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { path: string } }
+  { params }: { params: { path: string | string[] } }
 ) {
   try {
-    const { path } = params;
+    const pathSegments = Array.isArray(params.path) ? params.path : [params.path];
+    const path = pathSegments.join('/');
     
     console.log('=== AUDIO PROXY DEBUG ===');
     console.log('Original path parameter:', path);

@@ -22,7 +22,7 @@ export async function POST(request: Request) {
     // Email content
     const mailOptions = {
       from: `"Telecast" <${process.env.SMTP_FROM}>`,
-      to: 'admin@telecast.ca',
+      to: 'samueloni0987@gmail.com',
       subject: `New EventSubmission: ${title}`,
       html: `
         <!DOCTYPE html>
