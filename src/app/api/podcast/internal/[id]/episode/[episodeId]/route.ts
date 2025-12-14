@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string; episodeId: string } }
+  { params }: { params: Promise<{ id: string; episodeId: string }> }
 ) {
   try {
     const user = await getAuth0User(request);
@@ -14,7 +14,7 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { id: podcastId, episodeId } = params;
+    const { id: podcastId, episodeId } = await params;
 
     // First get the user from database
     const dbUser = await prisma.user.findUnique({
@@ -62,7 +62,7 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string; episodeId: string } }
+  { params }: { params: Promise<{ id: string; episodeId: string }> }
 ) {
   try {
     const user = await getAuth0User(request);
@@ -70,7 +70,7 @@ export async function PUT(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { id: podcastId, episodeId } = params;
+    const { id: podcastId, episodeId } = await params;
 
     // First get the user from database
     const dbUser = await prisma.user.findUnique({
@@ -170,7 +170,7 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string; episodeId: string } }
+  { params }: { params: Promise<{ id: string; episodeId: string }> }
 ) {
   try {
     const user = await getAuth0User(request);
@@ -178,7 +178,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { id: podcastId, episodeId } = params;
+    const { id: podcastId, episodeId } = await params;
 
     // First get the user from database
     const dbUser = await prisma.user.findUnique({
@@ -230,4 +230,4 @@ export async function DELETE(
       { status: 500 }
     );
   }
-} 
+}

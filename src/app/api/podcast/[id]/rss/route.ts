@@ -1,8 +1,8 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
 export async function GET(
-  req: Request,
+  req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
@@ -73,7 +73,7 @@ export async function GET(
       <pubDate>${episode.publishedAt ? episode.publishedAt.toUTCString() : episode.createdAt.toUTCString()}</pubDate>
       <enclosure url="${episode.audioUrl}" type="audio/mpeg" length="${episode.fileSize || 0}" />
       
-      <itunes:title><![CDATA[${episode.title || 'Untitled Episode'}]]></itunes:title>
+      <itunes:title><![CDATA[${episode.title || 'Untitled Episode'}]]></title>
       <itunes:summary><![CDATA[${episode.description || ''}]]></itunes:summary>
       <itunes:explicit>${episode.explicit ? 'yes' : 'no'}</itunes:explicit>
       <itunes:duration>${episode.duration || 0}</itunes:duration>
