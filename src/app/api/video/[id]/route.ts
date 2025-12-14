@@ -13,27 +13,41 @@ export async function GET(
     }
 
     const response = await fetch(
-      `https://www.googleapis.com/youtube/v3/videos?id=${id}&part=snippet,player&key=${apiKey}`
+      `https://www.googleapis.com/youtube/v3/videos?id=${id}&part=snippet,player,statistics,contentDetails&key=${apiKey}`
     );
 
     const data = await response.json();
 
-    if (!response.ok) {
-      return NextResponse.json({ error: 'Failed to fetch video' }, { status: 500 });
-    }
-
-    if (data.items.length === 0) {
+    if (!response.ok || data.items.length === 0) {
       return NextResponse.json({ error: 'Video not found' }, { status: 404 });
     }
 
     const video = data.items[0];
+    const snippet = video.snippet;
+    const statistics = video.statistics;
+    const contentDetails = video.contentDetails;
+    const player = video.player;
+
+    // Format duration from ISO 8601 to readable format
+    const duration = contentDetails.duration
+      .replace('PT', '')
+      .replace('H', ':')
+      .replace('M', ':')
+      .replace('S', '');
+
     const videoDetails = {
-      id: video.id,
-      title: video.snippet.title,
-      description: video.snippet.description,
-      videoUrl: video.player.embedHtml, // This will be an iframe
-      channelTitle: video.snippet.channelTitle,
-      publishedAt: video.snippet.publishedAt,
+      id: id,
+      title: snippet.title,
+      description: snippet.description,
+      thumbnail: snippet.thumbnails.high.url,
+      author: snippet.channelTitle,
+      publishedAt: snippet.publishedAt,
+      viewCount: statistics ? parseInt(statistics.viewCount) : 0,
+      likeCount: statistics ? parseInt(statistics.likeCount) : 0,
+      duration,
+      videoUrl: player.embedHtml, // This is the iframe embed code
+      source: 'youtube',
+      sourceUrl: `https://www.youtube.com/watch?v=${id}`,
     };
 
     return NextResponse.json(videoDetails);
