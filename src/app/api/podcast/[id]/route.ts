@@ -123,7 +123,7 @@ export async function DELETE(
       where: { id: id },
     });
 
-    if (!existingPodcast) {.
+    if (!existingPodcast) {
       return NextResponse.json(
         { error: 'Podcast not found' },
         { status: 404 }
