@@ -34,6 +34,7 @@ import {
   List as ListIcon,
   Visibility as PublishIcon,
   VisibilityOff as UnpublishIcon,
+  TravelExplore as DiscoverIcon
 } from '@mui/icons-material';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -171,31 +172,56 @@ function MyPodcastsContent() {
         >
           Manage your podcast episodes
         </Typography>
-        <Button
-          variant="contained"
-          onClick={() => {
-            console.log('Create New Podcast button clicked');
-            router.push('/my-podcasts/create');
-          }}
-          sx={{
-            backgroundColor: '#2563eb',
-            borderRadius: '8px',
-            px: 4,
-            py: 2,
-            fontSize: '1.1rem',
-            fontWeight: 600,
-            textTransform: 'none',
-            boxShadow: '0 4px 12px rgba(37, 99, 235, 0.2)',
-            transition: 'all 0.2s ease',
-            '&:hover': {
-              backgroundColor: '#1d4ed8',
-              boxShadow: '0 6px 16px rgba(37, 99, 235, 0.3)',
-              transform: 'translateY(-1px)',
-            },
-          }}
-        >
-          Create New Podcast
-        </Button>
+        <Stack direction="row" spacing={2} justifyContent="center">
+          <Button
+            variant="contained"
+            onClick={() => {
+              console.log('Create New Podcast button clicked');
+              router.push('/my-podcasts/create');
+            }}
+            sx={{
+              backgroundColor: '#2563eb',
+              borderRadius: '8px',
+              px: 4,
+              py: 2,
+              fontSize: '1.1rem',
+              fontWeight: 600,
+              textTransform: 'none',
+              boxShadow: '0 4px 12px rgba(37, 99, 235, 0.2)',
+              transition: 'all 0.2s ease',
+              '&:hover': {
+                backgroundColor: '#1d4ed8',
+                boxShadow: '0 6px 16px rgba(37, 99, 235, 0.3)',
+                transform: 'translateY(-1px)',
+              },
+            }}
+          >
+            Create New Podcast
+          </Button>
+          <Button
+            variant="outlined"
+            startIcon={<DiscoverIcon />}
+            onClick={() => {
+              router.push('/my-podcasts/discover');
+            }}
+            sx={{
+              borderRadius: '8px',
+              px: 4,
+              py: 2,
+              fontSize: '1.1rem',
+              fontWeight: 600,
+              textTransform: 'none',
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+              transition: 'all 0.2s ease',
+              '&:hover': {
+                boxShadow: '0 6px 16px rgba(0, 0, 0, 0.15)',
+                transform: 'translateY(-1px)',
+              },
+            }}
+          >
+            Discover
+          </Button>
+        </Stack>
       </Box>
 
       {error && (
