@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getUserFromRequest } from '@/lib/auth0-user';
+import { getAuth0User } from '@/lib/auth0-session';
 import { prisma } from '@/lib/prisma';
 import { uploadPodcastFile } from '@/lib/storage';
 
@@ -9,13 +9,13 @@ export async function GET(
 ) {
   const { id } = await params;
   try {
+    const user = await getAuth0User(request as any);
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const podcast = await prisma.podcast.findUnique({
       where: { id: id },
-      include: {
-        episodes: {
-          orderBy: { publishedAt: 'desc' },
-        },
-      },
     });
 
     if (!podcast) {
@@ -38,7 +38,7 @@ export async function PUT(
 ) {
   const { id } = await params;
   try {
-    const user = await getUserFromRequest(request as any);
+    const user = await getAuth0User(request as any);
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -57,6 +57,16 @@ export async function PUT(
       );
     }
 
+    // Get user from database
+    const dbUser = await prisma.user.findUnique({
+      where: { email: user.email }
+    });
+
+    if (!dbUser) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    // Check if podcast exists and belongs to user
     const existingPodcast = await prisma.podcast.findUnique({
       where: { id: id },
     });
@@ -68,13 +78,14 @@ export async function PUT(
       );
     }
 
-    if (existingPodcast.userId !== user.id) {
+    if (existingPodcast.userId !== dbUser.id) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
       );
     }
 
+    // Prepare update data
     const updateData: any = {
       title,
       description,
@@ -82,17 +93,19 @@ export async function PUT(
       tags,
     };
 
+    // If new image is provided, upload it
     if (imageFile) {
       const imageBuffer = Buffer.from(await imageFile.arrayBuffer());
       const { url: coverImage } = await uploadPodcastFile(
         imageBuffer,
         imageFile.name,
         imageFile.type,
-        true
+        true // Set isImage to true for podcast cover images
       );
       updateData.coverImage = coverImage;
     }
 
+    // Update podcast
     const podcast = await prisma.podcast.update({
       where: { id: id },
       data: updateData,
@@ -114,11 +127,21 @@ export async function DELETE(
 ) {
   const { id } = await params;
   try {
-    const user = await getUserFromRequest(request as any);
+    const user = await getAuth0User(request as any);
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // Get user from database
+    const dbUser = await prisma.user.findUnique({
+      where: { email: user.email }
+    });
+
+    if (!dbUser) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    // Check if podcast exists and belongs to user
     const existingPodcast = await prisma.podcast.findUnique({
       where: { id: id },
     });
@@ -130,13 +153,14 @@ export async function DELETE(
       );
     }
 
-    if (existingPodcast.userId !== user.id) {
+    if (existingPodcast.userId !== dbUser.id) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
       );
     }
 
+    // Delete podcast
     await prisma.podcast.delete({
       where: { id: id },
     });
@@ -149,61 +173,4 @@ export async function DELETE(
       { status: 500 }
     );
   }
-}
-
-export async function PATCH(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  const { id } = await params;
-  try {
-    const user = await getUserFromRequest(request as any);
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const body = await request.json();
-    const { isAvailable } = body;
-
-    const existingPodcast = await prisma.podcast.findUnique({
-      where: { id: id },
-      include: {
-        episodes: true
-      }
-    });
-
-    if (!existingPodcast) {
-      return NextResponse.json(
-        { error: 'Podcast not found' },
-        { status: 404 }
-      );
-    }
-
-    if (existingPodcast.userId !== user.id) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
-
-    if (isAvailable && existingPodcast.episodes.length === 0) {
-      return NextResponse.json(
-        { error: 'Cannot publish podcast without episodes' },
-        { status: 400 }
-      );
-    }
-
-    const podcast = await prisma.podcast.update({
-      where: { id: id },
-      data: { isAvailable },
-    });
-
-    return NextResponse.json(podcast);
-  } catch (error) {
-    console.error('Error updating podcast:', error);
-    return NextResponse.json(
-      { error: 'Error updating podcast' },
-      { status: 500 }
-    );
-  }
-}
+} 
