@@ -1,13 +1,13 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import axios from 'axios';
 
 const GOOGLE_BOOKS_API_KEY = process.env.GOOGLE_BOOKS_API_KEY;
 
 export async function GET(
-  request: Request,
-  { params }: { params: { id: string } }
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const { id: bookId } = params;
+  const { id: bookId } = await params;
 
   if (!bookId) {
     return NextResponse.json(
@@ -95,4 +95,4 @@ export async function GET(
       { status: 500 }
     );
   }
-} 
+}

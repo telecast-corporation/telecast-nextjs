@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import axios from 'axios';
 import { prisma } from '@/lib/prisma';
 
@@ -79,10 +79,10 @@ function generatePreviewOptions(track: any, artist: any) {
 }
 
 export async function GET(
-  request: Request,
-  { params }: { params: { id: string } }
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const { id } = params;
+  const { id } = await params;
   try {
     if (!id) {
       return NextResponse.json({ error: 'Track ID is required' }, { status: 400 });
@@ -183,4 +183,4 @@ export async function GET(
       { status: 500 }
     );
   }
-} 
+}
