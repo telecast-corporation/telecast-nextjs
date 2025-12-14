@@ -13,7 +13,7 @@ export async function GET(
       where: { id: id },
       include: {
         episodes: {
-          orderBy: { isAvailableAt: 'desc' },
+          orderBy: { publishedAt: 'desc' },
         },
       },
     });
@@ -123,7 +123,7 @@ export async function DELETE(
       where: { id: id },
     });
 
-    if (!existingPodcast) {
+    if (!existingPodcast) {.
       return NextResponse.json(
         { error: 'Podcast not found' },
         { status: 404 }
