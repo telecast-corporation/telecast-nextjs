@@ -6,9 +6,9 @@ const YOUTUBE_API_URL = 'https://www.googleapis.com/youtube/v3';
 
 export async function GET(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
-  const { id } = await params;
+  const { id } = params;
 
   try {
     // Get video details
@@ -45,11 +45,13 @@ export async function GET(
       description: snippet.description,
       thumbnail: snippet.thumbnails.high.url,
       author: snippet.channelTitle,
+      channelUrl: `https://www.youtube.com/channel/${snippet.channelId}`,
       publishedAt: snippet.publishedAt,
-      viewCount: parseInt(statistics.viewCount),
-      likeCount: parseInt(statistics.likeCount),
+      viewCount: statistics ? parseInt(statistics.viewCount) : 0,
+      likeCount: statistics ? parseInt(statistics.likeCount) : 0,
       duration,
       source: 'youtube',
+      videoUrl: `<iframe width="100%" height="100%" src="https://www.youtube.com/embed/${id}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`,
       sourceUrl: `https://www.youtube.com/watch?v=${id}`,
     });
   } catch (error) {
@@ -59,4 +61,4 @@ export async function GET(
       { status: 500 }
     );
   }
-} 
+}

@@ -75,11 +75,13 @@ export class PodcastIndex {
         }
       );
 
-      if (!response.data.feeds || response.data.feeds.length === 0) {
+      const results = response.data.feeds || response.data.items || [];
+
+      if (results.length === 0) {
         return [];
       }
 
-      return response.data.feeds.map((feed: any) => ({
+      return results.map((feed: any) => ({
         id: feed.id,
         title: feed.title,
         author: feed.author || 'Unknown Author',
@@ -185,7 +187,7 @@ export class PodcastIndex {
 
   async submitFeedByUrl(feedUrl: string, options?: { chash?: string; itunesid?: number; pretty?: boolean }): Promise<any> {
     try {
-      const response = await axios.get(
+      const response = await axios.post(
         `${PODCASTINDEX_API_URL}/add/byfeedurl`,
         {
           params: { url: feedUrl, ...(options?.chash ? { chash: options.chash } : {}), ...(options?.itunesid ? { itunesid: options.itunesid } : {}), ...(options?.pretty ? { pretty: true } : {}) },
@@ -210,4 +212,5 @@ export class PodcastIndex {
 }
 
 // Export a singleton instance
-export const podcastIndex = new PodcastIndex(); 
+export const podcastIndex = new PodcastIndex();
+''

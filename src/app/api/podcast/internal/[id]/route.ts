@@ -3,22 +3,22 @@ import { prisma } from '@/lib/prisma';
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = await params;
+    const { id } = params;
     const podcast = await prisma.podcast.findUnique({
       where: { id },
       include: {
         episodes: {
-          orderBy: { publishedAt: 'desc' },
+          orderBy: { publishDate: 'desc' }, 
           select: {
             id: true,
             title: true,
             description: true,
             audioUrl: true,
             duration: true,
-            publishedAt: true,
+            publishDate: true, 
             isPublished: true,
             episodeNumber: true,
             seasonNumber: true,
@@ -36,11 +36,8 @@ export async function GET(
       return NextResponse.json({ error: 'Podcast not found' }, { status: 404 });
     }
 
-    console.log('Podcast data being returned:', {
-      id: podcast.id,
-      title: podcast.title,
-      coverImage: podcast.coverImage
-    });
+    // No need to log here, but if you do, be consistent with the returned data
+    // console.log('Podcast data being returned:', podcast);
 
     return NextResponse.json(podcast);
   } catch (error) {
