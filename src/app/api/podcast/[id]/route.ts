@@ -13,7 +13,7 @@ export async function GET(
       where: { id: id },
       include: {
         episodes: {
-          orderBy: { publishedAt: 'desc' },
+          orderBy: { isAvailableAt: 'desc' },
         },
       },
     });
@@ -163,7 +163,7 @@ export async function PATCH(
     }
 
     const body = await request.json();
-    const { published } = body;
+    const { isAvailable } = body;
 
     const existingPodcast = await prisma.podcast.findUnique({
       where: { id: id },
@@ -186,7 +186,7 @@ export async function PATCH(
       );
     }
 
-    if (published && existingPodcast.episodes.length === 0) {
+    if (isAvailable && existingPodcast.episodes.length === 0) {
       return NextResponse.json(
         { error: 'Cannot publish podcast without episodes' },
         { status: 400 }
@@ -195,7 +195,7 @@ export async function PATCH(
 
     const podcast = await prisma.podcast.update({
       where: { id: id },
-      data: { published },
+      data: { isAvailable },
     });
 
     return NextResponse.json(podcast);
