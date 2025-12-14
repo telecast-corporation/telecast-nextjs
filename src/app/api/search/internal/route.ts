@@ -1,9 +1,8 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getAuth0User } from '@/lib/auth0-session';
-import { PodcastIndex } from '@/lib/podcast-index';
+import { PodcastIndex, type Podcast } from '@/lib/podcast-index';
 import { truncateText } from '@/lib/utils';
-import type { Podcast } from '@/types';
 
 async function searchPodcasts(query: string, maxResults: number = 300, request?: Request) {
   try {
