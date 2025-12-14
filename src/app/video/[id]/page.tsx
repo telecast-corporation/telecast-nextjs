@@ -4,13 +4,12 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import {
   Container,
-  Typography,
   Box,
   CircularProgress,
   Card,
   CardContent,
 } from '@mui/material';
-import { AspectRatio } from '@mui/joy';
+import { AspectRatio, Typography } from '@mui/joy';
 
 interface Video {
     id: string;
@@ -83,7 +82,7 @@ export default function VideoPlayerPage() {
     <Container sx={{ py: 4 }}>
       <Card variant="outlined" sx={{ mb: 4, maxWidth: 800, mx: 'auto' }}>
         <CardContent>
-          <Typography level="h4" component="h1" gutterBottom>
+          <Typography level="h4" component="h1" sx={{ mb: 2 }}>
             {video.title}
           </Typography>
         </CardContent>
