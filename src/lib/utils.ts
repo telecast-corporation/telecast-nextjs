@@ -59,3 +59,10 @@ export function getAudioProxyUrl(audioUrl: string): string {
   // For any other URL, return as is
   return audioUrl;
 } 
+
+export function truncateText(text: string, maxLength: number): string {
+  if (text.length <= maxLength) {
+    return text;
+  }
+  return text.slice(0, maxLength) + '...';
+}
