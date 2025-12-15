@@ -14,6 +14,17 @@ export interface SpotifyPodcast {
   images: { url: string }[];
   external_urls: { spotify: string };
   explicit: boolean;
+  episodes: { items: SpotifyEpisode[] };
+}
+
+export interface SpotifyEpisode {
+    id: string;
+    name: string;
+    description: string;
+    audio_preview_url: string;
+    duration_ms: number;
+    release_date: string;
+    images: { url: string }[];
 }
 
 export class SpotifyClient {
@@ -73,6 +84,23 @@ export class SpotifyClient {
     } catch (error) {
       console.error('Error searching Spotify podcasts:', error);
       this.accessToken = null; // Reset token on error
+      throw error;
+    }
+  }
+  
+  async getPodcastById(id: string): Promise<SpotifyPodcast | null> {
+    try {
+      const headers = await this.getAuthHeaders();
+      const response = await axios.get(`${SPOTIFY_API_URL}/shows/${id}`, {
+        headers,
+      });
+      return response.data;
+    } catch (error) {
+      console.error(`Error fetching Spotify podcast with id ${id}:`, error);
+      this.accessToken = null; // Reset token on error
+      if (axios.isAxiosError(error) && error.response?.status === 404) {
+        return null;
+      }
       throw error;
     }
   }
