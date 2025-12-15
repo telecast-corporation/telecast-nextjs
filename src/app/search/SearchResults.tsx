@@ -66,6 +66,33 @@ export default function SearchResults() {
 
   useEffect(() => {
     const fetchResults = async () => {
+      if (type === 'podcast' && !query) {
+        setLoading(true);
+        setError(null);
+        try {
+          const response = await fetch(`/api/search/spotify?term=popular%20podcasts`);
+          if (!response.ok) {
+            throw new Error('Failed to fetch popular podcasts');
+          }
+          const data = await response.json();
+          const formattedResults: SearchResult[] = data.map((podcast: any) => ({
+            id: podcast.id,
+            type: 'podcast',
+            title: podcast.name,
+            description: podcast.description,
+            thumbnail: podcast.images[0]?.url,
+            url: podcast.external_urls.spotify,
+          }));
+          setResults(formattedResults);
+          setPagination(null);
+        } catch (err) {
+          setError(err instanceof Error ? err.message : 'An error occurred');
+        } finally {
+          setLoading(false);
+        }
+        return;
+      }
+
       if (!query && !showRecommendations) {
         setResults([]);
         setLoading(false);
@@ -274,4 +301,4 @@ export default function SearchResults() {
       )}
     </Container>
   );
-} 
+}
