@@ -38,7 +38,7 @@ const SearchResultsGrid: React.FC<SearchResultsGridProps> = ({ results, onPodcas
           }}
           onClick={() => {
             switch (result.category) {
-              case 'podcasts':
+              case 'podcast':
                 onPodcastClick(result);
                 break;
               case 'videos':
