@@ -1,20 +1,17 @@
 
 import { NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
-import { EMAIL_USER, EMAIL_PASS } from '../../../config';
 
 export async function POST(request: Request) {
   try {
-    const { title, description, category, locationCity, locationCountry } = await request.json();
+    const { id, title, description, category, locationCity, locationCountry } = await request.json();
 
-    if (!title || !description || !category || !locationCity || !locationCountry) {
+    if (!id || !title || !description || !category || !locationCity || !locationCountry) {
       return NextResponse.json(
         { error: 'All fields are required' },
         { status: 400 }
       );
     }
-
-    const tempId = `temp_${Date.now()}`;
 
     const transporter = nodemailer.createTransport({
       host: "smtp.gmail.com",
@@ -26,8 +23,7 @@ export async function POST(request: Request) {
       },
     });
 
-    const approveLink = `${process.env.NEXT_PUBLIC_BASE_URL}/api/admin/local-news/approve?id=${tempId}`;
-    const rejectLink = `${process.env.NEXT_PUBLIC_BASE_URL}/api/admin/local-news/reject?id=${tempId}`;
+    const viewLink = `${process.env.NEXT_PUBLIC_BASE_URL}/admin/local-news/${id}`;
 
     const mailOptions = {
         from: `"Telecast" <verify@telecast.ca>`,
@@ -59,8 +55,7 @@ export async function POST(request: Request) {
                             <li><strong>Location:</strong> ${locationCity}, ${locationCountry}</li>
                         </ul>
                         <p style="margin-top: 20px;">
-                          <a href="${approveLink}" style="background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin-right: 10px;">Approve</a>
-                          <a href="${rejectLink}" style="background-color: #f44336; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Reject</a>
+                          <a href="${viewLink}" style="background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin-right: 10px;">View and Approve/Reject</a>
                         </p>
                     </td>
                 </tr>

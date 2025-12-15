@@ -111,7 +111,7 @@ const EventUploadPage = () => {
         createdAt: new Date(),
       };
 
-      await db.localNews.add(newNewsItem);
+      const id = await db.localNews.add(newNewsItem);
 
       await fetch('/api/notify', {
         method: 'POST',
@@ -119,6 +119,7 @@ const EventUploadPage = () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
+          id,
           title,
           description,
           category,
