@@ -11,14 +11,14 @@ export async function GET(
       where: { id },
       include: {
         episodes: {
-          orderBy: { publishDate: 'desc' }, 
+          orderBy: { publishedAt: 'desc' }, 
           select: {
             id: true,
             title: true,
             description: true,
             audioUrl: true,
             duration: true,
-            publishDate: true, 
+            publishedAt: true, 
             isPublished: true,
             episodeNumber: true,
             seasonNumber: true,
