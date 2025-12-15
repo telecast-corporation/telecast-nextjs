@@ -2,6 +2,7 @@
 
 import { Suspense } from 'react';
 import { Box, CircularProgress } from '@mui/material';
+import PartnerLogos from '@/components/PartnerLogos';
 
 export default function MyPodcastsLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -12,7 +13,10 @@ export default function MyPodcastsLayout({ children }: { children: React.ReactNo
         </Box>
       }
     >
-      {children}
+      <Box>
+        {children}
+        <PartnerLogos />
+      </Box>
     </Suspense>
   );
 }

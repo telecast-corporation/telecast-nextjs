@@ -45,10 +45,6 @@ export default function SearchResults() {
   const [toastMessage, setToastMessage] = useState('');
   const [toastSeverity, setToastSeverity] = useState<'success' | 'info' | 'warning' | 'error'>('info');
 
-  if (type === 'all') {
-    router.push('/');
-    return null;
-  }
 
   const showRecommendations = !query && ['podcast', 'video', 'music', 'book', 'news', 'tv'].includes(type);
 

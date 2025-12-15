@@ -95,6 +95,7 @@ function MyPodcastsContent() {
         throw new Error('Failed to fetch podcasts');
       }
       const data = await response.json();
+      console.log('Fetched podcasts:', data);
       setPodcasts(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load podcasts');
@@ -296,7 +297,7 @@ function MyPodcastsContent() {
           <Typography>
             Are you sure you want to delete "{selectedPodcast?.title}"? This action cannot be undone.
           </Typography>
-        </DialogContent>
+        </DialogContent>.
         <DialogActions>
           <Button onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
           <Button onClick={handleDelete} color="error">
