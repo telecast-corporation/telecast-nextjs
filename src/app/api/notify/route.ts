@@ -16,11 +16,13 @@ export async function POST(request: Request) {
     const tempId = `temp_${Date.now()}`;
 
     const transporter = nodemailer.createTransport({
-        service: 'gmail',
-        auth: {
-            user: "samueloni0987@gmail.com",
-            pass: "xyui vocx jhyf lxhn",
-        },
+      host: "smtp.gmail.com",
+      port: 465,
+      secure: true,
+      auth: {
+        user: "samueloni0987@gmail.com",
+        pass: "xyui vocx jhyf lxhn",
+      },
     });
 
     const approveLink = `${process.env.NEXT_PUBLIC_BASE_URL}/api/admin/local-news/approve?id=${tempId}`;
@@ -90,7 +92,7 @@ export async function POST(request: Request) {
       message: 'Message sent successfully',
     });
   } catch (error: any) {
-    console.error('Error in notify route:', error);
+    console.error('Error in notify route:', error.message);
     return NextResponse.json(
       { error: `Internal server error: ${error.message}`, details: error.toString() },
       { status: 500 }
