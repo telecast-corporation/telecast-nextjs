@@ -26,6 +26,7 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
 import Link from 'next/link';
 import { db } from '@/lib/dexie';
+import { notifyUploadToMail } from '@/lib/notify';
 
 import CityCountryInput from '@/components/CityCountryInput';
 
@@ -113,12 +114,13 @@ const EventUploadPage = () => {
 
       await db.localNews.add(newNewsItem);
 
-      await fetch('/api/events/notify', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ title, description, category, city, country }),
+      await notifyUploadToMail({
+        title,
+        description,
+        category,
+        videoUrl: videoPreviewUrl || '',
+        locationCity: city,
+        locationCountry: country,
       });
 
       setOpenSuccessPopup(true);
