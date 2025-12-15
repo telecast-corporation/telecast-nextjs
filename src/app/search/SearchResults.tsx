@@ -53,6 +53,16 @@ export default function SearchResults() {
     params.set('page', page.toString());
     router.push(`/search?${params.toString()}`);
   };
+  const cleanDescription = (html: string) => {
+    if (typeof window === 'undefined') {
+      // In a server-side environment, use a simple regex to remove tags
+      return html.replace(/<[^>]*>?/gm, '');
+    }
+    // In a client-side environment, use the DOM to parse HTML
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = html;
+    return tempDiv.textContent || tempDiv.innerText || '';
+  };
 
   useEffect(() => {
     const fetchResults = async () => {

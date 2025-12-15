@@ -311,4 +311,4 @@ export default function UnifiedSearchResults({ results, searchType = 'all', load
       <TVPreviewModal open={tvModalOpen} onClose={() => setTvModalOpen(false)} tvShow={selectedTvShow} />
     </Box>
   );
-}
+} 
