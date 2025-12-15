@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 // import { Storage } from '@google-cloud/storage';
 import { v4 as uuidv4 } from 'uuid';
+import { notifyUploadToMail } from '../../../lib/notify';
 
 /*
 const storage = new Storage({
@@ -14,27 +15,6 @@ const storage = new Storage({
 
 const bucketName = 'telecast-videos'; // Replace with your bucket name
 */
-
-async function notifyUploadToMail(data: {
-  title: string,
-  description: string,
-  category: string,
-  videoUrl: string,
-  locationCity: string,
-  locationCountry: string
-}) {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/events`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-    });
-
-    if (!response.ok) {
-        console.error('Failed to send notification email.');
-    }
-}
 
 export async function POST(req: NextRequest) {
   try {
