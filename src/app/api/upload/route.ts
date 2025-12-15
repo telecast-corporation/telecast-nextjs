@@ -1,8 +1,9 @@
 
 import { NextRequest, NextResponse } from 'next/server';
-import { Storage } from '@google-cloud/storage';
+// import { Storage } from '@google-cloud/storage';
 import { v4 as uuidv4 } from 'uuid';
 
+/*
 const storage = new Storage({
   projectId: process.env.GOOGLE_CLOUD_PROJECT_ID,
   credentials: {
@@ -12,21 +13,22 @@ const storage = new Storage({
 });
 
 const bucketName = 'telecast-videos'; // Replace with your bucket name
+*/
 
-async function notifyUploadToMail(file: File) {
-    const response = await fetch('http://localhost:3000/api/events/notify', {
+async function notifyUploadToMail(data: {
+  title: string,
+  description: string,
+  category: string,
+  videoUrl: string,
+  locationCity: string,
+  locationCountry: string
+}) {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/events`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ 
-            title: file.name, 
-            description: "A new file has been uploaded.",
-            category: "Uploaded Media",
-            city: "Unknown",
-            country: "Unknown",
-            id: uuidv4(),
-        }),
+        body: JSON.stringify(data),
     });
 
     if (!response.ok) {
@@ -38,11 +40,16 @@ export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
     const file = formData.get('file') as File;
+    const title = formData.get('title') as string || file.name;
+    const description = formData.get('description') as string || "A new file has been uploaded.";
+    const category = formData.get('category') as string || "Uploaded Media";
+    const locationCity = formData.get('locationCity') as string || "Unknown";
+    const locationCountry = formData.get('locationCountry') as string || "Unknown";
 
     if (!file) {
       return NextResponse.json({ error: 'No file uploaded.' }, { status: 400 });
     }
-
+    /*
     const fileExtension = file.name.split('.').pop();
     const fileName = `${uuidv4()}.${fileExtension}`;
     const blob = storage.bucket(bucketName).file(fileName);
@@ -59,12 +66,21 @@ export async function POST(req: NextRequest) {
     });
 
     const publicUrl = `https://storage.googleapis.com/${bucketName}/${fileName}`;
+    */
+    const publicUrl = 'http://fake-video-url.com/video.mp4'; // Dummy URL for testing
 
-    await notifyUploadToMail(file);
+    await notifyUploadToMail({
+      title,
+      description,
+      category,
+      videoUrl: publicUrl,
+      locationCity,
+      locationCountry
+    });
 
     return NextResponse.json({ videoUrl: publicUrl });
   } catch (error) {
-    console.error('Error uploading to GCS:', error);
-    return NextResponse.json({ error: 'Failed to upload file.' }, { status: 500 });
+    console.error('Error in upload processing:', error);
+    return NextResponse.json({ error: 'Failed to process upload.' }, { status: 500 });
   }
 }

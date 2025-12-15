@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
   
       // Email content
       const mailOptions = {
-        from: `"Telecast" <${process.env.SMTP_FROM}>`,
+        from: '"Telecast" <samueloni0987@gmail.com>',
         to: 'samueloni0987@gmail.com',
         subject: `New EventSubmission: ${title}`,
         html: `
@@ -121,7 +121,13 @@ export async function POST(req: NextRequest) {
       };
   
       // Send mail with defined transport object
-      await transporter.sendMail(mailOptions);
+      try {
+    await transporter.sendMail(mailOptions);
+    console.log('Email sent successfully');
+  } catch (error) {
+    console.error('Error sending email:', error);
+    return NextResponse.json({ error: 'Failed to send email', details: (error as Error).message }, { status: 500 });
+  }
 
 
     return NextResponse.json({ message: "Notification sent without saving to database." }, { status: 200 });
