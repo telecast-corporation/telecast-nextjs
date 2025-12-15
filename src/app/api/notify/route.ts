@@ -86,24 +86,15 @@ export async function POST(request: Request) {
       `,
     };
 
-    try {
-        await transporter.sendMail(mailOptions);
-    } catch (mailError) {
-        console.error('Failed to send email:', mailError);
-        return NextResponse.json(
-            { error: 'Failed to send notification email.' },
-            { status: 500 }
-        );
-    }
-
+    await transporter.sendMail(mailOptions);
 
     return NextResponse.json({
       message: 'Message sent successfully',
     });
-  } catch (error) {
-    console.error('Contact form error:', error);
+  } catch (error: any) {
+    console.error('Error in notify route:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: `Internal server error: ${error.message}` },
       { status: 500 }
     );
   }
