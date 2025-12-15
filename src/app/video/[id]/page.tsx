@@ -87,7 +87,7 @@ export default function VideoPlayerPage() {
           </Typography>
         </CardContent>
         <AspectRatio ratio="16/9">
-           <div>{video.videoUrl}</div>
+           <div dangerouslySetInnerHTML={{ __html: video.videoUrl }} />
         </AspectRatio>
         <CardContent>
           <Typography sx={{ mt: 2 }}>

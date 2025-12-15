@@ -44,7 +44,7 @@ export async function GET(
       title: snippet.title,
       description: snippet.description,
       thumbnail: snippet.thumbnails.high.url,
-      author: snippet.channelTitle,
+      channelTitle: snippet.channelTitle,
       channelUrl: `https://www.youtube.com/channel/${snippet.channelId}`,
       publishedAt: snippet.publishedAt,
       viewCount: statistics ? parseInt(statistics.viewCount) : 0,
