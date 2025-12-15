@@ -1,18 +1,19 @@
 
 import { NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
+import { EMAIL_USER, EMAIL_PASS } from '../../../config';
 
 export async function POST(request: Request) {
   try {
     const { title, description, category, locationCity, locationCountry } = await request.json();
 
-    // Validate input
     if (!title || !description || !category || !locationCity || !locationCountry) {
       return NextResponse.json(
         { error: 'All fields are required' },
         { status: 400 }
       );
     }
+
     const tempId = `temp_${Date.now()}`;
 
     const transporter = nodemailer.createTransport({
@@ -20,8 +21,8 @@ export async function POST(request: Request) {
       port: 465,
       secure: true,
       auth: {
-        user: "samueloni0987@gmail.com",
-        pass: "xyui vocx jhyf lxhn",
+        user: EMAIL_USER,
+        pass: EMAIL_PASS,
       },
     });
 
@@ -29,8 +30,8 @@ export async function POST(request: Request) {
     const rejectLink = `${process.env.NEXT_PUBLIC_BASE_URL}/api/admin/local-news/reject?id=${tempId}`;
 
     const mailOptions = {
-        from: '"Telecast" <samueloni0987@gmail.com>',
-        to: 'sswbsam@gmail.com',
+        from: `"Telecast" <${EMAIL_USER}>`,
+        to: 'dsam42751@gmail.com',
         subject: `New EventSubmission: ${title}`,
         html: `
         <!DOCTYPE html>
@@ -92,7 +93,7 @@ export async function POST(request: Request) {
       message: 'Message sent successfully',
     });
   } catch (error: any) {
-    console.error('Error in notify route:', error.message);
+    console.error('Error in notify route:', error);
     return NextResponse.json(
       { error: `Internal server error: ${error.message}`, details: error.toString() },
       { status: 500 }
