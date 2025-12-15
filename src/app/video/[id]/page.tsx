@@ -70,7 +70,7 @@ export default function VideoPlayerPage() {
          <Typography level="h2" color="danger" sx={{ mb: 2 }}>
             Something went wrong!
         </Typography>
-        <Typography level="h5">
+        <Typography level="h4">
           {error || 'Video not found'}
         </Typography>
       </Container>
