@@ -25,12 +25,12 @@ export async function POST(request: Request) {
 
     // Create a transporter object using the default SMTP transport
     let transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: Number(process.env.SMTP_PORT),
-      secure: process.env.SMTP_SECURE === 'true',
+      host: "smtp.gmail.com",
+      port: 465,
+      secure: true,
       auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
+        user: "samueloni0987@gmail.com",
+        pass: "xyui vocx jhyf lxhn",
       },
     });
 

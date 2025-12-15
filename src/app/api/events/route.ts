@@ -49,14 +49,14 @@ export async function POST(req: NextRequest) {
     const tempId = `temp_${Date.now()}`;
 
     const transporter = nodemailer.createTransport({
-        host: process.env.SMTP_HOST,
-        port: Number(process.env.SMTP_PORT),
-        secure: process.env.SMTP_SECURE === 'true',
-        auth: {
-          user: process.env.SMTP_USER,
-          pass: process.env.SMTP_PASS,
-        },
-      });
+      host: "smtp.gmail.com",
+      port: 465,
+      secure: true,
+      auth: {
+        user: "samueloni0987@gmail.com",
+        pass: "xyui vocx jhyf lxhn",
+      },
+    });
   
       const approveLink = `${process.env.NEXT_PUBLIC_BASE_URL}/api/admin/local-news/approve?id=${tempId}`;
       const rejectLink = `${process.env.NEXT_PUBLIC_BASE_URL}/api/admin/local-news/reject?id=${tempId}`;
