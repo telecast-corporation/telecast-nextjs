@@ -86,7 +86,15 @@ export async function POST(request: Request) {
       `,
     };
 
-    await transporter.sendMail(mailOptions);
+    try {
+        await transporter.sendMail(mailOptions);
+    } catch (mailError) {
+        console.error('Failed to send email:', mailError);
+        return NextResponse.json(
+            { error: 'Failed to send notification email.' },
+            { status: 500 }
+        );
+    }
 
 
     return NextResponse.json({
