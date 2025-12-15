@@ -90,13 +90,24 @@ function MyPodcastsContent() {
 
   const fetchPodcasts = async () => {
     try {
-      const response = await fetch('/api/podcast/internal');
-      if (!response.ok) {
+      const [internalResponse, externalResponse] = await Promise.all([
+        fetch('/api/podcast/internal'),
+        fetch('/api/podcast/external')
+      ]);
+
+      if (!internalResponse.ok || !externalResponse.ok) {
         throw new Error('Failed to fetch podcasts');
       }
-      const data = await response.json();
-      console.log('Fetched podcasts:', data);
-      setPodcasts(data);
+
+      const internalPodcasts = await internalResponse.json();
+      const externalPodcasts = await externalResponse.json();
+
+      const combinedPodcasts = [...internalPodcasts, ...externalPodcasts].sort(
+        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+
+      console.log('Fetched combined podcasts:', combinedPodcasts);
+      setPodcasts(combinedPodcasts);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load podcasts');
     } finally {

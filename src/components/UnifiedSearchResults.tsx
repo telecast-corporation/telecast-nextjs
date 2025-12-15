@@ -211,7 +211,7 @@ export default function UnifiedSearchResults({ results, searchType = 'all', load
       <Link href={contentUrl} style={{ textDecoration: 'none', color: 'inherit' }}>{cardContent}</Link>;
 
     if (result.type === 'tv') return <Box onClick={(e) => handleTvClick(e, result)} sx={{ cursor: 'pointer' }}>{cardContent}</Box>;
-    if (result.type === 'podcast') return cardContent; // No top-level link for podcasts
+    if (result.type === 'podcast') return linkContent;
     return linkContent;
   };
 
