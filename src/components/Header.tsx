@@ -135,7 +135,7 @@ const Header = () => {
                 <FiMenu />
               </IconButton>
             ) : (
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexGrow: 1, overflowX: 'auto' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexGrow: 1 }}>
                 {navLinks.map(({ title, path }) => (
                   <Button
                     key={title}

@@ -230,6 +230,11 @@ export default function PodcastPage() {
 
   // Function to strip HTML tags and decode HTML entities
   const cleanDescription = (html: string) => {
+    if (typeof window === 'undefined') {
+      // In a server-side environment, use a simple regex to remove tags
+      return html.replace(/<[^>]*>?/gm, '');
+    }
+    // In a client-side environment, use the DOM to parse HTML
     const tempDiv = document.createElement('div');
     tempDiv.innerHTML = html;
     return tempDiv.textContent || tempDiv.innerText || '';
@@ -614,7 +619,7 @@ export default function PodcastPage() {
                               }
                             </Typography>
                             {episode.keywords && episode.keywords.length > 0 && (
-                              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 0.5 }}>
+                              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt:.5 }}>
                                 {episode.keywords.slice(0, 3).map((keyword) => (
                                   <Chip
                                     key={keyword}
