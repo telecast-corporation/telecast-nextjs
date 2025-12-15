@@ -6,7 +6,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
 
     if (typeof id !== 'string' || !id) {
       return NextResponse.json({ error: 'Invalid podcast id' }, { status: 400 });
