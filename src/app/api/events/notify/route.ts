@@ -79,7 +79,7 @@ export async function POST(request: Request) {
     };
 
     // Send mail with defined transport object
-    // await transporter.sendMail(mailOptions);
+    await transporter.sendMail(mailOptions);
 
     return NextResponse.json({ message: 'Notification email sent successfully.' });
   } catch (error) {
