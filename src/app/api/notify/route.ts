@@ -4,10 +4,10 @@ import nodemailer from 'nodemailer';
 
 export async function POST(request: Request) {
   try {
-    const { title, description, category, videoUrl, locationCity, locationCountry } = await request.json();
+    const { title, description, category, locationCity, locationCountry } = await request.json();
 
     // Validate input
-    if (!title || !description || !category || !videoUrl || !locationCity || !locationCountry) {
+    if (!title || !description || !category || !locationCity || !locationCountry) {
       return NextResponse.json(
         { error: 'All fields are required' },
         { status: 400 }

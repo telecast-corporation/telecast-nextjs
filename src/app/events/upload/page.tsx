@@ -122,7 +122,6 @@ const EventUploadPage = () => {
           title,
           description,
           category,
-          videoUrl: videoPreviewUrl || '',
           locationCity: city,
           locationCountry: country,
         }),
