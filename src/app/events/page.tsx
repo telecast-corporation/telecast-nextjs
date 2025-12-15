@@ -61,7 +61,7 @@ const EventsPage = () => {
   }, [news]);
 
   const filteredNews = news?.filter(article => {
-    if (!article) return false;
+    if (!article || !article.isApproved) return false;
     const categoryMatch = category
       ? article.category?.toLowerCase().includes(category.toLowerCase())
       : true;

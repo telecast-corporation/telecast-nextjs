@@ -22,12 +22,12 @@ const NewsDetailPage = () => {
   const newsItem = useLiveQuery(() => db.localNews.get(newsId), [newsId]);
 
   const handleApprove = async () => {
-    await db.localNews.update(newsId, { status: 'approved' });
+    await db.localNews.update(newsId, { isApproved: true });
     router.push('/admin/local-news');
   };
 
   const handleReject = async () => {
-    await db.localNews.update(newsId, { status: 'rejected' });
+    await db.localNews.update(newsId, { isApproved: false });
     router.push('/admin/local-news');
   };
 
