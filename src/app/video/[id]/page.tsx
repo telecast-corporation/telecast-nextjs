@@ -1,4 +1,3 @@
-
 'use client';
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
@@ -8,16 +7,20 @@ import {
   CircularProgress,
   Card,
   CardContent,
+  Chip
 } from '@mui/material';
 import { AspectRatio, Typography } from '@mui/joy';
+import { Visibility, ThumbUp } from '@mui/icons-material';
 
 interface Video {
     id: string;
     title: string;
     description: string;
-    videoUrl: string; // This will be an iframe string
+    videoUrl: string; 
     channelTitle: string;
     publishedAt: string;
+    viewCount: number;
+    likeCount: number;
 }
 
 export default function VideoPlayerPage() {
@@ -28,8 +31,10 @@ export default function VideoPlayerPage() {
 
   useEffect(() => {
     const fetchVideo = async () => {
+      if (!params.id) return;
       try {
         setLoading(true);
+        setError(null);
         const videoId = params.id as string;
         
         const response = await fetch(`/api/video/${videoId}`);
@@ -39,30 +44,21 @@ export default function VideoPlayerPage() {
           setVideo(data);
         } else {
           const errorData = await response.json();
-          setError(errorData.error || 'Video not found');
+          setError(errorData.error || 'We could not find the video you are looking for.');
         }
       } catch (err) {
-        setError('Failed to load video');
+        setError('An unexpected error occurred while loading the video. Please try again later.');
       } finally {
         setLoading(false);
       }
     };
 
-    if (params.id) {
-      fetchVideo();
-    }
+    fetchVideo();
   }, [params.id]);
 
   if (loading) {
     return (
-      <Box
-        sx={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          minHeight: '100vh',
-        }}
-      >
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
         <CircularProgress />
       </Box>
     );
@@ -70,8 +66,11 @@ export default function VideoPlayerPage() {
 
   if (error || !video) {
     return (
-      <Container sx={{ py: 10 }}>
-        <Typography level="h4" color="danger">
+      <Container sx={{ py: 10, textAlign: 'center' }}>
+         <Typography level="h2" color="danger" sx={{ mb: 2 }}>
+            Something went wrong!
+        </Typography>
+        <Typography level="h5">
           {error || 'Video not found'}
         </Typography>
       </Container>
@@ -90,14 +89,22 @@ export default function VideoPlayerPage() {
            <div dangerouslySetInnerHTML={{ __html: video.videoUrl }} />
         </AspectRatio>
         <CardContent>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2 }}>
+                <Typography level="body-sm">
+                    {video.channelTitle}
+                </Typography>
+                {video.publishedAt && (
+                    <Typography level="body-xs">
+                        {new Date(video.publishedAt).toLocaleDateString()}
+                    </Typography>
+                )}
+            </Box>
+            <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
+                <Chip icon={<Visibility />} label={`${video.viewCount.toLocaleString()} views`} variant="outlined" />
+                <Chip icon={<ThumbUp />} label={`${video.likeCount.toLocaleString()} likes`} variant="outlined" />
+            </Box>
           <Typography sx={{ mt: 2 }}>
             {video.description}
-          </Typography>
-          <Typography level="body-sm" sx={{ mt: 2 }}>
-            {video.channelTitle}
-          </Typography>
-          <Typography level="body-xs" sx={{ mt: 1 }}>
-            {new Date(video.publishedAt).toLocaleDateString()}
           </Typography>
         </CardContent>
       </Card>
