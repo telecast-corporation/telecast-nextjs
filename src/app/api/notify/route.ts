@@ -30,7 +30,7 @@ export async function POST(request: Request) {
 
     const mailOptions = {
         from: '"Telecast" <samueloni0987@gmail.com>',
-        to: ' sswbsam@gmail.com',
+        to: 'sswbsam@gmail.com',
         subject: `New EventSubmission: ${title}`,
         html: `
         <!DOCTYPE html>
