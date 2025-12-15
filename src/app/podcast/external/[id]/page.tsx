@@ -23,7 +23,7 @@ import { PlayArrow, Pause as PauseIcon } from '@mui/icons-material';
 import { useAudio } from '@/contexts/AudioContext';
 
 interface Episode {
-  id: number;
+  id: string;
   title: string;
   description: string;
   audioUrl: string;
@@ -33,7 +33,7 @@ interface Episode {
 }
 
 interface Podcast {
-  id: number;
+  id: string;
   title: string;
   author: string;
   description: string;
@@ -90,7 +90,7 @@ export default function ExternalPodcastPage() {
   const handlePlayEpisode = (episode: Episode) => {
     if (!podcast) return;
     const playablePodcast = {
-      id: podcast.id.toString(),
+      id: podcast.id,
       title: podcast.title,
       author: podcast.author,
       description: podcast.description,
@@ -98,7 +98,7 @@ export default function ExternalPodcastPage() {
       url: podcast.url,
     };
     const playableEpisode = {
-      id: episode.id.toString(),
+      id: episode.id,
       title: episode.title,
       description: episode.description,
       audioUrl: episode.audioUrl,
@@ -191,7 +191,7 @@ export default function ExternalPodcastPage() {
                 <ListItemButton onClick={() => handlePlayEpisode(episode)}>
                   <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
                     <IconButton size="small" sx={{ mr: 1, color: 'primary.main' }}>
-                      {currentEpisode?.id === episode.id.toString() ? <PauseIcon /> : <PlayArrow />}
+                      {currentEpisode?.id === episode.id ? <PauseIcon /> : <PlayArrow />}
                     </IconButton>
                     <ListItemText
                       primary={
@@ -227,5 +227,3 @@ export default function ExternalPodcastPage() {
     </Container>
   );
 }
-
-

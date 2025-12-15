@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PodcastIndex } from '@/lib/podcast-index';
+import { Spotify } from '@/lib/spotify';
 
 export async function GET(
   request: NextRequest,
@@ -7,13 +7,13 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    const numericId = Number(id);
-    if (!Number.isFinite(numericId)) {
+
+    if (typeof id !== 'string' || !id) {
       return NextResponse.json({ error: 'Invalid podcast id' }, { status: 400 });
     }
 
-    const podcastIndex = new PodcastIndex();
-    const podcast = await podcastIndex.getPodcastById(numericId);
+    const spotify = new Spotify();
+    const podcast = await spotify.getPodcastById(id);
 
     if (!podcast) {
       return NextResponse.json({ error: 'Podcast not found' }, { status: 404 });
