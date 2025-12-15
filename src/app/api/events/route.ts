@@ -1,7 +1,6 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
-import { notifyUploadToMail } from '../../../lib/notify';
 
 const prisma = new PrismaClient();
 
@@ -45,8 +44,6 @@ export async function POST(req: NextRequest) {
     if (!title || !description || !videoUrl || !locationCity || !locationCountry || !category) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
-
-    await notifyUploadToMail(body);
 
     return NextResponse.json({ message: "Notification sent without saving to database." }, { status: 200 });
   } catch (error) {

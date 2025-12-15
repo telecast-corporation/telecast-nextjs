@@ -2,7 +2,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 // import { Storage } from '@google-cloud/storage';
 import { v4 as uuidv4 } from 'uuid';
-import { notifyUploadToMail } from '../../../lib/notify';
 
 /*
 const storage = new Storage({
@@ -48,15 +47,6 @@ export async function POST(req: NextRequest) {
     const publicUrl = `https://storage.googleapis.com/${bucketName}/${fileName}`;
     */
     const publicUrl = 'http://fake-video-url.com/video.mp4'; // Dummy URL for testing
-
-    await notifyUploadToMail({
-      title,
-      description,
-      category,
-      videoUrl: publicUrl,
-      locationCity,
-      locationCountry
-    });
 
     return NextResponse.json({ videoUrl: publicUrl });
   } catch (error) {
