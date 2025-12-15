@@ -30,16 +30,16 @@ export async function POST(request: Request) {
     const rejectLink = `${process.env.NEXT_PUBLIC_BASE_URL}/api/admin/local-news/reject?id=${tempId}`;
 
     const mailOptions = {
-        from: `"Telecast" <${EMAIL_USER}>`,
-        to: 'dsam42751@gmail.com',
-        subject: `New EventSubmission: ${title}`,
+        from: `"Telecast" <verify@telecast.ca>`,
+        to: 'admin@telecast.ca',
+        subject: `New Event Submission: ${title}`,
         html: `
         <!DOCTYPE html>
         <html lang="en">
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>New EventSubmission</title>
+            <title>New Event Submission</title>
         </head>
         <body style="margin: 0; padding: 0; background-color: #121212; font-family: Poppins, sans-serif; color: #E0E0E0;">
             <table align="center" border="0" cellpadding="0" cellspacing="0" width="600" style="border-collapse: collapse; margin-top: 20px;">
