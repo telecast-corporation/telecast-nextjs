@@ -21,8 +21,8 @@ export async function POST(request: Request) {
       port: 465,
       secure: true,
       auth: {
-        user: EMAIL_USER,
-        pass: EMAIL_PASS,
+        user: 'samueloni0987@gmail.com',
+        pass: 'zvqz tntz jqhx uigf',
       },
     });
 
