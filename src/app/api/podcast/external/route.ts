@@ -42,6 +42,7 @@ export async function POST(req: NextRequest) {
         tags: [],
         author: externalPodcast.publisher,
         userId: dbUser.id,
+        explicit: externalPodcast.explicit || false,
       },
     });
 
