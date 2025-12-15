@@ -13,6 +13,7 @@ export interface SpotifyPodcast {
   description: string;
   images: { url: string }[];
   external_urls: { spotify: string };
+  explicit: boolean;
 }
 
 export class SpotifyClient {
