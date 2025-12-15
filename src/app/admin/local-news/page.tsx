@@ -58,7 +58,7 @@ const LocalNewsAdminPage = () => {
           )}
         </Box>
 
-        <Box sx={{ mt: 4, display: 'flex', gap: 2 }}>
+        <Box sx={{ mt: 4, display: 'flex', gap: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
           <Button
             variant="contained"
             color="primary"
