@@ -19,7 +19,7 @@ import { db } from '../../../lib/dexie';
 
 const LocalNewsAdminPage = () => {
   const localNews = useLiveQuery(() =>
-    db.localNews.filter(news => news.isApproved !== true).toArray()
+    db.localNews.filter(news => news.isApproved !== true && news.isRejected !== true).toArray()
   );
 
   return (
