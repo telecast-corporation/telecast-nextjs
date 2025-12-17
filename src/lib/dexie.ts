@@ -9,7 +9,7 @@ export interface LocalNews {
   videoUrl: string;
   city: string;
   country: string;
-  isApproved: boolean;
+  status: string; // "pending", "approved", "rejected"
   createdAt: Date;
 }
 
@@ -18,6 +18,14 @@ export class LocalNewsDatabase extends Dexie {
 
   constructor() {
     super('localNewsDatabase');
+    this.version(3).stores({
+      localNews: '++id, title, category, city, country, status, createdAt'
+    }).upgrade(tx => {
+        return tx.table("localNews").toCollection().modify(news => {
+            news.status = news.isApproved ? 'approved' : 'pending';
+            delete news.isApproved;
+        });
+    });
     this.version(2).stores({
       localNews: '++id, title, category, city, country, isApproved, createdAt'
     }).upgrade(tx => {
