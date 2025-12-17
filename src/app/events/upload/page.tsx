@@ -107,7 +107,7 @@ const EventUploadPage = () => {
         videoUrl: videoPreviewUrl || '',
         city,
         country,
-        isApproved: false, 
+        status: 'pending', 
         createdAt: new Date(),
       };
 
