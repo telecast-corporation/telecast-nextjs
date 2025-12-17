@@ -278,7 +278,7 @@ const EventUploadPage = () => {
       <Dialog open={openSuccessPopup} onClose={handleCloseSuccessPopup}>
         <DialogTitle>Submission Successful!</DialogTitle>
         <DialogContent dividers>
-          <Typography>Your event has been submitted and saved locally.</Typography>
+          <Typography>Your event has been submitted for review </Typography>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseSuccessPopup}>Close</Button>
