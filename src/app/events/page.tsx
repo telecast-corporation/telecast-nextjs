@@ -23,6 +23,7 @@ import {
   FormControl,
   InputLabel,
   Chip,
+  TextField,
 } from '@mui/material';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '@/lib/dexie';
@@ -47,6 +48,7 @@ const EventsPage = () => {
   const [category, setCategory] = useState('');
   const [country, setCountry] = useState('');
   const [city, setCity] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
 
   const [openCategoryDialog, setOpenCategoryDialog] = useState(false);
   const [openCountryDialog, setOpenCountryDialog] = useState(false);
@@ -71,13 +73,18 @@ const EventsPage = () => {
     const cityMatch = city
       ? article.city?.toLowerCase().includes(city.toLowerCase())
       : true;
-    return categoryMatch && countryMatch && cityMatch;
+    const searchTermMatch = searchTerm
+      ? article.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        article.description.toLowerCase().includes(searchTerm.toLowerCase())
+      : true;
+    return categoryMatch && countryMatch && cityMatch && searchTermMatch;
   });
 
   const handleClearFilters = () => {
     setCategory('');
     setCountry('');
     setCity('');
+    setSearchTerm('');
   };
 
   const cities = country ? citiesData[country] || [] : [];
@@ -112,6 +119,16 @@ const EventsPage = () => {
         <Button component={Link} href="/events/upload" variant="contained" color="primary">
           Upload Event
         </Button>
+      </Box>
+
+      <Box mb={4}>
+        <TextField
+          fullWidth
+          variant="outlined"
+          label="Search Events"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
       </Box>
 
       <Box mb={4} display="flex" justifyContent="center" gap={2} flexWrap="wrap">
