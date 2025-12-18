@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Button,
@@ -12,14 +12,20 @@ import {
   ListItemText,
   CircularProgress,
   Alert,
+  TextField,
 } from '@mui/material';
 import Link from 'next/link';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../../../lib/dexie';
 
 const LocalNewsAdminPage = () => {
+  const [searchQuery, setSearchQuery] = useState('');
   const localNews = useLiveQuery(() =>
     db.localNews.filter(news => news.status === 'pending').toArray()
+  );
+
+  const filteredNews = localNews?.filter(news =>
+    news.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
@@ -32,17 +38,27 @@ const LocalNewsAdminPage = () => {
           Welcome to the Local News administration page. Here you can manage and review user-submitted content.
         </Typography>
 
+        <Box sx={{ mt: 4, mb: 2 }}>
+          <TextField
+            fullWidth
+            label="Search News"
+            variant="outlined"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </Box>
+
         <Box sx={{ mt: 4 }}>
           <Typography variant="h5" component="h2" gutterBottom>
             Pending News
           </Typography>
-          {!localNews ? (
+          {!filteredNews ? (
             <CircularProgress />
-          ) : localNews.length === 0 ? (
-            <Alert severity="info">No pending news articles.</Alert>
+          ) : filteredNews.length === 0 ? (
+            <Alert severity="info">No pending news articles match your search.</Alert>
           ) : (
             <List>
-              {localNews.map((news) => (
+              {filteredNews.map((news) => (
                 <ListItem key={news.id} sx={{ display: 'flex', justifyContent: 'space-between' }}>
                   <ListItemText primary={news.title} secondary={news.category} />
                   <Box sx={{ display: 'flex', gap: 1 }}>
