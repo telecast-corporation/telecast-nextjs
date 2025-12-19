@@ -132,14 +132,6 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
     if (!audioRef.current) return;
 
     try {
-      // If it's the same episode, just resume playback
-      if (currentEpisode?.id === episode.id) {
-        audioRef.current.play().catch(error => {
-          console.error('Error playing audio:', error);
-        });
-        return;
-      }
-
       // Stop current playback
       audioRef.current.pause();
       audioRef.current.currentTime = 0;
@@ -278,4 +270,4 @@ export function useAudio() {
     throw new Error('useAudio must be used within an AudioProvider');
   }
   return context;
-} 
+}
