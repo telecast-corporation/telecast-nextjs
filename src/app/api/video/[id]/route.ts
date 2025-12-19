@@ -6,12 +6,15 @@ const YOUTUBE_API_URL = 'https://www.googleapis.com/youtube/v3';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
-  const { id } = await params;
+  const { id } = params;
 
   try {
-    // Get video details
+    if (!YOUTUBE_API_KEY) {
+      throw new Error('YouTube API key is not configured.');
+    }
+
     const videoResponse = await axios.get(`${YOUTUBE_API_URL}/videos`, {
       params: {
         part: 'snippet,statistics,contentDetails',
@@ -21,10 +24,7 @@ export async function GET(
     });
 
     if (!videoResponse.data.items || videoResponse.data.items.length === 0) {
-      return NextResponse.json(
-        { error: 'Video not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Video not found' }, { status: 404 });
     }
 
     const video = videoResponse.data.items[0];
@@ -32,7 +32,6 @@ export async function GET(
     const statistics = video.statistics;
     const contentDetails = video.contentDetails;
 
-    // Format duration from ISO 8601 to readable format
     const duration = contentDetails.duration
       .replace('PT', '')
       .replace('H', ':')
@@ -55,9 +54,21 @@ export async function GET(
       sourceUrl: `https://www.youtube.com/watch?v=${id}`,
     });
   } catch (error) {
-    console.error('Error fetching video:', error);
+    let errorMessage = 'Failed to fetch video';
+
+    if (axios.isAxiosError(error) && error.response) {
+        const youtubeError = error.response.data.error;
+        if (youtubeError && youtubeError.message) {
+            errorMessage = youtubeError.message;
+        }
+    } else if (error instanceof Error) {
+        errorMessage = error.message;
+    }
+
+    console.error('Error fetching video:', errorMessage);
+
     return NextResponse.json(
-      { error: 'Failed to fetch video' },
+      { error: errorMessage },
       { status: 500 }
     );
   }
