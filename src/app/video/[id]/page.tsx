@@ -64,18 +64,29 @@ export default function VideoPlayerPage() {
     );
   }
 
-  if (error || !video) {
+  if (error) {
     return (
       <Container sx={{ py: 10, textAlign: 'center' }}>
          <Typography level="h2" color="danger" sx={{ mb: 2 }}>
             Something went wrong!
         </Typography>
         <Typography level="h4">
-          {error || 'Video not found'}
+          {error}
         </Typography>
       </Container>
     );
   }
+
+  if (!video) {
+    return (
+        <Container sx={{ py: 10, textAlign: 'center' }}>
+            <Typography level="h4">
+                Video not found.
+            </Typography>
+        </Container>
+    );
+  }
+
 
   return (
     <Container sx={{ py: 4 }}>
