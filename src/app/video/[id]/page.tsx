@@ -7,10 +7,11 @@ import {
   CircularProgress,
   Card,
   CardContent,
-  Chip
+  Chip,
+  Link,
 } from '@mui/material';
 import { AspectRatio, Typography } from '@mui/joy';
-import { Visibility, ThumbUp } from '@mui/icons-material';
+import { Visibility, ThumbUp, Schedule } from '@mui/icons-material';
 
 interface Video {
     id: string;
@@ -18,10 +19,22 @@ interface Video {
     description: string;
     videoUrl: string; 
     channelTitle: string;
+    channelUrl: string;
     publishedAt: string;
     viewCount: number;
     likeCount: number;
+    duration: string;
 }
+
+// Helper to format the description
+const formatDescription = (description: string) => {
+    if (!description) return null;
+    return description.split('\n').map((line, index) => (
+        <Typography key={index} sx={{ mt: 1 }}>
+            {line}
+        </Typography>
+    ));
+};
 
 export default function VideoPlayerPage() {
   const params = useParams();
@@ -67,7 +80,7 @@ export default function VideoPlayerPage() {
   if (error) {
     return (
       <Container sx={{ py: 10, textAlign: 'center' }}>
-         <Typography level="h2" color="danger" sx={{ mb: 2 }}>
+         <Typography level="h2" sx={{ mb: 2, color: '#ff6b35' }}>
             Something went wrong!
         </Typography>
         <Typography level="h4">
@@ -90,33 +103,37 @@ export default function VideoPlayerPage() {
 
   return (
     <Container sx={{ py: 4 }}>
-      <Card variant="outlined" sx={{ mb: 4, maxWidth: 800, mx: 'auto' }}>
-        <CardContent>
-          <Typography level="h4" component="h1" sx={{ mb: 2 }}>
-            {video.title}
-          </Typography>
-        </CardContent>
+      <Card variant="outlined" sx={{ mb: 4, maxWidth: 900, mx: 'auto', borderRadius: 'lg' }}>
         <AspectRatio ratio="16/9">
            <div dangerouslySetInnerHTML={{ __html: video.videoUrl }} />
         </AspectRatio>
-        <CardContent>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2 }}>
-                <Typography level="body-sm">
+        <CardContent sx={{ p: 3 }}>
+          <Typography level="h4" component="h1" sx={{ mb: 2, fontWeight: 'bold' }}>
+            {video.title}
+          </Typography>
+          
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2, mb: 2 }}>
+              <Link href={video.channelUrl} target="_blank" rel="noopener noreferrer" sx={{ textDecoration: 'none', color: 'inherit', '&:hover': { textDecoration: 'underline'} }}>
+                <Typography level="body-lg" sx={{ fontWeight: 'md'}}>
                     {video.channelTitle}
                 </Typography>
-                {video.publishedAt && (
-                    <Typography level="body-xs">
-                        {new Date(video.publishedAt).toLocaleDateString()}
-                    </Typography>
-                )}
-            </Box>
-            <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
-                <Chip icon={<Visibility />} label={`${video.viewCount.toLocaleString()} views`} variant="outlined" />
-                <Chip icon={<ThumbUp />} label={`${video.likeCount.toLocaleString()} likes`} variant="outlined" />
-            </Box>
-          <Typography sx={{ mt: 2 }}>
-            {video.description}
-          </Typography>
+              </Link>
+              {video.publishedAt && (
+                  <Typography level="body-sm" sx={{ color: 'text.secondary'}}>
+                      Published on {new Date(video.publishedAt).toLocaleDateString()}
+                  </Typography>
+              )}
+          </Box>
+
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mt: 2, borderTop: '1px solid', borderColor: 'divider', pt: 2 }}>
+              <Chip icon={<Visibility />} label={`${video.viewCount.toLocaleString()} views`} variant="outlined" />
+              <Chip icon={<ThumbUp />} label={`${video.likeCount.toLocaleString()} likes`} variant="outlined" />
+              {video.duration && <Chip icon={<Schedule />} label={video.duration} variant="outlined" />}
+          </Box>
+
+          <Box sx={{ mt: 3, borderTop: '1px solid', borderColor: 'divider', pt: 2 }}>
+            {formatDescription(video.description)}
+          </Box>
         </CardContent>
       </Card>
     </Container>
