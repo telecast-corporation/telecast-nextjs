@@ -32,8 +32,13 @@ interface SearchResult {
 
 export default function SearchPage() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', flexDirection: 'column' }}>
+        <CircularProgress />
+        <Typography variant="h6" sx={{ mt: 2 }}>Loading Contents please wait</Typography>
+      </Box>
+    }>
       <SearchResults />
     </Suspense>
   );
-} 
+}
