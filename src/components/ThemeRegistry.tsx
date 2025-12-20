@@ -1,30 +1,41 @@
 'use client';
-
 import React from 'react';
-import { ThemeProvider as MuiThemeProvider, createTheme as createMuiTheme } from '@mui/material/styles';
-import { CssVarsProvider as JoyCssVarsProvider, extendTheme as extendJoyTheme } from '@mui/joy/styles';
+import { experimental_extendTheme as extendTheme, Experimental_CssVarsProvider as CssVarsProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { Poppins } from 'next/font/google';
 
 const poppins = Poppins({ subsets: ['latin'], weight: ['300', '400', '500', '600', '700'] });
 
-// Create a Joy UI theme
-const joyTheme = extendJoyTheme({
-  // Customizations for Joy UI theme can go here
-});
-
-// Create a Material-UI theme
-const muiTheme = createMuiTheme({
-  palette: {
-    primary: {
-      main: '#1976d2',
+// Create a merged theme
+const theme = extendTheme({
+  colorSchemes: {
+    light: {
+      palette: {
+        primary: {
+          main: '#1976d2',
+        },
+        secondary: {
+          main: '#dc004e',
+        },
+        background: {
+          default: '#f4f6f8',
+          paper: '#ffffff',
+        },
+      },
     },
-    secondary: {
-      main: '#dc004e',
-    },
-    background: {
-      default: '#f4f6f8',
-      paper: '#ffffff',
+    dark: {
+      palette: {
+        primary: {
+          main: '#90caf9',
+        },
+        secondary: {
+          main: '#f48fb1',
+        },
+        background: {
+          default: '#121212',
+          paper: '#1e1e1e',
+        },
+      },
     },
   },
   typography: {
@@ -54,11 +65,9 @@ const muiTheme = createMuiTheme({
 
 export default function ThemeRegistry({ children }: { children: React.ReactNode }) {
   return (
-    <JoyCssVarsProvider theme={joyTheme}>
-      <MuiThemeProvider theme={muiTheme}>
-        <CssBaseline />
-        {children}
-      </MuiThemeProvider>
-    </JoyCssVarsProvider>
+    <CssVarsProvider theme={theme}>
+      <CssBaseline />
+      {children}
+    </CssVarsProvider>
   );
 }
