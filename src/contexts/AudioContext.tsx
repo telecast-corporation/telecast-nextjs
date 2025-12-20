@@ -166,7 +166,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
     } catch (error) {
       console.error('Error in play function:', error);
     }
-  }, [currentEpisode]);
+  }, []);
 
   const pause = useCallback(() => {
     if (audioRef.current) {
