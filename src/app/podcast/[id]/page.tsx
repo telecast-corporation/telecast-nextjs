@@ -287,7 +287,7 @@ export default function PodcastPage() {
                       <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
                         <ListItemText
                           primary={<Typography variant="subtitle1" sx={{ fontWeight: 500 }}>{episode.title || 'Untitled Episode'}</Typography>}
-                          secondary={`Draft • ${new Date(episode.createdAt).toLocaleDateString()} • ${(episode.fileSize / 1024 / 1024).toFixed(2)} MB`}
+                          secondary={`Draft • ${new Date(episode.createdAt).toLocaleDateString()} • ${episode.fileSize ? `${(episode.fileSize / 1024 / 1024).toFixed(2)} MB` : 'N/A'}`}
                         />
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                           <Tooltip title="Finalize Episode">
