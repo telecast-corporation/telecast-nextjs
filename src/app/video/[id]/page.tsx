@@ -104,20 +104,28 @@ export default function VideoPlayerPage() {
   return (
     <Container sx={{ py: 4 }}>
       <Card variant="outlined" sx={{ mb: 4, maxWidth: 900, mx: 'auto', borderRadius: 'lg' }}>
-        <AspectRatio ratio="16/9">
-           <div dangerouslySetInnerHTML={{ __html: video.videoUrl }} />
-        </AspectRatio>
+        {video.videoUrl && (
+            <AspectRatio ratio="16/9">
+               <div dangerouslySetInnerHTML={{ __html: video.videoUrl }} />
+            </AspectRatio>
+        )}
         <CardContent sx={{ p: 3 }}>
           <Typography level="h4" component="h1" sx={{ mb: 2, fontWeight: 'bold' }}>
-            {video.title}
+            {video.title ?? 'Untitled Video'}
           </Typography>
           
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2, mb: 2 }}>
-              <Link href={video.channelUrl} target="_blank" rel="noopener noreferrer" sx={{ textDecoration: 'none', color: 'inherit', '&:hover': { textDecoration: 'underline'} }}>
+              {video.channelUrl ? (
+                <Link href={video.channelUrl} target="_blank" rel="noopener noreferrer" sx={{ textDecoration: 'none', color: 'inherit', '&:hover': { textDecoration: 'underline'} }}>
+                  <Typography level="body-lg" sx={{ fontWeight: 'md'}}>
+                      {video.channelTitle ?? 'Unknown Channel'}
+                  </Typography>
+                </Link>
+              ) : (
                 <Typography level="body-lg" sx={{ fontWeight: 'md'}}>
-                    {video.channelTitle}
+                    {video.channelTitle ?? 'Unknown Channel'}
                 </Typography>
-              </Link>
+              )}
               {video.publishedAt && (
                   <Typography level="body-sm" sx={{ color: 'text.secondary'}}>
                       Published on {new Date(video.publishedAt).toLocaleDateString()}
@@ -126,14 +134,16 @@ export default function VideoPlayerPage() {
           </Box>
 
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mt: 2, borderTop: '1px solid', borderColor: 'divider', pt: 2 }}>
-              <Chip icon={<Visibility />} label={`${video.viewCount.toLocaleString()} views`} variant="outlined" />
-              <Chip icon={<ThumbUp />} label={`${video.likeCount.toLocaleString()} likes`} variant="outlined" />
+              <Chip icon={<Visibility />} label={`${(video.viewCount ?? 0).toLocaleString()} views`} variant="outlined" />
+              <Chip icon={<ThumbUp />} label={`${(video.likeCount ?? 0).toLocaleString()} likes`} variant="outlined" />
               {video.duration && <Chip icon={<Schedule />} label={video.duration} variant="outlined" />}
           </Box>
 
-          <Box sx={{ mt: 3, borderTop: '1px solid', borderColor: 'divider', pt: 2 }}>
-            {formatDescription(video.description)}
-          </Box>
+          {video.description && (
+            <Box sx={{ mt: 3, borderTop: '1px solid', borderColor: 'divider', pt: 2 }}>
+              {formatDescription(video.description)}
+            </Box>
+          )}
         </CardContent>
       </Card>
     </Container>
