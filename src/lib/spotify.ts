@@ -25,6 +25,7 @@ export interface SpotifyEpisode {
     duration_ms: number;
     release_date: string;
     images: { url: string }[];
+    external_urls: { spotify: string };
 }
 
 export class SpotifyClient {

@@ -32,7 +32,8 @@ export async function GET(
             audioUrl: episode.audio_preview_url,
             duration: episode.duration_ms / 1000,
             publishDate: episode.release_date,
-            imageUrl: episode.images[0]?.url
+            imageUrl: episode.images[0]?.url,
+            url: episode.external_urls.spotify
         }))
     };
 
