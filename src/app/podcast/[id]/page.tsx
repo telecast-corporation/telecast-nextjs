@@ -437,7 +437,7 @@ export default function PodcastPage() {
                   {preview.title}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  {preview.publishDate ? formatDate(preview.publishDate) : 'Date not available'}
+                  {preview.publishDate ? formatDate(preview.publishDate.toISOString()) : 'Date not available'}
                 </Typography>
                 <Typography variant="body1" sx={{ mt: 1 }}>
                   {preview.description}
