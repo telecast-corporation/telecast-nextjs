@@ -48,7 +48,7 @@ export default function VideoPlayerPage() {
       try {
         setLoading(true);
         setError(null);
-        const videoId = await Promise.resolve(params.id as string);
+        const videoId = params.id as string;
         
         const response = await fetch(`/api/video/${videoId}`);
         

@@ -44,8 +44,7 @@ import {
   Upload as UploadIcon,
   Save as SaveIcon,
 } from '@mui/icons-material';
-import { useAudio } from '@/contexts/AudioContext';
-import { useAudioUrl } from '@/hooks/useAudioUrl';
+import AudioPlayer from '@/components/AudioPlayer';
 import { enqueueSnackbar } from 'notistack';
 
 // Define the database episode type
@@ -89,18 +88,7 @@ interface DatabasePodcast {
   rssFeed: string | null;
   isPublic: boolean;
   episodes: DatabaseEpisode[];
-}
-
-// Define the podcast preview type
-interface PodcastPreview {
-  podcastId: string;
-  episodeId: string;
-  title: string | null;
-  description: string | null;
-  audioUrl: string;
-  duration: number | null;
-  publishDate: Date | null;
-  coverImage: string | null;
+  spotifyUrl?: string;
 }
 
 import { formatDuration, formatDate } from '@/lib/utils';
@@ -109,10 +97,9 @@ import axios from 'axios';
 export default function PodcastPage() {
   const params = useParams();
   const router = useRouter();
-  const { play, pause, isPlaying, currentEpisode } = useAudio();
   const [podcast, setPodcast] = useState<DatabasePodcast | null>(null);
   const [episodes, setEpisodes] = useState<DatabaseEpisode[]>([]);
-  const [preview, setPreview] = useState<PodcastPreview | null>(null);
+  const [previewEpisode, setPreviewEpisode] = useState<DatabaseEpisode | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -121,7 +108,6 @@ export default function PodcastPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [episodeToDelete, setEpisodeToDelete] = useState<DatabaseEpisode | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
-
 
   useEffect(() => {
     const fetchPodcast = async () => {
@@ -132,14 +118,11 @@ export default function PodcastPage() {
         const response = await axios.get(`/api/podcast/internal/${podcastId}`);
         
         if (response.data) {
-          console.log('Podcast data received:', {
-            id: response.data.id,
-            title: response.data.title,
-            coverImage: response.data.coverImage
-          });
-          console.log('Episodes data:', response.data.episodes);
           setPodcast(response.data);
           setEpisodes(response.data.episodes || []);
+          if (response.data.episodes && response.data.episodes.length > 0) {
+            setPreviewEpisode(response.data.episodes[0]);
+          }
         } else {
           setError('Podcast not found');
         }
@@ -154,23 +137,10 @@ export default function PodcastPage() {
       }
     };
 
-    const fetchPreview = async () => {
-      try {
-        const podcastId = params.id as string;
-        const response = await axios.get(`/api/podcast/internal/${podcastId}/preview`);
-        setPreview(response.data);
-      } catch (err) {
-        console.error('Failed to load podcast preview:', err);
-      }
-    };
-
     if (params.id) {
       fetchPodcast();
-      fetchPreview();
     }
   }, [params.id]);
-
-
 
   const handleDeleteEpisode = (episode: DatabaseEpisode) => {
     setEpisodeToDelete(episode);
@@ -212,45 +182,9 @@ export default function PodcastPage() {
     setEpisodeToDelete(null);
   };
 
-  const handlePlayEpisode = async (episode: DatabaseEpisode) => {
-    if (!episode.audioUrl) {
-      console.error('No audio file path available for episode:', episode.id);
-      alert('Audio file not available for this episode');
-      return;
-    }
-
-    // Convert database episode to AudioContext episode format
-    const audioContextEpisode = {
-      id: episode.id,
-      title: episode.title || 'Untitled Episode',
-      description: episode.description || '',
-      audioUrl: episode.audioUrl,
-      duration: episode.duration || 0,
-      publishDate: episode.publishDate?.toISOString() || new Date().toISOString(),
-    };
-
-    // Convert database podcast to AudioContext podcast format
-    const audioContextPodcast = {
-      id: podcast?.id || '',
-      title: podcast?.title || '',
-      author: podcast?.author || '',
-      description: podcast?.description || '',
-      image: podcast?.coverImage || '',
-      url: '',
-    };
-
-    // If it's the same episode that's currently playing, pause it
-    if (currentEpisode?.id === episode.id && isPlaying) {
-      pause();
-      return;
-    }
-
-    // Play the episode using AudioContext
-    try {
-      await play(audioContextPodcast, audioContextEpisode);
-    } catch (error) {
-      console.error('Error playing episode:', error);
-      alert('Failed to play episode');
+  const handlePlayOnSpotify = () => {
+    if (podcast?.spotifyUrl) {
+      window.open(podcast.spotifyUrl, '_blank');
     }
   };
 
@@ -285,7 +219,6 @@ export default function PodcastPage() {
     }
   };
 
-
   if (loading) {
     return (
       <Box
@@ -300,8 +233,6 @@ export default function PodcastPage() {
       </Box>
     );
   }
-
-
 
   if (error || !podcast) {
     return (
@@ -333,7 +264,6 @@ export default function PodcastPage() {
             </Typography>
             <Typography 
               variant="body1" 
-
               sx={{ 
                 mt: 2, 
                 mb: 2, 
@@ -411,51 +341,19 @@ export default function PodcastPage() {
       </Card>
 
       {/* Latest Episode Preview */}
-      {preview && (
+      {previewEpisode && (
         <Paper elevation={3} sx={{ p: 4, mb: 4, borderRadius: 2 }}>
           <Typography variant="h6" component="h2" gutterBottom>
-            Latest Episode
+            Preview
           </Typography>
-          <Grid container spacing={3}>
-            <Grid item xs={12} md={4}>
-              <CardMedia
-                component="img"
-                image={preview.coverImage || 'https://via.placeholder.com/200x200?text=No+Cover+Image'}
-                alt={preview.title || 'Episode title'}
-                sx={{
-                  width: '100%',
-                  height: 'auto',
-                  borderRadius: 2,
-                  boxShadow: 3,
-                  objectFit: 'cover',
-                }}
-              />
-            </Grid>
-            <Grid item xs={12} md={8}>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                <Typography variant="h5" component="h3">
-                  {preview.title}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  {preview.publishDate ? formatDate(preview.publishDate.toISOString()) : 'Date not available'}
-                </Typography>
-                <Typography variant="body1" sx={{ mt: 1 }}>
-                  {preview.description}
-                </Typography>
-                <Button
-                  variant="contained"
-                  startIcon={<PlayArrow />}
-                  onClick={() => router.push(`/podcast/${preview.podcastId}/episode/${preview.episodeId}`)}
-                  sx={{ mt: 2, alignSelf: 'flex-start' }}
-                >
-                  Play Episode
-                </Button>
-              </Box>
-            </Grid>
-          </Grid>
+          <AudioPlayer
+            audioUrl={previewEpisode.audioUrl}
+            imageUrl={podcast.coverImage || ''}
+            title={podcast.title}
+            episodeTitle={previewEpisode.title || ''}
+          />
         </Paper>
       )}
-
 
       {/* Episodes Section */}
       <Box id="episodes-section">
@@ -645,14 +543,14 @@ export default function PodcastPage() {
                         size="small"
                         onClick={(e) => {
                           e.stopPropagation();
-                          handlePlayEpisode(episode);
+                          handlePlayOnSpotify();
                         }}
                         sx={{
                           mr: 1,
                           color: 'primary.main',
                         }}
                       >
-                        {currentEpisode?.id === episode.id && isPlaying ? <PauseIcon /> : <PlayArrow />}
+                        <PlayArrow />
                       </IconButton>
                       <ListItemText
                         primary={
@@ -726,6 +624,23 @@ export default function PodcastPage() {
                         }
                       />
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Tooltip title="Preview Episode">
+                          <IconButton
+                            size="small"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setPreviewEpisode(episode);
+                            }}
+                            sx={{
+                              color: 'secondary.main',
+                              '&:hover': {
+                                backgroundColor: 'secondary.light',
+                              }
+                            }}
+                          >
+                            <PlayArrow />
+                          </IconButton>
+                        </Tooltip>
                         <Tooltip title="Delete Episode">
                           <IconButton
                             size="small"
