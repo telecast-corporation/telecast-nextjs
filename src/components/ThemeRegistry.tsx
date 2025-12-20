@@ -1,14 +1,20 @@
-
 'use client';
 
 import React from 'react';
-import { createTheme, ThemeProvider } from '@mui/material/styles';
+import { ThemeProvider as MuiThemeProvider, createTheme as createMuiTheme } from '@mui/material/styles';
+import { CssVarsProvider as JoyCssVarsProvider, extendTheme as extendJoyTheme } from '@mui/joy/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { Poppins } from 'next/font/google';
 
 const poppins = Poppins({ subsets: ['latin'], weight: ['300', '400', '500', '600', '700'] });
 
-const theme = createTheme({
+// Create a Joy UI theme
+const joyTheme = extendJoyTheme({
+  // Customizations for Joy UI theme can go here
+});
+
+// Create a Material-UI theme
+const muiTheme = createMuiTheme({
   palette: {
     primary: {
       main: '#1976d2',
@@ -48,9 +54,11 @@ const theme = createTheme({
 
 export default function ThemeRegistry({ children }: { children: React.ReactNode }) {
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      {children}
-    </ThemeProvider>
+    <JoyCssVarsProvider theme={joyTheme}>
+      <MuiThemeProvider theme={muiTheme}>
+        <CssBaseline />
+        {children}
+      </MuiThemeProvider>
+    </JoyCssVarsProvider>
   );
 }
