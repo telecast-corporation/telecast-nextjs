@@ -30,6 +30,7 @@ interface Episode {
   duration: number;
   publishDate: string;
   imageUrl?: string;
+  url?: string;
 }
 
 interface Podcast {
@@ -87,8 +88,13 @@ export default function ExternalPodcastPage() {
 
   const totalPages = Math.ceil(episodes.length / episodesPerPage);
 
-  const handlePlayEpisode = (episode: Episode) => {
-    if (!podcast) return;
+  const previewEpisode = useMemo(() => {
+    return episodes.length > 0 ? episodes[0] : null;
+  }, [episodes]);
+
+  const handlePlayPreview = () => {
+    if (!podcast || !previewEpisode) return;
+
     const playablePodcast = {
       id: podcast.id,
       title: podcast.title,
@@ -97,15 +103,23 @@ export default function ExternalPodcastPage() {
       image: podcast.image,
       url: podcast.url,
     };
+
     const playableEpisode = {
-      id: episode.id,
-      title: episode.title,
-      description: episode.description,
-      audioUrl: episode.audioUrl,
-      duration: episode.duration,
-      publishDate: episode.publishDate,
+      id: previewEpisode.id,
+      title: previewEpisode.title,
+      description: previewEpisode.description,
+      audioUrl: previewEpisode.audioUrl,
+      duration: previewEpisode.duration,
+      publishDate: previewEpisode.publishDate,
     };
+
     play(playablePodcast, playableEpisode);
+  };
+
+  const handleRedirectToSpotify = (episode: Episode) => {
+    if (episode.url) {
+      window.open(episode.url, '_blank');
+    }
   };
 
   if (loading) {
@@ -175,6 +189,27 @@ export default function ExternalPodcastPage() {
           </Box>
         </CardContent>
       </Card>
+      {previewEpisode && (
+        <Card sx={{ mb: 4, maxWidth: 900, mx: 'auto' }}>
+          <CardContent>
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <CardMedia
+                component="img"
+                image={previewEpisode.imageUrl || podcast.image}
+                alt={previewEpisode.title}
+                sx={{ width: 100, height: 100, borderRadius: 2, mr: 2 }}
+              />
+              <Box sx={{ flex: 1 }}>
+                <Typography variant="h6">Preview</Typography>
+                <Typography variant="subtitle1">{previewEpisode.title}</Typography>
+              </Box>
+              <IconButton onClick={handlePlayPreview} size="large" sx={{ color: 'primary.main' }}>
+                {currentEpisode?.id === previewEpisode.id ? <PauseIcon /> : <PlayArrow />}
+              </IconButton>
+            </Box>
+          </CardContent>
+        </Card>
+      )}
 
       <Box>
         <Typography
@@ -188,10 +223,10 @@ export default function ExternalPodcastPage() {
           <List>
             {visibleEpisodes.map((episode) => (
               <ListItem key={episode.id} disablePadding divider>
-                <ListItemButton onClick={() => handlePlayEpisode(episode)}>
+                <ListItemButton onClick={() => handleRedirectToSpotify(episode)}>
                   <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
                     <IconButton size="small" sx={{ mr: 1, color: 'primary.main' }}>
-                      {currentEpisode?.id === episode.id ? <PauseIcon /> : <PlayArrow />}
+                      <PlayArrow />
                     </IconButton>
                     <ListItemText
                       primary={
