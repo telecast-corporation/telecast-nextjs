@@ -20,7 +20,7 @@ interface Video {
     videoUrl: string; 
     channelTitle: string;
     channelUrl: string;
-    publishedAt: string;
+    publishedAt?: string;
     viewCount: number;
     likeCount: number;
     duration: string;
@@ -86,7 +86,7 @@ export default function VideoPlayerPage() {
          <Typography level="h2" sx={{ mb: 2, color: '#ff6b35' }}>
             Something went wrong!
         </Typography>
-        <Typography level="h4">
+        <Typography level="h4" >
           {error}
         </Typography>
       </Container>
