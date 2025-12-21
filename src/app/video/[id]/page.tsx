@@ -46,52 +46,29 @@
         const [error, setError] = useState<string | null>(null);
 
         useEffect(() => {
-          const videoData = {
-            "id": "l4jwBzDLlpA",
-            "title": "ZINERA - RITZ CARLTON  (Official Video)",
-            "description": "Retrouvez moi partout sur : https://linktr.ee/Zinera06\n\nSnapchat ► https://www.snapchat.com/@fast_life06\n\nInstagram ► https://www.instagram.com/zinera_06/ \n\n__________\n \n⁠⁠ \nFilmé et édité par ► @spongeproductions  ⁠⁠ \nMixed by  ►  https://www.instagram.com/qu4tro_beats/\n\n#fastlife  #montreal 🇩🇿🇨🇦",
-            "thumbnail": "https://i.ytimg.com/vi/l4jwBzDLlpA/hqdefault.jpg",
-            "channelTitle": "Zinera Off",
-            "channelUrl": "https://www.youtube.com/channel/UCmxjY7JsA-uHoAumSn068OA",
-            "publishedAt": "2025-12-19T22:59:52Z",
-            "viewCount": 72286,
-            "likeCount": 3013,
-            "duration": "4:17",
-            "source": "youtube",
-            "videoUrl": "<iframe width=\"100%\" height=\"100%\" src=\"//www.youtube.com/embed/l4jwBzDLlpA\" frameborder=\"0\" allow=\"accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share\" referrerpolicy=\"strict-origin-when-cross-origin\" allowfullscreen></iframe>",
-            "sourceUrl": "https://www.youtube.com/watch?v=l4jwBzDLlpA"
-          }
-          setVideo(videoData);
-          setLoading(false);
-        }, []);
+          const fetchVideo = async () => {
+            if (!params.id) return;
+            try {
+              setLoading(true);
+              const response = await fetch(`/api/video/${params.id}`);
+              if (!response.ok) {
+                throw new Error('Failed to fetch video');
+              }
+              const { video: videoData } = await response.json();
 
-        // useEffect(() => {
-        //   const fetchVideo = async () => {
-        //     if (!params.id) return;
-        //     try {
-        //       setLoading(true);
-        //       const response = await fetch(`/api/video/${params.id}`);
-        //       if (!response.ok) {
-        //         throw new Error('Failed to fetch video');
-        //       }
-        //       const { video: videoData } = await response.json();
-        //       console.log('Received video data:', videoData);
-        //       try {
-        //         setVideo(videoData);
-        //       } catch (e) {
-        //         console.error('Error was thrown directly from setVideo:', e);
-        //         setError('Failed to update video state.');
-        //       }
-        //     } catch (err) {
-        //       console.error('Error during fetch or render:', err);
-        //       setError(err instanceof Error ? err.message : 'An unknown error occurred');
-        //     } finally {
-        //       setLoading(false);
-        //     }
-        //   };
+              // Re-create the object to ensure it's a clean POJO
+              const cleanVideoData = { ...videoData };
+              setVideo(cleanVideoData);
 
-        //   fetchVideo();
-        // }, [params.id]);
+            } catch (err) {
+              setError(err instanceof Error ? err.message : 'An unknown error occurred');
+            } finally {
+              setLoading(false);
+            }
+          };
+
+          fetchVideo();
+        }, [params.id]);
 
         if (loading) {
           return (
@@ -117,7 +94,7 @@
           );
         }
 
-        const videoSrc = video.videoUrl.match(/src="([^"]+)"/)?.[1];
+        const videoSrc = video.videoUrl.match(/src="([^\"]+)"/)?.[1];
 
         return (
           <Container maxWidth="lg" sx={{ mt: 4 }}>
