@@ -1,5 +1,5 @@
 'use client';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Container,
   Box,
@@ -11,6 +11,7 @@ import {
 } from '@mui/material';
 import { AspectRatio, Typography } from '@mui/joy';
 import { Visibility, ThumbUp, Schedule } from '@mui/icons-material';
+import { useParams } from 'next/navigation';
 
 interface Video {
     id: string;
@@ -35,92 +36,77 @@ const formatDescription = (description: string) => {
     ));
 };
 
-const dummyVideo: Video = {
-    id: 'l4jwBz',
-    title: 'Dummy Video Title',
-    description: 'This is a dummy video description. It can have multiple lines.\nAnd another line.',
-    videoUrl: '<iframe width="100%" height="100%" src="https://www.youtube.com/embed/dQw4w9WgXcQ" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>',
-    channelTitle: 'Dummy Channel',
-    channelUrl: 'https://www.youtube.com',
-    publishedAt: new Date().toISOString(),
-    viewCount: 123456,
-    likeCount: 7890,
-    duration: '10:00',
-}
-
 export default function VideoPlayerPage() {
-  // const params = useParams();
-  // const [video, setVideo] = useState<Video | null>(null);
-  // const [loading, setLoading] = useState(true);
-  // const [error, setError] = useState<string | null>(null);
+  const params = useParams();
+  const [video, setVideo] = useState<Video | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // useEffect(() => {
-  //   const fetchVideo = async () => {
-  //     if (!params.id) return;
-  //     try {
-  //       setLoading(true);
-  //       setError(null);
-  //       const videoId = params.id as string;
+  useEffect(() => {
+    const fetchVideo = async () => {
+      if (!params.id) return;
+      try {
+        setLoading(true);
+        setError(null);
+        const videoId = params.id as string;
         
-  //       const response = await fetch(`/api/video/${videoId}`);
+        const response = await fetch(`/api/video/${videoId}`);
         
-  //       if (response.ok) {
-  //         const data = await response.json();
-  //         setVideo(data);
-  //       } else {
-  //         const errorData = await response.json();
-  //         setError(errorData.error || 'We could not find the video you are looking for.');
-  //       }
-  //     } catch (err) {
-  //       setError('An unexpected error occurred while loading the video. Please try again later.');
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   };
+        if (response.ok) {
+          const data = await response.json();
+          setVideo(data);
+        } else {
+          const errorData = await response.json();
+          setError(errorData.error || 'We could not find the video you are looking for.');
+        }
+      } catch (err) {
+        setError('An unexpected error occurred while loading the video. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  //   fetchVideo();
-  // }, [params.id]);
+    fetchVideo();
+  }, [params.id]);
 
-  const video = dummyVideo;
+  if (loading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
 
-  // if (loading) {
-  //   return (
-  //     <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
-  //       <CircularProgress />
-  //     </Box>
-  //   );
-  // }
+  if (error) {
+    return (
+      <Container sx={{ py: 10, textAlign: 'center' }}>
+         <Typography level="h2" sx={{ mb: 2, color: '#ff6b35' }}>
+            Something went wrong!
+        </Typography>
+        <Typography level="h4">
+          {error}
+        </Typography>
+      </Container>
+    );
+  }
 
-  // if (error) {
-  //   return (
-  //     <Container sx={{ py: 10, textAlign: 'center' }}>
-  //        <Typography level="h2" sx={{ mb: 2, color: '#ff6b35' }}>
-  //           Something went wrong!
-  //       </Typography>
-  //       <Typography level="h4">
-  //         {error}
-  //       </Typography>
-  //     </Container>
-  //   );
-  // }
-
-  // if (!video) {
-  //   return (
-  //       <Container sx={{ py: 10, textAlign: 'center' }}>
-  //           <Typography level="h4">
-  //               Video not found.
-  //           </Typography>
-  //       </Container>
-  //   );
-  // }
+  if (!video) {
+    return (
+        <Container sx={{ py: 10, textAlign: 'center' }}>
+            <Typography level="h4">
+                Video not found.
+            </Typography>
+        </Container>
+    );
+  }
 
 
   return (
     <Container sx={{ py: 4 }}>
-      {/* <Card variant="outlined" sx={{ mb: 4, maxWidth: 900, mx: 'auto', borderRadius: 'lg' }}>
+      <Card variant="outlined" sx={{ mb: 4, maxWidth: 900, mx: 'auto', borderRadius: 'lg' }}>
         {typeof video.videoUrl === 'string' && video.videoUrl.includes('<iframe') ? (
             <AspectRatio ratio="16/9">
-               <div dangerouslySetInnerHTML={{ __html: video.videoUrl }} />
+               {/* <div dangerouslySetInnerHTML={{ __html: video.videoUrl }} /> */}
             </AspectRatio>
         ) : (
             <Box sx={{ 
@@ -171,7 +157,7 @@ export default function VideoPlayerPage() {
             </Box>
           )}
         </CardContent>
-      </Card> */}
+      </Card>
     </Container>
   );
 }
