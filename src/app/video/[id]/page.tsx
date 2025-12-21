@@ -36,26 +36,13 @@ const formatDescription = (description: string) => {
     ));
 };
 
-const dummyVideo: Video = {
-  id: '1',
-  title: 'Dummy Video Title',
-  description: 'This is a dummy video description.\nLearn more about dummy data.',
-  videoUrl: '<iframe width="100%" height="100%" src="https://www.youtube.com/embed/dQw4w9WgXcQ" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>',
-  channelTitle: 'Dummy Channel',
-  channelUrl: '#',
-  publishedAt: new Date().toISOString(),
-  viewCount: 1000000,
-  likeCount: 50000,
-  duration: '3:32',
-};
-
 export default function VideoPlayerPage() {
   const params = useParams();
-  const [video, setVideo] = useState<Video | null>(dummyVideo);
-  const [loading, setLoading] = useState(false);
+  const [video, setVideo] = useState<Video | null>(null);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  /*useEffect(() => {
+  useEffect(() => {
     const fetchVideo = async () => {
       if (!params.id) return;
       try {
@@ -67,7 +54,7 @@ export default function VideoPlayerPage() {
         
         if (response.ok) {
           const data = await response.json();
-          setVideo(data);
+          // setVideo(data);
         } else {
           const errorData = await response.json();
           setError(errorData.error || 'We could not find the video you are looking for.');
@@ -80,7 +67,7 @@ export default function VideoPlayerPage() {
     };
 
     fetchVideo();
-  }, [params.id]);*/
+  }, [params.id]);
 
   if (loading) {
     return (
