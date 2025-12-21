@@ -39,10 +39,10 @@ const formatDescription = (description: string) => {
 export default function VideoPlayerPage() {
   const params = useParams();
   const [video, setVideo] = useState<Video | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  /*useEffect(() => {
     const fetchVideo = async () => {
       if (!params.id) return;
       try {
@@ -67,7 +67,7 @@ export default function VideoPlayerPage() {
     };
 
     fetchVideo();
-  }, [params.id]);
+  }, [params.id]);*/
 
   if (loading) {
     return (
