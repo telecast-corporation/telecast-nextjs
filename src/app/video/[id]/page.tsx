@@ -117,7 +117,7 @@ export default function VideoPlayerPage() {
 
   return (
     <Container sx={{ py: 4 }}>
-      <Card variant="outlined" sx={{ mb: 4, maxWidth: 900, mx: 'auto', borderRadius: 'lg' }}>
+      {/* <Card variant="outlined" sx={{ mb: 4, maxWidth: 900, mx: 'auto', borderRadius: 'lg' }}>
         {typeof video.videoUrl === 'string' && video.videoUrl.includes('<iframe') ? (
             <AspectRatio ratio="16/9">
                <div dangerouslySetInnerHTML={{ __html: video.videoUrl }} />
@@ -171,7 +171,7 @@ export default function VideoPlayerPage() {
             </Box>
           )}
         </CardContent>
-      </Card>
+      </Card> */}
     </Container>
   );
 }
