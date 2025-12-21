@@ -77,7 +77,7 @@ export default function VideoPlayerPage() {
     );
   }
 
-  if (error) {
+  /*if (error) {
     return (
       <Container sx={{ py: 10, textAlign: 'center' }}>
          <Typography level="h2" sx={{ mb: 2, color: '#ff6b35' }}>
@@ -88,7 +88,7 @@ export default function VideoPlayerPage() {
         </Typography>
       </Container>
     );
-  }
+  }*/
 
   if (!video) {
     return (
@@ -157,7 +157,7 @@ export default function VideoPlayerPage() {
             </Box>
           )}
         </CardContent>
-      </Card>
+      </Card> 
     </Container>
   );
 }
