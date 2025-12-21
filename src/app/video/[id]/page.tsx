@@ -43,44 +43,30 @@ export default function VideoPlayerPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // const fetchVideo = async () => {
-    //   if (!params.id) return;
-    //   try {
-    //     setLoading(true);
-    //     setError(null);
-    //     const videoId = params.id as string;
+    const fetchVideo = async () => {
+      if (!params.id) return;
+      try {
+        setLoading(true);
+        setError(null);
+        const videoId = params.id as string;
         
-    //     const response = await fetch(`/api/video/${videoId}`);
+        const response = await fetch(`/api/video/${videoId}`);
         
-    //     if (response.ok) {
-    //       const data = await response.json();
-    //       setVideo(data);
-    //     } else {
-    //       const errorData = await response.json();
-    //       setError(errorData.error || 'We could not find the video you are looking for.');
-    //     }
-    //   } catch (err) {
-    //     setError('An unexpected error occurred while loading the video. Please try again later.');
-    //   } finally {
-    //     setLoading(false);
-    //   }
-    // };
-
-    // fetchVideo();
-    const dummyVideo: Video = {
-      id: "123",
-      title: "Dummy Video",
-      description: "This is a dummy video description.",
-      videoUrl: '<iframe width="560" height="315" src="https://www.youtube.com/embed/dQw4w9WgXcQ" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>',
-      channelTitle: "Dummy Channel",
-      channelUrl: "https://www.youtube.com",
-      publishedAt: "2023-01-01T00:00:00Z",
-      viewCount: 100,
-      likeCount: 10,
-      duration: "0:00",
+        if (response.ok) {
+          const data = await response.json();
+          setVideo(data);
+        } else {
+          const errorData = await response.json();
+          setError(errorData.error || 'We could not find the video you are looking for.');
+        }
+      } catch (err) {
+        setError('An unexpected error occurred while loading the video. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
     };
-    setVideo(dummyVideo);
-    setLoading(false);
+
+    fetchVideo();
   }, [params.id]);
 
   if (loading) {
