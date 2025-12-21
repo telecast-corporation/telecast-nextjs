@@ -13,22 +13,6 @@
       import { Visibility, ThumbUp, Schedule } from '@mui/icons-material';
       import { useParams } from 'next/navigation';
 
-      interface Video {
-          id: string;
-          title: string;
-          description: string;
-          thumbnail: string;
-          channelTitle: string;
-          channelUrl: string;
-          publishedAt: string;
-          viewCount: number;
-          likeCount: number;
-          duration: string;
-          source: string;
-          videoUrl: string;
-          sourceUrl: string;
-      }
-
       // Helper to format the description
       const formatDescription = (description: string) => {
           if (!description) return null;
@@ -41,7 +25,7 @@
 
       export default function VideoPlayerPage() {
         const params = useParams();
-        const [video, setVideo] = useState<Video | null>(null);
+        const [video, setVideo] = useState<any | null>(null);
         const [loading, setLoading] = useState(true);
         const [error, setError] = useState<string | null>(null);
 
@@ -55,10 +39,7 @@
                 throw new Error('Failed to fetch video');
               }
               const { video: videoData } = await response.json();
-
-              // Re-create the object to ensure it's a clean POJO
-              const cleanVideoData = { ...videoData };
-              setVideo(cleanVideoData);
+              setVideo(videoData);
 
             } catch (err) {
               setError(err instanceof Error ? err.message : 'An unknown error occurred');
@@ -94,7 +75,7 @@
           );
         }
 
-        const videoSrc = video.videoUrl.match(/src="([^\"]+)"/)?.[1];
+        const videoSrc = video.videoUrl.match(/src="([^"]+)"/)?.[1];
 
         return (
           <Container maxWidth="lg" sx={{ mt: 4 }}>
