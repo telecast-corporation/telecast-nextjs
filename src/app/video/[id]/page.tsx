@@ -55,7 +55,8 @@
                 throw new Error('Failed to fetch video');
               }
               const { video: videoData } = await response.json();
-              setVideo(videoData);
+              console.log(videoData)
+              // setVideo(videoData);
             } catch (err) {
               setError(err instanceof Error ? err.message : 'An unknown error occurred');
             } finally {
