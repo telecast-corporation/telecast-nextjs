@@ -36,9 +36,22 @@ const formatDescription = (description: string) => {
     ));
 };
 
+const dummyVideo: Video = {
+  id: '1',
+  title: 'Dummy Video Title',
+  description: 'This is a dummy video description.\nLearn more about dummy data.',
+  videoUrl: '<iframe width="100%" height="100%" src="https://www.youtube.com/embed/dQw4w9WgXcQ" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>',
+  channelTitle: 'Dummy Channel',
+  channelUrl: '#',
+  publishedAt: new Date().toISOString(),
+  viewCount: 1000000,
+  likeCount: 50000,
+  duration: '3:32',
+};
+
 export default function VideoPlayerPage() {
   const params = useParams();
-  const [video, setVideo] = useState<Video | null>(null);
+  const [video, setVideo] = useState<Video | null>(dummyVideo);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -104,11 +117,11 @@ export default function VideoPlayerPage() {
   return (
     <Container sx={{ py: 4 }}>
       <Card variant="outlined" sx={{ mb: 4, maxWidth: 900, mx: 'auto', borderRadius: 'lg' }}>
-        {/* {typeof(video.videoUrl) === 'string' && video.videoUrl.includes('<iframe') ? ( */}
+        {typeof(video.videoUrl) === 'string' && video.videoUrl.includes('<iframe') ? (
             <AspectRatio ratio="16/9">
-               {/* <div dangerouslySetInnerHTML={{ __html: video.videoUrl }} /> */}
+               <div dangerouslySetInnerHTML={{ __html: video.videoUrl }} />
             </AspectRatio>
-        {/* ) : ( */}
+        ) : (
             <Box sx={{ 
               aspectRatio: '16 / 9',
               background: '#000',
@@ -118,44 +131,44 @@ export default function VideoPlayerPage() {
               borderTopLeftRadius: 'inherit',
               borderTopRightRadius: 'inherit',
             }}>
-              {/* <Typography sx={{ color: 'white' }}>{video.title ?? 'Video preview not available'}</Typography> */}
+              <Typography sx={{ color: 'white' }}>{video.title ?? 'Video preview not available'}</Typography>
             </Box>
-        {/* )} */}
+        )}
         <CardContent sx={{ p: 3 }}>
           <Typography level="h4" component="h1" sx={{ mb: 2, fontWeight: 'bold' }}>
-            {/* {video.title ?? 'Untitled Video'} */}
+            {video.title ?? 'Untitled Video'}
           </Typography>
           
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2, mb: 2 }}>
-              {/* {video.channelUrl ? ( */}
+              {video.channelUrl ? (
                 <Link href={video.channelUrl} target="_blank" rel="noopener noreferrer" sx={{ textDecoration: 'none', color: 'inherit', '&:hover': { textDecoration: 'underline'} }}>
                   <Typography level="body-lg" sx={{ fontWeight: 'md'}}>
-                      {/* {video.channelTitle ?? 'Unknown Channel'} */}
+                      {video.channelTitle ?? 'Unknown Channel'}
                   </Typography>
                 </Link>
-              {/* ) : ( */}
+              ) : (
                 <Typography level="body-lg" sx={{ fontWeight: 'md'}}>
-                    {/* {video.channelTitle ?? 'Unknown Channel'} */}
+                    {video.channelTitle ?? 'Unknown Channel'}
                 </Typography>
-              {/* )} */}
-              {/* {video.publishedAt && ( */}
+              )}
+              {video.publishedAt && (
                   <Typography level="body-sm" sx={{ color: 'text.secondary'}}>
-                      {/* Published on {new Date(video.publishedAt).toLocaleDateString()} */}
+                      Published on {new Date(video.publishedAt).toLocaleDateString()}
                   </Typography>
-              {/* )} */}
+              )}
           </Box>
 
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mt: 2, borderTop: '1px solid', borderColor: 'divider', pt: 2 }}>
-              {/* <Chip icon={<Visibility />} label={`${(video.viewCount ?? 0).toLocaleString()} views`} variant="outlined" /> */}
-              {/* <Chip icon={<ThumbUp />} label={`${(video.likeCount ?? 0).toLocaleString()} likes`} variant="outlined" /> */}
-              {/* {video.duration && <Chip icon={<Schedule />} label={video.duration} variant="outlined" />} */}
+              <Chip icon={<Visibility />} label={`${(video.viewCount ?? 0).toLocaleString()} views`} variant="outlined" />
+              <Chip icon={<ThumbUp />} label={`${(video.likeCount ?? 0).toLocaleString()} likes`} variant="outlined" />
+              {video.duration && <Chip icon={<Schedule />} label={video.duration} variant="outlined" />}
           </Box>
 
-          {/* {video.description && ( */}
+          {video.description && (
             <Box sx={{ mt: 3, borderTop: '1px solid', borderColor: 'divider', pt: 2 }}>
-              {/* {formatDescription(video.description)} */}
+              {formatDescription(video.description)}
             </Box>
-          {/* )} */}
+          )}
         </CardContent>
       </Card> 
     </Container>
