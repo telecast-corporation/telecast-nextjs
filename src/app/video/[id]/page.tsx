@@ -79,6 +79,7 @@
 
         return (
           <Container maxWidth="lg" sx={{ mt: 4 }}>
+            {/*
             <Card>
               <AspectRatio ratio="16/9">
                 {videoSrc ? (
@@ -121,7 +122,7 @@
                 <Link href={video.sourceUrl} target="_blank" rel="noopener">View on {video.source}</Link>
               </CardContent>
             </Card>
+      */}
           </Container>
         );
       }
-      
