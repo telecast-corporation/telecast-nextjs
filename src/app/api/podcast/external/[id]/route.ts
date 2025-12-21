@@ -29,7 +29,7 @@ export async function GET(
             id: episode.id,
             title: episode.name,
             description: episode.description,
-            audioUrl: episode.audio_preview_url,
+            audioUrl: episode.audio_preview_url || `https://open.spotify.com/episode/${episode.id}`,
             duration: episode.duration_ms / 1000,
             publishDate: episode.release_date,
             imageUrl: episode.images[0]?.url,

@@ -5,7 +5,6 @@ import { useParams } from 'next/navigation';
 import {
   Container,
   Typography,
-  Grid,
   Card,
   CardContent,
   CardMedia,
@@ -18,9 +17,9 @@ import {
   ListItemButton,
   CircularProgress,
   Pagination,
+  Paper,
 } from '@mui/material';
-import { PlayArrow, Pause as PauseIcon } from '@mui/icons-material';
-import { useAudio } from '@/contexts/AudioContext';
+import { Headphones as HeadphonesIcon } from '@mui/icons-material';
 
 interface Episode {
   id: string;
@@ -41,22 +40,17 @@ interface Podcast {
   image: string;
   url: string;
   categories?: string[];
-  language?: string;
-  explicit?: boolean;
-  episodeCount?: number;
-  lastUpdateTime?: number;
   episodes?: Episode[];
 }
 
 export default function ExternalPodcastPage() {
   const params = useParams();
-  const { play, currentEpisode } = useAudio();
-
   const [podcast, setPodcast] = useState<Podcast | null>(null);
   const [episodes, setEpisodes] = useState<Episode[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedEpisodeId, setSelectedEpisodeId] = useState<string | null>(null);
   const episodesPerPage = 10;
 
   useEffect(() => {
@@ -71,6 +65,9 @@ export default function ExternalPodcastPage() {
         }
         setPodcast(data);
         setEpisodes(data.episodes || []);
+        if (data.episodes && data.episodes.length > 0) {
+          setSelectedEpisodeId(data.episodes[0].id);
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load podcast');
       } finally {
@@ -88,38 +85,8 @@ export default function ExternalPodcastPage() {
 
   const totalPages = Math.ceil(episodes.length / episodesPerPage);
 
-  const previewEpisode = useMemo(() => {
-    return episodes.length > 0 ? episodes[0] : null;
-  }, [episodes]);
-
-  const handlePlayPreview = () => {
-    if (!podcast || !previewEpisode) return;
-
-    const playablePodcast = {
-      id: podcast.id,
-      title: podcast.title,
-      author: podcast.author,
-      description: podcast.description,
-      image: podcast.image,
-      url: podcast.url,
-    };
-
-    const playableEpisode = {
-      id: previewEpisode.id,
-      title: previewEpisode.title,
-      description: previewEpisode.description,
-      audioUrl: previewEpisode.audioUrl,
-      duration: previewEpisode.duration,
-      publishDate: previewEpisode.publishDate,
-    };
-
-    play(playablePodcast, playableEpisode);
-  };
-
-  const handleRedirectToSpotify = (episode: Episode) => {
-    if (episode.url) {
-      window.open(episode.url, '_blank');
-    }
+  const handleSelectEpisode = (episodeId: string) => {
+    setSelectedEpisodeId(episodeId);
   };
 
   if (loading) {
@@ -146,37 +113,13 @@ export default function ExternalPodcastPage() {
         <CardContent>
           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', mb: 2 }}>
             <CardMedia component="img" image={podcast.image} alt={podcast.title} sx={{ width: 200, height: 200, borderRadius: 2, mb: 2 }} />
-            <Typography
-              variant="h5"
-              component="h1"
-              gutterBottom
-              sx={{ fontSize: { xs: '1.25rem', sm: '1.4rem', md: '1.6rem' }, fontWeight: 700 }}
-            >
+            <Typography variant="h5" component="h1" gutterBottom sx={{ fontSize: { xs: '1.25rem', sm: '1.4rem', md: '1.6rem' }, fontWeight: 700 }}>
               {podcast.title}
             </Typography>
-            <Box
-              component="p"
-              sx={{
-                color: 'text.primary',
-                fontSize: {
-                  xs: '1.6rem !important',
-                  sm: '1.8rem !important',
-                  md: '2rem !important',
-                },
-                fontWeight: 700,
-                lineHeight: 1.35,
-                mt: 0.25,
-                mb: 0.5,
-                letterSpacing: 0.2,
-              }}
-            >
+            <Box component="p" sx={{ color: 'text.primary', fontSize: { xs: '1.6rem !important', sm: '1.8rem !important', md: '2rem !important' }, fontWeight: 700, lineHeight: 1.35, mt: 0.25, mb: 0.5, letterSpacing: 0.2 }}>
               {podcast.author}
             </Box>
-            <Typography
-              variant="body2"
-              color="text.secondary"
-              sx={{ maxWidth: 700, mt: 1, fontSize: { xs: '0.9rem', sm: '0.95rem' }, lineHeight: 1.5 }}
-            >
+            <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 700, mt: 1, fontSize: { xs: '0.9rem', sm: '0.95rem' }, lineHeight: 1.5 }}>
               {podcast.description}
             </Typography>
             {!!podcast.categories?.length && (
@@ -189,60 +132,48 @@ export default function ExternalPodcastPage() {
           </Box>
         </CardContent>
       </Card>
-      {previewEpisode && (
-        <Card sx={{ mb: 4, maxWidth: 900, mx: 'auto' }}>
-          <CardContent>
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <CardMedia
-                component="img"
-                image={previewEpisode.imageUrl || podcast.image}
-                alt={previewEpisode.title}
-                sx={{ width: 100, height: 100, borderRadius: 2, mr: 2 }}
-              />
-              <Box sx={{ flex: 1 }}>
-                <Typography variant="h6">Preview</Typography>
-                <Typography variant="subtitle1">{previewEpisode.title}</Typography>
-              </Box>
-              <IconButton onClick={handlePlayPreview} size="large" sx={{ color: 'primary.main' }}>
-                {currentEpisode?.id === previewEpisode.id ? <PauseIcon /> : <PlayArrow />}
-              </IconButton>
-            </Box>
-          </CardContent>
-        </Card>
+
+      {selectedEpisodeId && (
+        <Paper elevation={3} sx={{ p: 2, mb: 4, maxWidth: 900, mx: 'auto' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+            <HeadphonesIcon color="primary" />
+            <Typography variant="h6" component="h2">Listen to Episode</Typography>
+          </Box>
+          <Box sx={{ position: 'relative', width: '100%', height: '152px', borderRadius: 2, overflow: 'hidden', bgcolor: 'background.paper' }}>
+            <iframe
+              src={`https://open.spotify.com/embed/episode/${selectedEpisodeId}?utm_source=generator&theme=0`}
+              width="100%"
+              height="100%"
+              frameBorder="0"
+              allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+              loading="lazy"
+              style={{ border: 'none', borderRadius: '8px' }}
+            />
+          </Box>
+        </Paper>
       )}
 
-      <Box>
-        <Typography
-          variant="h6"
-          gutterBottom
-          sx={{ fontSize: { xs: '1.1rem', sm: '1.2rem', md: '1.3rem' }, fontWeight: 600 }}
-        >
+      <Box sx={{ maxWidth: 900, mx: 'auto' }}>
+        <Typography variant="h6" gutterBottom sx={{ fontSize: { xs: '1.1rem', sm: '1.2rem', md: '1.3rem' }, fontWeight: 600 }}>
           Episodes
         </Typography>
         <Card>
           <List>
             {visibleEpisodes.map((episode) => (
               <ListItem key={episode.id} disablePadding divider>
-                <ListItemButton onClick={() => handleRedirectToSpotify(episode)}>
+                <ListItemButton onClick={() => handleSelectEpisode(episode.id)}>
                   <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
                     <IconButton size="small" sx={{ mr: 1, color: 'primary.main' }}>
-                      <PlayArrow />
+                      <HeadphonesIcon />
                     </IconButton>
                     <ListItemText
                       primary={
-                        <Typography
-                          variant="subtitle1"
-                          sx={{ fontSize: { xs: '0.95rem', sm: '1rem', md: '1.05rem' }, fontWeight: 500 }}
-                        >
+                        <Typography variant="subtitle1" sx={{ fontSize: { xs: '0.95rem', sm: '1rem', md: '1.05rem' }, fontWeight: selectedEpisodeId === episode.id ? 700 : 500, color: selectedEpisodeId === episode.id ? 'primary.main' : 'text.primary' }}>
                           {episode.title}
                         </Typography>
                       }
                       secondary={
-                        <Typography
-                          variant="body2"
-                          color="text.secondary"
-                          sx={{ fontSize: { xs: '0.8rem', sm: '0.85rem' } }}
-                        >
+                        <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.8rem', sm: '0.85rem' } }}>
                           {new Date(episode.publishDate).toLocaleDateString()}
                         </Typography>
                       }
