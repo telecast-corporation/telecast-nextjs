@@ -12,23 +12,23 @@
       import { AspectRatio, Typography } from '@mui/joy';
       import { Visibility, ThumbUp, Schedule } from '@mui/icons-material';
       import { useParams } from 'next/navigation';
-      
+
       interface Video {
           id: string;
           title: string;
           description: string;
-          videoUrl: string; 
+          thumbnail: string;
           channelTitle: string;
           channelUrl: string;
           publishedAt: string;
           viewCount: number;
           likeCount: number;
           duration: string;
-          thumbnail: string;
           source: string;
+          videoUrl: string;
           sourceUrl: string;
       }
-      
+
       // Helper to format the description
       const formatDescription = (description: string) => {
           if (!description) return null;
@@ -38,13 +38,13 @@
               </Typography>
           ));
       };
-      
+
       export default function VideoPlayerPage() {
         const params = useParams();
         const [video, setVideo] = useState<Video | null>(null);
         const [loading, setLoading] = useState(true);
         const [error, setError] = useState<string | null>(null);
-      
+
         useEffect(() => {
           const fetchVideo = async () => {
             if (!params.id) return;
@@ -54,18 +54,18 @@
               if (!response.ok) {
                 throw new Error('Failed to fetch video');
               }
-              const data = await response.json();
-              setVideo(data);
+              const { video: videoData } = await response.json();
+              setVideo(videoData);
             } catch (err) {
               setError(err instanceof Error ? err.message : 'An unknown error occurred');
             } finally {
               setLoading(false);
             }
           };
-      
+
           fetchVideo();
         }, [params.id]);
-      
+
         if (loading) {
           return (
             <Container sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
@@ -73,7 +73,7 @@
             </Container>
           );
         }
-      
+
         if (error) {
           return (
             <Container>
@@ -81,7 +81,7 @@
             </Container>
           );
         }
-      
+
         if (!video) {
           return (
             <Container>
@@ -91,7 +91,7 @@
         }
 
         const videoSrc = video.videoUrl.match(/src="([^"]+)"/)?.[1];
-      
+
         return (
           <Container maxWidth="lg" sx={{ mt: 4 }}>
             <Card>
@@ -112,6 +112,11 @@
                 <Typography level="h1" sx={{ mb: 2 }}>
                   {video.title}
                 </Typography>
+                
+                <Typography sx={{ mb: 1 }}>
+                  Channel: <Link href={video.channelUrl} target="_blank" rel="noopener">{video.channelTitle}</Link>
+                </Typography>
+
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 2, mb: 2 }}>
                   <Chip icon={<Visibility />} label={`${video.viewCount.toLocaleString()} views`} />
                   <Chip icon={<ThumbUp />} label={`${video.likeCount.toLocaleString()} likes`} />
@@ -119,16 +124,19 @@
                   <Chip label={video.duration} />
                   <Chip label={video.source} color="primary" variant="outlined" />
                 </Box>
-                <Typography sx={{ mb: 1 }}>
-                  Channel: <Link href={video.channelUrl} target="_blank" rel="noopener">{video.channelTitle}</Link>
-                </Typography>
-                <Link href={video.sourceUrl} target="_blank" rel="noopener">View on {video.source}</Link>
-      
+
                 <Box sx={{ mt: 2 }}>
                   {formatDescription(video.description)}
                 </Box>
+
+                <Box sx={{ mt: 2 }}>
+                  <img src={video.thumbnail} alt={video.title} style={{ maxWidth: '100%' }} />
+                </Box>
+
+                <Link href={video.sourceUrl} target="_blank" rel="noopener">View on {video.source}</Link>
               </CardContent>
             </Card>
           </Container>
         );
       }
+      

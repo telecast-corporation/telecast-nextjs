@@ -51,10 +51,10 @@ export async function GET(
       id: id,
       title: snippet?.title || 'No title',
       description: snippet?.description || 'No description available.',
-      thumbnail: snippet?.thumbnails?.high?.url,
+      thumbnail: snippet?.thumbnails?.high?.url || '',
       channelTitle: snippet?.channelTitle || 'Unknown Channel',
       channelUrl: `https://www.youtube.com/channel/${snippet?.channelId}`,
-      publishedAt: snippet?.publishedAt,
+      publishedAt: snippet?.publishedAt || new Date().toISOString(),
       viewCount: statistics?.viewCount ? parseInt(statistics.viewCount, 10) : 0,
       likeCount: statistics?.likeCount ? parseInt(statistics.likeCount, 10) : 0,
       duration: contentDetails?.duration ? formatDuration(contentDetails.duration) : '0:00',
@@ -66,7 +66,7 @@ export async function GET(
       sourceUrl: `https://www.youtube.com/watch?v=${id}`,
     };
 
-    return NextResponse.json(videoData);
+    return NextResponse.json({ video: videoData });
 
   } catch (error) {
     console.error('Error fetching video from YouTube:', error);
