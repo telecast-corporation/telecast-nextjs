@@ -16,9 +16,9 @@ const formatDuration = (duration: string) => {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
-  const { id } = await params;
+  const { id } = params;
 
   if (!id) {
     return NextResponse.json({ error: 'Video ID is required' }, { status: 400 });
