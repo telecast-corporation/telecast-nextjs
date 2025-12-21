@@ -106,7 +106,7 @@ export default function VideoPlayerPage() {
       <Card variant="outlined" sx={{ mb: 4, maxWidth: 900, mx: 'auto', borderRadius: 'lg' }}>
         {typeof video.videoUrl === 'string' && video.videoUrl.includes('<iframe') ? (
             <AspectRatio ratio="16/9">
-               {/* <div dangerouslySetInnerHTML={{ __html: video.videoUrl }} /> */}
+               <div dangerouslySetInnerHTML={{ __html: video.videoUrl }} />
             </AspectRatio>
         ) : (
             <Box sx={{ 
@@ -126,7 +126,7 @@ export default function VideoPlayerPage() {
             {video.title ?? 'Untitled Video'}
           </Typography>
           
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2, mb: 2 }}>
+          {/* <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2, mb: 2 }}>
               {video.channelUrl ? (
                 <Link href={video.channelUrl} target="_blank" rel="noopener noreferrer" sx={{ textDecoration: 'none', color: 'inherit', '&:hover': { textDecoration: 'underline'} }}>
                   <Typography level="body-lg" sx={{ fontWeight: 'md'}}>
@@ -143,7 +143,7 @@ export default function VideoPlayerPage() {
                       Published on {new Date(video.publishedAt).toLocaleDateString()}
                   </Typography>
               )}
-          </Box>
+          </Box> */}
 
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mt: 2, borderTop: '1px solid', borderColor: 'divider', pt: 2 }}>
               <Chip icon={<Visibility />} label={`${(video.viewCount ?? 0).toLocaleString()} views`} variant="outlined" />
