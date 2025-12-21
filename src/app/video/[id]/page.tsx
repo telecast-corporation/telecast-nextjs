@@ -24,6 +24,9 @@ interface Video {
     viewCount: number;
     likeCount: number;
     duration: string;
+    thumbnail?: string;
+    source?: string;
+    sourceUrl?: string;
 }
 
 // Helper to format the description
@@ -54,7 +57,7 @@ export default function VideoPlayerPage() {
         
         if (response.ok) {
           const data = await response.json();
-          // setVideo(data);
+          setVideo(data);
         } else {
           const errorData = await response.json();
           setError(errorData.error || 'We could not find the video you are looking for.');
