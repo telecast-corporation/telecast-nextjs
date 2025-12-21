@@ -20,13 +20,13 @@ interface Video {
     videoUrl: string; 
     channelTitle: string;
     channelUrl: string;
-    publishedAt?: string;
+    publishedAt: string;
     viewCount: number;
     likeCount: number;
     duration: string;
-    thumbnail?: string;
-    source?: string;
-    sourceUrl?: string;
+    thumbnail: string;
+    source: string;
+    sourceUrl: string;
 }
 
 // Helper to format the description
