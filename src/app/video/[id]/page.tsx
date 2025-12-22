@@ -99,7 +99,17 @@ export default function VideoPlayerPage() {
           )}
           </AspectRatio> */}
         <CardContent>
-          <Typography level="h1" sx={{ mb: 2 }}>
+          <Typography
+            level="h1"
+            sx={{
+              mb: 2,
+              fontSize: {
+                xs: '1.25rem', // for mobile
+                sm: '2.25rem', // for tablets
+                md: '2.5rem',  // for desktops
+              },
+            }}
+          >
             {video.title}
           </Typography>
 
