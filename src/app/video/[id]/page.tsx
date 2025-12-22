@@ -15,28 +15,28 @@ import { useParams } from 'next/navigation';
 
 // Helper to format the description
 const formatDescription = (description: string) => {
-    if (!description) return null;
-    return description.split('\n').map((line, index) => (
-        <Typography key={index} sx={{ mt: 1 }}>
-            {line}
-        </Typography>
-    ));
+  if (!description) return null;
+  return description.split('\n').map((line, index) => (
+    <Typography key={index} sx={{ mt: 1 }}>
+      {line}
+    </Typography>
+  ));
 };
 
 interface Video {
-    id: string;
-    title: string;
-    description: string;
-    thumbnail: string;
-    channelTitle: string;
-    channelUrl: string;
-    publishedAt: string;
-    viewCount: number;
-    likeCount: number;
-    duration: string;
-    source: string;
-    videoUrl: string;
-    sourceUrl: string;
+  id: string;
+  title: string;
+  description: string;
+  thumbnail: string;
+  channelTitle: string;
+  channelUrl: string;
+  publishedAt: string;
+  viewCount: number;
+  likeCount: number;
+  duration: string;
+  source: string;
+  videoUrl: string;
+  sourceUrl: string;
 }
 
 export default function VideoPlayerPage() {
@@ -86,7 +86,7 @@ export default function VideoPlayerPage() {
   return (
     <Container maxWidth="lg" sx={{ mt: 4 }}>
       <Card>
-          <AspectRatio ratio="16/9">
+        {/* <AspectRatio ratio="16/9">
           {video.videoUrl ? (
               <iframe
                   src={video.videoUrl}
@@ -97,34 +97,34 @@ export default function VideoPlayerPage() {
           ) : (
               <Typography>Invalid video URL</Typography>
           )}
-          </AspectRatio>
-          <CardContent>
+          </AspectRatio> */}
+        <CardContent>
           <Typography level="h1" sx={{ mb: 2 }}>
-              {video.title}
+            {video.title}
           </Typography>
-          
+
           <Typography sx={{ mb: 1 }}>
-              Channel: <Link href={video.channelUrl} target="_blank" rel="noopener">{video.channelTitle}</Link>
+            Channel: <Link href={video.channelUrl} target="_blank" rel="noopener">{video.channelTitle}</Link>
           </Typography>
 
           <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 2, mb: 2 }}>
-              <Chip icon={<Visibility />} label={`${video.viewCount.toLocaleString()} views`} />
-              <Chip icon={<ThumbUp />} label={`${video.likeCount.toLocaleString()} likes`} />
-              <Chip icon={<Schedule />} label={new Date(video.publishedAt).toLocaleDateString()} />
-              <Chip label={video.duration} />
-              <Chip label={video.source} color="primary" variant="outlined" />
+            <Chip icon={<Visibility />} label={`${video.viewCount.toLocaleString()} views`} />
+            <Chip icon={<ThumbUp />} label={`${video.likeCount.toLocaleString()} likes`} />
+            <Chip icon={<Schedule />} label={new Date(video.publishedAt).toLocaleDateString()} />
+            <Chip label={video.duration} />
+            <Chip label={video.source} color="primary" variant="outlined" />
           </Box>
 
           <Box sx={{ mt: 2 }}>
-              {formatDescription(video.description)}
+            {formatDescription(video.description)}
           </Box>
 
           <Box sx={{ mt: 2 }}>
-              <img src={video.thumbnail} alt={video.title} style={{ maxWidth: '100%' }} />
+            <img src={video.thumbnail} alt={video.title} style={{ maxWidth: '100%' }} />
           </Box>
 
           <Link href={video.sourceUrl} target="_blank" rel="noopener">View on {video.source}</Link>
-          </CardContent>
+        </CardContent>
       </Card>
     </Container>
   );
