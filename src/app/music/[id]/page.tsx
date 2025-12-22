@@ -260,34 +260,6 @@ export default function MusicPage() {
                         {isPlaying ? 'Pause' : 'Play Preview (30s)'}
                       </Button>
                     )}
-                    
-                    {/* Other listening options */}
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                      <Typography variant="body2" color="text.secondary" sx={{ 
-                        fontSize: { xs: '0.75rem', sm: '0.85rem', md: '0.9rem' },
-                        fontWeight: 500,
-                        mb: 1
-                      }}>
-                        Listen on:
-                      </Typography>
-                      {music.previewOptions.map((option, index) => (
-                        <Button
-                          key={index}
-                          variant="outlined"
-                          size="small"
-                          onClick={() => window.open(option.url, '_blank')}
-                          startIcon={<PlayIcon />}
-                          sx={{ 
-                            alignSelf: 'flex-start',
-                            fontSize: { xs: '0.7rem', sm: '0.8rem' },
-                            py: 0.5,
-                            px: 2
-                          }}
-                        >
-                          {option.label}
-                        </Button>
-                      ))}
-                    </Box>
                   </Box>
                 ) : (
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -503,4 +475,4 @@ export default function MusicPage() {
       </Paper>
     </Container>
   );
-} 
+}
