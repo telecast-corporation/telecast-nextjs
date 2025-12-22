@@ -41,7 +41,7 @@ interface Video {
 
 export default function VideoPlayerPage() {
   const params = useParams();
-  const [video, setVideo] = useState<Video[]>([]);
+  const [video, setVideo] = useState<Video | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -55,7 +55,7 @@ export default function VideoPlayerPage() {
           throw new Error('Failed to fetch video');
         }
         const { video: videoData } = await response.json();
-        setVideo(prevVideos => [...prevVideos, videoData]);
+        setVideo(videoData);
 
       } catch (err) {
         setError(err instanceof Error ? err.message : 'An unknown error occurred');
@@ -67,68 +67,65 @@ export default function VideoPlayerPage() {
     fetchVideo();
   }, [params.id]);
 
+  if (loading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (error) {
+    return <Typography color="danger">{error}</Typography>;
+  }
+
+  if (!video) {
+    return <Typography>No video found.</Typography>;
+  }
+
   return (
     <Container maxWidth="lg" sx={{ mt: 4 }}>
-      {loading && (
-        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-          <CircularProgress />
-        </Box>
-      )}
-      {error && (
-        <Typography color="danger">{error}</Typography>
-      )}
-      {!loading && !error && video.length > 0 && (
-          video.map((item, index) => {
-              const videoSrc = item.videoUrl.match(/src=\"([^\"]+)\"/)?.[1];
-              return (
-                  <Card key={index}>
-                      <AspectRatio ratio="16/9">
-                      {videoSrc ? (
-                          <Box
-                              component="iframe"
-                              src={videoSrc}
-                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                              allowFullScreen
-                              sx={{ border: 'none', width: '100%', height: '100%' }}
-                          />
-                      ) : (
-                          <Typography>Invalid video URL</Typography>
-                      )}
-                      </AspectRatio>
-                      <CardContent>
-                      <Typography level="h1" sx={{ mb: 2 }}>
-                          {item.title}
-                      </Typography>
-                      
-                      <Typography sx={{ mb: 1 }}>
-                          Channel: <Link href={item.channelUrl} target="_blank" rel="noopener">{item.channelTitle}</Link>
-                      </Typography>
+      <Card>
+          <AspectRatio ratio="16/9">
+          {video.videoUrl ? (
+              <iframe
+                  src={video.videoUrl}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                  style={{ border: 'none', width: '100%', height: '100%' }}
+              />
+          ) : (
+              <Typography>Invalid video URL</Typography>
+          )}
+          </AspectRatio>
+          <CardContent>
+          <Typography level="h1" sx={{ mb: 2 }}>
+              {video.title}
+          </Typography>
+          
+          <Typography sx={{ mb: 1 }}>
+              Channel: <Link href={video.channelUrl} target="_blank" rel="noopener">{video.channelTitle}</Link>
+          </Typography>
 
-                      <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 2, mb: 2 }}>
-                          <Chip icon={<Visibility />} label={`${item.viewCount.toLocaleString()} views`} />
-                          <Chip icon={<ThumbUp />} label={`${item.likeCount.toLocaleString()} likes`} />
-                          <Chip icon={<Schedule />} label={new Date(item.publishedAt).toLocaleDateString()} />
-                          <Chip label={item.duration} />
-                          <Chip label={item.source} color="primary" variant="outlined" />
-                      </Box>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 2, mb: 2 }}>
+              <Chip icon={<Visibility />} label={`${video.viewCount.toLocaleString()} views`} />
+              <Chip icon={<ThumbUp />} label={`${video.likeCount.toLocaleString()} likes`} />
+              <Chip icon={<Schedule />} label={new Date(video.publishedAt).toLocaleDateString()} />
+              <Chip label={video.duration} />
+              <Chip label={video.source} color="primary" variant="outlined" />
+          </Box>
 
-                      <Box sx={{ mt: 2 }}>
-                          {formatDescription(item.description)}
-                      </Box>
+          <Box sx={{ mt: 2 }}>
+              {formatDescription(video.description)}
+          </Box>
 
-                      <Box sx={{ mt: 2 }}>
-                          <img src={item.thumbnail} alt={item.title} style={{ maxWidth: '100%' }} />
-                      </Box>
+          <Box sx={{ mt: 2 }}>
+              <img src={video.thumbnail} alt={video.title} style={{ maxWidth: '100%' }} />
+          </Box>
 
-                      <Link href={item.sourceUrl} target="_blank" rel="noopener">View on {item.source}</Link>
-                      </CardContent>
-                  </Card>
-              )
-          })
-      )}
-      {!loading && !error && video.length === 0 && (
-          <Typography>No video found.</Typography>
-      )}
+          <Link href={video.sourceUrl} target="_blank" rel="noopener">View on {video.source}</Link>
+          </CardContent>
+      </Card>
     </Container>
   );
 }

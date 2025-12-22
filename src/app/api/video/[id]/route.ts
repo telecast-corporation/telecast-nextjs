@@ -1,3 +1,4 @@
+
 import { NextRequest, NextResponse } from 'next/server';
 import axios from 'axios';
 
@@ -33,7 +34,7 @@ export async function GET(
     // Fetch video details from YouTube API
     const response = await axios.get(`${YOUTUBE_API_URL}/videos`, {
       params: {
-        part: 'snippet,statistics,contentDetails,player',
+        part: 'snippet,statistics,contentDetails',
         id: id,
         key: YOUTUBE_API_KEY,
       },
@@ -44,7 +45,7 @@ export async function GET(
     }
 
     const video = response.data.items[0];
-    const { snippet, statistics, contentDetails, player } = video;
+    const { snippet, statistics, contentDetails } = video;
 
     // Construct the video data object
     const videoData = {
@@ -59,10 +60,7 @@ export async function GET(
       likeCount: statistics?.likeCount ? parseInt(statistics.likeCount, 10) : 0,
       duration: contentDetails?.duration ? formatDuration(contentDetails.duration) : '0:00',
       source: 'youtube',
-      // Use the provided embed HTML if available, otherwise construct our own responsive one.
-      videoUrl: player?.embedHtml ? 
-                player.embedHtml.replace('width="480"', 'width="100%"').replace('height="360"', 'height="100%"') :
-                `<iframe width="100%" height="100%" src="https://www.youtube.com/embed/${id}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`,
+      videoUrl: `https://www.youtube.com/embed/${id}`,
       sourceUrl: `https://www.youtube.com/watch?v=${id}`,
     };
 
