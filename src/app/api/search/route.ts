@@ -101,7 +101,7 @@ function transformOMDbTVShow(data: any): any {
         title: truncateText(data.Title || "Unknown Title", 50),
         description: truncateText(data.Plot !== "N/A" ? data.Plot : "", 100),
         thumbnail: data.Poster !== "N/A" ? data.Poster : "https://via.placeholder.com/300x450",
-        url: `/tv/${data.imdbID}`,
+        url: `${OMDB_BASE_URL}/tv/${data.imdbID}`,
         author: data.Director !== "N/A" ? truncateText(data.Director, 30) : "Unknown",
         year: data.Year || "",
         rating: data.imdbRating !== "N/A" ? data.imdbRating : "",
