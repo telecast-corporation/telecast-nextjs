@@ -9,7 +9,7 @@ import {
   Chip,
   Link,
 } from '@mui/material';
-import { AspectRatio, Typography } from '@mui/joy';
+import { Typography } from '@mui/joy';
 import { Visibility, ThumbUp, Schedule } from '@mui/icons-material';
 import { useParams } from 'next/navigation';
 
@@ -86,18 +86,18 @@ export default function VideoPlayerPage() {
   return (
     <Container maxWidth="lg" sx={{ mt: 4 }}>
       <Card>
-        {/* <AspectRatio ratio="16/9">
-          {video.videoUrl ? (
-              <iframe
-                  src={video.videoUrl}
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                  allowFullScreen
-                  style={{ border: 'none', width: '100%', height: '100%' }}
-              />
-          ) : (
-              <Typography>Invalid video URL</Typography>
-          )}
-          </AspectRatio> */}
+        {video.videoUrl ? (
+          <Box sx={{ width: '100%', height: '450px' }}>
+            <iframe
+                src={video.videoUrl}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+                style={{ border: 'none', width: '100%', height: '100%' }}
+            />
+            </Box>
+        ) : (
+            <Typography>Invalid video URL</Typography>
+        )}
         <CardContent>
           <Typography
             level="h1"
