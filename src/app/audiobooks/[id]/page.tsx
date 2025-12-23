@@ -137,7 +137,7 @@ export default function AudiobookPage() {
                   startIcon={<HeadphonesIcon />}
                   component={audiobook.url ? 'a' : 'button'} // Use 'a' if URL exists, otherwise 'button'
                   href={audiobook.url ? `/audiobooks/${audiobook.id}/play` : undefined} // Internal playback page
-                  onClick={audiobook.url ? undefined : (e) => e.preventDefault()} // Prevent click if disabled
+                  onClick={audiobook.url ? undefined : (e: React.MouseEvent) => e.preventDefault()} // Prevent click if disabled
                   disabled={!audiobook.url}
                   sx={{ minWidth: 200 }} // Give it a min-width
                 >
