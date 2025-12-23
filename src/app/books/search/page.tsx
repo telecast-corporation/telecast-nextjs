@@ -5,11 +5,13 @@ import { Container, TextField, Box, Typography } from '@mui/material';
 import BookGrid from '@/components/BookGrid';
 import { TrendingItem } from '@/types';
 import { useDebounce } from '@/hooks/useDebounce';
+import { useRouter } from 'next/navigation';
 
 export default function BookSearchPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [results, setResults] = useState<TrendingItem[]>([]);
   const debouncedSearchQuery = useDebounce(searchQuery, 500);
+  const router = useRouter();
 
   useEffect(() => {
     const fetchResults = async () => {
@@ -41,6 +43,14 @@ export default function BookSearchPage() {
     fetchResults();
   }, [debouncedSearchQuery]);
 
+  const handleItemClick = (item: TrendingItem) => {
+    if (item.type === 'book') {
+      router.push(`/book/${item.id}`);
+    } else {
+      router.push(`/audiobooks/${item.id}`);
+    }
+  };
+
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
       <Typography variant="h4" component="h1" gutterBottom>
@@ -57,7 +67,7 @@ export default function BookSearchPage() {
         />
       </Box>
 
-      <BookGrid books={results} />
+      <BookGrid books={results} onItemClick={handleItemClick} />
     </Container>
   );
 }
