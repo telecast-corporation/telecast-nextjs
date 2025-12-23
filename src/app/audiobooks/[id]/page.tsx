@@ -27,6 +27,7 @@ import {
   Person as PersonIcon,
 } from '@mui/icons-material';
 import axios from 'axios';
+import AudioPlayer from '@/components/AudioPlayer';
 
 interface AudiobookDetails {
   id: string;
@@ -131,18 +132,14 @@ export default function AudiobookPage() {
                 </Box>
               </Box>
               <Box sx={{ mt: { xs: 2, md: 0 } }}>
-                <Button
-                  variant="contained"
-                  size="large" // Larger button
-                  startIcon={<HeadphonesIcon />}
-                  component={audiobook.url ? 'a' : 'button'} // Use 'a' if URL exists, otherwise 'button'
-                  href={audiobook.url ? `/audiobooks/${audiobook.id}/play` : undefined} // Internal playback page
-                  onClick={audiobook.url ? undefined : (e: React.MouseEvent) => e.preventDefault()} // Prevent click if disabled
-                  disabled={!audiobook.url}
-                  sx={{ minWidth: 200 }} // Give it a min-width
-                >
-                  Listen Now
-                </Button>
+                {audiobook.url && (
+                  <AudioPlayer
+                    audioUrl={`/api/audio${audiobook.url}`}
+                    imageUrl={ensureHttps(audiobook.thumbnail) || ''}
+                    title={audiobook.title}
+                    episodeTitle={audiobook.title}
+                  />
+                )}
               </Box>
             </Box>
           </Grid>
