@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Grid } from '@mui/material';
 import BookCard from './BookCard';
@@ -13,7 +12,7 @@ const BookGrid: React.FC<BookGridProps> = ({ books }) => {
     <Grid container spacing={2}>
       {books.map((book: TrendingItem) => (
         <Grid item xs={12} sm={6} md={4} key={book.id}>
-          <BookCard book={book} type={book.type} />
+          <BookCard book={book} type={book.type as 'book' | 'audiobook' || 'book'} />
         </Grid>
       ))}
     </Grid>
