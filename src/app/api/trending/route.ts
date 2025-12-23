@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import axios from 'axios';
 import { prisma } from '@/lib/prisma';
+import { searchAudible } from '@/lib/audible-search';
 
 const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;
 const SPOTIFY_CLIENT_ID = process.env.SPOTIFY_CLIENT_ID;
@@ -275,6 +276,19 @@ async function getTrendingBooks() {
   }
 }
 
+async function getTrendingAudiobooks() {
+  try {
+    console.log('Fetching trending audiobooks...');
+    const audiobooks = await searchAudible('trending', 40);
+    console.log('Audiobooks response:', audiobooks);
+    return audiobooks;
+  } catch (error) {
+    console.error('Error fetching trending audiobooks:', error);
+    return [];
+  }
+}
+
+
 async function getTrendingPodcasts() {
   try {
     console.log('Fetching trending podcasts...');
@@ -448,10 +462,11 @@ async function getTrendingNews() {
 export async function GET(request: Request) {
   try {
     console.log('Starting to fetch all trending content...');
-    const [videos, music, books, podcasts, news, tv] = await Promise.all([
+    const [videos, music, books, audiobooks, podcasts, news, tv] = await Promise.all([
       getTrendingVideos(),
       getTrendingMusic(),
       getTrendingBooks(),
+      getTrendingAudiobooks(),
       getTrendingPodcasts(),
       getTrendingNews(),
       getTrendingTV(),
@@ -461,6 +476,7 @@ export async function GET(request: Request) {
       videosCount: videos.length,
       musicCount: music.length,
       booksCount: books.length,
+      audiobooksCount: audiobooks.length,
       podcastsCount: podcasts.length,
       newsCount: news.length,
       tvCount: tv.length,
@@ -471,6 +487,7 @@ export async function GET(request: Request) {
       videos,
       music,
       books,
+      audiobooks,
       podcasts,
       news,
       tv,

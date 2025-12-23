@@ -42,7 +42,7 @@ export interface TrendingItem {
   categories?: string[];
   audibleUrl?: string;
   kindleUrl?: string;
-  type?: string;
+  type: 'video' | 'music' | 'book' | 'audiobook' | 'podcast' | 'news' | 'tv';
   views?: string;
   artist?: string;
   album?: string;

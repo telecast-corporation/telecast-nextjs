@@ -130,7 +130,7 @@ function ContentCarousel({ title, items, onItemClick }: ContentCarouselProps) {
                     {item.artist} • {item.album}
                   </Typography>
                 )}
-                {item.type === 'book' && item.author && (
+                {(item.type === 'book' || item.type === 'audiobook') && item.author && (
                   <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.85rem', sm: '1.2vw', md: '0.9rem' }, fontWeight: 400 }}>
                     {item.author} • {item.rating ? `${item.rating.toFixed(1)} ★` : 'No rating'}
                   </Typography>
@@ -172,6 +172,7 @@ function HomePageContent() {
     podcasts: TrendingItem[];
     news: TrendingItem[];
     tv: TrendingItem[];
+    audiobooks: TrendingItem[];
   }>({
     videos: [],
     music: [],
@@ -179,6 +180,7 @@ function HomePageContent() {
     podcasts: [],
     news: [],
     tv: [],
+    audiobooks: [],
   });
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -236,6 +238,9 @@ function HomePageContent() {
         break;
       case 'book':
         router.push(`/book/${item.id}`);
+        break;
+      case 'audiobook':
+        router.push(`/audiobooks/${item.id}`);
         break;
       case 'podcast':
         router.push(`/podcast/${item.id}`);
@@ -399,6 +404,11 @@ function HomePageContent() {
         <ContentCarousel
           title="Trending Books"
           items={trendingContent.books}
+          onItemClick={handleItemClick}
+        />
+        <ContentCarousel
+          title="Trending Audiobooks"
+          items={trendingContent.audiobooks}
           onItemClick={handleItemClick}
         />
         <ContentCarousel
