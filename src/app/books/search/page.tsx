@@ -8,46 +8,57 @@ import { useDebounce } from '@/hooks/useDebounce';
 
 export default function BookSearchPage() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [books, setBooks] = useState<TrendingItem[]>([]);
+  const [results, setResults] = useState<TrendingItem[]>([]);
   const debouncedSearchQuery = useDebounce(searchQuery, 500);
 
   useEffect(() => {
-    const fetchBooks = async () => {
+    const fetchResults = async () => {
       if (debouncedSearchQuery.trim() !== '') {
         try {
-          const response = await fetch(`/api/book?q=${debouncedSearchQuery}`);
-          const data = await response.json();
-          setBooks(data || []);
+          const [bookResponse, audiobookResponse] = await Promise.all([
+            fetch(`/api/book?q=${debouncedSearchQuery}`),
+            fetch(`/api/audiobook?q=${debouncedSearchQuery}`),
+          ]);
+
+          const books = await bookResponse.json();
+          const audiobooks = await audiobookResponse.json();
+
+          const combinedResults = [
+            ...(books.map((book: any) => ({ ...book, type: 'book' })) || []),
+            ...(audiobooks.map((audiobook: any) => ({ ...audiobook, type: 'audiobook' })) || []),
+          ];
+
+          setResults(combinedResults);
         } catch (error) {
-          console.error('Failed to fetch books:', error);
-          setBooks([]);
+          console.error('Failed to fetch search results:', error);
+          setResults([]);
         }
       } else {
-        setBooks([]);
+        setResults([]);
       }
     };
 
-    fetchBooks();
+    fetchResults();
   }, [debouncedSearchQuery]);
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
       <Typography variant="h4" component="h1" gutterBottom>
-        Book Search
+        Search
       </Typography>
       
       <Box sx={{ mb: 4 }}>
         <TextField
           fullWidth
-          label="Search books"
+          label="Search for books and audiobooks"
           variant="outlined"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Enter book title, author, or ISBN..."
+          placeholder="Enter title, author, or keyword..."
         />
       </Box>
 
-      <BookGrid books={books} />
+      <BookGrid books={results} />
     </Container>
   );
 }

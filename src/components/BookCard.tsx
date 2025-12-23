@@ -5,9 +5,10 @@ import { TrendingItem } from '../types';
 
 interface BookCardProps {
   book: TrendingItem;
+  type: 'book' | 'audiobook';
 }
 
-const BookCard: React.FC<BookCardProps> = ({ book }) => {
+const BookCard: React.FC<BookCardProps> = ({ book, type }) => {
   const formatRating = (rating: number) => {
     return rating.toFixed(1);
   };
@@ -20,6 +21,8 @@ const BookCard: React.FC<BookCardProps> = ({ book }) => {
     }
     return count.toString();
   };
+
+  const detailUrl = type === 'audiobook' ? `/audiobooks/${book.title}` : `/book/${book.id}`;
 
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
@@ -127,7 +130,7 @@ const BookCard: React.FC<BookCardProps> = ({ book }) => {
           
           {/* View Details */}
           <Link
-            href={`/book/${book.id}`}
+            href={detailUrl}
             className="border border-gray-300 hover:border-gray-400 text-gray-700 text-center py-2 px-4 rounded-md font-medium transition-colors duration-200"
           >
             View Details
