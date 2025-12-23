@@ -51,4 +51,5 @@ export interface TrendingItem {
   year?: string;
   url?: string;
   previewVideo?: string;
+  spotifyUrl?: string;
 }

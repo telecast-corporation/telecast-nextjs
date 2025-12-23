@@ -227,9 +227,7 @@ export default function TrendingPage() {
             const bookType = book.type === 'audiobook' || book.narrator ? 'audiobook' : 'book';
             return (
               <Grid item xs={12} sm={6} md={4} key={book.id}>
-                <CardActionArea onClick={() => handleItemClick(book)}>
-                  <BookCard book={book} type={bookType} />
-                </CardActionArea>
+                <BookCard book={book} type={bookType} />
               </Grid>
             );
           })}
