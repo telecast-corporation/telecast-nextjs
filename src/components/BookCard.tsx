@@ -110,30 +110,41 @@ const BookCard: React.FC<BookCardProps> = ({ book, type }) => {
         
         {/* Action buttons */}
         <div className="flex flex-col gap-2">
-          {/* Listen on Audible */}
-          {book.audibleUrl && (
-            <a
-              href={book.audibleUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="bg-orange-500 hover:bg-orange-600 text-white text-center py-2 px-4 rounded-md font-medium transition-colors duration-200 flex items-center justify-center gap-2"
+          {type === 'audiobook' ? (
+            <Link
+              href={detailUrl}
+              className="border border-gray-300 hover:border-gray-400 text-gray-700 text-center py-2 px-4 rounded-md font-medium transition-colors duration-200"
             >
-              <span>🎧</span>
-              Listen on Audible
-            </a>
-          )}
-          
-          {/* Read on Kindle */}
-          {book.kindleUrl && (
-            <a
-              href={book.kindleUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="bg-blue-600 hover:bg-blue-700 text-white text-center py-2 px-4 rounded-md font-medium transition-colors duration-200 flex items-center justify-center gap-2"
-            >
-              <span>📖</span>
-              Read on Kindle
-            </a>
+              View Details
+            </Link>
+          ) : (
+            <>
+              {/* Listen on Audible */}
+              {book.audibleUrl && (
+                <a
+                  href={book.audibleUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="bg-orange-500 hover:bg-orange-600 text-white text-center py-2 px-4 rounded-md font-medium transition-colors duration-200 flex items-center justify-center gap-2"
+                >
+                  <span>🎧</span>
+                  Listen on Audible
+                </a>
+              )}
+              
+              {/* Read on Kindle */}
+              {book.kindleUrl && (
+                <a
+                  href={book.kindleUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="bg-blue-600 hover:bg-blue-700 text-white text-center py-2 px-4 rounded-md font-medium transition-colors duration-200 flex items-center justify-center gap-2"
+                >
+                  <span>📖</span>
+                  Read on Kindle
+                </a>
+              )}
+            </>
           )}
         </div>
       </div>
