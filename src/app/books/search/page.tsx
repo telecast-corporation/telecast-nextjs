@@ -44,17 +44,16 @@ export default function BookSearchPage() {
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
       <Typography variant="h4" component="h1" gutterBottom>
-        Search
+        Search for Books and Audiobooks
       </Typography>
       
       <Box sx={{ mb: 4 }}>
         <TextField
           fullWidth
-          label="Search for books and audiobooks"
+          label="Search by title, author, or keyword"
           variant="outlined"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Enter title, author, or keyword..."
         />
       </Box>
 

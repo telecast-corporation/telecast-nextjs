@@ -20,6 +20,7 @@ import { useRouter } from 'next/navigation';
 import Pagination from '@/components/Pagination';
 import TVPreviewModal from '@/components/TVPreviewModal';
 import { TrendingItem } from '@/types';
+import BookCard from '@/components/BookCard';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -41,12 +42,6 @@ function TabPanel(props: TabPanelProps) {
       {value === index && <Box sx={{ py: 3 }}>{children}</Box>}
     </div>
   );
-}
-
-// Helper to ensure HTTPS
-function ensureHttps(url: string | undefined): string | undefined {
-  if (!url) return url;
-  return url.replace(/^http:/, 'https:');
 }
 
 export default function TrendingPage() {
@@ -92,7 +87,9 @@ export default function TrendingPage() {
   };
 
   const handleItemClick = (item: TrendingItem) => {
-    switch (item.type) {
+    const itemType = item.type === 'audiobook' || item.narrator ? 'audiobook' : item.type;
+
+    switch (itemType) {
       case 'video':
         router.push(`/video/${item.id}`);
         break;
@@ -101,6 +98,9 @@ export default function TrendingPage() {
         break;
       case 'book':
         router.push(`/book/${item.id}`);
+        break;
+      case 'audiobook':
+        router.push(`/audiobooks/${item.id}`);
         break;
       case 'news':
         if (item.url) {
@@ -152,7 +152,7 @@ export default function TrendingPage() {
         <Tabs value={value} onChange={handleTabChange} aria-label="trending content tabs">
           <Tab label="Videos" />
           <Tab label="Music" />
-          <Tab label="Books" />
+          <Tab label="Books & Audiobooks" />
           <Tab label="TV" />
           <Tab label="News" />
         </Tabs>
@@ -222,38 +222,15 @@ export default function TrendingPage() {
       </TabPanel>
 
       <TabPanel value={value} index={2}>
-        <Grid container spacing={3}>
-          {trendingContent.books.map((book) => (
-            <Grid item xs={12} sm={6} md={4} key={book.id}>
-              <Card>
-                <CardActionArea onClick={() => handleItemClick(book)}>
-                  <CardMedia
-                    component="img"
-                    height="200"
-                    image={ensureHttps(book.thumbnail)}
-                    alt={book.title}
-                    sx={{ objectFit: 'contain', bgcolor: 'grey.100' }}
-                  />
-                  <CardContent>
-                    <Typography gutterBottom variant="h6" component="div" noWrap>
-                      {book.title}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary" noWrap>
-                      {book.author}
-                    </Typography>
-                    {book.rating && (
-                      <Box sx={{ mt: 1 }}>
-                        <Chip
-                          size="small"
-                          label={`Rating: ${book.rating.toFixed(1)}`}
-                        />
-                      </Box>
-                    )}
-                  </CardContent>
-                </CardActionArea>
-              </Card>
-            </Grid>
-          ))}
+        <Grid container spacing={2}>
+          {trendingContent.books.map((book) => {
+            const bookType = book.type === 'audiobook' || book.narrator ? 'audiobook' : 'book';
+            return (
+              <Grid item xs={12} sm={6} md={4} key={book.id}>
+                <BookCard book={book} type={bookType} />
+              </Grid>
+            );
+          })}
         </Grid>
       </TabPanel>
 
@@ -364,4 +341,4 @@ export default function TrendingPage() {
       />
     </Container>
   );
-} 
+}
