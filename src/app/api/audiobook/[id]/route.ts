@@ -3,11 +3,11 @@ import { searchAudible } from '@/lib/audible-search';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-   const { id } = await params;
+  const { id: audiobookId } = await params;
 
-  if (!id) {
+  if (!audiobookId) {
     return NextResponse.json(
       { error: 'Audiobook ID (title) is required' },
       { status: 400 }
@@ -17,7 +17,7 @@ export async function GET(
   try {
     // The 'id' from the URL is expected to be the audiobook's title.
     // We'll use this title to search Audible and take the first result.
-    const searchResults = await searchAudible(id, 1);
+    const searchResults = await searchAudible(audiobookId, 1);
 
     if (searchResults.length === 0) {
       return NextResponse.json(
