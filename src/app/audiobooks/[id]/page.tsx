@@ -34,11 +34,10 @@ interface AudiobookDetails {
   author: string;
   description: string;
   thumbnail: string;
-  url: string;
+  url: string; // This is the internal URL for playback
   duration: string;
   narrator: string;
   rating: number;
-  audibleUrl: string;
   source: string;
   sourceUrl: string;
 }
@@ -136,14 +135,13 @@ export default function AudiobookPage() {
                   variant="contained"
                   size="large" // Larger button
                   startIcon={<HeadphonesIcon />}
-                  component="a"
-                  href={audiobook.audibleUrl || '#'}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  disabled={!audiobook.audibleUrl}
+                  component={audiobook.url ? 'a' : 'button'} // Use 'a' if URL exists, otherwise 'button'
+                  href={audiobook.url ? `/audiobooks/${audiobook.id}/play` : undefined} // Internal playback page
+                  onClick={audiobook.url ? undefined : (e) => e.preventDefault()} // Prevent click if disabled
+                  disabled={!audiobook.url}
                   sx={{ minWidth: 200 }} // Give it a min-width
                 >
-                  Listen on Audible
+                  Listen Now
                 </Button>
               </Box>
             </Box>

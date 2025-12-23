@@ -132,7 +132,10 @@ export default function SearchResults() {
           setToastOpen(true);
         }
 
-        setResults(data.results || []);
+        setResults(data.results.map((result: SearchResult) => ({
+          ...result,
+          url: result.type === 'audiobook' ? `/audiobooks/${result.id}` : result.url,
+        })) || []);
         setPagination(data.pagination);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'An error occurred');
