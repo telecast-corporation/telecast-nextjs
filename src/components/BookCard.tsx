@@ -22,31 +22,39 @@ const BookCard: React.FC<BookCardProps> = ({ book, type }) => {
     return count.toString();
   };
 
-  const detailUrl = type === 'audiobook' ? `/audiobooks/${book.title}` : `/book/${book.id}`;
+  const detailUrl = type === 'audiobook' ? `/audiobooks/${book.id}` : `/book/${book.id}`;
 
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
-      <div className="relative">
-        <img
-          src={book.thumbnail}
-          alt={book.title}
-          className="w-full h-48 object-cover"
-          onError={(e) => {
-            const target = e.target as HTMLImageElement;
-            target.src = '/placeholder-book.jpg';
-          }}
-        />
-        {book.rating && (
-          <div className="absolute top-2 right-2 bg-yellow-400 text-black px-2 py-1 rounded-full text-sm font-semibold">
-            ⭐ {formatRating(book.rating)}
+      <Link href={detailUrl}>
+        
+          <div className="relative">
+            <img
+              src={book.thumbnail}
+              alt={book.title}
+              className="w-full h-48 object-cover"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                target.src = '/placeholder-book.jpg';
+              }}
+            />
+            {book.rating && (
+              <div className="absolute top-2 right-2 bg-yellow-400 text-black px-2 py-1 rounded-full text-sm font-semibold">
+                ⭐ {formatRating(book.rating)}
+              </div>
+            )}
           </div>
-        )}
-      </div>
+        
+      </Link>
       
       <div className="p-4">
-        <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">
-          {book.title}
-        </h3>
+        <Link href={detailUrl}>
+          
+            <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">
+              {book.title}
+            </h3>
+          
+        </Link>
         
         <p className="text-gray-600 mb-2">
           by {book.author}
@@ -127,14 +135,6 @@ const BookCard: React.FC<BookCardProps> = ({ book, type }) => {
               Read on Kindle
             </a>
           )}
-          
-          {/* View Details */}
-          <Link
-            href={detailUrl}
-            className="border border-gray-300 hover:border-gray-400 text-gray-700 text-center py-2 px-4 rounded-md font-medium transition-colors duration-200"
-          >
-            View Details
-          </Link>
         </div>
       </div>
     </div>
