@@ -87,7 +87,7 @@ export default function TrendingPage() {
   };
 
   const handleItemClick = (item: TrendingItem) => {
-    const itemType = item.type === 'audiobook' || item.narrator ? 'audiobook' : item.type;
+    const itemType = item.type;
 
     switch (itemType) {
       case 'video':
@@ -224,7 +224,7 @@ export default function TrendingPage() {
       <TabPanel value={value} index={2}>
         <Grid container spacing={2}>
           {trendingContent.books.map((book) => {
-            const bookType = book.type === 'audiobook' || book.narrator ? 'audiobook' : 'book';
+            const bookType = book.type === 'audiobook' ? 'audiobook' : 'book';
             return (
               <Grid item xs={12} sm={6} md={4} key={book.id}>
                 <BookCard book={book} type={bookType} />

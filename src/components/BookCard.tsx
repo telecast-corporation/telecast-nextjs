@@ -113,50 +113,43 @@ const BookCard: React.FC<BookCardProps> = ({ book, type }) => {
             >
               View Details
             </Link>
-            {type !== 'audiobook' && (
-              <>
-                {/* Listen on Spotify */}
-                {book.spotifyUrl && (
-                  <a
-                    href={book.spotifyUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="bg-green-500 hover:bg-green-600 text-white text-center py-2 px-4 rounded-md font-medium transition-colors duration-200 flex items-center justify-center gap-2"
-                    onClick={handleButtonClick}
-                  >
-                    <span>🎧</span>
-                    Listen on Spotify
-                  </a>
-                )}
+            {type === 'audiobook' && book.spotifyUrl && (
+              <a
+                href={book.spotifyUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-green-500 hover:bg-green-600 text-white text-center py-2 px-4 rounded-md font-medium transition-colors duration-200 flex items-center justify-center gap-2"
+                onClick={handleButtonClick}
+              >
+                <span>🎧</span>
+                Listen on Spotify
+              </a>
+            )}
 
-                {/* Listen on Audible */}
-                {!book.spotifyUrl && book.audibleUrl && (
-                  <a
-                    href={book.audibleUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="bg-orange-500 hover:bg-orange-600 text-white text-center py-2 px-4 rounded-md font-medium transition-colors duration-200 flex items-center justify-center gap-2"
-                    onClick={handleButtonClick}
-                  >
-                    <span>🎧</span>
-                    Listen on Audible
-                  </a>
-                )}
-                
-                {/* Read on Kindle */}
-                {book.kindleUrl && (
-                  <a
-                    href={book.kindleUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="bg-blue-600 hover:bg-blue-700 text-white text-center py-2 px-4 rounded-md font-medium transition-colors duration-200 flex items-center justify-center gap-2"
-                    onClick={handleButtonClick}
-                  >
-                    <span>📖</span>
-                    Read on Kindle
-                  </a>
-                )}
-              </>
+            {type === 'book' && book.audibleUrl && (
+              <a
+                href={book.audibleUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-orange-500 hover:bg-orange-600 text-white text-center py-2 px-4 rounded-md font-medium transition-colors duration-200 flex items-center justify-center gap-2"
+                onClick={handleButtonClick}
+              >
+                <span>🎧</span>
+                Listen on Audible
+              </a>
+            )}
+
+            {type === 'book' && book.kindleUrl && (
+              <a
+                href={book.kindleUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-blue-600 hover:bg-blue-700 text-white text-center py-2 px-4 rounded-md font-medium transition-colors duration-200 flex items-center justify-center gap-2"
+                onClick={handleButtonClick}
+              >
+                <span>📖</span>
+                Read on Kindle
+              </a>
             )}
           </div>
         </div>

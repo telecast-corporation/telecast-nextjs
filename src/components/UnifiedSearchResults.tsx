@@ -150,7 +150,7 @@ export default function UnifiedSearchResults({ results, searchType = 'all', load
       case 'book':
         return `/book/${result.id}`;
       case 'audiobook':
-        return result.audibleUrl || result.url || `https://www.audible.com/search?keywords=${encodeURIComponent(result.title)}`;
+        return `/audiobooks/${result.id}`;
       case 'music':
         return `/music/${result.id}`;
       case 'news':
@@ -311,4 +311,4 @@ export default function UnifiedSearchResults({ results, searchType = 'all', load
       <TVPreviewModal open={tvModalOpen} onClose={() => setTvModalOpen(false)} tvShow={selectedTvShow} />
     </Box>
   );
-} 
+}
