@@ -1,5 +1,6 @@
+
 import { NextRequest, NextResponse } from 'next/server';
-import { searchAudible } from '@/lib/audible-search';
+import { getAudibleBookDetails } from '@/lib/audible-search';
 
 export async function GET(
   request: NextRequest,
@@ -15,16 +16,14 @@ export async function GET(
   }
 
   try {
-    const searchResults = await searchAudible(audiobookId, 1);
+    const audiobook = await getAudibleBookDetails(audiobookId);
 
-    if (searchResults.length === 0) {
+    if (!audiobook) {
       return NextResponse.json(
         { error: 'Audiobook not found' },
         { status: 404 }
       );
     }
-
-    const audiobook = searchResults[0];
 
     const formattedResponse = {
       ...audiobook,

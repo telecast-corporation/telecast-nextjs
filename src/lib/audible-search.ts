@@ -324,4 +324,94 @@ export async function searchAudible(query: string, maxResults: number = 300) {
     }
     return [];
   }
-} 
+}
+
+export async function getAudibleBookDetails(bookId: string) {
+  const bookUrl = `https://www.audible.ca/pd/${bookId}`;
+  console.log(`📚 Fetching details for book: ${bookUrl}`);
+
+  const headers = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.110 Safari/537.36',
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+    'Accept-Language': 'en-US,en;q=0.9',
+  };
+
+  try {
+    const { data: html } = await axios.get(bookUrl, { headers });
+
+    // 1. Try to find the JSON-LD script tag
+    const jsonLdMatch = html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/);
+    if (jsonLdMatch && jsonLdMatch[1]) {
+      try {
+        const jsonData = JSON.parse(jsonLdMatch[1]);
+        // It can be a single object or an array of objects
+        const audiobookData = Array.isArray(jsonData) ? jsonData.find(item => item['@type'] === 'Audiobook') : (jsonData['@type'] === 'Audiobook' ? jsonData : null);
+
+        if (audiobookData) {
+          console.log('✅ Found and parsed JSON-LD data.');
+          const author = Array.isArray(audiobookData.author) ? audiobookData.author.map(a => a.name).join(', ') : audiobookData.author?.name;
+          const narrator = Array.isArray(audiobookData.readBy) ? audiobookData.readBy.map(a => a.name).join(', ') : audiobookData.readBy?.name;
+          
+          return {
+            id: bookId,
+            type: 'audiobook',
+            title: audiobookData.name,
+            author: author,
+            description: audiobookData.description,
+            thumbnail: audiobookData.image,
+            url: audiobookData.url,
+            duration: audiobookData.duration, // ISO 8601 format
+            narrator: narrator,
+            rating: audiobookData.aggregateRating ? audiobookData.aggregateRating.ratingValue : 0,
+            audibleUrl: bookUrl,
+            source: 'audible',
+            sourceUrl: bookUrl,
+          };
+        }
+      } catch (e) {
+        console.warn('⚠️ Could not parse JSON-LD, falling back to regex scraping.', e);
+      }
+    }
+
+    console.log('🟡 JSON-LD not found or failed to parse. Starting regex scraping...');
+
+    // 2. Fallback to Regex Scraping if JSON-LD fails
+    const titleMatch = html.match(/<h1[^>]*>([^<]+)<\/h1>/);
+    const title = titleMatch ? titleMatch[1].trim() : 'Unknown Title';
+    
+    const authorMatch = html.match(/<li[^>]*class="authorLabel"[^>]*>[\s\S]*?<a[^>]*>([^<]+)<\/a>/i);
+    const author = authorMatch ? authorMatch[1].trim() : 'Unknown Author';
+
+    const narratorMatch = html.match(/<li[^>]*class="narratorLabel"[^>]*>[\s\S]*?<a[^>]*>([^<]+)<\/a>/i);
+    const narrator = narratorMatch ? narratorMatch[1].trim() : 'Unknown Narrator';
+
+    const durationMatch = html.match(/<li[^>]*class="runtimeLabel"[^>]*>[\s\S]*?<span>([\s\S]+?)<\/span>/i);
+    const duration = durationMatch ? durationMatch[1].trim().replace('Length:', '').trim() : 'Unknown Duration';
+    
+    const descriptionMatch = html.match(/<div[^>]+class="product-description"[^>]*>([\s\S]*?)<\/div>/i);
+    const description = descriptionMatch ? descriptionMatch[1].replace(/<[^>]+>/g, '').trim() : 'No description available.';
+
+    const imageMatch = html.match(/<img[^>]+id="center-image"[^>]+src="([^"]+)"/i);
+    const thumbnail = imageMatch ? imageMatch[1] : 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=300&h=400&fit=crop&crop=center';
+
+    return {
+      id: bookId,
+      type: 'audiobook',
+      title: title,
+      author: author,
+      description: description,
+      thumbnail: ensureHttps(thumbnail),
+      url: bookUrl,
+      duration: duration,
+      narrator: narrator,
+      rating: 0, // Regex for rating is complex and unreliable, defaulting to 0
+      audibleUrl: bookUrl,
+      source: 'audible',
+      sourceUrl: bookUrl,
+    };
+
+  } catch (error) {
+    console.error(`❌ Failed to fetch or parse book details for ${bookUrl}:`, error);
+    return null; // Return null or throw error to indicate failure
+  }
+}
