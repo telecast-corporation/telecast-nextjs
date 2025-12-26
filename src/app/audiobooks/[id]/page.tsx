@@ -1,14 +1,12 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import {
   Avatar,
   Alert,
   Box,
-  Button,
   CardMedia,
-  Chip,
   CircularProgress,
   Container,
   Divider,
@@ -46,15 +44,15 @@ interface AudiobookDetails {
 // Helper to ensure HTTPS
 function ensureHttps(url: string | undefined): string | undefined {
   if (!url) return url;
-  return url.replace(/^http:/, 'https:');
+  return url.replace(/^http:/, 'https');
 }
 
 export default function AudiobookPage() {
   const params = useParams();
-  const router = useRouter();
   const [audiobook, setAudiobook] = useState<AudiobookDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchAudiobookDetails = async () => {
@@ -77,6 +75,23 @@ export default function AudiobookPage() {
     }
   }, [params.id]);
 
+  useEffect(() => {
+    const fetchPreviewUrl = async () => {
+      if (audiobook) {
+        try {
+          const response = await axios.get(`/api/audiobook/preview?title=${encodeURIComponent(audiobook.title)}`);
+          if (response.data.previewUrl) {
+            setPreviewUrl(response.data.previewUrl);
+          }
+        } catch (err) {
+          console.error('Error fetching preview URL:', err);
+        }
+      }
+    };
+
+    fetchPreviewUrl();
+  }, [audiobook]);
+
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
@@ -92,6 +107,8 @@ export default function AudiobookPage() {
       </Container>
     );
   }
+
+  const audioUrl = previewUrl || (audiobook.url ? `/api/audio${audiobook.url}`: '');
 
   return (
     <Container maxWidth="lg" sx={{ py: { xs: 3, md: 5 } }}>
@@ -132,9 +149,9 @@ export default function AudiobookPage() {
                 </Box>
               </Box>
               <Box sx={{ mt: { xs: 2, md: 0 } }}>
-                {audiobook.url && (
+                {audioUrl && (
                   <AudioPlayer
-                    audioUrl={`/api/audio${audiobook.url}`}
+                    audioUrl={audioUrl}
                     imageUrl={ensureHttps(audiobook.thumbnail) || ''}
                     title={audiobook.title}
                     episodeTitle={audiobook.title}

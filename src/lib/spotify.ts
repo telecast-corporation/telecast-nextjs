@@ -28,6 +28,19 @@ export interface SpotifyEpisode {
     external_urls: { spotify: string };
 }
 
+export interface SpotifyAudiobook {
+  id: string;
+  name: string;
+  authors: { name: string }[];
+  narrators: { name: string }[];
+  publisher: string;
+  description: string;
+  images: { url: string }[];
+  external_urls: { spotify: string };
+  explicit: boolean;
+  preview_url: string;
+}
+
 export class SpotifyClient {
   private accessToken: string | null = null;
 
@@ -102,6 +115,31 @@ export class SpotifyClient {
       if (axios.isAxiosError(error) && error.response?.status === 404) {
         return null;
       }
+      throw error;
+    }
+  }
+
+  async searchAudiobooks(query: string): Promise<SpotifyAudiobook[]> {
+    try {
+      const headers = await this.getAuthHeaders();
+      const response = await axios.get(`${SPOTIFY_API_URL}/search`, {
+        params: {
+          q: query,
+          type: 'audiobook',
+          market: 'US',
+          limit: 1,
+        },
+        headers,
+      });
+
+      if (response.data.audiobooks && response.data.audiobooks.items) {
+        return response.data.audiobooks.items;
+      }
+
+      return [];
+    } catch (error) {
+      console.error('Error searching Spotify audiobooks:', error);
+      this.accessToken = null;
       throw error;
     }
   }

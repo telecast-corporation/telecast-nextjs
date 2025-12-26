@@ -3,38 +3,32 @@ import { searchAudible } from '@/lib/audible-search';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
-  const { id: audiobookId } = await params;
+  const audiobookId = params.id;
 
   if (!audiobookId) {
     return NextResponse.json(
-      { error: 'Audiobook ID (title) is required' },
+      { error: 'Audiobook ID is required' },
       { status: 400 }
     );
   }
 
   try {
-    // The 'id' from the URL is expected to be the audiobook's title.
-    // We'll use this title to search Audible and take the first result.
     const searchResults = await searchAudible(audiobookId, 1);
 
     if (searchResults.length === 0) {
       return NextResponse.json(
-        { error: 'Audiobook not found on Audible' },
+        { error: 'Audiobook not found' },
         { status: 404 }
       );
     }
 
     const audiobook = searchResults[0];
 
-    // The searchAudible function already returns a well-formatted object.
-    // We can add or modify fields if needed.
     const formattedResponse = {
       ...audiobook,
-      // The audible-search scraper does not provide a direct audio stream URL.
-      // The 'audioUrl' will be a placeholder or could link to the Audible page.
-      audioUrl: audiobook.url, // Linking to the audible page as we can't get a direct stream.
+      audioUrl: audiobook.url,
     };
 
     return NextResponse.json(formattedResponse);
