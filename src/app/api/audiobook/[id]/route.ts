@@ -17,9 +17,9 @@ function msToTime(duration: number): string {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> } 
+  { params }: { params: { id: string } } 
 ) {
-  const { id: audibleId } = await params;
+  const { id: audibleId } = params;
 
   if (!audibleId) {
     return NextResponse.json(
