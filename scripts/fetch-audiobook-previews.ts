@@ -65,7 +65,7 @@ async function fetchAndEnrichAudiobooks() {
           type: 'audiobook',
           title: targetBook.name,
           author: targetBook.authors.map(a => a.name).join(', '),
-          description: targetBook.html_description,
+          description: targetBook.description,
           thumbnail: targetBook.images?.[0]?.url || audibleBook.thumbnail,
           url: targetBook.external_urls.spotify,
           duration: msToTime(targetBook.duration_ms),
