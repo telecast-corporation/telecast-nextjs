@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import {
-  Avatar,
   Alert,
   Box,
   CardMedia,
@@ -18,6 +17,7 @@ import {
   Paper,
   Rating,
   Typography,
+  Avatar
 } from '@mui/material';
 import {
   CalendarToday as CalendarIcon,
@@ -33,15 +33,15 @@ interface AudiobookDetails {
   author: string;
   description: string;
   thumbnail: string;
-  url: string; // This is the internal URL for playback
+  url: string; 
   duration: string;
   narrator: string;
   rating: number;
   source: string;
   sourceUrl: string;
+  spotify_preview_url?: string; 
 }
 
-// Helper to ensure HTTPS
 function ensureHttps(url: string | undefined): string | undefined {
   if (!url) return url;
   return url.replace(/^http:/, 'https');
@@ -52,10 +52,10 @@ export default function AudiobookPage() {
   const [audiobook, setAudiobook] = useState<AudiobookDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchAudiobookDetails = async () => {
+      if (!params.id) return;
       try {
         setLoading(true);
         const response = await axios.get(`/api/audiobook/${params.id}`);
@@ -70,27 +70,8 @@ export default function AudiobookPage() {
       }
     };
 
-    if (params.id) {
-      fetchAudiobookDetails();
-    }
+    fetchAudiobookDetails();
   }, [params.id]);
-
-  useEffect(() => {
-    const fetchPreviewUrl = async () => {
-      if (audiobook) {
-        try {
-          const response = await axios.get(`/api/audiobook/preview?title=${encodeURIComponent(audiobook.title)}`);
-          if (response.data.previewUrl) {
-            setPreviewUrl(response.data.previewUrl);
-          }
-        } catch (err) {
-          console.error('Error fetching preview URL:', err);
-        }
-      }
-    };
-
-    fetchPreviewUrl();
-  }, [audiobook]);
 
   if (loading) {
     return (
@@ -108,11 +89,11 @@ export default function AudiobookPage() {
     );
   }
 
-  const audioUrl = previewUrl || (audiobook.url ? `/api/audio${audiobook.url}`: '');
+  // Use the Spotify preview URL if available, otherwise fall back to the internal Audible audio path
+  const audioUrl = audiobook.spotify_preview_url || (audiobook.url ? `/api/audio${audiobook.url}` : '');
 
   return (
     <Container maxWidth="lg" sx={{ py: { xs: 3, md: 5 } }}>
-      {/* Header Section */}
       <Paper elevation={3} sx={{ p: { xs: 2, md: 4 }, mb: 4, borderRadius: 2 }}>
         <Grid container spacing={{ xs: 2, md: 4 }}>
           <Grid item xs={12} md={4}>
@@ -126,7 +107,7 @@ export default function AudiobookPage() {
                 borderRadius: 2,
                 boxShadow: 3,
                 objectFit: 'cover',
-                aspectRatio: '2/3', // Maintain aspect ratio
+                aspectRatio: '1/1',
               }}
             />
           </Grid>
@@ -163,16 +144,13 @@ export default function AudiobookPage() {
         </Grid>
       </Paper>
 
-      {/* Audiobook Details */}
       <Grid container spacing={{ xs: 2, md: 4 }}>
         <Grid item xs={12} md={8}>
           <Paper elevation={3} sx={{ p: { xs: 2, md: 4 }, borderRadius: 2, height: '100%' }}>
             <Typography variant="h5" gutterBottom sx={{ fontWeight: 'bold' }}>
               About this audiobook
             </Typography>
-            <Typography color="text.secondary" paragraph sx={{ fontSize: '1rem', lineHeight: 1.7 }}>
-              {audiobook.description}
-            </Typography>
+            <Typography dangerouslySetInnerHTML={{ __html: audiobook.description }} sx={{ fontSize: '1rem', lineHeight: 1.7, color: 'text.secondary' }} />
           </Paper>
         </Grid>
         <Grid item xs={12} md={4}>
@@ -199,14 +177,16 @@ export default function AudiobookPage() {
                 <ListItemText primary="Duration" secondary={audiobook.duration} />
               </ListItem>
               <Divider variant="inset" component="li" sx={{ my: 1 }} />
-              <ListItem disablePadding>
-                <ListItemAvatar>
-                  <Avatar>
-                    <Rating value={audiobook.rating} readOnly precision={0.5} />
-                  </Avatar>
-                </ListItemAvatar>
-                <ListItemText primary="Rating" secondary={`${audiobook.rating} stars`} />
-              </ListItem>
+              {audiobook.rating > 0 && (
+                <ListItem disablePadding>
+                  <ListItemAvatar>
+                    <Avatar>
+                      <Rating value={audiobook.rating} readOnly precision={0.5} />
+                    </Avatar>
+                  </ListItemAvatar>
+                  <ListItemText primary="Rating" secondary={`${audiobook.rating} stars`} />
+                </ListItem>
+              )}
             </List>
           </Paper>
         </Grid>
