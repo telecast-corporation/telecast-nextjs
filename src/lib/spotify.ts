@@ -35,6 +35,8 @@ export interface SpotifyAudiobook {
   narrators: { name: string }[];
   publisher: string;
   description: string;
+  total_chapters: number;
+  duration_ms: number;
   images: { url: string }[];
   external_urls: { spotify: string };
   explicit: boolean;
