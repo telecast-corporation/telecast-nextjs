@@ -264,7 +264,9 @@ export async function searchAudible(query: string, maxResults: number = 300) {
         }
 
         const fullAudibleUrl = `https://www.audible.ca${audibleUrl}`;
-        const id = `audible_${Date.now()}_${i}`;
+        const urlParts = audibleUrl.split('/');
+        const id = urlParts[urlParts.length - 1].split('?')[0];
+
 
         // Clean up the URL to remove tracking parameters that might cause issues
         // Extract just the base product ID from the URL
