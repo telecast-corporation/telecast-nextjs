@@ -5,7 +5,7 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const audiobookId = params.id;
+  const { id: audiobookId } = await params;
 
   if (!audiobookId) {
     return NextResponse.json(
