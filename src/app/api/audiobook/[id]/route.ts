@@ -1,7 +1,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getAudibleBookDetails } from '@/lib/audible-search';
-import { Spotify } from '@/lib/spotify';
+import { SpotifyClient } from '@/lib/spotify';
 
 // Helper function to convert milliseconds to a more readable format
 function msToTime(duration: number): string {
@@ -43,7 +43,7 @@ export async function GET(
     const { SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET } = process.env;
 
     if (SPOTIFY_CLIENT_ID && SPOTIFY_CLIENT_SECRET) {
-      const spotify = new Spotify();
+      const spotify = new SpotifyClient();
       const searchQuery = `${audibleBook.title} ${audibleBook.author}`;
       const spotifyResults = await spotify.searchAudiobooks(searchQuery);
 
