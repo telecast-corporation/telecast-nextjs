@@ -70,10 +70,10 @@ export async function searchAudible(query: string, maxResults: number = 300) {
 
     // Enhanced regex patterns with better debugging
     const audiobookLinkPatterns = [
-      /<a[^>]*href="(\\/pd\\/[^"]*)"[^>]*>([^<]+)<\\/a>/gi,
-      /<a[^>]*href="(\\/pd\\/[^"]*)"[^>]*class="[^"]*bc-link[^"]*"[^>]*>([^<]+)<\\/a>/gi,
-      /<a[^>]*href="(\\/pd\\/[^"]*)"[^>]*data-bc-link[^>]*>([^<]+)<\\/a>/gi,
-      /href="(\\/pd\\/[^"]*)"[^>]*>([^<]+)</gi, // Fallback pattern
+      /<a[^>]*href="(\/pd\/[^"]*)"[^>]*>([^<]+)<\/a>/gi,
+      /<a[^>]*href="(\/pd\/[^"]*)"[^>]*class="[^"]*bc-link[^"]*"[^>]*>([^<]+)<\/a>/gi,
+      /<a[^>]*href="(\/pd\/[^"]*)"[^>]*data-bc-link[^>]*>([^<]+)<\/a>/gi,
+      /href="(\/pd\/[^"]*)"[^>]*>([^<]+)</gi, // Fallback pattern
     ];
 
     let matches: RegExpMatchArray[] = [];
@@ -127,10 +127,10 @@ export async function searchAudible(query: string, maxResults: number = 300) {
         // Extract author (look for multiple patterns)
         let author = 'Unknown Author';
         const authorPatterns = [
-          /written\s+by:\s*([^<>\\n]+?)(?:\s*<|$)/i,
-          /by\s+([^<>\\n]+?)(?:\s*<|$)/i,
+          /written\s+by:\s*([^<>\n]+?)(?:\s*<|$)/i,
+          /by\s+([^<>\n]+?)(?:\s*<|$)/i,
           /author[^>]*>([^<]+)</i,
-          /from\s+([^<>\\n]+?)(?:\s*<|$)/i
+          /from\s+([^<>\n]+?)(?:\s*<|$)/i
         ];
         
         for (const pattern of authorPatterns) {
@@ -141,13 +141,13 @@ export async function searchAudible(query: string, maxResults: number = 300) {
           }
         }
 
-        console.log(`🔍 Author for "${title}": ${author}`);
+        console.log(`🔍 Author for \"${title}\": ${author}`);
 
         // Try to extract image from search results first (faster than product page)
         let imageUrl = null;
         
         // Look for images in the search results context
-        const escapedTitle = title.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&');
+        const escapedTitle = title.replace(/[.*+?^${}()|[\]\]/g, '\\$&');
         const imgPatterns = [
           new RegExp(`<img[^>]+src=["']([^"'>]+)["'][^>]+alt=["'][^"'>]*${escapedTitle}[^"'>]*["']`, 'i'),
           new RegExp(`<img[^>]+alt=["'][^"'>]*${escapedTitle}[^"'>]*["'][^>]+src=["']([^"'>]+)["']`, 'i'),
@@ -164,7 +164,7 @@ export async function searchAudible(query: string, maxResults: number = 300) {
 
         // Only try product page if we didn't find an image in search results
         if (!imageUrl) {
-          console.log(`🔍 No image found in search results for "${title}", trying product page`);
+          console.log(`🔍 No image found in search results for \"${title}\", trying product page`);
           try {
             const productUrl = `https://www.audible.ca${audibleUrl}`;
             console.log(`🔍 Fetching product page: ${productUrl}`);
@@ -181,13 +181,13 @@ export async function searchAudible(query: string, maxResults: number = 300) {
               const ogImgMatch = productHtml.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"'>]+)["']/i);
               if (ogImgMatch && ogImgMatch[1]) {
                 imageUrl = ogImgMatch[1];
-                console.log(`🔍 Found og:image for "${title}": ${imageUrl}`);
+                console.log(`🔍 Found og:image for \"${title}\": ${imageUrl}`);
               } else {
                 // Fallback: look for main product image
                 const imgMatch = productHtml.match(/<img[^>]+src=["']([^"'>]+)["'][^>]+class=["'][^"'>]*productImage[^"'>]*["']/i);
                 if (imgMatch && imgMatch[1]) {
                   imageUrl = imgMatch[1];
-                  console.log(`🔍 Found product image for "${title}": ${imageUrl}`);
+                  console.log(`🔍 Found product image for \"${title}\": ${imageUrl}`);
                 }
               }
             } else {
@@ -198,11 +198,11 @@ export async function searchAudible(query: string, maxResults: number = 300) {
             if (e instanceof Error && e.message.includes('404')) {
               console.log(`🔍 Product page not found for ${audibleUrl}`);
             } else {
-              console.error(`🔍 Failed to fetch product page image for "${title}":`, e instanceof Error ? e.message : String(e));
+              console.error(`🔍 Failed to fetch product page image for \"${title}\":`, e instanceof Error ? e.message : String(e));
             }
           }
         } else {
-          console.log(`🔍 Found image in search results for "${title}": ${imageUrl}`);
+          console.log(`🔍 Found image in search results for \"${title}\": ${imageUrl}`);
         }
 
         // Extract duration (look for multiple patterns)
@@ -230,10 +230,10 @@ export async function searchAudible(query: string, maxResults: number = 300) {
         // Extract narrator (look for multiple patterns)
         let narrator = 'Unknown narrator';
         const narratorPatterns = [
-          /narrated\s+by\s+([^<>\\n]+?)(?:\s*<|$)/i,
+          /narrated\s+by\s+([^<>\n]+?)(?:\s*<|$)/i,
           /narrator[^>]*>([^<]+)</i,
-          /read\s+by\s+([^<>\\n]+?)(?:\s*<|$)/i,
-          /performed\s+by\s+([^<>\\n]+?)(?:\s*<|$)/i
+          /read\s+by\s+([^<>\n]+?)(?:\s*<|$)/i,
+          /performed\s+by\s+([^<>\n]+?)(?:\s*<|$)/i
         ];
         
         for (const pattern of narratorPatterns) {
@@ -270,7 +270,7 @@ export async function searchAudible(query: string, maxResults: number = 300) {
 
         // Clean up the URL to remove tracking parameters that might cause issues
         // Extract just the base product ID from the URL
-        const urlMatch = audibleUrl.match(/\\/pd\\/([^?]+)/);
+        const urlMatch = audibleUrl.match(/\/pd\/([^?]+)/);
         const cleanUrl = urlMatch 
           ? `https://www.audible.ca/pd/${urlMatch[1]}`
           : fullAudibleUrl.split('?')[0]; // Fallback: remove all query parameters
@@ -291,7 +291,7 @@ export async function searchAudible(query: string, maxResults: number = 300) {
           sourceUrl: cleanUrl,
         };
 
-        console.log(`🔍 Final book data for "${title}":`, {
+        console.log(`🔍 Final book data for \"${title}\":`, {
           id: bookData.id,
           title: bookData.title,
           author: bookData.author,
@@ -342,7 +342,7 @@ export async function getAudibleBookDetails(bookId: string) {
     const { data: html } = await axios.get(bookUrl, { headers });
 
     // 1. Try to find the JSON-LD script tag
-    const jsonLdMatch = html.match(/<script type="application\\/ld\\+json">([\\s\\S]*?)<\\/script>/);
+    const jsonLdMatch = html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/);
     if (jsonLdMatch && jsonLdMatch[1]) {
       try {
         const jsonData = JSON.parse(jsonLdMatch[1]);
@@ -378,19 +378,19 @@ export async function getAudibleBookDetails(bookId: string) {
     console.log('🟡 JSON-LD not found or failed to parse. Starting regex scraping...');
 
     // 2. Fallback to Regex Scraping if JSON-LD fails
-    const titleMatch = html.match(/<h1[^>]*>([^<]+)<\\/h1>/);
+    const titleMatch = html.match(/<h1[^>]*>([^<]+)<\/h1>/);
     const title = titleMatch ? titleMatch[1].trim() : 'Unknown Title';
     
-    const authorMatch = html.match(/<li[^>]*class="authorLabel"[^>]*>[\\s\\S]*?<a[^>]*>([^<]+)<\\/a>/i);
+    const authorMatch = html.match(/<li[^>]*class="authorLabel"[^>]*>[\s\S]*?<a[^>]*>([^<]+)<\/a>/i);
     const author = authorMatch ? authorMatch[1].trim() : 'Unknown Author';
 
-    const narratorMatch = html.match(/<li[^>]*class="narratorLabel"[^>]*>[\\s\\S]*?<a[^>]*>([^<]+)<\\/a>/i);
+    const narratorMatch = html.match(/<li[^>]*class="narratorLabel"[^>]*>[\s\S]*?<a[^>]*>([^<]+)<\/a>/i);
     const narrator = narratorMatch ? narratorMatch[1].trim() : 'Unknown Narrator';
 
-    const durationMatch = html.match(/<li[^>]*class="runtimeLabel"[^>]*>[\\s\\S]*?<span>([\\s\\S]+?)<\\/span>/i);
+    const durationMatch = html.match(/<li[^>]*class="runtimeLabel"[^>]*>[\s\S]*?<span>([\s\S]+?)<\/span>/i);
     const duration = durationMatch ? durationMatch[1].trim().replace('Length:', '').trim() : 'Unknown Duration';
     
-    const descriptionMatch = html.match(/<div[^>]+class="product-description"[^>]*>([\\s\\S]*?)<\\/div>/i);
+    const descriptionMatch = html.match(/<div[^>]+class="product-description"[^>]*>([\s\S]*?)<\/div>/i);
     const description = descriptionMatch ? descriptionMatch[1].replace(/<[^>]+>/g, '').trim() : 'No description available.';
 
     const imageMatch = html.match(/<img[^>]+id="center-image"[^>]+src="([^"]+)"/i);
