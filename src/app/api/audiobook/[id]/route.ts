@@ -60,7 +60,7 @@ export async function GET(
           type: 'audiobook',
           title: targetBook.name,
           author: targetBook.authors.map(a => a.name).join(', '),
-          description: targetBook.html_description,
+          description: targetBook.description,
           thumbnail: targetBook.images?.[0]?.url || audibleBook.thumbnail,
           url: audibleBook.url, // Keep the original audible path for fallback playback
           duration: msToTime(targetBook.duration_ms),
