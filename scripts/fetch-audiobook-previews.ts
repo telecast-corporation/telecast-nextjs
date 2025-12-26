@@ -1,6 +1,6 @@
 
 import { searchAudible } from '../src/lib/audible-search';
-import { Spotify } from '../src/lib/spotify';
+import { SpotifyClient } from '../src/lib/spotify';
 
 // Helper function to convert milliseconds to a more readable format
 function msToTime(duration: number): string {
@@ -24,7 +24,7 @@ async function fetchAndEnrichAudiobooks() {
     process.exit(1);
   }
 
-  const spotify = new Spotify();
+  const spotify = new SpotifyClient();
 
   try {
     // 1. Fetch popular audiobooks from Audible
