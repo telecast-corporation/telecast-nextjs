@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { searchAudible } from '@/lib/audible-search';
+import { searchSpotifys } from '@/lib/spotify-details';
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -9,6 +9,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Query is required' }, { status: 400 });
   }
 
-  const results = await searchAudible(query);
+  const results = await searchSpotifys(query);
   return NextResponse.json(results);
 }

@@ -82,3 +82,40 @@ export async function searchSpotifys(query: string, maxResults: number = 50): Pr
     return [];
   }
 }
+
+export async function getSpotifyDetails(id: string): Promise<Spotify | null> {
+  const accessToken = await getSpotifyAccessToken();
+  if (!accessToken) {
+    return null;
+  }
+
+  try {
+    const response = await fetch(`https://api.spotify.com/v1/audiobooks/${id}`, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+
+    if (!response.ok) {
+      console.error('Spotify get spotify details failed:', await response.text());
+      return null;
+    }
+
+    const item = await response.json();
+    return {
+      id: item.id,
+      title: item.name,
+      author: item.authors.map((author: any) => author.name).join(', '),
+      description: item.html_description,
+      thumbnail: item.images[0]?.url,
+      url: `/spotify/${item.id}`,
+      spotifyUrl: item.external_urls.spotify,
+      sourceUrl: item.external_urls.spotify,
+      narrator: item.narrators.map((narrator: any) => narrator.name).join(', '),
+      duration: `${Math.floor(item.duration_ms / 60000)}:${((item.duration_ms % 60000) / 1000).toFixed(0).padStart(2, '0')}`,
+    };
+  } catch (error) {
+    console.error('Error getting Spotify details:', error);
+    return null;
+  }
+}
