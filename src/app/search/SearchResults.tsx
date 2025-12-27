@@ -64,6 +64,16 @@ export default function SearchResults() {
     return tempDiv.textContent || tempDiv.innerText || '';
   };
 
+  const slugify = (text: string) => {
+    if (!text) return '';
+    return text.toString().toLowerCase()
+      .replace(/\s+/g, '-')
+      .replace(/[^\w\-]+/g, '')
+      .replace(/\-\-+/g, '-')
+      .replace(/^-+/, '')
+      .replace(/-+$/, '');
+  }
+
   useEffect(() => {
     const fetchResults = async () => {
       if (type === 'podcast' && !query) {
@@ -134,7 +144,7 @@ export default function SearchResults() {
 
         setResults(data.results.map((result: SearchResult) => ({
           ...result,
-          url: result.type === 'audiobook' ? `/audiobooks/${result.id}` : result.url,
+          url: result.type === 'audiobook' ? `/audiobooks/${slugify(result.title)}?id=${result.id}` : result.url,
         })) || []);
         setPagination(data.pagination);
       } catch (err) {
