@@ -44,7 +44,7 @@ async function fetchAndEnrichSpotify() {
       console.log(`Searching Spotify for: "${audibleBook.title}" by ${audibleBook.author}`);
       
       const searchQuery = `${audibleBook.title} ${audibleBook.author}`;
-      const spotifyResults = await spotify.searchSpotifys(searchQuery);
+      const spotifyResults = await spotify.searchAudiobooks(searchQuery);
 
       let finalBookData;
 
