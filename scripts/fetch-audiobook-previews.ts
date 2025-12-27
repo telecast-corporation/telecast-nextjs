@@ -29,14 +29,14 @@ async function fetchAndEnrichAudiobooks() {
   try {
     // 1. Fetch popular audiobooks from Audible
     console.log('Fetching popular audiobooks from Audible...');
-    const audibleBooks = await searchAudible('popular');
+    const audibleBooks: any[] = await searchAudible('popular');
     if (audibleBooks.length === 0) {
       console.log('No popular audiobooks found on Audible.');
       return;
     }
     console.log(`Found ${audibleBooks.length} popular audiobooks on Audible.`);
 
-    const enrichedBooks = [];
+    const enrichedBooks: any[] = [];
     console.log('Enriching with Spotify details and preview URLs...');
 
     // 2. For each Audible book, search on Spotify
@@ -50,8 +50,8 @@ async function fetchAndEnrichAudiobooks() {
 
       if (spotifyResults && spotifyResults.length > 0) {
         // Find the best match (e.g., by checking author)
-        const bestMatch = spotifyResults.find(spotifyBook => 
-          spotifyBook.authors.some(author => audibleBook.author.includes(author.name))
+        const bestMatch = spotifyResults.find((spotifyBook: any) => 
+          spotifyBook.authors.some((author: any) => audibleBook.author.includes(author.name))
         );
         
         const targetBook = bestMatch || spotifyResults[0]; // Fallback to the first result
@@ -64,12 +64,12 @@ async function fetchAndEnrichAudiobooks() {
           id: targetBook.id, // Spotify ID
           type: 'audiobook',
           title: targetBook.name,
-          author: targetBook.authors.map(a => a.name).join(', '),
+          author: targetBook.authors.map((a: any) => a.name).join(', '),
           description: targetBook.description,
           thumbnail: targetBook.images?.[0]?.url || audibleBook.thumbnail,
           url: targetBook.external_urls.spotify,
           duration: msToTime(targetBook.duration_ms),
-          narrator: targetBook.narrators.map(n => n.name).join(', ') || audibleBook.narrator,
+          narrator: targetBook.narrators.map((n: any) => n.name).join(', ') || audibleBook.narrator,
           rating: audibleBook.rating, // Keep Audible's rating, as Spotify doesn't provide it
           audible_url: audibleBook.url, // Keep a reference to the Audible URL
           spotify_preview_url: targetBook.preview_url,
