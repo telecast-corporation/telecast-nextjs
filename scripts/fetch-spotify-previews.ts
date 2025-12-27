@@ -15,8 +15,8 @@ function msToTime(duration: number): string {
 }
 
 
-async function fetchAndEnrichAudiobooks() {
-  console.log('Starting script: Fetching popular audiobooks from Audible and enriching with Spotify data...');
+async function fetchAndEnrichSpotify() {
+  console.log('Starting script: Fetching popular spotify from Audible and enriching with Spotify data...');
 
   // Ensure Spotify credentials are set
   if (!process.env.SPOTIFY_CLIENT_ID || !process.env.SPOTIFY_CLIENT_SECRET) {
@@ -27,14 +27,14 @@ async function fetchAndEnrichAudiobooks() {
   const spotify = new SpotifyClient();
 
   try {
-    // 1. Fetch popular audiobooks from Audible
-    console.log('Fetching popular audiobooks from Audible...');
+    // 1. Fetch popular spotify from Audible
+    console.log('Fetching popular spotify from Audible...');
     const audibleBooks: any[] = await searchAudible('popular');
     if (audibleBooks.length === 0) {
-      console.log('No popular audiobooks found on Audible.');
+      console.log('No popular spotify found on Audible.');
       return;
     }
-    console.log(`Found ${audibleBooks.length} popular audiobooks on Audible.`);
+    console.log(`Found ${audibleBooks.length} popular spotify on Audible.`);
 
     const enrichedBooks: any[] = [];
     console.log('Enriching with Spotify details and preview URLs...');
@@ -44,7 +44,7 @@ async function fetchAndEnrichAudiobooks() {
       console.log(`Searching Spotify for: "${audibleBook.title}" by ${audibleBook.author}`);
       
       const searchQuery = `${audibleBook.title} ${audibleBook.author}`;
-      const spotifyResults = await spotify.searchAudiobooks(searchQuery);
+      const spotifyResults = await spotify.searchSpotifys(searchQuery);
 
       let finalBookData;
 
@@ -62,7 +62,7 @@ async function fetchAndEnrichAudiobooks() {
         finalBookData = {
           source: 'spotify+audible',
           id: targetBook.id, // Spotify ID
-          type: 'audiobook',
+          type: 'spotify',
           title: targetBook.name,
           author: targetBook.authors.map((a: any) => a.name).join(', '),
           description: targetBook.description,
@@ -88,7 +88,7 @@ async function fetchAndEnrichAudiobooks() {
     }
 
     // 4. Print the final result
-    console.log('\n--- Enriched Audiobook Data ---');
+    console.log('\n--- Enriched Spotify Data ---');
     console.log(JSON.stringify(enrichedBooks, null, 2));
     console.log('--- Script Finished ---');
 
@@ -104,4 +104,4 @@ async function fetchAndEnrichAudiobooks() {
   }
 }
 
-fetchAndEnrichAudiobooks();
+fetchAndEnrichSpotify();

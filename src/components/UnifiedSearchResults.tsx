@@ -1,3 +1,4 @@
+
 import {
   Card,
   CardContent,
@@ -19,7 +20,7 @@ import {
   MenuBook as BookIcon,
   Headphones as PodcastIcon,
   MusicNote as MusicIcon,
-  VolumeUp as AudiobookIcon,
+  VolumeUp as SpotifyIcon,
   ArrowBackIos as ArrowLeftIcon,
   ArrowForwardIos as ArrowRightIcon,
   PlayArrow,
@@ -35,7 +36,7 @@ import React from 'react';
 import TVPreviewModal from './TVPreviewModal';
 
 interface SearchResult {
-  type: 'video' | 'book' | 'audiobook' | 'podcast' | 'music' | 'news' | 'tv';
+  type: 'video' | 'book' | 'spotify' | 'podcast' | 'music' | 'news' | 'tv';
   id: string;
   title: string;
   description?: string;
@@ -76,7 +77,7 @@ const TAGLINE_COLORS: Record<string, string> = {
   tv: '#8b5cf6',
   music: '#10b981',
   book: '#a855f7',
-  audiobook: '#f97316',
+  spotify: '#1DB954',
   news: '#dc2626',
 };
 
@@ -106,7 +107,7 @@ export default function UnifiedSearchResults({ results, searchType = 'all', load
     const icons: Record<string, React.ReactElement> = {
       video: <VideoIcon />,
       book: <BookIcon />,
-      audiobook: <AudiobookIcon />,
+      spotify: <SpotifyIcon />,
       podcast: <PodcastIcon />,
       music: <MusicIcon />,
       news: <ArticleIcon />,
@@ -119,7 +120,7 @@ export default function UnifiedSearchResults({ results, searchType = 'all', load
     const titles: Record<string, string> = {
       video: trending ? 'Trending Videos' : 'Videos',
       book: trending ? 'Trending Books' : 'Books',
-      audiobook: trending ? 'Trending Audiobooks' : 'Audiobooks',
+      spotify: trending ? 'Trending on Spotify' : 'Spotify',
       podcast: trending ? 'Trending Podcasts' : 'Podcasts',
       music: trending ? 'Trending Music' : 'Music',
       news: trending ? 'Trending News' : 'News',
@@ -128,7 +129,7 @@ export default function UnifiedSearchResults({ results, searchType = 'all', load
     return titles[type] || type;
   };
 
-  const CONTENT_TYPE_ORDER = ['podcast', 'video', 'tv', 'music', 'book', 'audiobook', 'news'];
+  const CONTENT_TYPE_ORDER = ['podcast', 'video', 'tv', 'music', 'book', 'spotify', 'news'];
 
   const groupedResults = results.reduce((acc, result) => {
     (acc[result.type] = acc[result.type] || []).push(result);
@@ -149,8 +150,8 @@ export default function UnifiedSearchResults({ results, searchType = 'all', load
         return `/video/${result.id}`;
       case 'book':
         return `/book/${result.id}`;
-      case 'audiobook':
-        return `/audiobooks/${result.id}`;
+      case 'spotify':
+        return `/spotify/${result.id}`;
       case 'music':
         return `/music/${result.id}`;
       case 'news':
