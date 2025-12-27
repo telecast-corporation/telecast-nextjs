@@ -4,9 +4,10 @@ import { getAudibleBookDetails } from '@/lib/audible-search';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const bookDetails = await getAudibleBookDetails(params.id);
+  const { id } = await params;
+  const bookDetails = await getAudibleBookDetails(id);
   if (bookDetails) {
     return NextResponse.json(bookDetails);
   }
