@@ -60,8 +60,30 @@ export default function AudiobookPage() {
       if (!id) return;
       try {
         setLoading(true);
-        const response = await axios.get(`/api/audiobook/${id}`);
-        setAudiobook(response.data);
+        const response = await fetch(`/api/search/spotify?term=${encodeURIComponent(id)}&type=audiobook`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch audiobook details from Spotify');
+        }
+        const data = await response.json();
+        const item = data[0];
+        if (item) {
+            setAudiobook({
+                id: item.id,
+                title: item.name,
+                author: item.authors.map((author: any) => author.name).join(', '),
+                description: item.html_description,
+                thumbnail: item.images[0]?.url,
+                url: item.external_urls.spotify,
+                duration: '', // Not available
+                narrator: '', // Not available
+                rating: 0, // Not available
+                source: 'Spotify',
+                sourceUrl: item.external_urls.spotify,
+                spotify_preview_url: item.preview_url,
+            });
+        } else {
+          setError('Audiobook not found');
+        }
         setError(null);
       } catch (err: any) {
         console.error('Error fetching audiobook details:', err);
@@ -91,7 +113,6 @@ export default function AudiobookPage() {
     );
   }
 
-  // Use the Spotify preview URL if available, otherwise fall back to the internal Audible audio path
   const audioUrl = audiobook.spotify_preview_url || (audiobook.url ? `/api/audio${audiobook.url}` : '');
 
   return (

@@ -20,6 +20,7 @@ interface SearchResult {
   description?: string;
   thumbnail?: string;
   url?: string;
+  author?: string;
 }
 
 export default function SearchResults() {
@@ -92,6 +93,34 @@ export default function SearchResults() {
             description: podcast.description,
             thumbnail: podcast.images[0]?.url,
             url: podcast.external_urls.spotify,
+          }));
+          setResults(formattedResults);
+          setPagination(null);
+        } catch (err) {
+          setError(err instanceof Error ? err.message : 'An error occurred');
+        } finally {
+          setLoading(false);
+        }
+        return;
+      }
+      
+      if (type === 'book' && bookType === 'audiobook' && query) {
+        setLoading(true);
+        setError(null);
+        try {
+          const response = await fetch(`/api/search/spotify?term=${encodeURIComponent(query)}&type=audiobook`);
+          if (!response.ok) {
+            throw new Error('Failed to fetch audiobooks from Spotify');
+          }
+          const data = await response.json();
+          const formattedResults: SearchResult[] = data.map((item: any) => ({
+            id: item.id,
+            type: 'audiobook',
+            title: item.name,
+            description: cleanDescription(item.html_description),
+            thumbnail: item.images[0]?.url,
+            url: item.external_urls.spotify,
+            author: item.authors.map((author: any) => author.name).join(', '),
           }));
           setResults(formattedResults);
           setPagination(null);
