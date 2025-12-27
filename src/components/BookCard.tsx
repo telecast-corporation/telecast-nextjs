@@ -21,7 +21,16 @@ const BookCard: React.FC<BookCardProps> = ({ book, type }) => {
     return count.toString();
   };
 
-  const detailUrl = type === 'audiobook' ? `/audiobooks/${book.id}` : `/book/${book.id}`;
+  const slugify = (text: string) => {
+    return text.toString().toLowerCase()
+      .replace(/\s+/g, '-')
+      .replace(/[^\w\-]+/g, '')
+      .replace(/\-\-+/g, '-')
+      .replace(/^-+/, '')
+      .replace(/-+$/, '');
+  }
+
+  const detailUrl = type === 'audiobook' ? `/audiobooks/${slugify(book.title)}?id=${book.id}` : `/book/${book.id}`;
 
   const handleButtonClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.stopPropagation();

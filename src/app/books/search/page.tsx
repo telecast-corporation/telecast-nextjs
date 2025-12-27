@@ -44,10 +44,19 @@ export default function BookSearchPage() {
   }, [debouncedSearchQuery]);
 
   const handleItemClick = (item: TrendingItem) => {
+    const slugify = (text: string) => {
+      return text.toString().toLowerCase()
+        .replace(/\s+/g, '-')
+        .replace(/[^\w\-]+/g, '')
+        .replace(/\-\-+/g, '-')
+        .replace(/^-+/, '')
+        .replace(/-+$/, '');
+    }
+
     if (item.type === 'book') {
       router.push(`/book/${item.id}`);
     } else {
-      router.push(`/audiobooks/${item.id}`);
+      router.push(`/audiobooks/${slugify(item.title)}?id=${item.id}`);
     }
   };
 

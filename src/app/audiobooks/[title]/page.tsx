@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 import {
   Alert,
   Box,
@@ -49,16 +49,18 @@ function ensureHttps(url: string | undefined): string | undefined {
 
 export default function AudiobookPage() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const [audiobook, setAudiobook] = useState<AudiobookDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const id = searchParams.get('id');
 
   useEffect(() => {
     const fetchAudiobookDetails = async () => {
-      if (!params.id) return;
+      if (!id) return;
       try {
         setLoading(true);
-        const response = await axios.get(`/api/audiobook/${params.id}`);
+        const response = await axios.get(`/api/audiobook/${id}`);
         setAudiobook(response.data);
         setError(null);
       } catch (err: any) {
@@ -71,7 +73,7 @@ export default function AudiobookPage() {
     };
 
     fetchAudiobookDetails();
-  }, [params.id]);
+  }, [id]);
 
   if (loading) {
     return (
