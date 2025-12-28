@@ -15,7 +15,7 @@ import { Toast } from '@/components/Toast';
 
 interface SearchResult {
   id: string;
-  type: 'podcast' | 'video' | 'music' | 'book' | 'audiobook' | 'news' | 'tv';
+  type: 'podcast' | 'video' | 'music' | 'book' | 'spotify' | 'news' | 'tv';
   title: string;
   description?: string;
   thumbnail?: string;
@@ -115,7 +115,7 @@ export default function SearchResults() {
           const data = await response.json();
           const formattedResults: SearchResult[] = data.map((item: any) => ({
             id: item.id,
-            type: 'audiobook',
+            type: 'spotify',
             title: item.name,
             description: cleanDescription(item.html_description),
             thumbnail: item.images[0]?.url,
@@ -173,7 +173,7 @@ export default function SearchResults() {
 
         setResults(data.results.map((result: SearchResult) => ({
           ...result,
-          url: result.type === 'audiobook' ? `/audiobooks/${slugify(result.title)}?id=${result.id}` : result.url,
+          url: result.type === 'spotify' ? `/audiobooks/${slugify(result.title)}?id=${result.id}` : result.url,
         })) || []);
         setPagination(data.pagination);
       } catch (err) {
