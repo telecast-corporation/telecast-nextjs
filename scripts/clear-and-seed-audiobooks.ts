@@ -1,6 +1,6 @@
 
 import { PrismaClient } from '@prisma/client';
-import { SpotifyClient, SpotifyAudiobook } from '../src/lib/spotify';
+import { SpotifyClient } from '../src/lib/spotify';
 
 const prisma = new PrismaClient();
 const spotifyClient = new SpotifyClient();
@@ -10,7 +10,7 @@ async function main() {
   await prisma.streamingContent.deleteMany({});
 
   // Fetch audiobooks from Spotify
-  const audiobooks = await spotifyClient.searchAudiobooks('popular', 50);
+  const audiobooks: any[] = await spotifyClient.searchShows('popular', 50, 'audiobook');
 
   // Save the audiobooks to the database
   for (const item of audiobooks) {
@@ -22,7 +22,7 @@ async function main() {
         description: item.description,
         thumbnail: item.images[0]?.url || '',
         url: item.external_urls.spotify,
-        year: item.release_date,
+        year: '',
         duration: '', // Spotify API does not provide duration for audiobooks
         rating: '', // Spotify API does not provide rating for audiobooks
         source: 'Spotify',
