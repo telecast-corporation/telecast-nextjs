@@ -280,7 +280,7 @@ async function getTrendingBooks() {
 async function getTrendingAudiobooks() {
   try {
     console.log('Fetching trending audiobooks...');
-    const audiobooks = await searchAudiobooks('trending', 40);
+    const audiobooks = await searchAudiobooks('trending', 50);
     console.log('Audiobooks response:', audiobooks);
     return audiobooks.map((item) => ({
       id: item.id,
@@ -290,6 +290,7 @@ async function getTrendingAudiobooks() {
       thumbnail: item.images[0]?.url,
       url: item.external_urls.spotify,
       author: item.authors.map(a => a.name).join(', '),
+      spotifyUrl: item.external_urls.spotify,
     }));
   } catch (error) {
     console.error('Error fetching trending audiobooks:', error);

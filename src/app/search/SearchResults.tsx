@@ -47,7 +47,7 @@ export default function SearchResults() {
   const [toastSeverity, setToastSeverity] = useState<'success' | 'info' | 'warning' | 'error'>('info');
 
 
-  const showRecommendations = !query && ['podcast', 'video', 'music', 'book', 'news', 'tv'].includes(type);
+  const showRecommendations = !query && ['podcast', 'video', 'music', 'book', 'news', 'tv', 'audiobook'].includes(type);
 
   const handlePageChange = (page: number) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -104,11 +104,12 @@ export default function SearchResults() {
         return;
       }
       
-      if (type === 'book' && bookType === 'audiobook' && query) {
+      if (type === 'book' && bookType === 'audiobook') {
         setLoading(true);
         setError(null);
         try {
-          const response = await fetch(`/api/search/spotify?term=${encodeURIComponent(query)}&type=audiobook`);
+          const searchTerm = query || 'popular audiobooks';
+          const response = await fetch(`/api/search/spotify?term=${encodeURIComponent(searchTerm)}&type=audiobook`);
           if (!response.ok) {
             throw new Error('Failed to fetch audiobooks from Spotify');
           }
@@ -142,7 +143,7 @@ export default function SearchResults() {
       setError(null);
 
       try {
-        const searchTypes = type === 'book' ? [bookType] : [type];
+        const searchTypes = type === 'book' ? [bookType] : (type === 'audiobook' ? ['audiobook'] : [type]);
         
         const response = await fetch('/api/search', {
           method: 'POST',
@@ -272,7 +273,7 @@ export default function SearchResults() {
         </Typography>
       )}
       
-      {type === 'book' && (
+      {(type === 'book' || type === 'audiobook') && (
         <BookTypeToggle value={bookType} onChange={setBookType} />
       )}
 

@@ -35,6 +35,7 @@ export interface SpotifyAudiobook {
   narrators: { name: string }[];
   publisher: string;
   description: string;
+  html_description: string;
   total_chapters: number;
   duration_ms: number;
   images: { url: string }[];
@@ -79,26 +80,30 @@ export class SpotifyClient {
     };
   }
 
-  async searchPodcasts(query: string): Promise<SpotifyPodcast[]> {
+  async searchShows(query: string, limit: number = 20, itemType: 'show' | 'audiobook' = 'show'): Promise<any[]> {
     try {
       const headers = await this.getAuthHeaders();
       const response = await axios.get(`${SPOTIFY_API_URL}/search`, {
         params: {
           q: query,
-          type: 'show',
+          type: itemType,
           market: 'US',
-          limit: 20,
+          limit: limit,
         },
         headers,
       });
 
-      if (response.data.shows && response.data.shows.items) {
-        return response.data.shows.items;
+      const data = response.data;
+
+      if (itemType === 'show' && data.shows && data.shows.items) {
+        return data.shows.items;
+      } else if (itemType === 'audiobook' && data.audiobooks && data.audiobooks.items) {
+        return data.audiobooks.items;
       }
 
       return [];
     } catch (error) {
-      console.error('Error searching Spotify podcasts:', error);
+      console.error(`Error searching Spotify ${itemType}s:`, error);
       this.accessToken = null; // Reset token on error
       throw error;
     }
@@ -121,27 +126,19 @@ export class SpotifyClient {
     }
   }
 
-  async searchAudiobooks(query: string, limit: number = 20): Promise<SpotifyAudiobook[]> {
+  async getAudiobookById(id: string): Promise<SpotifyAudiobook | null> {
     try {
       const headers = await this.getAuthHeaders();
-      const response = await axios.get(`${SPOTIFY_API_URL}/search`, {
-        params: {
-          q: query,
-          type: 'audiobook',
-          market: 'US',
-          limit: limit,
-        },
+      const response = await axios.get(`${SPOTIFY_API_URL}/audiobooks/${id}`, {
         headers,
       });
-
-      if (response.data.audiobooks && response.data.audiobooks.items) {
-        return response.data.audiobooks.items;
-      }
-
-      return [];
+      return response.data;
     } catch (error) {
-      console.error('Error searching Spotify audiobooks:', error);
+      console.error(`Error fetching Spotify audiobook with id ${id}:`, error);
       this.accessToken = null;
+      if (axios.isAxiosError(error) && error.response?.status === 404) {
+        return null;
+      }
       throw error;
     }
   }
