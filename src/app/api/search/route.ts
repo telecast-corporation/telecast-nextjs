@@ -5,6 +5,7 @@ import { getAuth0User } from '@/lib/auth0-session';
 import { prisma } from '@/lib/prisma';
 import axios from 'axios';
 import { PodcastIndex, Podcast } from '@/lib/podcast-index';
+import { SpotifyClient, SpotifyAudiobook } from '@/lib/spotify';
 
 
 // OMDb API Configuration
@@ -346,45 +347,50 @@ async function searchMusic(query: string, maxResults: number = 300) {
     }
 }
 
-async function searchAudiobooks(query: string, maxResults: number = 300) {
+// Helper function to convert milliseconds to a more readable format
+function msToTime(duration: number): string {
+    if (!duration) return 'Unknown duration';
+    const minutes = Math.floor((duration / (1000 * 60)) % 60);
+    const hours = Math.floor((duration / (1000 * 60 * 60)) % 24);
+
+    if (hours > 0) {
+        return `${hours}hr ${minutes}min`;
+    }
+    return `${minutes}min`;
+}
+
+async function searchAudiobooks(query: string, maxResults: number = 20) {
     try {
-        console.log('🎧 Searching audiobooks for query:', query);
+        console.log('🎧 Searching Spotify for audiobooks with query:', query);
+        const spotifyClient = new SpotifyClient();
+        const books: SpotifyAudiobook[] = await spotifyClient.searchAudiobooks(query, maxResults);
 
-        const books = await searchAudible(query, maxResults);
+        console.log(`🎧 Found ${books.length} audiobooks from Spotify.`);
 
-        console.log('🎧 Raw audiobooks from searchAudible:', books.map(book => ({
-            title: book.title,
-            url: book.url,
-            audibleUrl: book.audibleUrl,
-            id: book.id
-        })));
-
-        const mappedBooks = books.map((item: any) => ({
+        const mappedBooks = books.map((item: SpotifyAudiobook) => ({
             type: 'audiobook',
             id: item.id,
-            title: truncateText(item.title, 50),
+            title: truncateText(item.name, 50),
             description: truncateText(item.description, 100),
-            thumbnail: ensureHttps(item.thumbnail),
-            url: item.url,
-            author: truncateText(item.author, 30),
-            duration: item.duration,
-            narrator: item.narrator,
-            rating: item.rating,
-            audibleUrl: item.audibleUrl,
-            source: 'audible',
-            sourceUrl: item.sourceUrl,
+            thumbnail: ensureHttps(item.images?.[0]?.url),
+            url: item.external_urls.spotify, // Direct link to spotify
+            author: truncateText(item.authors.map(a => a.name).join(', '), 30),
+            duration: msToTime(item.duration_ms),
+            narrator: item.narrators.map(n => n.name).join(', '),
+            rating: null, // Spotify API doesn't provide ratings for audiobooks
+            source: 'spotify',
+            sourceUrl: item.external_urls.spotify, // Direct link to spotify
         }));
 
-        console.log('🎧 Mapped audiobooks:', mappedBooks.map(book => ({
+        console.log('🎧 Mapped Spotify audiobooks:', mappedBooks.map(book => ({
             title: book.title,
             url: book.url,
-            audibleUrl: book.audibleUrl,
             id: book.id
         })));
 
         return mappedBooks;
     } catch (error: any) {
-        console.error('🎧 Audiobook search error:', error);
+        console.error('🎧 Spotify Audiobook search error:', error);
         if (error.response) {
             console.error('🎧 Error response:', {
                 status: error.response.status,
@@ -395,6 +401,7 @@ async function searchAudiobooks(query: string, maxResults: number = 300) {
         return [];
     }
 }
+
 
 async function searchTVShows(query: string, maxResults: number = 300) {
     try {

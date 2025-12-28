@@ -121,7 +121,7 @@ export class SpotifyClient {
     }
   }
 
-  async searchAudiobooks(query: string): Promise<SpotifyAudiobook[]> {
+  async searchAudiobooks(query: string, limit: number = 20): Promise<SpotifyAudiobook[]> {
     try {
       const headers = await this.getAuthHeaders();
       const response = await axios.get(`${SPOTIFY_API_URL}/search`, {
@@ -129,7 +129,7 @@ export class SpotifyClient {
           q: query,
           type: 'audiobook',
           market: 'US',
-          limit: 1,
+          limit: limit,
         },
         headers,
       });
