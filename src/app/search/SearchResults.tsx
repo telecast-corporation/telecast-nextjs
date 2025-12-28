@@ -31,7 +31,7 @@ export default function SearchResults() {
   const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [bookType, setBookType] = useState<'book' | 'audiobook'>('book');
+  const [bookType, setBookType] = useState<'book' | 'audiobook'>(type === 'audiobook' ? 'audiobook' : 'book');
   const [pagination, setPagination] = useState<any>(null);
   const debounceTimerRef = useRef<NodeJS.Timeout>();
   const currentPage = parseInt(searchParams.get('page') || '1');
@@ -104,35 +104,6 @@ export default function SearchResults() {
         return;
       }
       
-      if (type === 'book' && bookType === 'audiobook') {
-        setLoading(true);
-        setError(null);
-        try {
-          const searchTerm = query || 'popular audiobooks';
-          const response = await fetch(`/api/search/spotify?term=${encodeURIComponent(searchTerm)}&type=audiobook`);
-          if (!response.ok) {
-            throw new Error('Failed to fetch audiobooks from Spotify');
-          }
-          const data = await response.json();
-          const formattedResults: SearchResult[] = data.map((item: any) => ({
-            id: item.id,
-            type: 'spotify',
-            title: item.name,
-            description: cleanDescription(item.html_description),
-            thumbnail: item.images[0]?.url,
-            url: item.external_urls.spotify,
-            author: item.authors.map((author: any) => author.name).join(', '),
-          }));
-          setResults(formattedResults);
-          setPagination(null);
-        } catch (err) {
-          setError(err instanceof Error ? err.message : 'An error occurred');
-        } finally {
-          setLoading(false);
-        }
-        return;
-      }
-
       if (!query && !showRecommendations) {
         setResults([]);
         setLoading(false);
@@ -259,7 +230,7 @@ export default function SearchResults() {
               Create your own podcast ↗
             </Typography>
           </a>
-          <Typography sx={{ ...typography.caption, color: '#ff6b35', opacity: 0.8, mt: 1 }}>
+          <Typography sx={{ ...typography.caption, color: '#ff6b35', opacity: 0., mt: 1 }}>
             ✨ No experience needed • One click to start!
           </Typography>
         </Box>
