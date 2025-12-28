@@ -52,7 +52,6 @@ interface SearchResult {
   ratingsCount?: number;
   duration?: string;
   narrator?: string;
-  audibleUrl?: string;
   published?: boolean;
   album?: string;
   releaseDate?: string;
