@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import axios from 'axios';
 import { prisma } from '@/lib/prisma';
-import { searchAudible } from '@/lib/audible-search';
+import { searchAudiobooks } from '@/lib/audiobook-search';
+
 
 const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;
 const SPOTIFY_CLIENT_ID = process.env.SPOTIFY_CLIENT_ID;
@@ -171,7 +172,7 @@ async function getTrendingMusic() {
     const searchPromises = popularArtists.slice(0, 6).map(artist => // Use 6 artists to get ~300 tracks (50 each)
       axios.get('https://api.spotify.com/v1/search', {
         headers: {
-          Authorization: `Bearer ${accessToken}`,
+          Authorization: `Bearer ${accessToken}`
         },
         params: {
           q: `artist:${artist}`,
@@ -279,9 +280,17 @@ async function getTrendingBooks() {
 async function getTrendingAudiobooks() {
   try {
     console.log('Fetching trending audiobooks...');
-    const audiobooks = await searchAudible('trending', 40);
+    const audiobooks = await searchAudiobooks('trending', 40);
     console.log('Audiobooks response:', audiobooks);
-    return audiobooks;
+    return audiobooks.map((item) => ({
+      id: item.id,
+      type: 'audiobook',
+      title: item.name,
+      description: item.description,
+      thumbnail: item.images[0]?.url,
+      url: item.external_urls.spotify,
+      author: item.authors.map(a => a.name).join(', '),
+    }));
   } catch (error) {
     console.error('Error fetching trending audiobooks:', error);
     return [];

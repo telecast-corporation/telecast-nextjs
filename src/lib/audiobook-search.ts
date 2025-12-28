@@ -1,9 +1,10 @@
 
-import axios from 'axios';
+import { SpotifyClient, SpotifyAudiobook } from './spotify';
 
-async function searchAudiobooks(query: string, maxResults: number = 20) {
-  // Mock implementation - returns an empty array
-  return [];
+const spotifyClient = new SpotifyClient();
+
+async function searchAudiobooks(query: string, maxResults: number = 20): Promise<SpotifyAudiobook[]> {
+  return spotifyClient.searchAudiobooks(query, maxResults);
 }
 
-export { searchAudiobooks };
+export { searchAudiobooks, SpotifyAudiobook };
