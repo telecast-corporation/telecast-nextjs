@@ -4,14 +4,14 @@ import { Box, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material'
 import { MenuBook as BookIcon, Headphones as SpotifyIcon } from '@mui/icons-material';
 
 interface BookTypeToggleProps {
-  value: 'book' | 'spotify';
-  onChange: (value: 'book' | 'spotify') => void;
+  value: 'book' | 'audiobook';
+  onChange: (value: 'book' | 'audiobook') => void;
 }
 
 export default function BookTypeToggle({ value, onChange }: BookTypeToggleProps) {
   const handleChange = (
     _event: React.MouseEvent<HTMLElement>,
-    newValue: 'book' | 'spotify' | null,
+    newValue: 'book' | 'audiobook' | null,
   ) => {
     if (newValue !== null) {
       onChange(newValue);
@@ -30,9 +30,9 @@ export default function BookTypeToggle({ value, onChange }: BookTypeToggleProps)
           <BookIcon sx={{ mr: 1 }} />
           <Typography>Books</Typography>
         </ToggleButton>
-        <ToggleButton value="spotify" aria-label="spotify">
+        <ToggleButton value="audiobook" aria-label="audiobooks">
           <SpotifyIcon sx={{ mr: 1 }} />
-          <Typography>Spotify</Typography>
+          <Typography>Audiobooks</Typography>
         </ToggleButton>
       </ToggleButtonGroup>
     </Box>
