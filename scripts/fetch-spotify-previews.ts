@@ -1,6 +1,4 @@
-
-import { searchAudible } from '../src/lib/audible-search';
-import { SpotifyClient } from '../src/lib/spotify';
+import { searchAudiobooks } from '../src/lib/audiobook-search';
 
 // Helper function to convert milliseconds to a more readable format
 function msToTime(duration: number): string {
@@ -15,8 +13,8 @@ function msToTime(duration: number): string {
 }
 
 
-async function fetchAndEnrichSpotify() {
-  console.log('Starting script: Fetching popular spotify from Audible and enriching with Spotify data...');
+async function fetchSpotifyAudiobooks() {
+  console.log('Starting script: Fetching popular audiobooks from Spotify...');
 
   // Ensure Spotify credentials are set
   if (!process.env.SPOTIFY_CLIENT_ID || !process.env.SPOTIFY_CLIENT_SECRET) {
@@ -24,71 +22,34 @@ async function fetchAndEnrichSpotify() {
     process.exit(1);
   }
 
-  const spotify = new SpotifyClient();
-
   try {
-    // 1. Fetch popular spotify from Audible
-    console.log('Fetching popular spotify from Audible...');
-    const audibleBooks: any[] = await searchAudible('popular');
-    if (audibleBooks.length === 0) {
-      console.log('No popular spotify found on Audible.');
+    // 1. Fetch popular audiobooks from Spotify
+    console.log('Fetching popular audiobooks from Spotify...');
+    const spotifyAudiobooks: any[] = await searchAudiobooks('popular', 50);
+
+    if (spotifyAudiobooks.length === 0) {
+      console.log('No popular audiobooks found on Spotify.');
       return;
     }
-    console.log(`Found ${audibleBooks.length} popular spotify on Audible.`);
+    console.log(`Found ${spotifyAudiobooks.length} popular audiobooks on Spotify.`);
 
-    const enrichedBooks: any[] = [];
-    console.log('Enriching with Spotify details and preview URLs...');
-
-    // 2. For each Audible book, search on Spotify
-    for (const audibleBook of audibleBooks) {
-      console.log(`Searching Spotify for: "${audibleBook.title}" by ${audibleBook.author}`);
-      
-      const searchQuery = `${audibleBook.title} ${audibleBook.author}`;
-      const spotifyResults = await spotify.searchAudiobooks(searchQuery);
-
-      let finalBookData;
-
-      if (spotifyResults && spotifyResults.length > 0) {
-        // Find the best match (e.g., by checking author)
-        const bestMatch = spotifyResults.find((spotifyBook: any) => 
-          spotifyBook.authors.some((author: any) => audibleBook.author.includes(author.name))
-        );
-        
-        const targetBook = bestMatch || spotifyResults[0]; // Fallback to the first result
-
-        console.log(`  -> Found Spotify match: "${targetBook.name}". Using it as the primary source.`);
-
-        // 3.A. Use Spotify data as the primary source when available
-        finalBookData = {
-          source: 'spotify+audible',
-          id: targetBook.id, // Spotify ID
-          type: 'spotify',
-          title: targetBook.name,
-          author: targetBook.authors.map((a: any) => a.name).join(', '),
-          description: targetBook.description,
-          thumbnail: targetBook.images?.[0]?.url || audibleBook.thumbnail,
-          url: targetBook.external_urls.spotify,
-          duration: msToTime(targetBook.duration_ms),
-          narrator: targetBook.narrators.map((n: any) => n.name).join(', ') || audibleBook.narrator,
-          rating: audibleBook.rating, // Keep Audible's rating, as Spotify doesn't provide it
-          audible_url: audibleBook.url, // Keep a reference to the Audible URL
-          spotify_preview_url: targetBook.preview_url,
-        };
-        
-      } else {
-        console.log('  -> No match found on Spotify. Using Audible data only.');
-        // 3.B. Fallback to Audible data if no Spotify match is found
-        finalBookData = {
-          ...audibleBook,
-          spotify_preview_url: null,
-        };
-      }
-
-      enrichedBooks.push(finalBookData);
-    }
+    const enrichedBooks = spotifyAudiobooks.map((book: any) => ({
+        source: 'spotify',
+        id: book.id, // Spotify ID
+        type: 'audiobook',
+        title: book.name,
+        author: book.authors.map((a: any) => a.name).join(', '),
+        description: book.description,
+        thumbnail: book.images?.[0]?.url,
+        url: book.external_urls.spotify,
+        duration: msToTime(book.duration_ms),
+        narrator: book.narrators.map((n: any) => n.name).join(', '),
+        rating: null, // Spotify API doesn't provide ratings for audiobooks
+        spotify_preview_url: book.preview_url,
+    }));
 
     // 4. Print the final result
-    console.log('\n--- Enriched Spotify Data ---');
+    console.log('\n--- Enriched Spotify Audiobook Data ---');
     console.log(JSON.stringify(enrichedBooks, null, 2));
     console.log('--- Script Finished ---');
 
@@ -104,4 +65,4 @@ async function fetchAndEnrichSpotify() {
   }
 }
 
-fetchAndEnrichSpotify();
+fetchSpotifyAudiobooks();
