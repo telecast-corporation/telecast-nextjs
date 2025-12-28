@@ -108,6 +108,30 @@ export class SpotifyClient {
       throw error;
     }
   }
+
+  async searchAudiobooks(query: string, limit: number = 20): Promise<SpotifyAudiobook[]> {
+    try {
+      const headers = await this.getAuthHeaders();
+      const response = await axios.get(`${SPOTIFY_API_URL}/search`, {
+        params: {
+          q: query,
+          type: 'audiobook',
+          market: 'US',
+          limit: limit,
+        },
+        headers,
+      });
+
+      if (response.data.audiobooks && response.data.audiobooks.items) {
+        return response.data.audiobooks.items;
+      }
+      return [];
+    } catch (error) {
+      console.error(`Error searching Spotify audiobooks:`, error);
+      this.accessToken = null; // Reset token on error
+      throw error;
+    }
+  }
   
   async getPodcastById(id: string): Promise<SpotifyPodcast | null> {
     try {
