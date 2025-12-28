@@ -10,7 +10,7 @@ export async function GET(req: NextRequest) {
 
   try {
     const spotifyClient = new SpotifyClient();
-    const results = await spotifyClient.searchPodcasts(searchTerm);
+    const results = await spotifyClient.searchShows(searchTerm);
     return NextResponse.json(results);
   } catch (error) {
     console.error('Error searching Spotify podcasts:', error);
