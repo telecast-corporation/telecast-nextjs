@@ -15,7 +15,6 @@ import {
   ListItem,
   ListItemAvatar,
   ListItemText,
-  Paper,
   Rating,
   Typography,
   ListItemButton,
@@ -133,7 +132,7 @@ export default function AudiobookPage() {
   return (
     <Container maxWidth="lg" sx={{ py: { xs: 3, md: 5 } }}>
       {/* Header Section */}
-      <Paper elevation={3} sx={{ p: { xs: 2, md: 4 }, mb: 4, borderRadius: 2 }}>
+      <Box sx={{ p: { xs: 2, md: 4 }, mb: 4, borderRadius: 2 }}>
         <Grid container spacing={{ xs: 2, md: 4 }}>
           <Grid item xs={12} md={4}>
             <CardMedia
@@ -184,11 +183,11 @@ export default function AudiobookPage() {
             </Box>
           </Grid>
         </Grid>
-      </Paper>
+      </Box>
 
       {/* Episodes Section */}
       {audiobook.episodes && audiobook.episodes.length > 0 && (
-        <Paper elevation={3} sx={{ p: { xs: 2, md: 4 }, mb: 4, borderRadius: 2 }}>
+        <Box sx={{ p: { xs: 2, md: 4 }, mb: 4, borderRadius: 2 }}>
           <Typography variant="h5" gutterBottom sx={{ fontWeight: 'bold' }}>
             Episodes
           </Typography>
@@ -222,24 +221,24 @@ export default function AudiobookPage() {
               <Pagination count={totalPages} page={currentPage} onChange={(_, p) => setCurrentPage(p)} color="primary" />
             </Box>
           )}
-        </Paper>
+        </Box>
       )}
 
 
       {/* Audiobook Details */}
       <Grid container spacing={{ xs: 2, md: 4 }}>
         <Grid item xs={12} md={8}>
-          <Paper elevation={3} sx={{ p: { xs: 2, md: 4 }, borderRadius: 2, height: '100%' }}>
+          <Box sx={{ p: { xs: 2, md: 4 }, borderRadius: 2, height: '100%' }}>
             <Typography variant="h5" gutterBottom sx={{ fontWeight: 'bold' }}>
               About this audiobook
             </Typography>
             <Typography color="text.secondary" paragraph sx={{ fontSize: '1rem', lineHeight: 1.7 }}>
               {audiobook.description}
             </Typography>
-          </Paper>
+          </Box>
         </Grid>
         <Grid item xs={12} md={4}>
-          <Paper elevation={3} sx={{ p: { xs: 2, md: 4 }, borderRadius: 2, height: '100%' }}>
+          <Box sx={{ p: { xs: 2, md: 4 }, borderRadius: 2, height: '100%' }}>
             <Typography variant="h5" gutterBottom sx={{ fontWeight: 'bold' }}>
               Details
             </Typography>
@@ -275,7 +274,7 @@ export default function AudiobookPage() {
                 <ListItemText primary="Rating" secondary={audiobook.rating > 0 ? `${audiobook.rating} stars` : 'Not rated'} />
               </ListItem>
             </List>
-          </Paper>
+          </Box>
         </Grid>
       </Grid>
     </Container>
