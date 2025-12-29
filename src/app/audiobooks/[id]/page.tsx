@@ -129,9 +129,15 @@ export default function AudiobookPage() {
               </Box>
               <Box sx={{ mt: { xs: 2, md: 0 } }}>
                 {audiobook.url && (
-                  <audio controls src={audiobook.url} style={{ width: '100%' }}>
-                    Your browser does not support the audio element.
-                  </audio>
+                  <iframe
+                    src={audiobook.url}
+                    width="100%"
+                    height="352"
+                    frameBorder="0"
+                    allowFullScreen
+                    allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                    loading="lazy"
+                  ></iframe>
                 )}
               </Box>
             </Box>
