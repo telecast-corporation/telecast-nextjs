@@ -1,7 +1,9 @@
+'use client';
+
 import { NextResponse } from 'next/server';
 import axios from 'axios';
 import { prisma } from '@/lib/prisma';
-import { searchAudible } from '@/lib/audible-search';
+import { SpotifyClient } from '@/lib/spotify';
 
 const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;
 const SPOTIFY_CLIENT_ID = process.env.SPOTIFY_CLIENT_ID;
@@ -278,12 +280,27 @@ async function getTrendingBooks() {
 
 async function getTrendingAudiobooks() {
   try {
-    console.log('Fetching trending audiobooks...');
-    const audiobooks = await searchAudible('trending', 40);
-    console.log('Audiobooks response:', audiobooks);
-    return audiobooks;
+    console.log('Fetching trending audiobooks from Spotify...');
+    const spotifyClient = new SpotifyClient();
+    const audiobooks = await spotifyClient.searchAudiobooks('bestsellers', 50);
+
+    const mappedBooks = audiobooks.map((item: any) => ({
+        type: 'audiobook',
+        id: item.id,
+        title: truncateText(item.name, 50),
+        description: truncateText(item.description, 100),
+        thumbnail: ensureHttps(item.images[0]?.url),
+        url: `/audiobooks/${item.id}`,
+        author: truncateText(item.authors.map((a: any) => a.name).join(', '), 30),
+        narrator: item.narrators.map((n: any) => n.name).join(', '),
+        source: 'spotify',
+        sourceUrl: item.external_urls.spotify,
+    }));
+
+    console.log('Spotify audiobooks response:', mappedBooks.length);
+    return mappedBooks;
   } catch (error) {
-    console.error('Error fetching trending audiobooks:', error);
+    console.error('Error fetching trending audiobooks from Spotify:', error);
     return [];
   }
 }
