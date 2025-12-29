@@ -232,7 +232,7 @@ export default function AudiobookPage() {
             <Typography variant="h5" gutterBottom sx={{ fontWeight: 'bold' }}>
               About this audiobook
             </Typography>
-            <Typography color="text.secondary" paragraph sx={{ fontSize: '1rem', lineHeight: 1.7 }}>
+            <Typography component="div" color="text.secondary" sx={{ fontSize: '1rem', lineHeight: 1.7 }}>
               {audiobook.description}
             </Typography>
           </Box>
@@ -268,7 +268,7 @@ export default function AudiobookPage() {
               <ListItem disablePadding>
                 <ListItemAvatar>
                   <Avatar>
-                    <Rating value={audiobook.rating} readOnly precision={0.5} />
+                    <Rating value={audiobook.rating || null} readOnly precision={0.5} />
                   </Avatar>
                 </ListItemAvatar>
                 <ListItemText primary="Rating" secondary={audiobook.rating > 0 ? `${audiobook.rating} stars` : 'Not rated'} />
