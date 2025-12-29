@@ -28,6 +28,17 @@ export interface SpotifyEpisode {
     external_urls: { spotify: string };
 }
 
+export interface SpotifyChapter {
+    id: string;
+    name: string;
+    description: string;
+    audio_preview_url: string;
+    duration_ms: number;
+    release_date: string;
+    images: { url: string }[];
+    external_urls: { spotify: string };
+}
+
 export interface SpotifyAudiobook {
   id: string;
   name: string;
@@ -38,7 +49,7 @@ export interface SpotifyAudiobook {
   images: { url: string }[];
   external_urls: { spotify: string };
   explicit: boolean;
-  preview_url: string;
+  chapters: { items: SpotifyChapter[] };
 }
 
 export class SpotifyClient {
@@ -122,10 +133,18 @@ export class SpotifyClient {
   async getAudiobookById(id: string): Promise<SpotifyAudiobook | null> {
     try {
       const headers = await this.getAuthHeaders();
-      const response = await axios.get(`${SPOTIFY_API_URL}/audiobooks/${id}`, {
+      const audiobookResponse = await axios.get(`${SPOTIFY_API_URL}/audiobooks/${id}`, {
         headers,
       });
-      return response.data;
+
+      const chaptersResponse = await axios.get(`${SPOTIFY_API_URL}/audiobooks/${id}/chapters`, {
+        headers,
+      });
+
+      const audiobookData = audiobookResponse.data;
+      audiobookData.chapters = chaptersResponse.data;
+
+      return audiobookData;
     } catch (error) {
       console.error(`Error fetching Spotify audiobook with id ${id}:`, error);
       this.accessToken = null;

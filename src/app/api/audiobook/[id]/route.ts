@@ -1,5 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { SpotifyClient } from '@/lib/spotify';
+import { SpotifyClient, SpotifyChapter } from '@/lib/spotify';
+
+// Helper to format duration from ms to a readable format
+const formatDuration = (ms: number) => {
+  const minutes = Math.floor(ms / 60000);
+  const seconds = ((ms % 60000) / 1000).toFixed(0);
+  return `${minutes}:${seconds.padStart(2, '0')}`;
+};
 
 export async function GET(
   request: NextRequest,
@@ -25,18 +32,29 @@ export async function GET(
       );
     }
 
+    // Map chapters to a consistent episode format
+    const episodes = audiobook.chapters.items.map((chapter: SpotifyChapter) => ({
+      id: chapter.id,
+      title: chapter.name,
+      url: chapter.audio_preview_url,
+      duration: formatDuration(chapter.duration_ms),
+      publishDate: chapter.release_date,
+    }));
+
     const formattedResponse = {
       id: audiobook.id,
       title: audiobook.name,
       author: audiobook.authors.map(a => a.name).join(', '),
       description: audiobook.description,
       thumbnail: audiobook.images[0]?.url,
-      url: audiobook.preview_url || '', // Use preview_url for audio playback
-      duration: '', // Spotify API doesn't provide this for audiobooks
+      // Use the preview URL from the first chapter as the main URL
+      url: episodes.length > 0 ? episodes[0].url : '',
+      duration: '', // This could be a total of chapter durations if needed
       narrator: audiobook.narrators.map(n => n.name).join(', '),
       rating: 0, // Spotify API doesn't provide this
       source: 'spotify',
       sourceUrl: audiobook.external_urls.spotify,
+      episodes: episodes, // Include the list of episodes
     };
 
     return NextResponse.json(formattedResponse);
