@@ -128,16 +128,10 @@ export default function AudiobookPage() {
                 </Box>
               </Box>
               <Box sx={{ mt: { xs: 2, md: 0 } }}>
-                {audiobook.source === 'spotify' && (
-                  <iframe
-                    src={`https://open.spotify.com/embed/audiobook/${audiobook.id}?utm_source=generator`}
-                    width="100%"
-                    height="152"
-                    frameBorder="0"
-                    allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                    loading="lazy"
-                    style={{ borderRadius: '12px' }}
-                  ></iframe>
+                {audiobook.url && (
+                  <audio controls src={audiobook.url} style={{ width: '100%' }}>
+                    Your browser does not support the audio element.
+                  </audio>
                 )}
               </Box>
             </Box>
