@@ -6,9 +6,9 @@ export const revalidate = 3600;
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const { id: audiobookId } = params;
+  const { id: audiobookId } = await params;
 
   if (!audiobookId) {
     return NextResponse.json(
