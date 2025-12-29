@@ -122,6 +122,7 @@ export default function AudiobookPage() {
   }
 
   const audioUrl = selectedEpisode ? selectedEpisode.url : audiobook.url;
+  const embedUrl = audioUrl.replace('/episode/', '/embed/episode/');
 
   return (
     <Container maxWidth="lg" sx={{ py: { xs: 3, md: 5 } }}>
@@ -161,23 +162,25 @@ export default function AudiobookPage() {
                   </Typography>
                 </Box>
               </Box>
-              <Box sx={{ mt: { xs: 2, md: 0 } }}>
-                {audioUrl && (
-                  <iframe
-                    src={audioUrl}
-                    width="100%"
-                    height="352"
-                    frameBorder="0"
-                    allowFullScreen
-                    allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                    loading="lazy"
-                  ></iframe>
-                )}
-              </Box>
             </Box>
           </Grid>
         </Grid>
       </Paper>
+
+      {/* Spotify Player */}
+      {audioUrl && (
+        <Paper elevation={3} sx={{ p: { xs: 2, md: 4 }, mb: 4, borderRadius: 2 }}>
+          <iframe
+            src={embedUrl}
+            width="100%"
+            height="352"
+            frameBorder="0"
+            allowFullScreen
+            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+            loading="lazy"
+          ></iframe>
+        </Paper>
+      )}
 
       {/* Episodes Section */}
       {audiobook.episodes && audiobook.episodes.length > 0 && (
