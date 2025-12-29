@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useParams } from 'next/navigation';
 import {
   Avatar,
@@ -18,13 +18,26 @@ import {
   Paper,
   Rating,
   Typography,
+  ListItemButton,
+  IconButton,
+  Pagination,
 } from '@mui/material';
 import {
   CalendarToday as CalendarIcon,
   Headphones as HeadphonesIcon,
   Person as PersonIcon,
+  PlayArrow as PlayArrowIcon,
 } from '@mui/icons-material';
 import axios from 'axios';
+
+// Assuming episodes are part of the audiobook details
+interface Episode {
+  id: string;
+  title: string;
+  url: string; // URL for the episode audio
+  duration?: string;
+  publishDate?: string;
+}
 
 interface AudiobookDetails {
   id: string;
@@ -38,6 +51,7 @@ interface AudiobookDetails {
   rating: number;
   source: string;
   sourceUrl: string;
+  episodes?: Episode[];
 }
 
 // Helper to ensure HTTPS
@@ -51,6 +65,9 @@ export default function AudiobookPage() {
   const [audiobook, setAudiobook] = useState<AudiobookDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedEpisode, setSelectedEpisode] = useState<Episode | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const episodesPerPage = 10;
 
   useEffect(() => {
     const fetchAudiobookDetails = async () => {
@@ -58,6 +75,9 @@ export default function AudiobookPage() {
         setLoading(true);
         const response = await axios.get(`/api/audiobook/${params.id}`);
         setAudiobook(response.data);
+        if (response.data.episodes && response.data.episodes.length > 0) {
+          setSelectedEpisode(response.data.episodes[0]);
+        }
         setError(null);
       } catch (err: any) {
         console.error('Error fetching audiobook details:', err);
@@ -72,6 +92,18 @@ export default function AudiobookPage() {
       fetchAudiobookDetails();
     }
   }, [params.id]);
+
+  const visibleEpisodes = useMemo(() => {
+    if (!audiobook?.episodes) return [];
+    const start = (currentPage - 1) * episodesPerPage;
+    return audiobook.episodes.slice(start, start + episodesPerPage);
+  }, [audiobook, currentPage]);
+
+  const totalPages = audiobook?.episodes ? Math.ceil(audiobook.episodes.length / episodesPerPage) : 0;
+
+  const handleSelectEpisode = (episode: Episode) => {
+    setSelectedEpisode(episode);
+  };
 
   if (loading) {
     return (
@@ -88,6 +120,8 @@ export default function AudiobookPage() {
       </Container>
     );
   }
+
+  const audioUrl = selectedEpisode ? selectedEpisode.url : audiobook.url;
 
   return (
     <Container maxWidth="lg" sx={{ py: { xs: 3, md: 5 } }}>
@@ -128,9 +162,9 @@ export default function AudiobookPage() {
                 </Box>
               </Box>
               <Box sx={{ mt: { xs: 2, md: 0 } }}>
-                {audiobook.url && (
+                {audioUrl && (
                   <iframe
-                    src={audiobook.url}
+                    src={audioUrl}
                     width="100%"
                     height="352"
                     frameBorder="0"
@@ -144,6 +178,46 @@ export default function AudiobookPage() {
           </Grid>
         </Grid>
       </Paper>
+
+      {/* Episodes Section */}
+      {audiobook.episodes && audiobook.episodes.length > 0 && (
+        <Paper elevation={3} sx={{ p: { xs: 2, md: 4 }, mb: 4, borderRadius: 2 }}>
+          <Typography variant="h5" gutterBottom sx={{ fontWeight: 'bold' }}>
+            Episodes
+          </Typography>
+          <List>
+            {visibleEpisodes.map((episode) => (
+              <ListItem key={episode.id} disablePadding divider>
+                <ListItemButton onClick={() => handleSelectEpisode(episode)} selected={selectedEpisode?.id === episode.id}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+                    <IconButton size="small" sx={{ mr: 1, color: 'primary.main' }}>
+                      <PlayArrowIcon />
+                    </IconButton>
+                    <ListItemText
+                      primary={
+                        <Typography variant="subtitle1" sx={{ fontWeight: selectedEpisode?.id === episode.id ? 700 : 500, color: selectedEpisode?.id === episode.id ? 'primary.main' : 'text.primary' }}>
+                          {episode.title}
+                        </Typography>
+                      }
+                      secondary={
+                        <Typography variant="body2" color="text.secondary">
+                          {episode.duration || ''}
+                        </Typography>
+                      }
+                    />
+                  </Box>
+                </ListItemButton>
+              </ListItem>
+            ))}
+          </List>
+          {totalPages > 1 && (
+            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
+              <Pagination count={totalPages} page={currentPage} onChange={(_, p) => setCurrentPage(p)} color="primary" />
+            </Box>
+          )}
+        </Paper>
+      )}
+
 
       {/* Audiobook Details */}
       <Grid container spacing={{ xs: 2, md: 4 }}>
