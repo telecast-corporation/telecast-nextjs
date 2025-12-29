@@ -120,15 +120,6 @@ export default function AudiobookPage() {
     );
   }
 
-  const embedUrl = useMemo(() => {
-    if (!audiobook) return undefined;
-    if (audiobook.source === 'spotify') {
-      return `https://open.spotify.com/embed/show/${audiobook.id}`;
-    }
-    const audioUrl = selectedEpisode ? selectedEpisode.url : audiobook.url;
-    return audioUrl ? audioUrl.replace('/episode/', '/embed/episode/') : undefined;
-  }, [audiobook, selectedEpisode]);
-
   return (
     <Container maxWidth="lg" sx={{ py: { xs: 3, md: 5 } }}>
       {/* Header Section */}
@@ -168,17 +159,18 @@ export default function AudiobookPage() {
                 </Box>
               </Box>
               <Box sx={{ mt: { xs: 2, md: 0 } }}>
-                {/* {embedUrl && (
-                  <iframe
-                    src={embedUrl}
-                    width="100%"
-                    height="352"
-                    frameBorder="0"
-                    allowFullScreen
-                    allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                    loading="lazy"
-                  ></iframe>
-                )} */}
+              {audiobook && (
+                 <iframe
+                   title="Embedded Spotify episode player"
+                   src={audiobook.source === 'spotify' ? `https://open.spotify.com/embed/show/${audiobook.id}` : (selectedEpisode ? selectedEpisode.url : audiobook.url)?.replace('/episode/', '/embed/episode/')}
+                   width="100%"
+                   height="100%"
+                   frameBorder="0"
+                   allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                   loading="lazy"
+                   style={{ border: 'none', borderRadius: '8px' }}
+                 />
+                )}
               </Box>
             </Box>
           </Grid>
