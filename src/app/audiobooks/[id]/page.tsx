@@ -25,7 +25,6 @@ import {
   Person as PersonIcon,
 } from '@mui/icons-material';
 import axios from 'axios';
-import AudioPlayer from '@/components/AudioPlayer';
 
 interface AudiobookDetails {
   id: string;
@@ -33,7 +32,7 @@ interface AudiobookDetails {
   author: string;
   description: string;
   thumbnail: string;
-  url: string; // This is the internal URL for playback
+  url: string; // This is the internal URL for playback or preview
   duration: string;
   narrator: string;
   rating: number;
@@ -52,7 +51,6 @@ export default function AudiobookPage() {
   const [audiobook, setAudiobook] = useState<AudiobookDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchAudiobookDetails = async () => {
@@ -75,23 +73,6 @@ export default function AudiobookPage() {
     }
   }, [params.id]);
 
-  useEffect(() => {
-    const fetchPreviewUrl = async () => {
-      if (audiobook) {
-        try {
-          const response = await axios.get(`/api/audiobook/preview?title=${encodeURIComponent(audiobook.title)}`);
-          if (response.data.previewUrl) {
-            setPreviewUrl(response.data.previewUrl);
-          }
-        } catch (err) {
-          console.error('Error fetching preview URL:', err);
-        }
-      }
-    };
-
-    fetchPreviewUrl();
-  }, [audiobook]);
-
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
@@ -107,8 +88,6 @@ export default function AudiobookPage() {
       </Container>
     );
   }
-
-  const audioUrl = previewUrl || (audiobook.url ? `/api/audio${audiobook.url}`: '');
 
   return (
     <Container maxWidth="lg" sx={{ py: { xs: 3, md: 5 } }}>
@@ -141,7 +120,7 @@ export default function AudiobookPage() {
                 >
                   {audiobook.title}
                 </Typography>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
                   <PersonIcon color="action" />
                   <Typography variant="h6" color="text.secondary">
                     {audiobook.author}
@@ -149,13 +128,16 @@ export default function AudiobookPage() {
                 </Box>
               </Box>
               <Box sx={{ mt: { xs: 2, md: 0 } }}>
-                {audioUrl && (
-                  <AudioPlayer
-                    audioUrl={audioUrl}
-                    imageUrl={ensureHttps(audiobook.thumbnail) || ''}
-                    title={audiobook.title}
-                    episodeTitle={audiobook.title}
-                  />
+                {audiobook.source === 'spotify' && (
+                  <iframe
+                    src={`https://open.spotify.com/embed/audiobook/${audiobook.id}?utm_source=generator`}
+                    width="100%"
+                    height="152"
+                    frameBorder="0"
+                    allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                    loading="lazy"
+                    style={{ borderRadius: '12px' }}
+                  ></iframe>
                 )}
               </Box>
             </Box>
@@ -187,25 +169,29 @@ export default function AudiobookPage() {
                     <PersonIcon />
                   </Avatar>
                 </ListItemAvatar>
-                <ListItemText primary="Narrator" secondary={audiobook.narrator} />
+                <ListItemText primary="Narrator" secondary={audiobook.narrator || 'N/A'} />
               </ListItem>
               <Divider variant="inset" component="li" sx={{ my: 1 }} />
-              <ListItem disablePadding>
-                <ListItemAvatar>
-                  <Avatar>
-                    <CalendarIcon />
-                  </Avatar>
-                </ListItemAvatar>
-                <ListItemText primary="Duration" secondary={audiobook.duration} />
-              </ListItem>
-              <Divider variant="inset" component="li" sx={{ my: 1 }} />
+              {audiobook.duration && (
+                <>
+                  <ListItem disablePadding>
+                    <ListItemAvatar>
+                      <Avatar>
+                        <CalendarIcon />
+                      </Avatar>
+                    </ListItemAvatar>
+                    <ListItemText primary="Duration" secondary={audiobook.duration} />
+                  </ListItem>
+                  <Divider variant="inset" component="li" sx={{ my: 1 }} />
+                </>
+              )}
               <ListItem disablePadding>
                 <ListItemAvatar>
                   <Avatar>
                     <Rating value={audiobook.rating} readOnly precision={0.5} />
                   </Avatar>
                 </ListItemAvatar>
-                <ListItemText primary="Rating" secondary={`${audiobook.rating} stars`} />
+                <ListItemText primary="Rating" secondary={audiobook.rating > 0 ? `${audiobook.rating} stars` : 'Not rated'} />
               </ListItem>
             </List>
           </Paper>

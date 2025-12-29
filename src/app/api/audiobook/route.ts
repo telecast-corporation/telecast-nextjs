@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { searchAudible } from '@/lib/audible-search';
+import { SpotifyClient } from '@/lib/spotify';
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -13,7 +13,8 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const results = await searchAudible(query);
+    const spotifyClient = new SpotifyClient();
+    const results = await spotifyClient.searchAudiobooks(query);
     return NextResponse.json(results);
   } catch (error) {
     console.error('Failed to fetch audiobooks:', error);

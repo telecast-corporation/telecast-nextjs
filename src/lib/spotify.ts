@@ -119,7 +119,24 @@ export class SpotifyClient {
     }
   }
 
-  async searchAudiobooks(query: string): Promise<SpotifyAudiobook[]> {
+  async getAudiobookById(id: string): Promise<SpotifyAudiobook | null> {
+    try {
+      const headers = await this.getAuthHeaders();
+      const response = await axios.get(`${SPOTIFY_API_URL}/audiobooks/${id}`, {
+        headers,
+      });
+      return response.data;
+    } catch (error) {
+      console.error(`Error fetching Spotify audiobook with id ${id}:`, error);
+      this.accessToken = null;
+      if (axios.isAxiosError(error) && error.response?.status === 404) {
+        return null;
+      }
+      throw error;
+    }
+  }
+
+  async searchAudiobooks(query: string, limit: number = 20): Promise<SpotifyAudiobook[]> {
     try {
       const headers = await this.getAuthHeaders();
       const response = await axios.get(`${SPOTIFY_API_URL}/search`, {
@@ -127,7 +144,7 @@ export class SpotifyClient {
           q: query,
           type: 'audiobook',
           market: 'US',
-          limit: 1,
+          limit,
         },
         headers,
       });

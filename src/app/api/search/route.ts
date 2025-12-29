@@ -5,7 +5,7 @@ import { getAuth0User } from '@/lib/auth0-session';
 import { prisma } from '@/lib/prisma';
 import axios from 'axios';
 import { PodcastIndex, Podcast } from '@/lib/podcast-index';
-import { searchAudible } from '@/lib/audible-search';
+import { SpotifyClient } from '@/lib/spotify';
 
 // OMDb API Configuration
 const OMDB_API_KEY = process.env.OMDB_API_KEY;
@@ -348,53 +348,37 @@ async function searchMusic(query: string, maxResults: number = 300) {
 
 async function searchAudiobooks(query: string, maxResults: number = 300) {
     try {
-        console.log('🎧 Searching audiobooks for query:', query);
+        console.log('🎧 Searching Spotify audiobooks for query:', query);
+        const spotifyClient = new SpotifyClient();
+        // Spotify API has a limit of 50 for search results per request.
+        const audiobooks = await spotifyClient.searchAudiobooks(query, Math.min(maxResults, 50));
 
-        const books = await searchAudible(query, maxResults);
-
-        console.log('🎧 Raw audiobooks from searchAudible:', books.map(book => ({
-            title: book.title,
-            url: book.url,
-            audibleUrl: book.audibleUrl,
-            id: book.id
-        })));
-
-        const mappedBooks = books.map((item: any) => ({
+        const mappedBooks = audiobooks.map((item: any) => ({
             type: 'audiobook',
             id: item.id,
-            title: truncateText(item.title, 50),
+            title: truncateText(item.name, 50),
             description: truncateText(item.description, 100),
-            thumbnail: ensureHttps(item.thumbnail),
-            url: item.url,
-            author: truncateText(item.author, 30),
-            duration: item.duration,
-            narrator: item.narrator,
-            rating: item.rating,
-            audibleUrl: item.audibleUrl,
-            source: 'audible',
-            sourceUrl: item.sourceUrl,
+            thumbnail: ensureHttps(item.images[0]?.url),
+            url: `/audiobooks/${item.id}`, // Internal link to the detail page
+            author: truncateText(item.authors.map((a: any) => a.name).join(', '), 30),
+            narrator: item.narrators.map((n: any) => n.name).join(', '),
+            source: 'spotify',
+            sourceUrl: item.external_urls.spotify,
         }));
-
-        console.log('🎧 Mapped audiobooks:', mappedBooks.map(book => ({
+        
+        console.log('🎧 Mapped Spotify audiobooks:', mappedBooks.map(book => ({
             title: book.title,
             url: book.url,
-            audibleUrl: book.audibleUrl,
             id: book.id
         })));
 
         return mappedBooks;
     } catch (error: any) {
-        console.error('🎧 Audiobook search error:', error);
-        if (error.response) {
-            console.error('🎧 Error response:', {
-                status: error.response.status,
-                statusText: error.response.statusText,
-                data: error.response.data,
-            });
-        }
+        console.error('🎧 Spotify Audiobook search error:', error);
         return [];
     }
 }
+
 
 async function searchTVShows(query: string, maxResults: number = 300) {
     try {
