@@ -121,8 +121,14 @@ export default function AudiobookPage() {
     );
   }
 
-  const audioUrl = selectedEpisode ? selectedEpisode.url : audiobook.url;
-  const embedUrl = audioUrl ? audioUrl.replace('/episode/', '/embed/episode/') : undefined;
+  const embedUrl = useMemo(() => {
+    if (!audiobook) return undefined;
+    if (audiobook.source === 'spotify') {
+      return `https://open.spotify.com/embed/show/${audiobook.id}`;
+    }
+    const audioUrl = selectedEpisode ? selectedEpisode.url : audiobook.url;
+    return audioUrl ? audioUrl.replace('/episode/', '/embed/episode/') : undefined;
+  }, [audiobook, selectedEpisode]);
 
   return (
     <Container maxWidth="lg" sx={{ py: { xs: 3, md: 5 } }}>
