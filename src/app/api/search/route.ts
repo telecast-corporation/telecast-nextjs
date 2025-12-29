@@ -365,7 +365,7 @@ async function searchAudiobooks(query: string, maxResults: number = 300) {
             source: 'spotify',
             sourceUrl: item.external_urls.spotify,
         }));
-        
+
         console.log('🎧 Mapped Spotify audiobooks:', mappedBooks.map(book => ({
             title: book.title,
             url: book.url,
@@ -1062,10 +1062,10 @@ export async function POST(request: Request) {
             console.log('🎧 Audiobooks being sent to frontend:', audiobooks.map(book => ({
                 title: book.title,
                 url: book.url,
-                audibleUrl: book.audibleUrl,
                 id: book.id
             })));
         }
+
 
         const tvShows = searchResults.filter(result => result.type === 'tv');
         if (tvShows.length > 0) {

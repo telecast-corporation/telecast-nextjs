@@ -152,7 +152,7 @@ export async function GET(request: Request) {
   try {
     const books = google.books({
       version: 'v1',
-      auth: process.env.GOOGLE_API_KEY,
+      auth: process.env.GOOGLE_BOOKS_API_KEY,
     });
 
     const res = await books.volumes.list({
