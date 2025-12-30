@@ -160,17 +160,23 @@ export default function AudiobookPage() {
               </Box>
               <Box sx={{ mt: { xs: 2, md: 0 } }}>
               {audiobook && (
-                 <iframe
-                   title="Embedded Spotify episode player"
-                   src={audiobook.source === 'spotify' ? `https://open.spotify.com/embed/show/${audiobook.id}` : (selectedEpisode ? selectedEpisode.url : audiobook.url)?.replace('/episode/', '/embed/episode/')}
-                   width="100%"
-                   height="100%"
-                   frameBorder="0"
-                   allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                   loading="lazy"
-                   style={{ border: 'none', borderRadius: '8px' }}
-                 />
-                )}
+                  <iframe
+                    title="Embedded Spotify episode player"
+                    src={
+                      selectedEpisode?.url
+                        ? selectedEpisode.url.replace('/episode/', '/embed/episode/')
+                        : audiobook.source === 'spotify'
+                          ? `https://open.spotify.com/embed/show/${audiobook.id}`
+                          : audiobook.url?.replace('/episode/', '/embed/episode/')
+                    }
+                    width="100%"
+                    height="100%"
+                    frameBorder="0"
+                    allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                    loading="lazy"
+                    style={{ border: 'none', borderRadius: '8px' }}
+                  />
+                 )}
               </Box>
             </Box>
           </Grid>
