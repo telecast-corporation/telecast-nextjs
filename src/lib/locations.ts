@@ -1,123 +1,46 @@
+    {
+  "countries": [
+    { "name": "India", "cities": ["New Delhi", "Mumbai", "Bangalore", "Chennai", "Kolkata"] },
+    { "name": "China", "cities": ["Beijing", "Shanghai", "Guangzhou", "Shenzhen", "Chengdu"] },
+    { "name": "United States", "cities": ["Washington, D.C.", "New York", "Los Angeles", "Chicago", "Houston"] },
+    { "name": "Indonesia", "cities": ["Jakarta", "Surabaya", "Bandung", "Medan", "Bekasi"] },
+    { "name": "Pakistan", "cities": ["Islamabad", "Karachi", "Lahore", "Faisalabad", "Rawalpindi"] },
+    { "name": "Nigeria", "cities": ["Abuja", "Lagos", "Ibadan", "Benin City", "Port Harcourt"] },
+    { "name": "Brazil", "cities": ["Brasília", "São Paulo", "Rio de Janeiro", "Salvador", "Fortaleza"] },
+    { "name": "Bangladesh", "cities": ["Dhaka", "Chittagong", "Khulna", "Rajshahi", "Sylhet"] },
+    { "name": "Russia", "cities": ["Moscow", "Saint Petersburg", "Novosibirsk", "Yekaterinburg", "Kazan"] },
+    { "name": "Mexico", "cities": ["Mexico City", "Guadalajara", "Monterrey", "Puebla", "Tijuana"] },
 
-export const countries = [
-    "United States",
-    "Canada",
-    "Mexico",
-    "Brazil",
-    "United Kingdom",
-    "Germany",
-    "France",
-    "Japan",
-    "Australia"
-];
+    { "name": "Japan", "cities": ["Tokyo", "Osaka", "Yokohama", "Nagoya", "Fukuoka"] },
+    { "name": "Ethiopia", "cities": ["Addis Ababa", "Dire Dawa", "Mekelle", "Gondar", "Hawassa"] },
+    { "name": "Philippines", "cities": ["Manila", "Quezon City", "Davao", "Cebu City", "Zamboanga"] },
+    { "name": "Egypt", "cities": ["Cairo", "Alexandria", "Giza", "Port Said", "Suez"] },
+    { "name": "Vietnam", "cities": ["Hanoi", "Ho Chi Minh City", "Da Nang", "Hai Phong", "Can Tho"] },
+    { "name": "DR Congo", "cities": ["Kinshasa", "Lubumbashi", "Mbuji-Mayi", "Kisangani", "Goma"] },
+    { "name": "Turkey", "cities": ["Ankara", "Istanbul", "Izmir", "Bursa", "Antalya"] },
+    { "name": "Iran", "cities": ["Tehran", "Mashhad", "Isfahan", "Karaj", "Shiraz"] },
+    { "name": "Germany", "cities": ["Berlin", "Hamburg", "Munich", "Cologne", "Frankfurt"] },
+    { "name": "Thailand", "cities": ["Bangkok", "Chiang Mai", "Pattaya", "Phuket", "Nakhon Ratchasima"] },
 
-export const cities: { [key: string]: string[] } = {
-    "United States": [
-        "New York",
-        "Los Angeles",
-        "Chicago",
-        "Houston",
-        "Phoenix",
-        "Philadelphia",
-        "San Antonio",
-        "San Diego",
-        "Dallas",
-        "San Jose"
-    ],
-    "Canada": [
-        "Toronto",
-        "Montreal",
-        "Vancouver",
-        "Calgary",
-        "Edmonton",
-        "Ottawa",
-        "Quebec City",
-        "Winnipeg",
-        "Hamilton",
-        "Kitchener"
-    ],
-    "Mexico": [
-        "Mexico City",
-        "Guadalajara",
-        "Monterrey",
-        "Puebla",
-        "Tijuana",
-        "Ciudad Juarez",
-        "Leon",
-        "Zapopan",
-        "Mexicali",
-        "Culiacan"
-    ],
-    "Brazil": [
-        "São Paulo",
-        "Rio de Janeiro",
-        "Salvador",
-        "Brasília",
-        "Fortaleza",
-        "Belo Horizonte",
-        "Manaus",
-        "Curitiba",
-        "Recife",
-        "Porto Alegre"
-    ],
-    "United Kingdom": [
-        "London",
-        "Birmingham",
-        "Glasgow",
-        "Liverpool",
-        "Bristol",
-        "Manchester",
-        "Sheffield",
-        "Leeds",
-        "Edinburgh",
-        "Leicester"
-    ],
-    "Germany": [
-        "Berlin",
-        "Hamburg",
-        "Munich",
-        "Cologne",
-        "Frankfurt",
-        "Stuttgart",
-        "Düsseldorf",
-        "Dortmund",
-        "Essen",
-        "Leipzig"
-    ],
-    "France": [
-        "Paris",
-        "Marseille",
-        "Lyon",
-        "Toulouse",
-        "Nice",
-        "Nantes",
-        "Strasbourg",
-        "Montpellier",
-        "Bordeaux",
-        "Lille"
-    ],
-    "Japan": [
-        "Tokyo",
-        "Yokohama",
-        "Osaka",
-        "Nagoya",
-        "Sapporo",
-        "Fukuoka",
-        "Kobe",
-        "Kyoto",
-        "Kawasaki",
-        "Saitama"
-    ],
-    "Australia": [
-        "Sydney",
-        "Melbourne",
-        "Brisbane",
-        "Perth",
-        "Adelaide",
-        "Gold Coast",
-        "Cranbourne",
-        "Canberra",
-        "Newcastle",
-        "Wollongong"
-    ]
-};
+    { "name": "United Kingdom", "cities": ["London", "Manchester", "Birmingham", "Liverpool", "Leeds"] },
+    { "name": "France", "cities": ["Paris", "Marseille", "Lyon", "Toulouse", "Nice"] },
+    { "name": "Italy", "cities": ["Rome", "Milan", "Naples", "Turin", "Florence"] },
+    { "name": "Tanzania", "cities": ["Dodoma", "Dar es Salaam", "Arusha", "Mwanza", "Mbeya"] },
+    { "name": "South Africa", "cities": ["Pretoria", "Johannesburg", "Cape Town", "Durban", "Bloemfontein"] },
+    { "name": "Myanmar", "cities": ["Naypyidaw", "Yangon", "Mandalay", "Bago", "Taunggyi"] },
+    { "name": "Kenya", "cities": ["Nairobi", "Mombasa", "Kisumu", "Nakuru", "Eldoret"] },
+    { "name": "South Korea", "cities": ["Seoul", "Busan", "Incheon", "Daegu", "Daejeon"] },
+    { "name": "Colombia", "cities": ["Bogotá", "Medellín", "Cali", "Barranquilla", "Cartagena"] },
+    { "name": "Spain", "cities": ["Madrid", "Barcelona", "Valencia", "Seville", "Bilbao"] },
+
+    { "name": "Uganda", "cities": ["Kampala", "Gulu", "Lira", "Mbarara", "Jinja"] },
+    { "name": "Argentina", "cities": ["Buenos Aires", "Córdoba", "Rosario", "Mendoza", "La Plata"] },
+    { "name": "Algeria", "cities": ["Algiers", "Oran", "Constantine", "Annaba", "Blida"] },
+    { "name": "Sudan", "cities": ["Khartoum", "Omdurman", "Port Sudan", "El Obeid", "Kassala"] },
+    { "name": "Ukraine", "cities": ["Kyiv", "Kharkiv", "Odesa", "Dnipro", "Lviv"] },
+    { "name": "Iraq", "cities": ["Baghdad", "Basra", "Mosul", "Erbil", "Najaf"] },
+    { "name": "Afghanistan", "cities": ["Kabul", "Herat", "Kandahar", "Mazar-i-Sharif", "Jalalabad"] },
+    { "name": "Poland", "cities": ["Warsaw", "Kraków", "Łódź", "Wrocław", "Poznań"] },
+    { "name": "Canada", "cities": ["Ottawa", "Toronto", "Vancouver", "Montreal", "Calgary"] }
+  ]
+}
